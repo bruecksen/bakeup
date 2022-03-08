@@ -272,7 +272,7 @@ tags
 bakeup/media/
 
 .pytest_cache/
-project.css
-project.min.css
-vendors.js
-*.min.js
+# project.css
+# project.min.css
+# vendors.js
+# *.min.js
