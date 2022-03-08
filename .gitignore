@@ -276,3 +276,4 @@ bakeup/media/
 # project.min.css
 # vendors.js
 # *.min.js
+.env
