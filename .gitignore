@@ -277,3 +277,4 @@ bakeup/media/
 # vendors.js
 # *.min.js
 .env
+package-lock.json
