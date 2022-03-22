@@ -1,19 +1,11 @@
 from django.db import models
 from django.db.models import Q, F
 
-from bakeup.core.models import TenantModelMixin
+from bakeup.core.models import CommonBaseClass, TenantModel
 
 
-class CommonBaseClass(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    is_archived = models.BooleanField(default=False)
 
-    class Meta:
-        abstract = True
-
-
-class Category(TenantModelMixin, CommonBaseClass):
+class Category(TenantModel, CommonBaseClass):
     parent = models.ForeignKey('workshop.Category', blank=True, null=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     slug = models.SlugField()
@@ -39,7 +31,7 @@ VOLUME_UNIT_CHOICES = [
 ]
 
 # Item
-class Product(TenantModelMixin, CommonBaseClass):
+class Product(TenantModel, CommonBaseClass):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     description = models.TextField()
@@ -57,14 +49,14 @@ class Product(TenantModelMixin, CommonBaseClass):
 
 
 # Assembly
-class Instruction(TenantModelMixin, CommonBaseClass):
+class Instruction(TenantModel, CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
     instruction = models.TextField()
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds")
 
 
 # Charge
-class ProductRevision(TenantModelMixin, CommonBaseClass):
+class ProductRevision(TenantModel, CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='revisions')
     timestamp = models.DateTimeField(auto_now_add=True)
     from_date = models.DateTimeField()
@@ -78,7 +70,7 @@ class ProductRevision(TenantModelMixin, CommonBaseClass):
 # Hierarchy, Recipe
 # Warning: Changes on product level are not presisted
 # NOTE maybe add later revision to reflect changes on product level
-class ProductHierarchy(TenantModelMixin, CommonBaseClass):
+class ProductHierarchy(TenantModel, CommonBaseClass):
     parent = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='parents')
     child = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='childs')
     quantity = models.PositiveSmallIntegerField()
@@ -94,27 +86,15 @@ class ProductHierarchy(TenantModelMixin, CommonBaseClass):
         ]
 
 
-class ProductionPlan(TenantModelMixin, CommonBaseClass):
+class ProductionPlan(TenantModel, CommonBaseClass):
     start_date = models.DateTimeField()
     product = models.ForeignKey('workshop.ProductRevision', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.PositiveSmallIntegerField()
     duration = models.PositiveSmallIntegerField()
 
 
-DAYS_OF_WEEK = (
-    (0, 'Monday'),
-    (1, 'Tuesday'),
-    (2, 'Wednesday'),
-    (3, 'Thursday'),
-    (4, 'Friday'),
-    (5, 'Saturday'),
-    (6, 'Sunday'),
-)
 
 
-class ProductionDayTemplate(TenantModelMixin, CommonBaseClass):
-    day_of_the_week = models.CharField(max_length=1, choices=DAYS_OF_WEEK)
-    calendar_week = models.PositiveSmallIntegerField(null=True, blank=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates')
-    quantity = models.PositiveSmallIntegerField()
+
+
 

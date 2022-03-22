@@ -6,17 +6,16 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import UserManager
 
 from django_multitenant.mixins import TenantManagerMixin
-from django_multitenant.models import TenantModel
 
-from bakeup.tenants.models import Tenant
-from bakeup.core.models import TenantModelMixin
+from bakeup.core.models import TenantModel
+
 
 
 class UserTenantManager(TenantManagerMixin, UserManager):
     pass
 
 
-class User(AbstractUser):
+class User(AbstractUser, TenantModel):
     objects = UserTenantManager()
 
     def get_absolute_url(self):

@@ -75,6 +75,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "bakeup.shop",
     "bakeup.workshop",
     "bakeup.users",
     "bakeup.tenants",
