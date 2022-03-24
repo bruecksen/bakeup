@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q, F
+from django.urls import reverse
 
 from bakeup.core.models import CommonBaseClass
 
@@ -33,10 +34,10 @@ VOLUME_UNIT_CHOICES = [
 # Item
 class Product(CommonBaseClass):
     name = models.CharField(max_length=255)
-    slug = models.SlugField()
+    slug = models.SlugField(null=True, blank=True)
     description = models.TextField()
-    image = models.FileField()
-    categories = models.ManyToManyField(Category)
+    image = models.FileField(null=True, blank=True)
+    categories = models.ManyToManyField(Category, blank=True)
     # data in database normalized in grams
     weight = models.PositiveSmallIntegerField(help_text="weight in grams", blank=True, null=True)
     weight_units = models.CharField(max_length=255, choices=WEIGHT_UNIT_CHOICES, blank=True, null=True)
@@ -47,10 +48,19 @@ class Product(CommonBaseClass):
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
 
+    def get_absolute_url(self):
+        """Get url for user's detail view.
+
+        Returns:
+            str: URL for user detail.
+
+        """
+        return reverse("workshop:product-detail", kwargs={"pk": self.pk})
+
 
 # Assembly
 class Instruction(CommonBaseClass):
-    product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
+    product = models.OneToOneField('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
     instruction = models.TextField()
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds")
 

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add new product{% endblock %}
+
+{% block content %}
+  <h1>Products</h1>
+  {% for product in object_list %}
+  <p><a href="{% url 'workshop:product-detail' pk=product.pk %}">#{{ product.pk }} {{ product.name }}</a></p>
+  {% endfor %}
+ 
+  
+{% endblock %}
