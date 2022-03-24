@@ -78,7 +78,6 @@ LOCAL_APPS = [
     "bakeup.shop",
     "bakeup.workshop",
     "bakeup.users",
-    "bakeup.tenants",
     "bakeup.core",
     # Your stuff: custom apps go here
 ]

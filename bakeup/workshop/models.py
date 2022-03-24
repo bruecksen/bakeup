@@ -1,11 +1,11 @@
 from django.db import models
 from django.db.models import Q, F
 
-from bakeup.core.models import CommonBaseClass, TenantModel
+from bakeup.core.models import CommonBaseClass
 
 
 
-class Category(TenantModel, CommonBaseClass):
+class Category(CommonBaseClass):
     parent = models.ForeignKey('workshop.Category', blank=True, null=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     slug = models.SlugField()
@@ -31,7 +31,7 @@ VOLUME_UNIT_CHOICES = [
 ]
 
 # Item
-class Product(TenantModel, CommonBaseClass):
+class Product(CommonBaseClass):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
     description = models.TextField()
@@ -49,14 +49,14 @@ class Product(TenantModel, CommonBaseClass):
 
 
 # Assembly
-class Instruction(TenantModel, CommonBaseClass):
+class Instruction(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
     instruction = models.TextField()
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds")
 
 
 # Charge
-class ProductRevision(TenantModel, CommonBaseClass):
+class ProductRevision(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='revisions')
     timestamp = models.DateTimeField(auto_now_add=True)
     from_date = models.DateTimeField()
@@ -70,7 +70,7 @@ class ProductRevision(TenantModel, CommonBaseClass):
 # Hierarchy, Recipe
 # Warning: Changes on product level are not presisted
 # NOTE maybe add later revision to reflect changes on product level
-class ProductHierarchy(TenantModel, CommonBaseClass):
+class ProductHierarchy(CommonBaseClass):
     parent = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='parents')
     child = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='childs')
     quantity = models.PositiveSmallIntegerField()
@@ -86,7 +86,7 @@ class ProductHierarchy(TenantModel, CommonBaseClass):
         ]
 
 
-class ProductionPlan(TenantModel, CommonBaseClass):
+class ProductionPlan(CommonBaseClass):
     start_date = models.DateTimeField()
     product = models.ForeignKey('workshop.ProductRevision', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.PositiveSmallIntegerField()
