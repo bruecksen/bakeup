@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import CreateView, DetailView, ListView
+from bakeup.core.views import BasePermissionsMixin
 
 from bakeup.workshop.forms import ProductAddForm
 from bakeup.workshop.models import Product
@@ -7,7 +8,7 @@ from bakeup.workshop.models import Product
 # Create your views here.
 
 
-class ProductAddView(CreateView):
+class ProductAddView(BasePermissionsMixin, CreateView):
     model = Product
     form_class = ProductAddForm
     
@@ -17,9 +18,9 @@ class ProductAddView(CreateView):
         return context
 
 
-class ProductDetailView(DetailView):
+class ProductDetailView(BasePermissionsMixin, DetailView):
     model = Product
 
 
-class ProductListView(ListView):
+class ProductListView(BasePermissionsMixin, ListView):
     model = Product

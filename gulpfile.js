@@ -130,7 +130,6 @@ const generateAssets = parallel(
 
 // Set up dev environment
 const dev = parallel(
-  runServer,
   initBrowserSync,
   watchPaths
 )
