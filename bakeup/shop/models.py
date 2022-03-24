@@ -24,7 +24,7 @@ class ProductionDayTemplate(TenantModel, CommonBaseClass):
 
 class ProductionDay(TenantModel, CommonBaseClass):
     day_of_sale = models.DateField()
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
     is_open_for_orders = models.BooleanField(default=True)
 
@@ -36,7 +36,7 @@ class PointOfSale(TenantModel, CommonBaseClass):
 
 # TODO how to handle public holidays, exceptional closing days, etc.
 class PointOfSaleOpeningHour(TenantModel, CommonBaseClass):
-    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT)
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, related_name='opening_hours')
     day_of_the_week = models.CharField(max_length=1, choices=DAYS_OF_WEEK)
     from_time = models.TimeField()
     to_time = models.TimeField()
@@ -49,26 +49,26 @@ class Customer(TenantModel, CommonBaseClass):
 # Abo
 # TODO install django-recurrence
 class CustomerOrderTemplate(TenantModel, CommonBaseClass):
-    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT)
+    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
     from_date = models.DateField()
     to_date = models.DateField()
     day_of_the_week = models.CharField(max_length=1, choices=DAYS_OF_WEEK, blank=True, null=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_templates')
     quantity = models.PositiveSmallIntegerField()
     recurrences = RecurrenceField()
 
 
 class CustomerOrder(TenantModel, CommonBaseClass):
-    order_nr = models.CharField()
+    order_nr = models.CharField(max_length=255)
     day_of_sale = models.DateField()
-    customer = models.OneToOneField('shop.Customer', on_delete=models.PROTECT, blank=True, null=True)
+    customer = models.OneToOneField('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.OneToOneField('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
-    address = models.CharField()
+    address = models.TextField()
 
 
 class CustomerOrderPosition(TenantModel, CommonBaseClass):
-    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT)
+    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT, related_name='positions')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
     quantity = models.PositiveSmallIntegerField()
 
     
