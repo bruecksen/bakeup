@@ -9,7 +9,8 @@ class CustomerInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'customer'
 
+
+@admin.register(User)
 class UserAdmin(BaseUserAdmin):
     inlines = (CustomerInline,)
 
-admin.site.register(User, UserAdmin)

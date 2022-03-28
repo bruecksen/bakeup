@@ -12,6 +12,12 @@ class CommonBaseClass(models.Model):
 
 # TODO: finish fields!
 class Address(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Address'
+        verbose_name_plural = 'Addresses'
+
+    def __str__(self):
+        return self.address
+
