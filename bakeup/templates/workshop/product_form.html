@@ -4,14 +4,20 @@
 {% block title %}Add new product{% endblock %}
 
 {% block content %}
-  <h1>Add new product</h1>
+  {% if object %}
+    <h1>Update: {{ object.name }}</h1>
+  {% else %}
+    <h1>Add new product</h1>
+  {% endif %}
   {% if is_flagged %}This is flagged!{% endif %}
   <form class="form-horizontal" method="post">
     {% csrf_token %}
     {{ form|crispy }}
     <div class="control-group">
       <div class="controls">
-        <button type="submit" class="btn btn-primary">Add</button>
+        <button type="submit" class="btn btn-primary">
+          {% if object %}Update{% else %}Add{% endif %}
+        </button>
       </div>
     </div>
   </form>

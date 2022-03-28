@@ -72,6 +72,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
+    "django_tables2",
 ]
 
 LOCAL_APPS = [
@@ -254,6 +255,4 @@ LOGGING = {
 }
 
 
-
-# Your stuff...
-# ------------------------------------------------------------------------------
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
