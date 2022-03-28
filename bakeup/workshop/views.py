@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.views.generic import CreateView, DetailView, ListView
+from django.urls import reverse
+from django.views.generic import CreateView, DetailView, ListView, DeleteView
 from bakeup.core.views import StaffPermissionsMixin
 
 from bakeup.workshop.forms import ProductAddForm
@@ -12,9 +13,17 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_flagged'] = True
         return context
 
+
+class ProductDeleteView(StaffPermissionsMixin, DeleteView):
+    model = Product
+
+    def get_success_url(self):
+        return reverse(
+            'workshop:product-list',
+        )
+    
 
 class ProductDetailView(StaffPermissionsMixin, DetailView):
     model = Product

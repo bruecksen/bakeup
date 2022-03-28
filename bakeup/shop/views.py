@@ -4,8 +4,6 @@ from bakeup.core.views import CustomerRequiredMixin
 
 from bakeup.workshop.models import Product
 
-# Create your views here.
-
 
 class ProductListView(CustomerRequiredMixin, ListView):
     model = Product
