@@ -53,7 +53,7 @@ class PointOfSaleOpeningHour(CommonBaseClass):
 
 class Customer(CommonBaseClass):
     user = models.OneToOneField('users.User', on_delete=models.PROTECT)
-    point_of_sale = models.OneToOneField('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return "{} {}".format(self.user, self.point_of_sale)

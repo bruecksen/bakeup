@@ -14,6 +14,7 @@ urlpatterns = [
     # User management
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
+    path("shop/", include("bakeup.shop.urls", namespace="shop")),
     path("login/", auth_views.LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name='logout'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
