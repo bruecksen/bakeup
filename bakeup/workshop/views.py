@@ -5,8 +5,6 @@ from bakeup.core.views import StaffPermissionsMixin
 from bakeup.workshop.forms import ProductAddForm
 from bakeup.workshop.models import Product
 
-# Create your views here.
-
 
 class ProductAddView(StaffPermissionsMixin, CreateView):
     model = Product
