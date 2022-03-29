@@ -1,43 +1,38 @@
 {% load i18n %}
-<div class="mb-1">
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-      <div class="container-fluid">
+<div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-light">
+  <nav class="d-flex flex-column align-items-center align-items-sm-start min-vh-100">
+        <a class="navbar-brand d-flex align-self-center pt-4 pb-4 fs-2" href="{% url 'home' %}">BAKEup</i></a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="{% url 'home' %}">BAKEup</a>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav">
+          <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
+              <a class="nav-link" href="{% url 'home' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:category-list' %}">Categories</a>
+              <a class="nav-link" href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> Categories</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:product-list' %}">Products</a>
+              <a class="nav-link" href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-book fa-fw"></i> Products</a>
             </li>
           </ul>
-          <ul class="navbar-nav ms-auto">
+          <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
+              <a class="nav-link" href="{% url 'about' %}"><i class="fa-solid fa-circle-question fa-fw"></i> Help</a>
             </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'users:profile' %}">{% translate "Profile" %}</a>
+                <a class="nav-link" href="{% url 'users:profile' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Logout</a>
               </li>
             {% else %}
               <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'login' %}">Login</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Login</a>
               </li>
             {% endif %}
           </ul>
-        </div>
-      </div>
     </nav>
-
-  </div>
+</div>
