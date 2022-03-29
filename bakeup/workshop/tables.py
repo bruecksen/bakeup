@@ -5,7 +5,7 @@ from bakeup.workshop.models import Product
 
 
 class ProductTable(tables.Table):
-    pk = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
+    pk = tables.LinkColumn('workshop:product-detail', args=[A('pk')], verbose_name='#')
     name = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
     action = tables.TemplateColumn(template_name="tables/product_action_column.html", verbose_name="")
 

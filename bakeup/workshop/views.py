@@ -5,7 +5,7 @@ from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.workshop.forms import ProductForm
-from bakeup.workshop.models import Product
+from bakeup.workshop.models import Category, Product
 from bakeup.workshop.tables import ProductTable
 
 
@@ -39,3 +39,13 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 class ProductListView(StaffPermissionsMixin, SingleTableView):
     model = Product
     table_class = ProductTable
+
+
+class CategoryListView(StaffPermissionsMixin, ListView):
+    model = Category
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.get_root_nodes()
+        return context

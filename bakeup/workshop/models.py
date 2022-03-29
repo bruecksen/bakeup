@@ -19,6 +19,10 @@ class Category(CommonBaseClass, MP_Node):
     def __str__(self):
         return 'Category: {}'.format(self.name)
 
+    def get_product_count(self):
+        return self.product_set.count()
+
+
 WEIGHT_UNIT_CHOICES = [
     ('g', 'Grams'),
     ('kg', 'Kilograms'),
