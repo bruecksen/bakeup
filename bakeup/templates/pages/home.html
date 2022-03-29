@@ -1,1 +1,19 @@
 {% extends "base.html" %}
+{% block content %}
+
+<div class="row">
+    <div class="col page-heading bg-primary text-light">
+        <h1>Welcome to BAKEup</h1>
+        <p>{{ request.user.get_full_name }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+    </div>
+    <div class="col"></div>
+    <div class="col"></div>
+</div>
+ 
+  
+{% endblock %}

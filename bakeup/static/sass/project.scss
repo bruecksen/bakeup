@@ -5,8 +5,15 @@
 .navbar-brand {
   font-weight: bold;
   color: $primary!important;
+  font-size: 4rem;
 }
 
+
+nav {
+  .nav-link {
+    color: $dark;
+  }
+}
 
 
 
