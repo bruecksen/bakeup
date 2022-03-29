@@ -12865,13 +12865,13 @@ textarea.form-control-lg {
 }
 .navbar-brand {
   font-weight: bold;
-  color: #4c3975 !important;
+  color: #fbfdfe !important;
   font-size: 64px;
   font-size: 4rem;
 }
 
 nav .nav-link {
-  color: #07060a;
+  color: #fbfdfe;
 }
 
 .list-group.list-group-root .list-group {
