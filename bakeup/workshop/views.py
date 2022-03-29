@@ -34,7 +34,6 @@ class ProductDeleteView(StaffPermissionsMixin, DeleteView):
 
 class ProductDetailView(StaffPermissionsMixin, DetailView):
     model = Product
-    fields = ['name', 'description', 'image', 'categories', 'weight', 'weight_units', 'volume', 'volume_units', 'is_sellable', 'is_buyable', 'is_composable']
 
 
 class ProductListView(StaffPermissionsMixin, SingleTableView):
