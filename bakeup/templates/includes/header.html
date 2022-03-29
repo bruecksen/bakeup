@@ -12,12 +12,14 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
             </li>
+            {% if request.user.is_authenticated and request.user.is_staff %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'workshop:category-list' %}">Categories</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'workshop:product-list' %}">Products</a>
             </li>
+            {% endif %}
           </ul>
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
