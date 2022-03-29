@@ -10,12 +10,14 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>
             </li>
+            {% if request.user.is_authenticated and request.user.is_staff %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> Categories</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-book fa-fw"></i> Products</a>
             </li>
+            {% endif %}
           </ul>
           <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
