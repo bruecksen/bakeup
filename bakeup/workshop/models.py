@@ -2,24 +2,22 @@ from django.db import models
 from django.db.models import Q, F
 from django.urls import reverse
 
+from treebeard.mp_tree import MP_Node
+
 from bakeup.core.models import CommonBaseClass
 
 
 
-class Category(CommonBaseClass):
-    parent = models.ForeignKey('workshop.Category', blank=True, null=True, on_delete=models.PROTECT)
+class Category(CommonBaseClass, MP_Node):
     name = models.CharField(max_length=255)
     slug = models.SlugField()
-    image = models.FileField()
-    description = models.TextField()
+    image = models.FileField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=~Q(parent=F('id')),
-                name='category_id_and_parent_not_equal'
-            )
-        ]
+    node_order_by = ['name']
+
+    def __str__(self):
+        return 'Category: {}'.format(self.name)
 
 WEIGHT_UNIT_CHOICES = [
     ('g', 'Grams'),

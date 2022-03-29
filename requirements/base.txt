@@ -16,3 +16,4 @@ crispy-bootstrap5==0.6  # https://github.com/django-crispy-forms/crispy-bootstra
 django-redis==5.2.0  # https://github.com/jazzband/django-redis
 django-recurrence
 django-tables2
+django-treebeard
