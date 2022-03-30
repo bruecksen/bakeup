@@ -37,24 +37,9 @@
   <body>
 
     
-    <div class="container-fluid">
-      <div class="row flex-nowrap">
-        {% include "includes/header.html" %}
-        <div class="col">
-            {% if messages %}
-              {% for message in messages %}
-                <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                  {{ message }}
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-              {% endfor %}
-            {% endif %}
-        
-            {% block content %}
-              <p>Use this document as a way to quick start any new project.</p>
-            {% endblock content %}
-          </div>
-    </div>
+    {% block content %}
+      <p>Use this document as a way to quick start any new project.</p>
+    {% endblock content %}
 
 
     {% block modal %}{% endblock modal %}

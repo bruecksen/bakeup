@@ -8,7 +8,7 @@
         <span class="badge bg-primary rounded-pill">{{ category.get_product_count }}</span>
     </li>
     {% if category.get_children_count > 0 %}
-    {% include "includes/category.html" with categories=category.get_children is_root=False %}
+    {% include "workshop/includes/category.html" with categories=category.get_children is_root=False %}
     {% endif %}
 {% endfor %}
 </ol>
