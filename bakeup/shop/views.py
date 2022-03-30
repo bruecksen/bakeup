@@ -15,7 +15,7 @@ class ProductListView(CustomerRequiredMixin, ListView):
 
 
 class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
-    template_name = 'shop/shop.html'
+    template_name = 'shop/weekly.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
