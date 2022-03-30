@@ -27,6 +27,9 @@ class ProductionDay(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
     is_open_for_orders = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ('day_of_sale',)
 
 
 class PointOfSale(CommonBaseClass):

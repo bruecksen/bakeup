@@ -4,9 +4,24 @@
 
 {% block page_content %}
   <h1>Shop</h1>
-  {% for production_day in production_days %}
-  <p>{{ production_day }}</p>
-  {% endfor %}
- 
-  
+  <div class="row justify-content-between mt-4 mb-4">
+    <div class="col-2"><a href=""><i class="fa-solid fa-chevron-left"></i> Previous Week</a></div>
+    <div class="col-2 text-center">{{ calendar_week }}</div>
+    <div class="col-2 text-end"><a href="">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
+  </div>
+  <div class="row justify-content-between">
+    {% for production_day in production_days %}
+    <div class="col-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ production_day.day_of_sale|date:'d.m.Y' }}</h5>
+          <p class="card-text">
+            {{ production_day.product }}
+          </p>
+          <a href="#" class="btn btn-primary">Bestellen</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 {% endblock %}
