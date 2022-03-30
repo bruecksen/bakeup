@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import product
 
 from django.views.generic import CreateView, DetailView, ListView, TemplateView
 from django.shortcuts import render
@@ -29,7 +30,11 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
             year = datetime.now().date().year
         
         context['calendar_week'] = calendar_week
-        context['production_days'] = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__week=calendar_week, day_of_sale__year=year)
+        qs = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__week=calendar_week, day_of_sale__year=year)
+        production_days = dict()
+        for production_day in qs:
+            production_days.setdefault(production_day.day_of_sale, []).append(production_day.product)
+        context['production_days'] = production_days
         return context
 
 
