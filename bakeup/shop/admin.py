@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from bakeup.core.admin import ExcludeAdminMixin
-from .models import Customer, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
+from .models import Customer, CustomerOrder, CustomerOrderPosition, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
 from bakeup.core.models import Address
 
 
@@ -37,3 +37,19 @@ class ProductionDayAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 @admin.register(ProductionDayTemplate)
 class ProductionDayAdmin(ExcludeAdminMixin, admin.ModelAdmin):
     list_display = ('day_of_the_week', 'calendar_week', 'product', 'quantity')
+
+
+@admin.register(CustomerOrderPosition)
+class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('order', 'product', 'quantity')
+
+
+class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.TabularInline):
+    model = CustomerOrderPosition
+    extra = 0
+
+
+@admin.register(CustomerOrder)
+class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('order_nr', 'production_day', 'customer', 'point_of_sale', 'address')
+    inlines = (CustomerOrderPositionAdmin,)

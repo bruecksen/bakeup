@@ -16,19 +16,21 @@
     <div class="col-2 text-end"><a href="{% url 'shop:weekly' calendar_week=calendar_week.next.week year=calendar_week.next.year %}">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
   </div>
   <div class="row justify-content-between">
-    {% for key, value in production_days.items %}
+    {% for production_day, production_day_products in production_days.items %}
     <div class="col-3">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">{{ key|date:'d.m.Y' }}</h5>
-            {% for product in value %}
-              <p>{{ product.production_day_product.product.name }}</p>
-              <form class="form-horizontal" method="post">
+          <h5 class="card-title">{{ production_day.day_of_sale|date:'d.m.Y' }}</h5>
+            {% if production_day_products %}
+              <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
                 {% csrf_token %}
-              {{ product.form|crispy }}
+                {% for production_day_product in production_day_products %}
+                  <h6>{{ production_day_product.production_day_product.product.name }}</h6>
+                  {{ production_day_product.form|crispy }}
+                {% endfor %}
               <button type="submit" class="btn btn-primary">Bestellen</button>
               </form>
-            {% endfor %}
+            {% endif %}
         </div>
       </div>
     </div>

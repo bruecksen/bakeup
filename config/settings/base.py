@@ -81,6 +81,7 @@ LOCAL_APPS = [
     "bakeup.workshop",
     "bakeup.users",
     "bakeup.core",
+    "bakeup.contrib",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

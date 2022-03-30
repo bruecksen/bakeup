@@ -1,8 +1,10 @@
+from email.policy import default
 from django.db import models
 
 from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
+from bakeup.shop.forms import CustomerOrderForm
 
 DAYS_OF_WEEK = (
     (0, 'Monday'),
@@ -31,6 +33,14 @@ class ProductionDay(CommonBaseClass):
     def __str__(self):
         return "{}".format(self.day_of_sale)
 
+    @property
+    def calendar_week(self):
+        return self.day_of_sale.isocalendar()[1]
+    
+    @property
+    def year(self):
+        return self.day_of_sale.year
+
 
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='production_day_products')
@@ -40,6 +50,11 @@ class ProductionDayProduct(CommonBaseClass):
     
     class Meta:
         ordering = ('production_day',)
+
+    
+    def get_order_form(self):
+        quantity = 0
+        return CustomerOrderForm(initial={'product': self.product.pk, 'quantity': quantity}, prefix=f'production_day_{self.product.pk}', production_day_product=self)
 
 
 class PointOfSale(CommonBaseClass):
@@ -86,12 +101,35 @@ class CustomerOrderTemplate(CommonBaseClass):
 class CustomerOrder(CommonBaseClass):
     order_nr = models.CharField(max_length=255)
     production_day = models.OneToOneField('shop.ProductionDay', on_delete=models.PROTECT)
-    customer = models.OneToOneField('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
-    point_of_sale = models.OneToOneField('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
+    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()
 
     class Meta:
         unique_together = ['production_day', 'customer']
+
+
+    @classmethod
+    def create_customer_order(cls, production_day, customer, products):
+        # TODO order_nr, address, should point of sale really be saved in order?
+        customer_order, created = CustomerOrder.objects.get_or_create(
+            production_day=production_day,
+            customer=customer,
+            defaults={
+                'order_nr': '99999',
+                'point_of_sale': customer.point_of_sale,
+                'address': "address",
+            }
+        )
+        for product, quantity in products.items():
+            position, created = CustomerOrderPosition.objects.update_or_create(
+                order=customer_order,
+                product=product,
+                defaults={
+                    'quantity': quantity
+                }
+            )
+
 
 
 class CustomerOrderPosition(CommonBaseClass):
