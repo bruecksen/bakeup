@@ -5,18 +5,19 @@
 {% block page_content %}
   <h1>Shop</h1>
   <div class="row justify-content-between mt-4 mb-4">
-    <div class="col-2"><a href=""><i class="fa-solid fa-chevron-left"></i> Previous Week</a></div>
-    <div class="col-2 text-center">{{ calendar_week }}</div>
-    <div class="col-2 text-end"><a href="">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
+    <div class="col-2"><a href="{% url 'shop:weekly' calendar_week=calendar_week.last.week year=calendar_week.last.year %}"><i class="fa-solid fa-chevron-left"></i> Previous Week</a></div>
+    <div class="col-2 text-center">{{ calendar_week.week }}</div>
+    <div class="col-2 text-end"><a href="{% url 'shop:weekly' calendar_week=calendar_week.next.week year=calendar_week.next.year %}">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
   </div>
   <div class="row justify-content-between">
-    {% for key, values in production_days.items %}
+    {% for key, value in production_days.items %}
     <div class="col-3">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">{{ key|date:'d.m.Y' }}</h5>
           <p class="card-text">
-            {% for product in values %}
+            {{ value.id }}
+            {% for product in value.products %}
               {{ product }}
             {% endfor %}
           </p>
