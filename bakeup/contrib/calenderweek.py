@@ -15,6 +15,9 @@ class CalendarWeek:
         """Iterates all days in a calendar week"""
         for day in range(1, 8):
             yield datetime.date.fromisocalendar(self.year, self.week, day)
+    
+    def __eq__(self, other):
+        return ((self.week, self.year) == (other.week, other.year))
 
     def _last_calendarweek_ofyear(self, year):
         return datetime.date(year, 12, 28).isocalendar()[1]

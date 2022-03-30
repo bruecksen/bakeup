@@ -20,12 +20,14 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         calendar_week = None
+        today = datetime.now().date()
+        calendar_week_current = CalendarWeek(today.isocalendar()[1], datetime.now().date().year)
         if "calendar_week" in kwargs and "year" in kwargs:
             calendar_week = CalendarWeek(kwargs.get('calendar_week'), kwargs.get('year'))
+            if calendar_week != calendar_week_current:
+                context['calendar_week_current'] = calendar_week_current
         else:
-            today = datetime.now().date()
-            calendar_week = today.isocalendar()[1]
-            calendar_week = CalendarWeek(today.isocalendar()[1], datetime.now().date().year)
+            calendar_week = calendar_week_current
         
         context['calendar_week'] = calendar_week
         qs = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)

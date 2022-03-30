@@ -6,7 +6,12 @@
   <h1>Shop</h1>
   <div class="row justify-content-between mt-4 mb-4">
     <div class="col-2"><a href="{% url 'shop:weekly' calendar_week=calendar_week.last.week year=calendar_week.last.year %}"><i class="fa-solid fa-chevron-left"></i> Previous Week</a></div>
-    <div class="col-2 text-center">{{ calendar_week.week }}</div>
+    <div class="col-2 text-center">
+      {{ calendar_week.week }}
+      {% if calendar_week_current  %}
+      <br><a class="small" href="{% url 'shop:weekly' calendar_week=calendar_week_current.week year=calendar_week_current.year %}">Jump to current week</a>
+      {% endif %}
+    </div>
     <div class="col-2 text-end"><a href="{% url 'shop:weekly' calendar_week=calendar_week.next.week year=calendar_week.next.year %}">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
   </div>
   <div class="row justify-content-between">
