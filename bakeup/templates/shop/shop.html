@@ -10,13 +10,15 @@
     <div class="col-2 text-end"><a href="">Next Week <i class="fa-solid fa-chevron-right"></i></a></div>
   </div>
   <div class="row justify-content-between">
-    {% for production_day in production_days %}
+    {% for key, values in production_days.items %}
     <div class="col-3">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">{{ production_day.day_of_sale|date:'d.m.Y' }}</h5>
+          <h5 class="card-title">{{ key|date:'d.m.Y' }}</h5>
           <p class="card-text">
-            {{ production_day.product }}
+            {% for product in values %}
+              {{ product }}
+            {% endfor %}
           </p>
         </div>
       </div>
