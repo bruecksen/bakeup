@@ -21,10 +21,14 @@
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">{{ key|date:'d.m.Y' }}</h5>
-          <p class="card-text">
-            {{ value }}
-          </p>
-          <a href="#" class="btn btn-primary">Bestellen</a>
+            {% for product in value %}
+              <p>{{ product.production_day_product.product.name }}</p>
+              <form class="form-horizontal" method="post">
+                {% csrf_token %}
+              {{ product.form|crispy }}
+              <button type="submit" class="btn btn-primary">Bestellen</button>
+              </form>
+            {% endfor %}
         </div>
       </div>
     </div>

@@ -6,9 +6,6 @@ from bakeup.workshop.models import Product
 
 
 class CustomerOrderForm(forms.Form):
-    production_day_id = forms.IntegerField()
-    product_id = forms.IntegerField()
+    production_day_id = forms.IntegerField(widget=forms.HiddenInput())
+    product_id = forms.IntegerField(widget=forms.HiddenInput())
     quantity = forms.IntegerField()
-
-
-CustomerOrderFormset = formset_factory(CustomerOrderForm, extra=0)

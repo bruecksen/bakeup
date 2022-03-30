@@ -1,11 +1,11 @@
 from datetime import datetime
 from itertools import product
 
-from django.views.generic import CreateView, DetailView, ListView, TemplateView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView
 from django.shortcuts import render
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin
-from bakeup.shop.forms import CustomerOrderFormset
+from bakeup.shop.forms import CustomerOrderForm
 from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Product
@@ -15,8 +15,9 @@ class ProductListView(CustomerRequiredMixin, ListView):
     model = Product
 
 
-class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
+class WeeklyProductionDayView(CustomerRequiredMixin, FormView):
     template_name = 'shop/weekly.html'
+    form_class = CustomerOrderForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -38,16 +39,17 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
         production_days = dict()
         for production_day in qs:
             for production_day_product in production_day.production_day_products.filter(is_open_for_orders=True):
-                formset_initial = {
+                form_initial = {
                     'production_day_id': production_day.pk,
                     'product_id': production_day_product.product.pk,
                 }
-                production_days.setdefault(production_day.day_of_sale, []).append(formset_initial)
-        formsets = {}
-        for key, value in production_days.items():
-            formsets[key] = CustomerOrderFormset(initial=value, prefix=f'production-day-{key}')
+                production_day_values = {
+                    'production_day_product': production_day_product,
+                    'form': CustomerOrderForm(initial=form_initial, prefix=f'production-day-{production_day_product.pk}')
+                }
+                production_days.setdefault(production_day.day_of_sale, []).append(production_day_values)
         # raise Exception(formsets)
-        context['production_days'] = formsets
+        context['production_days'] = production_days
         return context
 
 
