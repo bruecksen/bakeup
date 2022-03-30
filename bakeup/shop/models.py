@@ -24,12 +24,22 @@ class ProductionDayTemplate(CommonBaseClass):
 
 class ProductionDay(CommonBaseClass):
     day_of_sale = models.DateField()
+
+    class Meta:
+        ordering = ('day_of_sale',)
+
+    def __str__(self):
+        return "{}".format(self.day_of_sale)
+
+
+class ProductionDayProduct(CommonBaseClass):
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
     is_open_for_orders = models.BooleanField(default=True)
     
     class Meta:
-        ordering = ('day_of_sale',)
+        ordering = ('production_day',)
 
 
 class PointOfSale(CommonBaseClass):
@@ -75,13 +85,13 @@ class CustomerOrderTemplate(CommonBaseClass):
 
 class CustomerOrder(CommonBaseClass):
     order_nr = models.CharField(max_length=255)
-    day_of_sale = models.DateField()
+    production_day = models.OneToOneField('shop.ProductionDay', on_delete=models.PROTECT)
     customer = models.OneToOneField('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.OneToOneField('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()
 
     class Meta:
-        unique_together = ['day_of_sale', 'customer']
+        unique_together = ['production_day', 'customer']
 
 
 class CustomerOrderPosition(CommonBaseClass):

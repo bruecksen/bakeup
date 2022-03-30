@@ -34,17 +34,19 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
             calendar_week = calendar_week_current
         
         context['calendar_week'] = calendar_week
-        qs = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)
+        qs = ProductionDay.objects.filter(day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)
         production_days = dict()
         for production_day in qs:
-            formset_initial = {
-                'production_day_id': production_day.pk,
-                'product_id': production_day.product.pk,
-            }
-            production_days.setdefault(production_day.day_of_sale, []).append(formset_initial)
+            for production_day_product in production_day.production_day_products.filter(is_open_for_orders=True):
+                formset_initial = {
+                    'production_day_id': production_day.pk,
+                    'product_id': production_day_product.product.pk,
+                }
+                production_days.setdefault(production_day.day_of_sale, []).append(formset_initial)
         formsets = {}
         for key, value in production_days.items():
-            formsets[key] = CustomerOrderFormset(initial=value)
+            formsets[key] = CustomerOrderFormset(initial=value, prefix=f'production-day-{key}')
+        # raise Exception(formsets)
         context['production_days'] = formsets
         return context
 

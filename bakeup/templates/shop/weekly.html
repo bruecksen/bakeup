@@ -21,11 +21,8 @@
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">{{ key|date:'d.m.Y' }}</h5>
-          {{ value }}
           <p class="card-text">
-              {% for form in value %}
-                {{ form.as_p }}
-              {% endfor %}
+            {{ value }}
           </p>
           <a href="#" class="btn btn-primary">Bestellen</a>
         </div>
