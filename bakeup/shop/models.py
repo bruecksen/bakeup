@@ -80,6 +80,9 @@ class CustomerOrder(CommonBaseClass):
     point_of_sale = models.OneToOneField('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()
 
+    class Meta:
+        unique_together = ['day_of_sale', 'customer']
+
 
 class CustomerOrderPosition(CommonBaseClass):
     order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT, related_name='positions')
