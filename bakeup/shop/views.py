@@ -5,6 +5,7 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView
 from django.shortcuts import render
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin
+from bakeup.shop.forms import CustomerOrderFormset
 from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Product
@@ -33,8 +34,15 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
         qs = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)
         production_days = dict()
         for production_day in qs:
-            production_days.setdefault(production_day.day_of_sale, {'id': production_day.pk, 'products': []})['products'].append(production_day.product)
-        context['production_days'] = production_days
+            formset_initial = {
+                'production_day_id': production_day.pk,
+                'product_id': production_day.product.pk,
+            }
+            production_days.setdefault(production_day.day_of_sale, []).append(formset_initial)
+        formsets = {}
+        for key, value in production_days.items():
+            formsets[key] = CustomerOrderFormset(initial=value)
+        context['production_days'] = formsets
         return context
 
 

@@ -1,9 +1,14 @@
-from django.forms import ModelForm
+from django import forms
+from django.forms.formsets import BaseFormSet
+from django.forms import formset_factory
 
 from bakeup.workshop.models import Product
 
 
-class ProductAddForm(ModelForm):
-    class Meta:
-        model = Product
-        fields = ['name', 'description', 'image', 'categories', 'weight', 'weight_units', 'volume', 'volume_units', 'is_sellable', 'is_buyable', 'is_composable']
+class CustomerOrderForm(forms.Form):
+    production_day_id = forms.IntegerField()
+    product_id = forms.IntegerField()
+    quantity = forms.IntegerField()
+
+
+CustomerOrderFormset = formset_factory(CustomerOrderForm, extra=0)
