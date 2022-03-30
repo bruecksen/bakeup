@@ -20,7 +20,7 @@ class Category(CommonBaseClass, MP_Node):
         verbose_name_plural = 'Categories'
 
     def __str__(self):
-        return 'Category: {}'.format(self.name)
+        return self.name
 
     def get_product_count(self):
         return self.product_set.count()
@@ -52,6 +52,9 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
     def get_absolute_url(self):
         """Get url for user's detail view.
