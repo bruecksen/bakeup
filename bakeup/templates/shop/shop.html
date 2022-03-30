@@ -1,0 +1,12 @@
+{% extends "shop/base.html" %}
+
+{% block title %}Shop{% endblock %}
+
+{% block page_content %}
+  <h1>Shop</h1>
+  {% for production_day in production_days %}
+  <p>{{ production_day }}</p>
+  {% endfor %}
+ 
+  
+{% endblock %}

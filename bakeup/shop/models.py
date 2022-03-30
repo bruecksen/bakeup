@@ -16,7 +16,7 @@ DAYS_OF_WEEK = (
 
 
 class ProductionDayTemplate(CommonBaseClass):
-    day_of_the_week = models.CharField(max_length=1, choices=DAYS_OF_WEEK)
+    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK)
     calendar_week = models.PositiveSmallIntegerField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates')
     quantity = models.PositiveSmallIntegerField()
@@ -40,7 +40,7 @@ class PointOfSale(CommonBaseClass):
 # TODO how to handle public holidays, exceptional closing days, etc.
 class PointOfSaleOpeningHour(CommonBaseClass):
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, related_name='opening_hours')
-    day_of_the_week = models.IntegerField(choices=DAYS_OF_WEEK)
+    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK)
     from_time = models.TimeField()
     to_time = models.TimeField()
 
@@ -64,7 +64,7 @@ class CustomerOrderTemplate(CommonBaseClass):
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
     from_date = models.DateField()
     to_date = models.DateField()
-    day_of_the_week = models.CharField(max_length=1, choices=DAYS_OF_WEEK, blank=True, null=True)
+    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK, blank=True, null=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_templates')
     quantity = models.PositiveSmallIntegerField()
     recurrences = RecurrenceField()
