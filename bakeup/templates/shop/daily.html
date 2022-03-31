@@ -1,0 +1,47 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Shop{% endblock %}
+
+{% block page_content %}
+  <h1>Shop</h1>
+  <div class="row justify-content-between mt-4 mb-4">
+    <div class="col-2"><a href="{% url 'shop:daily' year=viewdate.previous.year month=viewdate.previous.month day=viewdate.previous.day %}"><i class="fa-solid fa-chevron-left"></i> Previous Day</a></div>
+    <div class="col-2 text-center">
+      {{ viewdate.current|date:'d.m.Y' }}
+      {% if calendar_week_current  %}
+      <br><a class="small" href="{% url 'shop:daily' year=viewdate.current.year month=viewdate.current.month day=viewdate.current.day %}">Jump to today</a>
+      {% endif %}
+    </div>
+    <div class="col-2 text-end"><a href="{% url 'shop:daily'  year=viewdate.next.year month=viewdate.next.month day=viewdate.next.day %}">Next Day <i class="fa-solid fa-chevron-right"></i></a></div>
+  </div>
+  
+  {% for production_day, production_day_products in production_days.items %}
+  {% if production_day_products %}
+  <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
+  {% csrf_token %}
+  <div class="row justify-content-between">
+        {% for production_day_product in production_day_products %}
+          <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+            <div class="card border-primary mb-3 h-100">
+              <div class="card-body">
+                <h5 class="card-title">{{ production_day_product.production_day_product.product.name }}</h5>
+                  {{ production_day_product.production_day_product.product.description }}  
+              </div>
+              <div class="card-footer">
+                {{ production_day_product.form|crispy }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+  </div>
+  <div class="row mt-4 mb-4">
+    <div class="col">
+      <button type="submit" class="btn btn-primary">Bestellen</button>
+    </div>
+  </div>
+  </form>
+  {% endif %}
+  {% endfor %}
+
+{% endblock %}
