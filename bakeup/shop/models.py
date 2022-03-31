@@ -52,9 +52,17 @@ class ProductionDayProduct(CommonBaseClass):
         ordering = ('production_day',)
 
     
-    def get_order_form(self):
+    def get_order_form(self, customer):
         quantity = 0
-        return CustomerOrderForm(initial={'product': self.product.pk, 'quantity': quantity}, prefix=f'production_day_{self.product.pk}', production_day_product=self)
+        existing_order = CustomerOrderPosition.objects.filter(product=self.product, order__customer=customer, order__production_day=self.production_day)
+        if existing_order:
+            quantity = existing_order.first().quantity
+        form = CustomerOrderForm(
+            initial={'product': self.product.pk, 'quantity': quantity}, 
+            prefix=f'production_day_{self.product.pk}', 
+            production_day_product=self
+        )
+        return form
 
 
 class PointOfSale(CommonBaseClass):
