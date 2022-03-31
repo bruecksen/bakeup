@@ -34,8 +34,6 @@ class CustomerProductionDayOrderForm(forms.Form):
         for production_day_product in self.production_day_products:
             product = cleaned_data[f'production_day_{production_day_product.product.pk}-product']
             quantity = cleaned_data[f'production_day_{production_day_product.product.pk}-quantity']
-            if not production_day_product.is_open_for_orders:
-                raise forms.ValidationError("Not open for orders")
             if not product == production_day_product.product.pk:
                 raise forms.ValidationError("Wrong product")
             if quantity > production_day_product.max_quantity:

@@ -63,7 +63,7 @@ class AddCustomerOrderView(CustomerRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.all()
+        kwargs['production_day_products'] = self.production_day.production_day_products.filter(is_open_for_orders=True)
         return kwargs
 
     def post(self, request, *args, **kwargs):
