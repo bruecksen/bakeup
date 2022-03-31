@@ -35,7 +35,6 @@ class ProductionDayView(CustomerRequiredMixin, TemplateView):
         viewdate['previous'] = viewdate['current'] - daydelta
         
         production_days = ProductionDay.objects.filter(day_of_sale=viewdate['current'])
-#        production_days = ProductionDay.objects.filter()
         forms = {}
         for production_day in production_days:
             production_day_products = []
