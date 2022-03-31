@@ -2,7 +2,7 @@
 
 @import '../../../node_modules/bootstrap/scss/bootstrap.scss';
 
-.navbar-brand {
+.navbar-brand.large {
   font-weight: bold;
   color: $white!important;
   font-size: 4rem;
@@ -18,6 +18,9 @@ nav {
   }
 }
 
+.page-heading {
+
+}
 
 
 .list-group.list-group-root {

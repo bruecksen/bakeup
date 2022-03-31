@@ -22,32 +22,33 @@ class ProductListView(CustomerRequiredMixin, ListView):
 class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
     template_name = 'shop/weekly.html'
 
+    def get_calendar_week(self):
+        if "calendar_week" in self.kwargs and "year" in self.kwargs:
+            input_week = self.kwargs.get('calendar_week')
+            input_year = self.kwargs.get('year')
+            if 0 < input_week <= 53 and 2000 < input_year <= datetime.now().date().year + MAX_FUTURE_ORDER_YEARS:
+                return CalendarWeek(input_week, input_year)
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        calendar_week = None
-        today = datetime.now().date()
-        calendar_week_current = CalendarWeek(today.isocalendar()[1], datetime.now().date().year)
-        if "calendar_week" in kwargs and "year" in kwargs:
-            input_week = kwargs.get('calendar_week')
-            input_year = kwargs.get('year')
-            if 0 < input_week <= 53 and 2000 < input_year <= datetime.now().date().year + MAX_FUTURE_ORDER_YEARS:
-                calendar_week = CalendarWeek(input_week, input_year)
-                if calendar_week != calendar_week_current:
-                    context['calendar_week_current'] = calendar_week_current
+        calendar_week_current = CalendarWeek.current()
+        calendar_week = self.get_calendar_week()
+        if calendar_week and calendar_week != calendar_week_current:
+            # only if we are showing a calender week that is not the current one
+            # we need a jump to current link
+            context['calendar_week_current'] = calendar_week_current
         if calendar_week is None:
+            # fallback to current  week
             calendar_week = calendar_week_current
-        
         context['calendar_week'] = calendar_week
+        
         production_days = ProductionDay.objects.filter(day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)
         forms = {}
         for production_day in production_days:
             production_day_products = []
             for production_day_product in production_day.production_day_products.all():
-                quantity = 0
-                existing_order = CustomerOrderPosition.objects.filter(product=production_day_product.product, order__production_day=production_day)
-                if existing_order:
-                    quantity = existing_order.first().quantity
-                form = CustomerOrderForm(initial={'product': production_day_product.product.pk, 'quantity': quantity}, prefix=f'production_day_{production_day_product.product.pk}', production_day_product=production_day_product)
+                form = production_day_product.get_order_form(self.request.user.customer)
                 production_day_products.append({
                     'production_day_product': production_day_product,
                     'form': form
@@ -55,7 +56,6 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
             forms[production_day] = production_day_products
         
         context['production_days'] = forms
-        # raise Exception(forms)
         return context
 
 
@@ -94,5 +94,5 @@ class ShopView(CustomerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
-        context['production_days'] = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__gte=today)
+        context['production_days'] = ProductionDay.objects.filter(day_of_sale__gte=today)
         return context

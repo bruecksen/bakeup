@@ -34,3 +34,8 @@ class CalendarWeek:
             lastweek = self._last_calendarweek_ofyear(last_year)
             return CalendarWeek(week=lastweek, year=last_year)
         return CalendarWeek(week=self.week - 1, year=self.year)
+
+    @classmethod
+    def current(cls):
+        today = datetime.datetime.now().date()
+        return CalendarWeek(today.isocalendar()[1], today.year)
