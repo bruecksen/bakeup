@@ -12,6 +12,8 @@ from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionD
 
 from bakeup.workshop.models import Product
 
+# Limit orders in the future
+MAX_FUTURE_ORDER_YEARS = 2
 
 class ProductListView(CustomerRequiredMixin, ListView):
     model = Product
@@ -28,7 +30,7 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
         if "calendar_week" in kwargs and "year" in kwargs:
             input_week = kwargs.get('calendar_week')
             input_year = kwargs.get('year')
-            if 0 < input_week <= 53 and 2000 < input_year < 2050:
+            if 0 < input_week <= 53 and 2000 < input_year <= datetime.now().date().year + MAX_FUTURE_ORDER_YEARS:
                 calendar_week = CalendarWeek(input_week, input_year)
                 if calendar_week != calendar_week_current:
                     context['calendar_week_current'] = calendar_week_current
