@@ -55,7 +55,6 @@ class ProductionDayView(CustomerRequiredMixin, TemplateView):
         # raise Exception(forms)
         return context    
 
-
 class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
     template_name = 'shop/weekly.html'
 
