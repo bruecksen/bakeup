@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.workshop.forms import ProductForm
 from bakeup.workshop.models import Category, Product
 from bakeup.workshop.tables import ProductTable
+
+
+
+class WorkshopView(StaffPermissionsMixin, TemplateView):
+    template_name = 'workshop/workshop.html'
 
 
 class ProductAddView(StaffPermissionsMixin, CreateView):

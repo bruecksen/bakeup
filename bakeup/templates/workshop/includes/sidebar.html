@@ -1,14 +1,14 @@
 {% load i18n %}
 <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
   <nav class="d-flex flex-column align-items-center align-items-sm-start min-vh-100">
-        <a class="navbar-brand d-flex align-self-center pt-4 pb-4" href="{% url 'home' %}"><i class="fa-solid fa-bread-slice"></i></i></a>
+        <a class="navbar-brand large d-flex align-self-center pt-4 pb-4" href="{% url 'home' %}"><i class="fa-solid fa-bread-slice"></i></i></a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
 
           <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'home' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>
+              <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>
             </li>
             {% if request.user.is_authenticated and request.user.is_staff %}
             <li class="nav-item">
@@ -20,6 +20,9 @@
             {% endif %}
           </ul>
           <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'shop:shop' %}"><i class="fa-solid fa-shop"></i> Shop</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'about' %}"><i class="fa-solid fa-circle-question fa-fw"></i> Help</a>
             </li>

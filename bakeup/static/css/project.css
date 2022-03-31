@@ -12863,7 +12863,7 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
-.navbar-brand {
+.navbar-brand.large {
   font-weight: bold;
   color: #fefffc !important;
   font-size: 64px;

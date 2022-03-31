@@ -94,5 +94,5 @@ class ShopView(CustomerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
-        context['production_days'] = ProductionDay.objects.filter(is_open_for_orders=True, day_of_sale__gte=today)
+        context['production_days'] = ProductionDay.objects.filter(day_of_sale__gte=today)
         return context
