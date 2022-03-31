@@ -108,6 +108,9 @@ class CustomerOrder(CommonBaseClass):
     class Meta:
         unique_together = ['production_day', 'customer']
 
+    def __str__(self):
+        return "{} {}".format(self.production_day, self.customer)
+
 
     @classmethod
     def create_customer_order(cls, production_day, customer, products):
@@ -136,6 +139,8 @@ class CustomerOrderPosition(CommonBaseClass):
     order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT, related_name='positions')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
     quantity = models.PositiveSmallIntegerField()
+
+    
 
     
 
