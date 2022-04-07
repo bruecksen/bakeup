@@ -2,18 +2,26 @@
 {% block content %}
 
 <div class="row">
-    <div class="col page-heading bg-primary text-white">
+    <div class="col text-center">
         <h1>Welcome to BAKEup</h1>
         <p>{{ request.user.get_full_name }}</p>
         <p>Schön das du da bist!</p>
     </div>
 </div>
 
+{% include "includes/login.html" %}
+
 <div class="row">
     <div class="col">
+        <div class="card w-50 mx-auto">
+            <h2><a href="{% url 'workshop:workshop' %}">BAKEup ERP</a></h2>
+        </div>
     </div>
-    <div class="col"></div>
-    <div class="col"></div>
+    <div class="col">
+        <div class="card w-50 mx-auto">
+            <h2><a href="{% url 'shop:shop' %}">Shop</a></h2>
+        </div>
+    </div>
 </div>
  
   

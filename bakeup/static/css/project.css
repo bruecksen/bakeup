@@ -34,7 +34,7 @@
   --bs-info: #dd7230;
   --bs-warning: #e1cc1d;
   --bs-danger: #ee270e;
-  --bs-light: #f3dacd;
+  --bs-light: #FAF6F2;
   --bs-dark: #333;
   --bs-primary-rgb: 76, 54, 153;
   --bs-secondary-rgb: 158, 111, 236;
@@ -42,7 +42,7 @@
   --bs-info-rgb: 221, 114, 48;
   --bs-warning-rgb: 225, 204, 29;
   --bs-danger-rgb: 238, 39, 14;
-  --bs-light-rgb: 243, 218, 205;
+  --bs-light-rgb: 250, 246, 242;
   --bs-dark-rgb: 51, 51, 51;
   --bs-white-rgb: 254, 255, 252;
   --bs-black-rgb: 0, 0, 0;
@@ -2391,15 +2391,15 @@ progress {
 }
 
 .table-light {
-  --bs-table-bg: #f3dacd;
-  --bs-table-striped-bg: #e7cfc3;
+  --bs-table-bg: #FAF6F2;
+  --bs-table-striped-bg: #eeeae6;
   --bs-table-striped-color: #000;
-  --bs-table-active-bg: #dbc4b9;
+  --bs-table-active-bg: #e1ddda;
   --bs-table-active-color: #000;
-  --bs-table-hover-bg: #e1cabe;
+  --bs-table-hover-bg: #e7e4e0;
   --bs-table-hover-color: #000;
   color: #000;
-  border-color: #dbc4b9;
+  border-color: #e1ddda;
 }
 
 .table-dark {
@@ -3691,34 +3691,34 @@ textarea.form-control-lg {
 
 .btn-light {
   color: #000;
-  background-color: #f3dacd;
-  border-color: #f3dacd;
+  background-color: #FAF6F2;
+  border-color: #FAF6F2;
 }
 .btn-light:hover {
   color: #000;
-  background-color: #f5e0d5;
-  border-color: #f4ded2;
+  background-color: #fbf7f4;
+  border-color: #fbf7f3;
 }
 .btn-check:focus + .btn-light, .btn-light:focus {
   color: #000;
-  background-color: #f5e0d5;
-  border-color: #f4ded2;
-  -webkit-box-shadow: 0 0 0 0.25rem rgba(207, 185, 174, 0.5);
-          box-shadow: 0 0 0 0.25rem rgba(207, 185, 174, 0.5);
+  background-color: #fbf7f4;
+  border-color: #fbf7f3;
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(213, 209, 206, 0.5);
+          box-shadow: 0 0 0 0.25rem rgba(213, 209, 206, 0.5);
 }
 .btn-check:checked + .btn-light, .btn-check:active + .btn-light, .btn-light:active, .btn-light.active, .show > .btn-light.dropdown-toggle {
   color: #000;
-  background-color: #f5e1d7;
-  border-color: #f4ded2;
+  background-color: #fbf8f5;
+  border-color: #fbf7f3;
 }
 .btn-check:checked + .btn-light:focus, .btn-check:active + .btn-light:focus, .btn-light:active:focus, .btn-light.active:focus, .show > .btn-light.dropdown-toggle:focus {
-  -webkit-box-shadow: 0 0 0 0.25rem rgba(207, 185, 174, 0.5);
-          box-shadow: 0 0 0 0.25rem rgba(207, 185, 174, 0.5);
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(213, 209, 206, 0.5);
+          box-shadow: 0 0 0 0.25rem rgba(213, 209, 206, 0.5);
 }
 .btn-light:disabled, .btn-light.disabled {
   color: #000;
-  background-color: #f3dacd;
-  border-color: #f3dacd;
+  background-color: #FAF6F2;
+  border-color: #FAF6F2;
 }
 
 .btn-dark {
@@ -3916,29 +3916,29 @@ textarea.form-control-lg {
 }
 
 .btn-outline-light {
-  color: #f3dacd;
-  border-color: #f3dacd;
+  color: #FAF6F2;
+  border-color: #FAF6F2;
 }
 .btn-outline-light:hover {
   color: #000;
-  background-color: #f3dacd;
-  border-color: #f3dacd;
+  background-color: #FAF6F2;
+  border-color: #FAF6F2;
 }
 .btn-check:focus + .btn-outline-light, .btn-outline-light:focus {
-  -webkit-box-shadow: 0 0 0 0.25rem rgba(243, 218, 205, 0.5);
-          box-shadow: 0 0 0 0.25rem rgba(243, 218, 205, 0.5);
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(250, 246, 242, 0.5);
+          box-shadow: 0 0 0 0.25rem rgba(250, 246, 242, 0.5);
 }
 .btn-check:checked + .btn-outline-light, .btn-check:active + .btn-outline-light, .btn-outline-light:active, .btn-outline-light.active, .btn-outline-light.dropdown-toggle.show {
   color: #000;
-  background-color: #f3dacd;
-  border-color: #f3dacd;
+  background-color: #FAF6F2;
+  border-color: #FAF6F2;
 }
 .btn-check:checked + .btn-outline-light:focus, .btn-check:active + .btn-outline-light:focus, .btn-outline-light:active:focus, .btn-outline-light.active:focus, .btn-outline-light.dropdown-toggle.show:focus {
-  -webkit-box-shadow: 0 0 0 0.25rem rgba(243, 218, 205, 0.5);
-          box-shadow: 0 0 0 0.25rem rgba(243, 218, 205, 0.5);
+  -webkit-box-shadow: 0 0 0 0.25rem rgba(250, 246, 242, 0.5);
+          box-shadow: 0 0 0 0.25rem rgba(250, 246, 242, 0.5);
 }
 .btn-outline-light:disabled, .btn-outline-light.disabled {
-  color: #f3dacd;
+  color: #FAF6F2;
   background-color: transparent;
 }
 
@@ -5775,12 +5775,12 @@ textarea.form-control-lg {
 }
 
 .alert-light {
-  color: #615752;
-  background-color: #fdf8f5;
-  border-color: #fbf4f0;
+  color: #646261;
+  background-color: #fefdfc;
+  border-color: #fefcfb;
 }
 .alert-light .alert-link {
-  color: #4e4642;
+  color: #504e4e;
 }
 
 .alert-dark {
@@ -6191,17 +6191,17 @@ textarea.form-control-lg {
 }
 
 .list-group-item-light {
-  color: #615752;
-  background-color: #fdf8f5;
+  color: #646261;
+  background-color: #fefdfc;
 }
 .list-group-item-light.list-group-item-action:hover, .list-group-item-light.list-group-item-action:focus {
-  color: #615752;
-  background-color: #e4dfdd;
+  color: #646261;
+  background-color: #e5e4e3;
 }
 .list-group-item-light.list-group-item-action.active {
   color: #fefffc;
-  background-color: #615752;
-  border-color: #615752;
+  background-color: #646261;
+  border-color: #646261;
 }
 
 .list-group-item-dark {
@@ -7470,10 +7470,10 @@ textarea.form-control-lg {
 }
 
 .link-light {
-  color: #f3dacd;
+  color: #FAF6F2;
 }
 .link-light:hover, .link-light:focus {
-  color: #f5e1d7;
+  color: #fbf8f5;
 }
 
 .link-dark {
@@ -7926,7 +7926,7 @@ textarea.form-control-lg {
 }
 
 .border-light {
-  border-color: #f3dacd !important;
+  border-color: #FAF6F2 !important;
 }
 
 .border-dark {
@@ -12863,11 +12863,36 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
-.navbar-brand.large {
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: #FAF6F2;
+}
+
+.card {
+  border: none;
+  -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+.logo {
+  -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  background-color: #FAF6F2;
+  text-decoration: none;
+  border-radius: 50%;
+}
+.logo.large {
   font-weight: bold;
-  color: #fefffc !important;
   font-size: 64px;
   font-size: 4rem;
+}
+.logo.white {
+  color: #fefffc !important;
 }
 
 nav .nav-link {

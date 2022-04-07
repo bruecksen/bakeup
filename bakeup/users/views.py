@@ -3,9 +3,20 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.views import LoginView as _LoginView
 from django.views.generic import DetailView, RedirectView, UpdateView
 
 User = get_user_model()
+
+
+class LoginView(_LoginView):
+    def get_success_url(self) -> str:
+        if self.request.user.is_staff:
+            return reverse('workshop:workshop')
+        else:
+            return reverse('shop:shop')
+        return super().get_success_url()
+
 
 
 class UserProfileView(LoginRequiredMixin, DetailView):

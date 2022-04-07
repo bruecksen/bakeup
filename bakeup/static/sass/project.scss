@@ -2,10 +2,35 @@
 
 @import '../../../node_modules/bootstrap/scss/bootstrap.scss';
 
-.navbar-brand.large {
-  font-weight: bold;
-  color: $white!important;
-  font-size: 4rem;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: $light;
+}
+
+.card {
+  border: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+.logo {
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  background-color: $light;
+  text-decoration: none;
+  border-radius: 50%;
+  &.large {
+    font-weight: bold;
+    font-size: 4rem;
+  }
+  &.white {
+    color: $white!important;
+  }
+  
 }
 
 
