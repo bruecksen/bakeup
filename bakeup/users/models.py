@@ -17,3 +17,7 @@ class User(AbstractUser):
 
         """
         return reverse("users:profile")
+
+    @property
+    def is_customer(self):
+        return hasattr(self, 'customer')
