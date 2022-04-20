@@ -72,6 +72,8 @@ class Instruction(CommonBaseClass):
     instruction = models.TextField()
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds")
 
+""" 
+Add this in verison 0.2
 
 # Charge
 class ProductRevision(CommonBaseClass):
@@ -83,7 +85,7 @@ class ProductRevision(CommonBaseClass):
     class Meta:
         unique_together = ('product', 'timestamp')
         ordering = ('-timestamp',)
-
+ """
 
 # Hierarchy, Recipe
 # Warning: Changes on product level are not presisted
@@ -106,7 +108,7 @@ class ProductHierarchy(CommonBaseClass):
 
 class ProductionPlan(CommonBaseClass):
     start_date = models.DateTimeField()
-    product = models.ForeignKey('workshop.ProductRevision', on_delete=models.PROTECT, related_name='production_plans')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.PositiveSmallIntegerField()
     duration = models.PositiveSmallIntegerField()
 
