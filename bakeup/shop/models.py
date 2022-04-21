@@ -50,6 +50,7 @@ class ProductionDayProduct(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
     is_open_for_orders = models.BooleanField(default=True)
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, related_name='orders', blank=True, null=True)
     
     class Meta:
         ordering = ('production_day',)
