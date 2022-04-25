@@ -33,6 +33,9 @@ class ProductionDay(CommonBaseClass):
     def __str__(self):
         return "{}".format(self.day_of_sale)
 
+    def has_products_open_for_order(self):
+        return self.production_day_products.filter(is_open_for_orders=True).exists()
+
     @property
     def calendar_week(self):
         return self.day_of_sale.isocalendar()[1]
