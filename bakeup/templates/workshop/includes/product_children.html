@@ -13,13 +13,11 @@
                   {{ child.weight_unit }}
                 </div>
               </form>
-            {% else %}
-            <div class="text-end">{{ child.weight }} {{ child.weight_unit }}</div>
               
             {% endif %}
           </div>
           <div class="col-7 align-self-center">
-            <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+            {{ child.weight }} {{ child.weight_unit }} <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
           </div>
           <div class="col-3 text-end">
             {% if is_root %}
