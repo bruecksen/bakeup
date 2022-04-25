@@ -53,6 +53,10 @@ class Product(CommonBaseClass):
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
 
+
+    class Meta:
+        ordering = ('pk',)
+
     def __str__(self):
         return self.name
 
@@ -103,10 +107,11 @@ class ProductRevision(CommonBaseClass):
 class ProductHierarchy(CommonBaseClass):
     parent = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='parents')
     child = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='childs')
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.FloatField()
 
     
     class Meta:
+        ordering = ('pk',)
         unique_together = ('parent', 'child')
         constraints = [
             models.CheckConstraint(
@@ -115,6 +120,7 @@ class ProductHierarchy(CommonBaseClass):
             )
         ]
 
+    
 
 class ProductionPlan(CommonBaseClass):
     start_date = models.DateTimeField()

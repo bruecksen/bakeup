@@ -1,9 +1,37 @@
-<ul>
+{% load l10n %}
+<ol class="list-group{% if is_root %} list-group-root card{% endif %}">
   {% for child in children %}
-    <li>{{ child.quantity }} x {{ child.child.name }} {{ child.child.get_physical_representation }} (<a href="{% url 'workshop:product-update' pk=child.child.pk %}" class="small">Edit product</a>)</li>
-    {% if child.child.parents.all %}
-    {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child  %}
-    {% endif %}
-    {% endfor %}
-    <li><a href="{% url 'workshop:product-add' pk=parent.pk %}" class=""><i class="fa-solid fa-circle-chevron-right"></i> Add product</a></li>
-</ul>
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div class="{% if not is_root %}ms-2 {% endif %}">
+            <div class="row">
+              <div class="col-6">
+                {% if is_root %}
+                <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
+                  {% csrf_token %}
+                  <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" name="quantity" placeholder="" value="{{ child.quantity|unlocalize }}" step="0.1">
+                    <button class="btn btn-outline-secondary" type="submit">Save</button>
+                  </div>
+                </form>
+                {% else %}
+                {{ child.quantity }}
+                {% endif %}
+              </div>
+              <div class="col-6 align-self-center">
+                <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+              </div>
+            </div>
+          {{ category.description }}
+        </div>
+        {% if is_root %}
+        <div class="btn-group btn-group-sm">
+          <a href="{% url 'workshop:product-update' pk=child.child.pk %}" class="btn btn-outline-primary">Edit product</a>
+          <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary">Delete relation</a>
+        </div>
+        {% endif %}
+      </li>
+      {% if child.child.parents.all %}
+        {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False %}
+      {% endif %}
+  {% endfor %}
+  </ol>

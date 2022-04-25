@@ -5,13 +5,23 @@
 
 {% block page_content %}
 <div class="row">
-  <div class="col">
-    <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Delete product</a>
-    <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Edit product</a>
-    <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Add product</a>
+  <div class="col-7">
     <h1>{{ object.name }} {{ object.get_physical_representation }}</h1>
-     {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object %}
+  </div>
+  <div class="col-5 align-self-center">
+    <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
+      <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit product</a>
+      <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add product</a>
+      <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
+    </div>
   </div>
 </div>
-  
+<div class="row">
+  <div class="col">
+    {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True %}
+  </div>
+</div>
 {% endblock %}
+
+
+</a>

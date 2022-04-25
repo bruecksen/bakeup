@@ -5,8 +5,8 @@ from django.views.generic import CreateView, DetailView, ListView, DeleteView, U
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.workshop.forms import ProductForm, SelectProductForm
-from bakeup.workshop.models import Category, Product
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, SelectProductForm
+from bakeup.workshop.models import Category, Product, ProductHierarchy
 from bakeup.workshop.tables import ProductTable
 
 
@@ -63,7 +63,22 @@ class ProductDeleteView(StaffPermissionsMixin, DeleteView):
         return reverse(
             'workshop:product-list',
         )
-    
+
+
+class ProductHierarchyDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ProductHierarchy
+
+    def get_success_url(self):
+        return reverse('workshop:product-detail', kwargs={'pk': self.object.parent.pk})
+
+
+class ProductHierarchyUpdateView(StaffPermissionsMixin, UpdateView):
+    model = ProductHierarchy
+    form_class = ProductHierarchyForm
+
+    def get_success_url(self):
+        return reverse('workshop:product-detail', kwargs={'pk': self.object.parent.pk})
+
 
 class ProductDetailView(StaffPermissionsMixin, DetailView):
     model = Product
