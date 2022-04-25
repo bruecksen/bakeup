@@ -1,8 +1,9 @@
 <ul>
   {% for child in children %}
-    <li>{{ child.quantity }} x {{ child.child.name }}</li>
+    <li>{{ child.quantity }} x {{ child.child.name }} {{ child.child.get_physical_representation }} (<a href="{% url 'workshop:product-update' pk=child.child.pk %}" class="small">Edit product</a>)</li>
     {% if child.child.parents.all %}
-    {% include "workshop/includes/product_children.html" with children=child.child.parents.all  %}
+    {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child  %}
     {% endif %}
-  {% endfor %}
+    {% endfor %}
+    <li><a href="{% url 'workshop:product-add' pk=parent.pk %}" class=""><i class="fa-solid fa-circle-chevron-right"></i> Add product</a></li>
 </ul>

@@ -7,9 +7,10 @@
 <div class="row">
   <div class="col">
     <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Delete product</a>
+    <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Edit product</a>
     <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Add product</a>
-    <h1>{{ object.name }}</h1>
-     {% include "workshop/includes/product_children.html" with children=object.parents.all  %}
+    <h1>{{ object.name }} {{ object.get_physical_representation }}</h1>
+     {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object %}
   </div>
 </div>
   

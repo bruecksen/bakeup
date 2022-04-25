@@ -67,6 +67,14 @@ class Product(CommonBaseClass):
         )
         return child
 
+    def get_physical_representation(self):
+        if self.weight:
+            return "{} {}".format(self.weight, self.weight_units)
+        elif self.volume:
+            return "{} {}".format(self.volume, self.volume_units)
+        else:
+            return ''
+
 
 # Assembly
 class Instruction(CommonBaseClass):
