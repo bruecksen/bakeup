@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bakeup.workshop.views import CategoryListView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, WorkshopView
+from bakeup.workshop.views import CategoryListView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionPlanAddView, ProductionPlanListView, WorkshopView
 
 
 app_name = "workshop"
@@ -15,4 +15,6 @@ urlpatterns = [
     path("products/hierarchy/<int:pk>/delete/", view=ProductHierarchyDeleteView.as_view(), name="product-hierarchy-delete"),
     path("products/hierarchy/<int:pk>/update/", view=ProductHierarchyUpdateView.as_view(), name="product-hierarchy-update"),
     path("categories/", view=CategoryListView.as_view(), name="category-list"),
+    path("production-plans/", view=ProductionPlanListView.as_view(), name="production-plan-list"),
+    path("production-plans/add/", view=ProductionPlanAddView.as_view(), name="production-plan-add"),
 ]

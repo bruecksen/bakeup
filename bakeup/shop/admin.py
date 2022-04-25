@@ -26,7 +26,7 @@ class CustomerAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 
 @admin.register(ProductionDayProduct)
 class ProductionDayProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('production_day', 'product', 'max_quantity', 'is_open_for_orders')
+    list_display = ('production_day', 'product', 'max_quantity')
 
 
 @admin.register(ProductionDay)

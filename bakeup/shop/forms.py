@@ -12,7 +12,7 @@ class CustomerOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         production_day_product = kwargs.pop('production_day_product')
         super().__init__(*args, **kwargs)
-        if not production_day_product.is_open_for_orders:
+        if production_day_product.production_plan:
             self.fields['product'].disabled = True
             self.fields['quantity'].disabled = True
     

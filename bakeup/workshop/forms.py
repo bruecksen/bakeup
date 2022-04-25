@@ -1,4 +1,5 @@
 from django.forms import IntegerField, ModelChoiceField, ModelForm, Form
+from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Product, ProductHierarchy
 
@@ -15,3 +16,7 @@ class SelectProductForm(Form):
 
 class ProductHierarchyForm(Form):
     amount = IntegerField()
+
+
+class ProductionPlanForm(Form):
+    production_day = ModelChoiceField(queryset=ProductionDay.objects.all())

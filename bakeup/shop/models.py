@@ -34,7 +34,7 @@ class ProductionDay(CommonBaseClass):
         return "{}".format(self.day_of_sale)
 
     def has_products_open_for_order(self):
-        return self.production_day_products.filter(is_open_for_orders=True).exists()
+        return self.production_day_products.filter(production_plan__isnull=True).exists()
 
     @property
     def calendar_week(self):
@@ -49,8 +49,7 @@ class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
-    is_open_for_orders = models.BooleanField(default=True)
-    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, related_name='orders', blank=True, null=True)
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, blank=True, null=True)
     
     class Meta:
         ordering = ('production_day',)
@@ -113,6 +112,7 @@ class CustomerOrderTemplate(CommonBaseClass):
 class CustomerOrder(CommonBaseClass):
     order_nr = models.CharField(max_length=255)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT)
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True, related_name='orders')
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()

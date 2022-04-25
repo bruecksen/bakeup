@@ -132,14 +132,23 @@ class ProductHierarchy(CommonBaseClass):
             return self.child.weight_units
         else:
             return ''
-
     
 
 class ProductionPlan(CommonBaseClass):
+    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True)
     start_date = models.DateTimeField()
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.PositiveSmallIntegerField()
     duration = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ('pk',)
+        constraints = [
+            models.CheckConstraint(
+                check=~Q(pk=F('parent_plan')),
+                name='production_plan_not_equal_parent'
+            )
+        ]
 
 
 

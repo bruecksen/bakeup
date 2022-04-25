@@ -6,9 +6,9 @@ from django.views.generic.detail import SingleObjectMixin
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, SelectProductForm
-from bakeup.workshop.models import Category, Product, ProductHierarchy
-from bakeup.workshop.tables import ProductTable
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
+from bakeup.workshop.tables import ProductTable, ProductionPlanTable
 
 
 
@@ -87,6 +87,10 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
         self.object.save()
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        raise Exception(form.errors)
+        return super().form_invalid(form)
+
     def get_success_url(self):
         return reverse('workshop:product-detail', kwargs={'pk': self.object.parent.pk})
 
@@ -103,6 +107,24 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 class ProductListView(StaffPermissionsMixin, SingleTableView):
     model = Product
     table_class = ProductTable
+
+
+class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
+    model = ProductionPlan
+    table_class = ProductionPlanTable
+
+
+class ProductionPlanAddView(StaffPermissionsMixin, FormView):
+    model = ProductionPlan
+    form_class = ProductionPlanForm
+    template_name = 'workshop/production_plan_form.html'
+
+    def form_valid(self, form):
+        # raise Exception('here')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('workshop:production-day-list')
 
 
 class CategoryListView(StaffPermissionsMixin, ListView):

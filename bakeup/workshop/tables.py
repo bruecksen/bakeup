@@ -12,3 +12,11 @@ class ProductTable(tables.Table):
     class Meta:
         model = Product
         fields = ("pk", "name", "description", "categories", "is_sellable", "is_buyable", "is_composable")
+
+
+class ProductionPlanTable(tables.Table):
+    action = tables.TemplateColumn(template_name="tables/product_action_column.html", verbose_name="")
+
+    class Meta:
+        model = Product
+        fields = ("pk", "parent_plan", "start_date", "product", "quantity", "duration")
