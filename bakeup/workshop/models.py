@@ -40,7 +40,7 @@ VOLUME_UNIT_CHOICES = [
 class Product(CommonBaseClass):
     name = models.CharField(max_length=255)
     slug = models.SlugField(null=True, blank=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     image = models.FileField(null=True, blank=True)
     categories = models.ManyToManyField(Category, blank=True)
     # data in database normalized in grams
