@@ -13,7 +13,7 @@
       {% endif %}
     </h1>
   {% endif %}
-  {% if is_flagged %}This is flagged!{% endif %}
+  {% if form_select %}
   <h2>Add existing product</h2>
   <form class="form-horizontal" method="post">
     {% csrf_token %}
@@ -28,6 +28,7 @@
   </form>
   <hr>
   <h2>Add new product</h2>
+  {% endif %}
   <form class="form-horizontal" method="post">
     {% csrf_token %}
     {{ form|crispy }}
