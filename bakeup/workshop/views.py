@@ -83,8 +83,9 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
 
     def form_valid(self, form):
         amount = form.cleaned_data['amount']
-        self.object.quantity =  amount / self.object.child.weight
-        self.object.save()
+        if amount and self.object.child.weight:
+            self.object.quantity =  amount / self.object.child.weight
+            self.object.save()
         return super().form_valid(form)
 
     def form_invalid(self, form):

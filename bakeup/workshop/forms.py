@@ -1,4 +1,4 @@
-from django.forms import IntegerField, ModelChoiceField, ModelForm, Form
+from django.forms import FloatField, IntegerField, ModelChoiceField, ModelForm, Form
 from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Product, ProductHierarchy
@@ -15,7 +15,7 @@ class SelectProductForm(Form):
 
 
 class ProductHierarchyForm(Form):
-    amount = IntegerField()
+    amount = FloatField()
 
 
 class ProductionPlanForm(Form):
