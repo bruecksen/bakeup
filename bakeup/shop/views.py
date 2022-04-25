@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView
 from django.shortcuts import get_object_or_404, render
+from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
@@ -96,3 +97,9 @@ class ShopView(CustomerRequiredMixin, TemplateView):
         today = datetime.now().date()
         context['production_days'] = ProductionDay.objects.filter(day_of_sale__gte=today)
         return context
+
+
+
+# class ProductListView(CustomerRequiredMixin, SingleTableView):
+#     model = CustomerOrder
+#     table_class = CustomerOrderTable
