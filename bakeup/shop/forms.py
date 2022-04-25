@@ -15,7 +15,7 @@ class CustomerOrderForm(forms.Form):
         if not production_day_product.is_open_for_orders:
             self.fields['product'].disabled = True
             self.fields['quantity'].disabled = True
-
+    
 
 class CustomerProductionDayOrderForm(forms.Form):
 

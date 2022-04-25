@@ -57,13 +57,15 @@ class Product(CommonBaseClass):
         return self.name
 
     def get_absolute_url(self):
-        """Get url for user's detail view.
-
-        Returns:
-            str: URL for user detail.
-
-        """
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
+    
+    def add_child(self, child):
+        child = ProductHierarchy.objects.create(
+            parent=self,
+            child=child,
+            quantity=1
+        )
+        return child
 
 
 # Assembly

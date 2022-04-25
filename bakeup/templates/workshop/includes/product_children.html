@@ -1,0 +1,8 @@
+<ul>
+  {% for child in children %}
+    <li>{{ child.quantity }} x {{ child.child.name }}</li>
+    {% if child.child.parents.all %}
+    {% include "workshop/includes/product_children.html" with children=child.child.parents.all  %}
+    {% endif %}
+  {% endfor %}
+</ul>
