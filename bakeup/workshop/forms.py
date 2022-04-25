@@ -1,4 +1,4 @@
-from django.forms import ModelChoiceField, ModelForm, Form
+from django.forms import IntegerField, ModelChoiceField, ModelForm, Form
 
 from bakeup.workshop.models import Product, ProductHierarchy
 
@@ -13,7 +13,5 @@ class SelectProductForm(Form):
     product = ModelChoiceField(queryset=Product.objects.all())
 
 
-class ProductHierarchyForm(ModelForm):
-    class Meta:
-        model = ProductHierarchy
-        fields = ('quantity',)
+class ProductHierarchyForm(Form):
+    amount = IntegerField()

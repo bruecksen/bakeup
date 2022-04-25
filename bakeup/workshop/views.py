@@ -1,7 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView
+from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
+from django.views.generic.detail import SingleObjectMixin
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
@@ -72,9 +73,19 @@ class ProductHierarchyDeleteView(StaffPermissionsMixin, DeleteView):
         return reverse('workshop:product-detail', kwargs={'pk': self.object.parent.pk})
 
 
-class ProductHierarchyUpdateView(StaffPermissionsMixin, UpdateView):
+class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
     model = ProductHierarchy
     form_class = ProductHierarchyForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = get_object_or_404(ProductHierarchy, pk=kwargs.get('pk'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        amount = form.cleaned_data['amount']
+        self.object.quantity =  amount / self.object.child.weight
+        self.object.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('workshop:product-detail', kwargs={'pk': self.object.parent.pk})

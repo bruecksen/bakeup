@@ -108,7 +108,6 @@ class ProductHierarchy(CommonBaseClass):
     parent = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='parents')
     child = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='childs')
     quantity = models.FloatField()
-
     
     class Meta:
         ordering = ('pk',)
@@ -119,6 +118,20 @@ class ProductHierarchy(CommonBaseClass):
                 name='recipe_parent_and_child_cannot_be_equal'
             )
         ]
+    
+    @property
+    def weight(self):
+        if self.child.weight:
+            return self.child.weight * self.quantity
+        else:
+            return '-'
+
+    @property
+    def weight_unit(self):
+        if self.child.weight_units:
+            return self.child.weight_units
+        else:
+            return ''
 
     
 
