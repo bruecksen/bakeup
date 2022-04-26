@@ -4,7 +4,7 @@ from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
 from bakeup.core.admin import ExcludeAdminMixin
 
-from bakeup.workshop.models import Category, ProductHierarchy
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 
 
 @admin.register(Category)
@@ -16,3 +16,13 @@ class CategoryAdmin(TreeAdmin):
 @admin.register(ProductHierarchy)
 class ProductHierarchyAdmin(ExcludeAdminMixin, admin.ModelAdmin):
     list_display = ('parent', 'child', 'quantity')
+
+
+@admin.register(Product)
+class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('name', 'description')
+
+
+@admin.register(ProductionPlan)
+class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('parent_plan', 'start_date', 'quantity')

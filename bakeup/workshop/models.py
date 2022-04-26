@@ -118,6 +118,10 @@ class ProductHierarchy(CommonBaseClass):
                 name='recipe_parent_and_child_cannot_be_equal'
             )
         ]
+
+    @property
+    def is_leaf(self):
+        return not self.child.parents.exists()
     
     @property
     def weight(self):
@@ -135,10 +139,10 @@ class ProductHierarchy(CommonBaseClass):
     
 
 class ProductionPlan(CommonBaseClass):
-    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True)
+    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True, related_name='children')
     start_date = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.FloatField()
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
@@ -149,6 +153,20 @@ class ProductionPlan(CommonBaseClass):
                 name='production_plan_not_equal_parent'
             )
         ]
+
+    @classmethod
+    def create_all_child_plans(cls, parent, children):
+        for child in children:
+            # import ipdb;ipdb.set_trace();
+            if not child.is_leaf:
+                obj, created = ProductionPlan.objects.update_or_create(
+                    parent_plan=parent,
+                    start_date=parent.start_date,
+                    product=child.child,
+                    defaults={'quantity': child.child.weight * parent.quantity}
+                )
+                ProductionPlan.create_all_child_plans(obj, child.child.parents.all())
+
 
 
 

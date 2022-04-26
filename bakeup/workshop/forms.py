@@ -1,7 +1,7 @@
 from django.forms import FloatField, IntegerField, ModelChoiceField, ModelForm, Form
 from bakeup.shop.models import ProductionDay
 
-from bakeup.workshop.models import Product, ProductHierarchy
+from bakeup.workshop.models import Product, ProductHierarchy, ProductionPlan
 
 
 class ProductForm(ModelForm):
@@ -18,5 +18,11 @@ class ProductHierarchyForm(Form):
     amount = FloatField()
 
 
-class ProductionPlanForm(Form):
+class ProductionDayForm(Form):
     production_day = ModelChoiceField(queryset=ProductionDay.objects.all())
+
+
+class ProductionPlanForm(ModelForm):
+    class Meta:
+        model = ProductionPlan
+        fields = ('start_date', 'duration')

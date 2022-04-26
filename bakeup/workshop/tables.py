@@ -15,8 +15,9 @@ class ProductTable(tables.Table):
 
 
 class ProductionPlanTable(tables.Table):
-    action = tables.TemplateColumn(template_name="tables/product_action_column.html", verbose_name="")
+    pk = tables.LinkColumn('workshop:production-plan-detail', args=[A('pk')], verbose_name='#')
+    action = tables.TemplateColumn(template_name="tables/production_plan_action_column.html", verbose_name="")
 
     class Meta:
         model = Product
-        fields = ("pk", "parent_plan", "start_date", "product", "quantity", "duration")
+        fields = ("pk", "start_date", "product", "quantity", "duration")

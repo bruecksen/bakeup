@@ -10,7 +10,7 @@ from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionPlanTable
 
@@ -119,27 +119,52 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
     table_class = ProductionPlanTable
 
 
+    # def get_table_data(self):
+        # return ProductionPlan.objects.filter(parent_plan__isnull=True)
+
+
 class ProductionPlanDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionPlan
 
 
 class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     model = ProductionPlan
-    form_class = ProductionPlanForm
+    form_class = ProductionDayForm
     template_name = 'workshop/production_plan_form.html'
 
     def form_valid(self, form):
         production_day = form.cleaned_data['production_day']
         if production_day:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=production_day)
+            positions = CustomerOrderPosition.objects.filter(order__production_day=production_day, production_plan__isnull=True)
             product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
             for product_quantity in product_quantities:
-                obj, created = ProductionPlan.objects.update_or_create(
+                obj = ProductionPlan.objects.create(
                     parent_plan=None,
                     product_id=product_quantity.get('product'),
-                    defaults={'quantity': product_quantity.get('total_quantity')}
+                    quantity=product_quantity.get('total_quantity'),
+                    start_date=production_day.day_of_sale,
                 )
+                ProductionPlan.create_all_child_plans(obj, obj.product.parents.all())
+                positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('workshop:production-plan-list')
+
+
+class ProductionPlanUpdateView(StaffPermissionsMixin, UpdateView):
+    model = ProductionPlan
+    form_class = ProductionPlanForm
+
+    def get_success_url(self):
+        if self.object.parent_plan:
+            return reverse('workshop:production-plan-detail', kwargs={'pk': self.object.parent_plan.pk })
+        else:
+            return reverse('workshop:production-plan-detail', kwargs={'pk': self.object.pk })
+
+
+class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ProductionPlan
 
     def get_success_url(self):
         return reverse('workshop:production-plan-list')
