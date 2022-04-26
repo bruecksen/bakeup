@@ -1,0 +1,1 @@
+[{"model": "shop.customer", "pk": 1, "fields": {"created": "2022-04-25T21:06:29.397Z", "updated": "2022-04-25T21:06:29.397Z", "is_archived": false, "user": 4, "point_of_sale": 1}}, {"model": "shop.customer", "pk": 2, "fields": {"created": "2022-04-25T21:06:36.209Z", "updated": "2022-04-25T21:06:36.209Z", "is_archived": false, "user": 5, "point_of_sale": 1}}]
