@@ -136,10 +136,10 @@ class ProductHierarchy(CommonBaseClass):
 
 class ProductionPlan(CommonBaseClass):
     parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True)
-    start_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.PositiveSmallIntegerField()
-    duration = models.PositiveSmallIntegerField()
+    duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ('pk',)

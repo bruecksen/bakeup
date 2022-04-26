@@ -112,7 +112,6 @@ class CustomerOrderTemplate(CommonBaseClass):
 class CustomerOrder(CommonBaseClass):
     order_nr = models.CharField(max_length=255)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT)
-    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True, related_name='orders')
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()
@@ -150,6 +149,7 @@ class CustomerOrder(CommonBaseClass):
 class CustomerOrderPosition(CommonBaseClass):
     order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT, related_name='positions')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True, related_name='orders')
     quantity = models.PositiveSmallIntegerField()
 
     

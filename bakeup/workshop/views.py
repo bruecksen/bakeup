@@ -1,11 +1,15 @@
+from itertools import product
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
+from django.db.models import Sum
+
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
+from bakeup.shop.models import CustomerOrder, CustomerOrderPosition
 from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionPlanTable
@@ -115,17 +119,30 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
     table_class = ProductionPlanTable
 
 
+class ProductionPlanDetailView(StaffPermissionsMixin, DetailView):
+    model = ProductionPlan
+
+
 class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     model = ProductionPlan
     form_class = ProductionPlanForm
     template_name = 'workshop/production_plan_form.html'
 
     def form_valid(self, form):
-        # raise Exception('here')
+        production_day = form.cleaned_data['production_day']
+        if production_day:
+            positions = CustomerOrderPosition.objects.filter(order__production_day=production_day)
+            product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
+            for product_quantity in product_quantities:
+                obj, created = ProductionPlan.objects.update_or_create(
+                    parent_plan=None,
+                    product_id=product_quantity.get('product'),
+                    defaults={'quantity': product_quantity.get('total_quantity')}
+                )
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('workshop:production-day-list')
+        return reverse('workshop:production-plan-list')
 
 
 class CategoryListView(StaffPermissionsMixin, ListView):
