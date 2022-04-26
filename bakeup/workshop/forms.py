@@ -7,7 +7,7 @@ from bakeup.workshop.models import Product, ProductHierarchy, ProductionPlan
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'image', 'categories', 'weight', 'weight_units', 'volume', 'volume_units', 'is_sellable', 'is_buyable', 'is_composable']
+        fields = ['name', 'description', 'image', 'category', 'weight', 'weight_units', 'volume', 'volume_units', 'is_sellable', 'is_buyable', 'is_composable']
 
 
 class SelectProductForm(Form):

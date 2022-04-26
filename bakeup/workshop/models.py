@@ -42,7 +42,7 @@ class Product(CommonBaseClass):
     slug = models.SlugField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     image = models.FileField(null=True, blank=True)
-    categories = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     # data in database normalized in grams
     weight = models.PositiveSmallIntegerField(help_text="weight in grams", blank=True, null=True)
     weight_units = models.CharField(max_length=255, choices=WEIGHT_UNIT_CHOICES, blank=True, null=True)
