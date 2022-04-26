@@ -1,5 +1,5 @@
 {% load l10n %}
-<ol class="list-group{% if is_root %} list-group-root card{% endif %}">
+<ol class="list-group{% if is_root %} list-group-root {% endif %} card">
   {% for child in children %}
       <li class="list-group-item">
         <div class="row">
@@ -10,19 +10,23 @@
                 <div class="input-group input-group-sm">
                   <input type="number" class="form-control" name="amount" placeholder="" value="{{ child.weight|unlocalize }}" step="0.1">
                   <button class="btn btn-outline-secondary" type="submit">Save</button>
-                  {{ child.weight_unit }}
                 </div>
               </form>
               
             {% endif %}
           </div>
           <div class="col-7 align-self-center">
-            {{ child.weight }} {{ child.weight_unit }} <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+            {{ child.weight }} {{ child.weight_unit }}
+            {% if child.child.parents.all %}
+              <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+              <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
+            {% else %}
+            {{ child.child.name }}
+            {% endif %}
           </div>
           <div class="col-3 text-end">
             {% if is_root %}
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'workshop:product-update' pk=child.child.pk %}" class="btn btn-outline-primary">Edit product</a>
               <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary">Delete relation</a>
             </div>
             {% endif %}
@@ -30,7 +34,11 @@
         </div>      
       </li>
       {% if child.child.parents.all %}
-        {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False %}
-      {% endif %}
+      <li class="list-group-item collapse" id="item-{{ child.child.pk }}">
+          {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False %}
+        </li>
+        {% endif %}
   {% endfor %}
   </ol>
+
+  
