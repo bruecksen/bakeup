@@ -116,11 +116,11 @@ class ProductListView(StaffPermissionsMixin, SingleTableView):
 
 class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
     model = ProductionPlan
-    table_class = ProductionPlanTable
+    context_object_name = 'production_plans'
 
-
-    # def get_table_data(self):
-        # return ProductionPlan.objects.filter(parent_plan__isnull=True)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(parent_plan__isnull=True)
 
 
 class ProductionPlanDetailView(StaffPermissionsMixin, DetailView):
