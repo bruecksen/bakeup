@@ -8,7 +8,7 @@
               <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
                 {% csrf_token %}
                 <div class="input-group input-group-sm">
-                  <input type="number" class="form-control" name="amount" placeholder="" value="{{ child.weight|unlocalize }}" step="0.1">
+                  <input type="number" class="form-control" name="amount" placeholder="" value="{{ child.weight|floatformat:"0"|unlocalize }}" step="0.1">
                   <button class="btn btn-outline-secondary" type="submit">Save</button>
                 </div>
               </form>
@@ -16,9 +16,9 @@
             {% endif %}
           </div>
           <div class="col-7 align-self-center">
-            {{ child.weight }} {{ child.weight_unit }}
+             {{ child.quantity|multiply:quantity|multiply:child.child.weight|floatformat:"0" }} {{ child.weight_unit }}
             {% if child.child.parents.all %}
-              <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+              <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }} ({{child.child.weight}})</a>
               <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
             {% else %}
             {{ child.child.name }}
@@ -35,7 +35,7 @@
       </li>
       {% if child.child.parents.all %}
       <li class="list-group-item collapse" id="item-{{ child.child.pk }}">
-          {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False %}
+          {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False quantity=child.quantity|multiply:quantity %}
         </li>
         {% endif %}
   {% endfor %}

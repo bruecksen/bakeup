@@ -128,6 +128,15 @@ class ProductHierarchy(CommonBaseClass):
         ]
 
     @property
+    def total_quantity(self, from_parent, quantity=1):
+        for child in from_parent.childs.all():
+            quantity = quantity * child.quantity
+            if child == self:
+                return quantity
+
+
+
+    @property
     def is_leaf(self):
         return not self.child.parents.exists()
     
@@ -147,7 +156,7 @@ class ProductHierarchy(CommonBaseClass):
     
 
 class ProductionPlan(CommonBaseClass):
-    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, null=True, blank=True, related_name='children')
+    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
     start_date = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.FloatField()

@@ -18,7 +18,7 @@
 </div>
 
 <div class="p-3">
-  {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True %}
+  {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 %}
 </div>
 
 
