@@ -83,7 +83,10 @@ class Product(CommonBaseClass):
     def get_ingredient_list(self):
         ingredients = []
         for child in self.parents.all():
-            ingredients.append(child.child)
+            ingredients.append({
+                'product': child.child,
+                'quantity': child.quantity,
+            })
         return ingredients
 
 
