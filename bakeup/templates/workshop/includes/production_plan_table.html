@@ -17,7 +17,11 @@
                 <td>{{ production_plan.root.quantity }}</td>
                 <td>{{ production_plan.root.product }}</td>
                 {% for key, value in table_categories.items %}
-                <td>{{ production_plan|get_item:key }}{{ key }}</td>
+                <td>{% for child_plan in production_plan|get_item:key %}
+                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+
+                </td>
                 {% endfor %}
             </tr>
         {% endfor %}

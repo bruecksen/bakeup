@@ -1,0 +1,6 @@
+<p>{{ plan.product }}({{ plan.quantity }})</p>
+<ul>
+    {% for ingredient in plan.product.get_ingredient_list %}
+    <li>{{ ingredient.name }} {{ ingredient.get_physical_representation }}</li>
+    {% endfor %}
+</ul>

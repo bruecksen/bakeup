@@ -138,7 +138,11 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
             plan_dict = {
                 'root': production_plan
             }
-            for child in ProductionPlan.objects.filter(Q(parent_plan=production_plan) | Q(parent_plan__parent_plan=production_plan) | Q(parent_plan__parent_plan__parent_plan=production_plan)):
+            for child in ProductionPlan.objects.filter(
+                Q(parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan__parent_plan=production_plan) |
+                Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
                 plan_dict.setdefault(child.product.category.name, [])
                 plan_dict[child.product.category.name].append(child)
             production_plans.append(plan_dict)

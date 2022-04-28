@@ -79,6 +79,14 @@ class Product(CommonBaseClass):
         else:
             return ''
 
+    
+    def get_ingredient_list(self):
+        ingredients = []
+        for child in self.parents.all():
+            ingredients.append(child.child)
+        return ingredients
+
+
 
 # Assembly
 class Instruction(CommonBaseClass):
