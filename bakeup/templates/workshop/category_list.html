@@ -5,9 +5,15 @@
 {% block title %}Add new product{% endblock %}
 
 {% block page_content %}
-  <h1>Categories</h1>
-  <div class="mt-4 mb-4">
-    {% include "workshop/includes/category.html" with categories=categories is_root=True %}
+  <div class="row mt-2 mb-4">
+    <div class="col">
+      <h1>Categories</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      {% include "workshop/includes/category.html" with categories=categories is_root=True %}
+    </div>
   </div>
  
   
