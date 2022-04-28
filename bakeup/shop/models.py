@@ -49,7 +49,7 @@ class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
     max_quantity = models.PositiveSmallIntegerField()
-    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.PROTECT, blank=True, null=True)
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     
     class Meta:
         ordering = ('production_day',)

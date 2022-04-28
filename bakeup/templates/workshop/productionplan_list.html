@@ -14,12 +14,17 @@
 </div>
 <div class="row justify-content-end mt-4 mb-3">
   <div class="col-2">
-    <select class="form-select form-select-sm" aria-label="Default select example">
-      <option selected>{% trans "Filter by date" %}</option>
-      {% for day in days %}
-        <option value="{{ day }}">{{ day|date:'d.m.Y' }}</option>
-      {% endfor %}
-    </select>
+    <form method="GET">
+      <div class="input-group">
+        <select class="form-select form-select-sm" aria-label="Default select example" name="production_day">
+          <option {% if not day_filter %}selected{% endif %}>{% trans "Filter by date" %}</option>
+          {% for day in days %}
+            <option value="{{  day.1 }}" {% if day.1 is day_filter %} selected{% endif %}>{{ day.0|date:'d.m.Y' }}</option>
+          {% endfor %}
+        </select>
+        <input type="submit" class="btn btn-outline-secondary btn-sm" type="button" value="Filter">
+      </div>
+    </form>
   </div>
 </div>
 <div class="row">

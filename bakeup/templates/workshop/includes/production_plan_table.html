@@ -4,6 +4,7 @@
 <table class="table table-striped table-hover">
     <thead>
         <tr>
+            <th>{% trans "Day" %}</th>
             <th>{% trans "Quantity" %}</th>
             <th>{% trans "Product" %}</th>
             {% for key, value in table_categories.items %}
@@ -14,6 +15,7 @@
     <tbody>
         {% for production_plan in production_plans %}
             <tr>
+                <td width="10%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.Y' }}</td>
                 <td width="10%">{{ production_plan.root.quantity }}</td>
                 <td width="10%">{{ production_plan.root.product }}</td>
                 {% for key, value in table_categories.items %}

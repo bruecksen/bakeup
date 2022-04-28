@@ -11,7 +11,7 @@ from django.db.models import Sum
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition
+from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDayProduct
 from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionPlanTable
@@ -122,6 +122,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if 'production_day' in self.request.GET:
+            qs = qs.filter(production_day__pk=self.request.GET.get('production_day'))
         return qs.filter(parent_plan__isnull=True)
 
     
@@ -148,8 +150,9 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
             production_plans.append(plan_dict)
         # raise Exception(production_plans)
         context['table_categories'] = table_categories
-        context['days'] = context['production_plans'].values_list('start_date__date', flat=True).order_by('start_date__date').distinct()
+        context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('production_day__day_of_sale').distinct()
         context['production_plans'] = production_plans
+        context['day_filter'] = self.request.GET.get('production_day', None)
         return context
 
 
@@ -170,12 +173,16 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
             for product_quantity in product_quantities:
                 obj = ProductionPlan.objects.create(
                     parent_plan=None,
+                    production_day=production_day,
                     product_id=product_quantity.get('product'),
                     quantity=product_quantity.get('total_quantity'),
                     start_date=production_day.day_of_sale,
                 )
                 ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=product_quantity.get('total_quantity'))
                 positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
+                production_day_product = ProductionDayProduct.objects.get(product_id=product_quantity.get('product'), production_day=production_day)
+                production_day_product.production_plan = obj
+                production_day_product.save()
         return super().form_valid(form)
 
     def get_success_url(self):

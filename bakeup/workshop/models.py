@@ -150,6 +150,7 @@ class ProductHierarchy(CommonBaseClass):
     
 
 class ProductionPlan(CommonBaseClass):
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.SET_NULL, null=True, blank=True, related_name='production_plans')
     parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
     start_date = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
@@ -168,10 +169,11 @@ class ProductionPlan(CommonBaseClass):
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):
         for child in children:
-            # import ipdb;ipdb.set_trace();
             if not child.is_leaf:
+                print("Productionplan: {}".format(child.child))
                 obj, created = ProductionPlan.objects.update_or_create(
                     parent_plan=parent,
+                    production_day=parent.production_day,
                     start_date=parent.start_date,
                     product=child.child,
                     defaults={'quantity': quantity_parent * child.quantity}
