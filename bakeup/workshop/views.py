@@ -174,7 +174,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
                     quantity=product_quantity.get('total_quantity'),
                     start_date=production_day.day_of_sale,
                 )
-                ProductionPlan.create_all_child_plans(obj, obj.product.parents.all())
+                ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=product_quantity.get('total_quantity'))
                 positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
         return super().form_valid(form)
 

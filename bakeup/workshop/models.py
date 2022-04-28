@@ -128,15 +128,6 @@ class ProductHierarchy(CommonBaseClass):
         ]
 
     @property
-    def total_quantity(self, from_parent, quantity=1):
-        for child in from_parent.childs.all():
-            quantity = quantity * child.quantity
-            if child == self:
-                return quantity
-
-
-
-    @property
     def is_leaf(self):
         return not self.child.parents.exists()
     
@@ -172,7 +163,7 @@ class ProductionPlan(CommonBaseClass):
         ]
 
     @classmethod
-    def create_all_child_plans(cls, parent, children):
+    def create_all_child_plans(cls, parent, children, quantity_parent):
         for child in children:
             # import ipdb;ipdb.set_trace();
             if not child.is_leaf:
@@ -180,9 +171,9 @@ class ProductionPlan(CommonBaseClass):
                     parent_plan=parent,
                     start_date=parent.start_date,
                     product=child.child,
-                    defaults={'quantity': child.child.weight * parent.quantity}
+                    defaults={'quantity': quantity_parent * child.quantity}
                 )
-                ProductionPlan.create_all_child_plans(obj, child.child.parents.all())
+                ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
 
 
 
