@@ -1,4 +1,6 @@
 from itertools import product
+from typing import OrderedDict
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -121,6 +123,30 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(parent_plan__isnull=True)
+
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_header = ProductionPlan.objects.filter(parent_plan__isnull=False).values_list('product__category__name', flat=True).order_by('product__category__name').distinct()
+        table_categories = OrderedDict()
+        for category in ProductionPlan.objects.filter(parent_plan__isnull=False).values_list('product__category__name', flat=True):
+            if not category in table_categories:
+                table_categories[category] = {
+                }
+        production_plans = []
+        for production_plan in context['production_plans']:
+            plan_dict = {
+                'root': production_plan
+            }
+            for child in ProductionPlan.objects.filter(Q(parent_plan=production_plan) | Q(parent_plan__parent_plan=production_plan) | Q(parent_plan__parent_plan__parent_plan=production_plan)):
+                plan_dict.setdefault(child.product.category.name, [])
+                plan_dict[child.product.category.name].append(child)
+            production_plans.append(plan_dict)
+        # raise Exception(production_plans)
+        context['table_categories'] = table_categories
+        context['days'] = context['production_plans'].values_list('start_date__date', flat=True).order_by('start_date__date').distinct()
+        context['production_plans'] = production_plans
+        return context
 
 
 class ProductionPlanDetailView(StaffPermissionsMixin, DetailView):

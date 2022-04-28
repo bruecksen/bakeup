@@ -1,17 +1,24 @@
 {% load i18n %}
+{% load utils %}
 
 <table class="table table-striped table-hover">
     <thead>
         <tr>
             <th>{% trans "Quantity" %}</th>
             <th>{% trans "Product" %}</th>
+            {% for key, value in table_categories.items %}
+            <th>{{ key }}</th>
+            {% endfor %}
         </tr>
     </thead>
     <tbody>
         {% for production_plan in production_plans %}
             <tr>
-                <td>{{ production_plan.quantity }}</td>
-                <td>{{ production_plan.product }}</td>
+                <td>{{ production_plan.root.quantity }}</td>
+                <td>{{ production_plan.root.product }}</td>
+                {% for key, value in table_categories.items %}
+                <td>{{ production_plan|get_item:key }}{{ key }}</td>
+                {% endfor %}
             </tr>
         {% endfor %}
     </tbody>
