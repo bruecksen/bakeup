@@ -154,7 +154,7 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
         context = super().get_context_data(**kwargs)
         table_header = ProductionPlan.objects.filter(parent_plan__isnull=False).values_list('product__category__name', flat=True).order_by('product__category__name').distinct()
         table_categories = OrderedDict()
-        for category in ProductionPlan.objects.filter(parent_plan__isnull=False).values_list('product__category__name', flat=True):
+        for category in ProductionPlan.objects.filter(parent_plan__isnull=False).order_by('pk').values_list('product__category__name', flat=True):
             if not category in table_categories:
                 table_categories[category] = {
                 }
