@@ -160,9 +160,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
                 }
         production_plans = []
         for production_plan in context['production_plans']:
-            plan_dict = {
-                'root': production_plan
-            }
+            plan_dict = OrderedDict()
+            plan_dict['root'] = production_plan
             for child in ProductionPlan.objects.filter(
                 Q(parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan=production_plan) | 
