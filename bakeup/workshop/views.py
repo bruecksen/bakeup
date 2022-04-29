@@ -11,7 +11,7 @@ from django.db.models import Sum
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDayProduct
+from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionPlanTable
@@ -174,7 +174,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
         context['table_categories'] = table_categories
         context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('production_day__day_of_sale').distinct()
         context['production_plans'] = production_plans
-        context['day_filter'] = self.request.GET.get('production_day', None)
+        if 'production_day' in self.request.GET:
+            context['day_filter'] = ProductionDay.objects.get(pk=self.request.GET.get('production_day', None))
         return context
 
 

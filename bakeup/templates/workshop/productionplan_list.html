@@ -6,20 +6,20 @@
 {% block page_content %}
 <div class="row mt-2 mb-4">
   <div class="col-8">
-    <h1>Production plans</h1>
+    <h1>Production plans <small class="text-muted">{{ day_filter.day_of_sale }}</small></h1>
   </div>
-  <div class="col align-self-center">
+  <div class="col align-self-center d-print-none">
     <a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary btn-sm float-end">Add new production plan</a>
   </div>
 </div>
-<div class="row justify-content-end mt-4 mb-3">
+<div class="row justify-content-end mt-4 mb-3 d-print-none">
   <div class="col-2">
     <form method="GET">
       <div class="input-group">
         <select class="form-select form-select-sm" aria-label="Default select example" name="production_day">
           <option {% if not day_filter %}selected{% endif %}>{% trans "Filter by date" %}</option>
           {% for day in days %}
-            <option value="{{  day.1 }}" {% if day.1 is day_filter %} selected{% endif %}>{{ day.0|date:'d.m.Y' }}</option>
+            <option value="{{  day.1 }}" {% if day.1 == day_filter.pk %} selected{% endif %}>{{ day.0|date:'d.m.Y' }}</option>
           {% endfor %}
         </select>
         <input type="submit" class="btn btn-outline-secondary btn-sm" type="button" value="Filter">

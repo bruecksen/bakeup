@@ -4,7 +4,7 @@
 <table class="table table-striped table-hover">
     <thead>
         <tr>
-            <th>{% trans "Day" %}</th>
+            {% if not day_filter %}<th>{% trans "Day" %}</th>{% endif %}
             <th>{% trans "Quantity" %}</th>
             <th>{% trans "Product" %}</th>
             <th>{% trans "Main-dough" %}</th>
@@ -15,18 +15,18 @@
     <tbody>
         {% for production_plan in production_plans %}
             <tr>
-                <td width="10%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.Y' }}</td>
-                <td width="10%">{{ production_plan.root.quantity }}</td>
+                {% if not day_filter %}<td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>{% endif %}
+                <td width="5%">{{ production_plan.root.quantity }}</td>
                 <td width="10%">{{ production_plan.root.product }}</td>
-                <td width="26%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
+                <td width="30%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
                 </td>
-                <td width="26%">{% for child_plan in production_plan|get_item:'Vorteig' %}
+                <td width="30%">{% for child_plan in production_plan|get_item:'Vorteig' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
                 </td>
-                <td width="26%">{% for child_plan in production_plan|get_item:'Starter' %}
+                <td width="30%">{% for child_plan in production_plan|get_item:'Starter' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
                 </td>
