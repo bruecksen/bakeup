@@ -21,6 +21,14 @@ from bakeup.workshop.tables import ProductTable, ProductionPlanTable
 class WorkshopView(StaffPermissionsMixin, TemplateView):
     template_name = 'workshop/workshop.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['products_count'] = Product.objects.filter(is_sellable=True).count()
+        context['ingredients_count'] = Product.objects.all().count()
+        context['categories_count'] = Category.objects.all().count()
+        context['productionplans_count'] = ProductionPlan.objects.all().count()
+        return context
+
 
 class ProductAddView(StaffPermissionsMixin, CreateView):
     model = Product
