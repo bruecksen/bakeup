@@ -6,7 +6,8 @@
 {% block page_content %}
 <div class="row mt-2 mb-4">
   <div class="col-8">
-    <h1>Production plans <small class="text-muted">{{ day_filter.day_of_sale }}</small></h1>
+    <h1 class="d-print-none">Production plans <small class="text-muted">{{ day_filter.day_of_sale }}</small></h1>
+    <h6 class="d-none d-print-block">Production plans {{ day_filter.day_of_sale }}</h6>
   </div>
   <div class="col align-self-center d-print-none">
     <a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary btn-sm float-end">Add new production plan</a>
