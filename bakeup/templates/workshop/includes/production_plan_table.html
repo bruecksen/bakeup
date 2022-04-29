@@ -7,9 +7,9 @@
             <th>{% trans "Day" %}</th>
             <th>{% trans "Quantity" %}</th>
             <th>{% trans "Product" %}</th>
-            {% for key, value in table_categories.items %}
-            <th>{{ key }}</th>
-            {% endfor %}
+            <th>{% trans "Main-dough" %}</th>
+            <th>{% trans "Pre-dough" %}</th>
+            <th>{% trans "Starter" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -18,13 +18,18 @@
                 <td width="10%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.Y' }}</td>
                 <td width="10%">{{ production_plan.root.quantity }}</td>
                 <td width="10%">{{ production_plan.root.product }}</td>
-                {% for key, value in table_categories.items %}
-                <td width="{% widthratio 80 table_categories|length 1 %}%">{% for child_plan in production_plan|get_item:key %}
-                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                <td width="26%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
-
                 </td>
-                {% endfor %}
+                <td width="26%">{% for child_plan in production_plan|get_item:'Vorteig' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+                </td>
+                <td width="26%">{% for child_plan in production_plan|get_item:'Starter' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+                </td>
             </tr>
         {% endfor %}
     </tbody>
