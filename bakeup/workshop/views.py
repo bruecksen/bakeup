@@ -111,7 +111,22 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
+class IngredientListView(StaffPermissionsMixin, SingleTableView):
+    model = Product
+    table_class = ProductTable
+
+
 class ProductListView(StaffPermissionsMixin, SingleTableView):
+    model = Product
+    table_class = ProductTable
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(is_sellable=True)
+        return qs
+
+
+class IngredientListView(StaffPermissionsMixin, SingleTableView):
     model = Product
     table_class = ProductTable
 
