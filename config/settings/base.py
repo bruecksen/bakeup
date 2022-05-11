@@ -74,6 +74,7 @@ THIRD_PARTY_APPS = [
     "crispy_bootstrap5",
     "django_tables2",
     "treebeard",
+    "sorl.thumbnail",
 ]
 
 LOCAL_APPS = [

@@ -1,6 +1,7 @@
 {% extends "shop/base.html" %}
 {% load crispy_forms_tags %}
 {% load i18n %}
+{% load thumbnail %}
 
 {% block title %}Shop{% endblock %}
 
@@ -29,7 +30,9 @@
                 {% for production_day_product in production_day_products %}
                   <h5>{{ production_day_product.production_day_product.product.name }}</h5>
                   {% if production_day_product.production_day_product.product.image %}
-                  <img src="{{ production_day_product.production_day_product.product.image.url }}" class="img-thumbnail" alt="product image">
+                  {% thumbnail production_day_product.production_day_product.product.image "400" crop="center" as im %}
+                    <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail" alt="product image">
+                  {% endthumbnail %}
                   {% endif %}
                   {{ production_day_product.form|crispy }}
                 {% endfor %}

@@ -1,6 +1,7 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
 {% load i18n %}
+{% load thumbnail %}
 
 {% block title %}Add new product{% endblock %}
 
@@ -31,7 +32,9 @@
   </div>
   {% if object.image %}
   <div class="col-2">
-    <img src="{{ object.image.url }}" class="img-thumbnail" alt="product image">
+    {% thumbnail object.image "400" crop="center" as im %}
+    <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail" alt="product image">
+    {% endthumbnail %}
   </div>
   {% endif %}
 </div>

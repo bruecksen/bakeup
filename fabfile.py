@@ -38,12 +38,7 @@ def deploy():
 
 def collectstatic():
     with cd(env.path):
-        run("git pull %(push_remote)s %(push_branch)s" % env)
-        with prefix("source %(virtualenv_path)s/bin/activate" % env):
-            run("./manage.py collectstatic --noinput --settings=config.settings.production")
-    migrate()
-    reload_webserver()
-    ping()
+        run("./manage.py collectstatic --noinput --settings=config.settings.production")
 
 
 def pip():

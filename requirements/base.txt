@@ -17,3 +17,4 @@ django-redis==5.2.0  # https://github.com/jazzband/django-redis
 django-recurrence
 django-tables2
 django-treebeard
+sorl-thumbnail
