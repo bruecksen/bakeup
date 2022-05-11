@@ -23,6 +23,14 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
 
+### Load fixtures
+
+    $ python manage.py loaddata bakeup/users/fixtures/demo-data.json
+    $ python manage.py loaddata bakeup/shop/fixtures/demo_customers.json
+    $ python manage.py loaddata bakeup/workshop/fixtures/categories.json
+    $ python manage.py loaddata bakeup/workshop/fixtures/demo-products.json
+    $ python manage.py loaddata bakeup/shop/fixtures/demo_baking_days.json
+
 ### Type checks
 
 Running type checks with mypy:
