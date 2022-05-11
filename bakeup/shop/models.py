@@ -1,5 +1,6 @@
 from email.policy import default
 from django.db import models
+from django.db.models import Sum
 
 from recurrence.fields import RecurrenceField
 
@@ -63,9 +64,20 @@ class ProductionDayProduct(CommonBaseClass):
         form = CustomerOrderForm(
             initial={'product': self.product.pk, 'quantity': quantity}, 
             prefix=f'production_day_{self.product.pk}', 
-            production_day_product=self
+            production_day_product=self,
+            customer=customer
         )
         return form
+
+    def calculate_max_quantity(self, exclude_customer=None):
+        orders = CustomerOrderPosition.objects.filter(
+            product=self.product, 
+            order__production_day=self.production_day
+        )
+        if exclude_customer:
+            orders = orders.exclude(order__customer=exclude_customer)
+        ordered_quantity = orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
+        return self.max_quantity - ordered_quantity
 
 
 class PointOfSale(CommonBaseClass):

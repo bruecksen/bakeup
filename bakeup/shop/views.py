@@ -2,9 +2,10 @@ from datetime import datetime
 from itertools import product
 from django.forms import formset_factory
 from django.urls import reverse
+from django.contrib import messages
 
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin
@@ -85,6 +86,10 @@ class AddCustomerOrderView(CustomerRequiredMixin, FormView):
         week = self.production_day.calendar_week
         year = self.production_day.year
         return reverse('shop:weekly', kwargs={'year': year, 'calendar_week': week})
+
+    def form_invalid(self, form):
+        messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
+        return redirect(self.get_success_url())
 
 
 
