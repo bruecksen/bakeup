@@ -1,5 +1,5 @@
 #!/bin/sh
-python manage.py dumpdata users > bakeup/users/demo-data.json   
+python manage.py dumpdata users > bakeup/users/fixtures/demo-data.json   
 python manage.py dumpdata shop.Customer shop.PointOfSale core.Address > bakeup/shop/fixtures/demo_customers.json
 python manage.py dumpdata workshop.Category > bakeup/workshop/fixtures/categories.json  
 python manage.py dumpdata workshop.Product workshop.ProductHierarchy workshop.Instruction> bakeup/workshop/fixtures/demo-products.json
