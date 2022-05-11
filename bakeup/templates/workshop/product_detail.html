@@ -1,5 +1,6 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
+{% load i18n %}
 
 {% block title %}Add new product{% endblock %}
 
@@ -16,9 +17,27 @@
     </div>
   </div>
 </div>
-
-<div class="p-3">
-  {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 %}
+<div class="row mb-5">
+  <div class="col-10">
+    <p>
+      {{ object.description|safe }}
+    </p>
+    <ul class="list-unstyled">
+      <li>{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
+      <li>{% if object.is_buyable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Buyable" %}</li>
+      <li>{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>
+    </ul>
+  </div>
+  {% if object.image %}
+  <div class="col-2">
+    <img src="{{ object.image.url }}" class="img-thumbnail" alt="...">
+  </div>
+  {% endif %}
+</div>
+<div class="row">
+  <div class="col">
+      {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 %}
+  </div>
 </div>
 
 

@@ -29,7 +29,7 @@
   <hr>
   <h2>Add new product</h2>
   {% endif %}
-  <form class="form-horizontal" method="post">
+  <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form|crispy }}
     <div class="control-group">
