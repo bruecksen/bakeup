@@ -24,6 +24,15 @@ class ProductListView(CustomerRequiredMixin, ListView):
 class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
     template_name = 'shop/weekly.html'
 
+
+    def dispatch(self, request, *args, **kwargs):
+        self.calendar_week_current = CalendarWeek.current()
+        self.calendar_week = self.get_calendar_week()
+        if self.calendar_week is None:
+            # fallback to current  week
+            return redirect(reverse('shop:weekly', kwargs={'year': self.calendar_week_current.year, 'calendar_week': self.calendar_week_current.week}))
+        return super().dispatch(request, *args, **kwargs)
+
     def get_calendar_week(self):
         if "calendar_week" in self.kwargs and "year" in self.kwargs:
             input_week = self.kwargs.get('calendar_week')
@@ -34,18 +43,13 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        calendar_week_current = CalendarWeek.current()
-        calendar_week = self.get_calendar_week()
-        if calendar_week and calendar_week != calendar_week_current:
+        if self.calendar_week and self.calendar_week != self.calendar_week_current:
             # only if we are showing a calender week that is not the current one
             # we need a jump to current link
-            context['calendar_week_current'] = calendar_week_current
-        if calendar_week is None:
-            # fallback to current  week
-            calendar_week = calendar_week_current
-        context['calendar_week'] = calendar_week
+            context['calendar_week_current'] = self.calendar_week_current
+        context['calendar_week'] = self.calendar_week
         
-        production_days = ProductionDay.objects.filter(day_of_sale__week=calendar_week.week, day_of_sale__year=calendar_week.year)
+        production_days = ProductionDay.objects.filter(day_of_sale__week=self.calendar_week.week, day_of_sale__year=self.calendar_week.year)
         forms = {}
         for production_day in production_days:
             production_day_products = []
