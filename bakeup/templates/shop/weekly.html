@@ -27,7 +27,10 @@
               <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
                 {% csrf_token %}
                 {% for production_day_product in production_day_products %}
-                  <h6>{{ production_day_product.production_day_product.product.name }}</h6>
+                  <h5>{{ production_day_product.production_day_product.product.name }}</h5>
+                  {% if production_day_product.production_day_product.product.image %}
+                  <img src="{{ production_day_product.production_day_product.product.image.url }}" class="img-thumbnail" alt="product image">
+                  {% endif %}
                   {{ production_day_product.form|crispy }}
                 {% endfor %}
               <button type="submit" class="btn btn-primary"{% if not production_day.has_products_open_for_order %} disabled{% endif %}>{% translate "Submit order" %}</button>
