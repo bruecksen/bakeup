@@ -25,7 +25,7 @@ For convenience, you can keep your normal user logged in on Chrome and your supe
 
 ### Load fixtures
 
-$ python manage.py loaddata 
+   $ python manage.py loaddata 
 
 ### Type checks
 
