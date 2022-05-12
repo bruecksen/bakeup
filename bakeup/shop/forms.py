@@ -1,6 +1,7 @@
 from django import forms
 from django.forms.formsets import BaseFormSet
-from django.forms import formset_factory
+from django.forms import formset_factory, modelformset_factory
+from bakeup.shop.models import ProductionDay, ProductionDayProduct
 
 from bakeup.workshop.models import Product
 
@@ -47,3 +48,22 @@ class CustomerProductionDayOrderForm(forms.Form):
         return self.product_quantity
 
 
+class ProductionDayForm(forms.ModelForm):
+    class Meta:
+        model = ProductionDay
+        fields = ['day_of_sale']
+        widgets = {
+            'day_of_sale': forms.DateInput(format=('%Y-%m-%d'), attrs={'class':'form-control', 'placeholder':'Select a date', 'type':'date'}),
+        }
+
+
+class ProductionDayProductForm(forms.ModelForm):
+
+    class Meta:
+        model = ProductionDayProduct
+        fields = ['product', 'max_quantity']
+
+
+ProductionDayProductFormSet = modelformset_factory(
+    ProductionDayProduct, fields=("product", "max_quantity"), extra=1,  can_delete=False
+)

@@ -1,16 +1,16 @@
 from datetime import datetime
 from itertools import product
 from django.forms import formset_factory
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView
 from django.shortcuts import get_object_or_404, redirect, render
 from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
-from bakeup.core.views import CustomerRequiredMixin
+from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay
+from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 
 from bakeup.workshop.models import Product
 

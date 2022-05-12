@@ -5,7 +5,6 @@ from django.db.models import Sum
 from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
-from bakeup.shop.forms import CustomerOrderForm
 
 DAYS_OF_WEEK = (
     (0, 'Monday'),
@@ -21,12 +20,12 @@ DAYS_OF_WEEK = (
 class ProductionDayTemplate(CommonBaseClass):
     day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK)
     calendar_week = models.PositiveSmallIntegerField(null=True, blank=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates', limit_choices_to={'is_sellable': True})
     quantity = models.PositiveSmallIntegerField()
 
 
 class ProductionDay(CommonBaseClass):
-    day_of_sale = models.DateField()
+    day_of_sale = models.DateField(unique=True)
 
     class Meta:
         ordering = ('day_of_sale',)
@@ -47,16 +46,18 @@ class ProductionDay(CommonBaseClass):
 
 
 class ProductionDayProduct(CommonBaseClass):
-    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='production_day_products')
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days')
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
     max_quantity = models.PositiveSmallIntegerField()
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     
     class Meta:
         ordering = ('production_day',)
+        unique_together = ['production_day', 'product']
 
     
     def get_order_form(self, customer):
+        from bakeup.shop.forms import CustomerOrderForm
         quantity = 0
         existing_order = CustomerOrderPosition.objects.filter(product=self.product, order__customer=customer, order__production_day=self.production_day)
         if existing_order:

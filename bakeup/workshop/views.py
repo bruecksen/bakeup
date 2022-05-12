@@ -1,9 +1,12 @@
 from itertools import product
 from typing import OrderedDict
+
+from django.db import IntegrityError, transaction
+from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
@@ -11,10 +14,11 @@ from django.db.models import Sum
 from django_tables2 import SingleTableView
 
 from bakeup.core.views import StaffPermissionsMixin
+from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionDayForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
-from bakeup.workshop.tables import ProductTable, ProductionPlanTable
+from bakeup.workshop.tables import ProductTable, ProductionDayTable, ProductionPlanTable
 
 
 
@@ -238,3 +242,76 @@ class CategoryListView(StaffPermissionsMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.get_root_nodes()
         return context
+
+
+
+
+class ProductionDayListView(StaffPermissionsMixin, SingleTableView):
+    model = ProductionDay
+    table_class = ProductionDayTable
+    template_name = "workshop/productionday_list.html"
+
+
+class ProductionDayMixin(object):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = ProductionDayProductFormSet(self.request.POST)
+            context['form'] = ProductionDayForm(data=self.request.POST)
+        else:
+            context['formset'] = ProductionDayProductFormSet(queryset=ProductionDayProduct.objects.filter(production_day=self.object))
+            if self.object:
+                context['formset'].extra = 0
+                context['formset'].can_delete = True
+            context['form'] = ProductionDayForm(instance=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        formset = ProductionDayProductFormSet(request.POST, queryset=ProductionDayProduct.objects.filter(production_day=self.object))
+        production_day_form = ProductionDayForm(instance=self.object, data=request.POST)
+        if formset.is_valid() and production_day_form.is_valid():
+            return self.form_valid(formset, production_day_form)
+        else:
+            return self.form_invalid(production_day_form, formset)
+
+    def form_valid(self, formset, production_day_form):
+        with transaction.atomic():
+            production_day = production_day_form.save()
+            self.object = production_day
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for instance in instances:
+                instance.production_day = production_day
+                instance.save()
+        return HttpResponseRedirect(reverse('workshop:production-day-list'))
+
+    def form_invalid(self, form, formset):
+        return self.render_to_response(self.get_context_data())
+
+
+class ProductionDayAddView(ProductionDayMixin, CreateView):
+    template_name = "workshop/productionday_form.html"
+    model =  ProductionDay
+    form_class = ProductionDayForm
+
+    def get_object(self, queryset=None):
+        return None
+
+
+class ProductionDayUpdateView(ProductionDayMixin, UpdateView):
+    template_name = "workshop/productionday_form.html"
+    model =  ProductionDay
+    form_class = ProductionDayForm
+
+
+class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ProductionDay
+    template_name = 'workshop/productionday_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse(
+            'workshop:production-day-list',
+        )
