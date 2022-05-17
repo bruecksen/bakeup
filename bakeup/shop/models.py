@@ -45,6 +45,10 @@ class ProductionDay(CommonBaseClass):
     def year(self):
         return self.day_of_sale.year
 
+    @property
+    def is_locked(self):
+        return self.customer_orders.exists()
+
 
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
@@ -125,7 +129,7 @@ class CustomerOrderTemplate(CommonBaseClass):
 
 class CustomerOrder(CommonBaseClass):
     order_nr = models.CharField(max_length=255)
-    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT)
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='customer_orders')
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
     address = models.TextField()

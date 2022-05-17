@@ -4,7 +4,7 @@ from typing import OrderedDict
 from django.db import IntegrityError, transaction
 from django.contrib import messages
 from django.db.models import Q
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
@@ -220,6 +220,7 @@ class ProductionPlanUpdateView(StaffPermissionsMixin, UpdateView):
     model = ProductionPlan
     form_class = ProductionPlanForm
 
+
     def get_success_url(self):
         if self.object.parent_plan:
             return reverse('workshop:production-plan-detail', kwargs={'pk': self.object.parent_plan.pk })
@@ -229,6 +230,7 @@ class ProductionPlanUpdateView(StaffPermissionsMixin, UpdateView):
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
     model = ProductionPlan
+
 
     def get_success_url(self):
         return reverse('workshop:production-plan-list')
@@ -306,10 +308,22 @@ class ProductionDayUpdateView(ProductionDayMixin, UpdateView):
     model =  ProductionDay
     form_class = ProductionDayForm
 
+    def get_object(self):
+        object = super().get_object()
+        if object.is_locked:
+            raise Http404()
+        return object
+
 
 class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
     model = ProductionDay
     template_name = 'workshop/productionday_confirm_delete.html'
+
+    def get_object(self):
+        object = super().get_object()
+        if object.is_locked:
+            raise Http404()
+        return object
 
     def get_success_url(self):
         return reverse(
