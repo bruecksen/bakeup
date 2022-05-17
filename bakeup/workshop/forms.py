@@ -18,7 +18,7 @@ class ProductHierarchyForm(Form):
     amount = FloatField()
 
 
-class ProductionDayForm(Form):
+class ProductionPlanDayForm(Form):
     production_day = ModelChoiceField(queryset=ProductionDay.objects.all())
 
 

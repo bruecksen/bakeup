@@ -16,7 +16,7 @@ from django_tables2 import SingleTableView
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionDayTable, ProductionPlanTable
 
@@ -189,7 +189,7 @@ class ProductionPlanDetailView(StaffPermissionsMixin, DetailView):
 
 class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     model = ProductionPlan
-    form_class = ProductionDayForm
+    form_class = ProductionPlanDayForm
     template_name = 'workshop/production_plan_form.html'
 
     def form_valid(self, form):

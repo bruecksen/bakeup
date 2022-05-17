@@ -1,6 +1,7 @@
 from email.policy import default
 from django.db import models
 from django.db.models import Sum
+from django.utils import formats
 
 from recurrence.fields import RecurrenceField
 
@@ -31,7 +32,7 @@ class ProductionDay(CommonBaseClass):
         ordering = ('day_of_sale',)
 
     def __str__(self):
-        return "{}".format(self.day_of_sale)
+        return "{}".format(self.day_of_sale.strftime("%d.%m.%Y"))
 
     def has_products_open_for_order(self):
         return self.production_day_products.filter(production_plan__isnull=True).exists()
