@@ -6,7 +6,7 @@
 {% block title %}Add new product{% endblock %}
 
 {% block page_content %}
-<div class="row mt-2 mb-4">
+<div class="row mt-2 mb-2">
   <div class="col-7">
     <h1>{{ object.name }} {{ object.get_weight|floatformat:"-1" }} {{ object.weight_units }}</h1>
   </div>
@@ -16,6 +16,17 @@
       <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add product</a>
       <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
     </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    {% if object.childs.all %}
+    <ul class="list-unstyled">
+      {% for parent in object.childs.all %}
+      <li><i class="fa-solid fa-arrow-up-wide-short"></i> <a href="{% url 'workshop:product-detail' pk=parent.parent.pk %}">{{ parent.parent }} </a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </div>
 </div>
 <div class="row mb-5">
