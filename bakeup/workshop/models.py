@@ -79,6 +79,12 @@ class Product(CommonBaseClass):
         else:
             return ''
 
+    def get_weight(self):
+        if self.weight_units == "kg":
+            return self.weight / 1000
+        else:
+            return self.weight
+
     
     def get_ingredient_list(self):
         ingredients = []
