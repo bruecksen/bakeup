@@ -21,7 +21,7 @@ class Category(CommonBaseClass, MP_Node):
         verbose_name_plural = 'Categories'
 
     def __str__(self):
-        return self.name
+        return '{} {}'.format('-' * (self.depth - 1), self.name)
 
     def get_product_count(self):
         return self.product_set.count()
