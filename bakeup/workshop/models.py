@@ -18,7 +18,6 @@ class Category(CommonBaseClass, MP_Node):
     node_order_by = ['name']
 
     class Meta:
-        ordering = ('name',)
         verbose_name_plural = 'Categories'
 
     def __str__(self):
