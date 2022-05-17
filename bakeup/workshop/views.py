@@ -10,6 +10,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
+from django.utils.timezone import make_aware
 
 from django_tables2 import SingleTableView
 
@@ -193,8 +194,6 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     template_name = 'workshop/production_plan_form.html'
 
     def form_valid(self, form):
-        product = Product.objects.get(pk=1)
-        duplicate = Product.duplicate(product)
         production_day = form.cleaned_data['production_day']
         if production_day:
             positions = CustomerOrderPosition.objects.filter(order__production_day=production_day, production_plan__isnull=True)

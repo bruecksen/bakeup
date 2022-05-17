@@ -180,7 +180,7 @@ class ProductHierarchy(CommonBaseClass):
 class ProductionPlan(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.SET_NULL, null=True, blank=True, related_name='production_plans')
     parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
-    start_date = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
     quantity = models.FloatField()
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
