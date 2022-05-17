@@ -20,7 +20,7 @@ class ProductHierarchyAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'description')
+    list_display = ('name', 'description', 'product_template')
 
 
 @admin.register(ProductionPlan)

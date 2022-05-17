@@ -18,6 +18,7 @@ class ProductTable(tables.Table):
 class ProductionPlanTable(tables.Table):
     pk = tables.LinkColumn('workshop:production-plan-detail', args=[A('pk')], verbose_name='#')
     action = tables.TemplateColumn(template_name="tables/production_plan_action_column.html", verbose_name="")
+    product = tables.TemplateColumn("#{{ record.product.pk }} {{ record.product }}")
 
     class Meta:
         model = Product

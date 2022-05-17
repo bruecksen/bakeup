@@ -5,6 +5,7 @@ from django.urls import reverse
 from treebeard.mp_tree import MP_Node
 
 from bakeup.core.models import CommonBaseClass
+from bakeup.workshop.managers import ProductManager, ProductionDayProductManager
 
 
 
@@ -38,6 +39,7 @@ VOLUME_UNIT_CHOICES = [
 
 # Item
 class Product(CommonBaseClass):
+    product_template = models.ForeignKey('workshop.Product', blank=True, null=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     slug = models.SlugField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -54,11 +56,31 @@ class Product(CommonBaseClass):
     is_composable = models.BooleanField(default=False)
 
 
+    objects = ProductManager()
+    production = ProductionDayProductManager()
+
     class Meta:
         ordering = ('pk',)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def duplicate(cls, product):
+        children = list(product.parents.all())
+        product_template_id = product.pk
+        product.pk = None
+        product.product_template_id = product_template_id
+        product.save()
+        for child in children:
+            duplicate_child = Product.duplicate(child.child)
+            ProductHierarchy.objects.create(
+                parent=product,
+                child=duplicate_child,
+                quantity=child.quantity
+            )
+        return product
+
 
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})

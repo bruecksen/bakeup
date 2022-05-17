@@ -193,15 +193,18 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     template_name = 'workshop/production_plan_form.html'
 
     def form_valid(self, form):
+        product = Product.objects.get(pk=1)
+        duplicate = Product.duplicate(product)
         production_day = form.cleaned_data['production_day']
         if production_day:
             positions = CustomerOrderPosition.objects.filter(order__production_day=production_day, production_plan__isnull=True)
             product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
             for product_quantity in product_quantities:
+                product = Product.duplicate(Product.objects.get(pk=product_quantity.get('product')))
                 obj = ProductionPlan.objects.create(
                     parent_plan=None,
                     production_day=production_day,
-                    product_id=product_quantity.get('product'),
+                    product=product,
                     quantity=product_quantity.get('total_quantity'),
                     start_date=production_day.day_of_sale,
                 )
