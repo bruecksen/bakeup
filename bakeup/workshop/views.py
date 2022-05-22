@@ -123,6 +123,20 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
         # raise Exception(self.object.parents.all())
         return super().get_context_data(**kwargs)
 
+class RecipeDetailView(StaffPermissionsMixin, DetailView):
+    model = Product
+    template_name = 'workshop/recipe_detail.html'
+
+    def get_context_data(self, **kwargs):
+        # raise Exception(self.object.parents.all())
+        return super().get_context_data(**kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(is_sellable=True)
+        return qs
+
+
 
 class RecipeListView(StaffPermissionsMixin, SingleTableView):
     model = Product

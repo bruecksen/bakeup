@@ -1,0 +1,46 @@
+{% load l10n %}
+<ol class="list-group{% if is_root %} list-group-root {% endif %} card">
+  {% for child in children %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-2">
+            {% if is_root %}
+              <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" name="amount" placeholder="" value="{{ child.weight|floatformat:"0"|unlocalize }}" step="0.1">
+                  <button class="btn btn-outline-secondary" type="submit">Save</button>
+                </div>
+              </form>
+              
+            {% endif %}
+          </div>
+          <div class="col-7 align-self-center">
+             {{ child.quantity|multiply:quantity|multiply:child.child.weight|floatformat:"0" }} g
+            {% if child.child.parents.all %}
+              <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
+              <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
+            {% else %}
+            {{ child.child.name }}
+            {% endif %}
+          </div>
+          <div class="col-3 text-end">
+            {% if is_root %}
+            <div class="btn-group btn-group-sm">
+              <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary">Delete relation</a>
+            </div>
+            {% endif %}
+          </div>
+          <div class="col-12 m-2 collapse" id="item-{{ child.child.pk }}">
+            {% if child.child.parents.all %}
+
+                {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False quantity=child.quantity|multiply:quantity %}
+
+              {% endif %}
+          </div>
+        </div>      
+      </li>
+  {% endfor %}
+  </ol>
+
+  
