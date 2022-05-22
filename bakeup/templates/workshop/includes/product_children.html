@@ -31,13 +31,15 @@
             </div>
             {% endif %}
           </div>
+          <div class="col-12 m-2 collapse" id="item-{{ child.child.pk }}">
+            {% if child.child.parents.all %}
+
+                {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False quantity=child.quantity|multiply:quantity %}
+
+              {% endif %}
+          </div>
         </div>      
       </li>
-      {% if child.child.parents.all %}
-      <li class="list-group-item collapse" id="item-{{ child.child.pk }}">
-          {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False quantity=child.quantity|multiply:quantity %}
-        </li>
-        {% endif %}
   {% endfor %}
   </ol>
 
