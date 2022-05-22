@@ -172,8 +172,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
                 Q(parent_plan__parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan__parent_plan=production_plan) |
                 Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
-                plan_dict.setdefault(child.product.category.name, [])
-                plan_dict[child.product.category.name].append(child)
+                    plan_dict.setdefault(child.product.category.name, [])
+                    plan_dict[child.product.category.name].append(child)
             production_plans.append(plan_dict)
         # raise Exception(production_plans)
         context['table_categories'] = table_categories
