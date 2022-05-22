@@ -19,18 +19,18 @@
     <div class="col-3">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Products <small class="text-muted">{{ products_count }}</small></h4>
+              <h4 class="card-title">Recipies <small class="text-muted">{{ recipies_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:product-list' %}" class="btn btn-sm btn-outline-primary">Go to products</a>
+              <a href="{% url 'workshop:recipe-list' %}" class="btn btn-sm btn-outline-primary">Go to recipies</a>
             </div>
         </div>
     </div>
     <div class="col-3">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Ingredients <small class="text-muted">{{ ingredients_count }}</small></h4>
+              <h4 class="card-title">Products <small class="text-muted">{{ products_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:ingredient-list' %}" class="btn btn-sm btn-outline-primary">Go to ingredients</a>
+              <a href="{% url 'workshop:product-list' %}" class="btn btn-sm btn-outline-primary">Go to products</a>
             </div>
         </div>
     </div>
