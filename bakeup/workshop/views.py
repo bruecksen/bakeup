@@ -28,8 +28,8 @@ class WorkshopView(StaffPermissionsMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['products_count'] = Product.objects.filter(is_sellable=True).count()
-        context['ingredients_count'] = Product.objects.all().count()
+        context['recipies_count'] = Product.objects.filter(is_sellable=True).count()
+        context['products_count'] = Product.objects.all().count()
         context['categories_count'] = Category.objects.all().count()
         context['productionplans_count'] = ProductionPlan.objects.all().count()
         return context
@@ -123,13 +123,22 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
         # raise Exception(self.object.parents.all())
         return super().get_context_data(**kwargs)
 
-
-class IngredientListView(StaffPermissionsMixin, SingleTableView):
+class RecipeDetailView(StaffPermissionsMixin, DetailView):
     model = Product
-    table_class = ProductTable
+    template_name = 'workshop/recipe_detail.html'
+
+    def get_context_data(self, **kwargs):
+        # raise Exception(self.object.parents.all())
+        return super().get_context_data(**kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(is_sellable=True)
+        return qs
 
 
-class ProductListView(StaffPermissionsMixin, SingleTableView):
+
+class RecipeListView(StaffPermissionsMixin, SingleTableView):
     model = Product
     table_class = ProductTable
 
@@ -138,8 +147,7 @@ class ProductListView(StaffPermissionsMixin, SingleTableView):
         qs = qs.filter(is_sellable=True)
         return qs
 
-
-class IngredientListView(StaffPermissionsMixin, SingleTableView):
+class ProductListView(StaffPermissionsMixin, SingleTableView):
     model = Product
     table_class = ProductTable
 
@@ -172,8 +180,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
                 Q(parent_plan__parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan__parent_plan=production_plan) |
                 Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
-                plan_dict.setdefault(child.product.category.name, [])
-                plan_dict[child.product.category.name].append(child)
+                    plan_dict.setdefault(child.product.category.name, [])
+                    plan_dict[child.product.category.name].append(child)
             production_plans.append(plan_dict)
         # raise Exception(production_plans)
         context['table_categories'] = table_categories
