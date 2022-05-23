@@ -150,7 +150,7 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if 'production_day' in self.request.GET:
+        if 'production_day' in self.request.GET and self.request.GET.get('production_day').isnumeric():
             qs = qs.filter(production_day__pk=self.request.GET.get('production_day'))
         return qs.filter(parent_plan__isnull=True)
 
@@ -179,7 +179,7 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
         context['table_categories'] = table_categories
         context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('production_day__day_of_sale').distinct()
         context['production_plans'] = production_plans
-        if 'production_day' in self.request.GET:
+        if 'production_day' in self.request.GET and self.request.GET.get('production_day').isnumeric():
             context['day_filter'] = ProductionDay.objects.get(pk=self.request.GET.get('production_day', None))
         return context
 

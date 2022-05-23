@@ -18,7 +18,7 @@
     <form method="GET">
       <div class="input-group">
         <select class="form-select form-select-sm" aria-label="Default select example" name="production_day">
-          <option {% if not day_filter %}selected{% endif %}>{% trans "Filter by date" %}</option>
+          <option {% if not day_filter %}selected{% endif %} value="">{% trans "Filter by date" %}</option>
           {% for day in days %}
             <option value="{{  day.1 }}" {% if day.1 == day_filter.pk %} selected{% endif %}>{{ day.0|date:'d.m.Y' }}</option>
           {% endfor %}
