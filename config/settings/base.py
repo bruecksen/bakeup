@@ -75,6 +75,7 @@ THIRD_PARTY_APPS = [
     "django_tables2",
     "treebeard",
     "sorl.thumbnail",
+    "django_bootstrap5",
 ]
 
 LOCAL_APPS = [

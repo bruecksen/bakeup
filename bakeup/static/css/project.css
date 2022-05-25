@@ -12961,3 +12961,19 @@ nav .nav-link:hover {
 .list-group.list-group-root > .list-group > .list-group > .list-group-item {
   padding-left: 45px;
 }
+
+.input-group .form-control {
+  border-radius: 0.2rem;
+  font-size: 14px;
+  font-size: 0.875rem;
+  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
+}
+
+.input-group .input-group-text {
+  border-radius: 0.2rem;
+  font-size: 14px;
+  font-size: 0.875rem;
+  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
+}

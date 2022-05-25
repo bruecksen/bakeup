@@ -17,7 +17,7 @@ from django_tables2 import SingleTableView
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionDayTable, ProductionPlanTable
 
@@ -118,10 +118,22 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
 class ProductDetailView(StaffPermissionsMixin, DetailView):
     model = Product
 
+    def get_key_figures_inital_data(self):
+        return {
+            'fermentation_loss': self.object.get_fermentation_loss(),
+            'dough_yield': self.object.get_dough_yield(),
+            'salt': self.object.get_salt_ratio(),
+            'starter': self.object.get_starter_ratio(),
+            'wheat': '50',
+            'pre_ferment': self.object.get_pre_ferment_ratio(),
+        }
+
 
     def get_context_data(self, **kwargs):
-        # raise Exception(self.object.parents.all())
-        return super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        if self.object.is_composable:
+            context['key_figures_form'] = ProductKeyFiguresForm(initial=self.get_key_figures_inital_data())
+        return context
 
 class RecipeDetailView(StaffPermissionsMixin, DetailView):
     model = Product

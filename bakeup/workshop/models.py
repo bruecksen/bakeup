@@ -1,6 +1,9 @@
+from decimal import Decimal
+from re import T
 from django.db import models
 from django.db.models import Q, F
 from django.urls import reverse
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from treebeard.mp_tree import MP_Node
 
@@ -116,6 +119,70 @@ class Product(CommonBaseClass):
                 'quantity': child.quantity,
             })
         return ingredients
+
+    @classmethod
+    def calculate_total_weight(cls, product, quantity=1):
+        weight = 0
+        for child in product.parents.all():
+            if child.is_leaf:
+                product_weight = quantity * child.weight
+                print("{}({}) {}".format(child.child, child.child.category.name, product_weight))
+                weight += product_weight
+            else:
+                weight += Product.calculate_total_weight(child.child, quantity * child.quantity)
+        return weight
+    
+    @classmethod
+    def calculate_total_weight_by_category(cls, product, category, quantity=1):
+        weight = 0
+        for child in product.parents.all():
+            if child.child.category.is_descendant_of(category) or child.child.category == category:
+                product_weight = quantity * child.weight
+                # print("{}({}) {}".format(child.child, child.child.category.name, product_weight))
+                weight += product_weight
+            else:
+                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity)
+        return weight
+    
+    @classmethod
+    def calculate_total_weight_by_ingredient(cls, product, ingredient, quantity=1):
+        weight = 0
+        for child in product.parents.all():
+            if child.child == ingredient:
+                product_weight = quantity * child.weight
+                # print("{}({}) {}".format(child.child, child.child.category.name, product_weight))
+                weight += product_weight
+            else:
+                weight += Product.calculate_total_weight_by_ingredient(child.child, ingredient, quantity * child.quantity)
+        return weight
+
+    def get_dough_yield(self):
+        # Netto-Teigausbeute 100 x (Wasser + Mehl) / Mehl
+        total_weight_water = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='liquids'))
+        total_weight_flour = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
+        if total_weight_flour and total_weight_water:
+            dough_yield = 100 * (total_weight_water + total_weight_flour) / total_weight_flour
+            return round(dough_yield)
+
+    def get_fermentation_loss(self):
+        total_weight = Product.calculate_total_weight(self)
+        if total_weight and self.weight:
+            return round(100 - (self.weight / total_weight * 100), 2)
+    
+    def get_salt_ratio(self):
+        total_weight_flour = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
+        total_salt = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='salt'))
+        if total_weight_flour and total_salt:
+            return round(total_salt / total_weight_flour * 100, 2)
+    
+    def get_starter_ratio(self):
+        return 10
+    
+    def get_pre_ferment_ratio(self):
+        total_weight = Product.calculate_total_weight(self)
+        total_pre_dough = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='pre-dough'))
+        if total_weight and total_pre_dough:
+            return round(total_pre_dough / total_weight * 100, 2)
 
 
 
