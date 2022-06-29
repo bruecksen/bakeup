@@ -9,7 +9,7 @@
 {% block page_content %}
 <div class="row mt-2 mb-2">
   <div class="col-7">
-    <h1>{{ object.name }} {{ object.get_weight|floatformat:"-1" }} {{ object.weight_units }}</h1>
+    <h1>{{ object.name }} {{ object.weight|floatformat:"0" }}{{ object.unit }}</h1>
     <small>
     <ul class="list-unstyled list-inline mb-1">
       <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>

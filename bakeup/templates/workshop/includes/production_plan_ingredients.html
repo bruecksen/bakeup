@@ -2,7 +2,7 @@
 <div class="row mb-2">
     {% for ingredient in plan.product.get_ingredient_list %}
         <div class="col-3">
-            <nobr>{{ ingredient.product.weight|multiply:plan.quantity|multiply:ingredient.quantity|floatformat:0 }} g</nobr>
+            <nobr>{{ ingredient.product.weight|multiply:plan.quantity|multiply:ingredient.quantity|floatformat:0 }}{{ ingredient.product.unit }}</nobr>
         </div>
         <div class="col-9">
             <strong>{{ ingredient.product.name }}</strong>

@@ -35,11 +35,6 @@ WEIGHT_UNIT_CHOICES = [
     ('kg', 'Kilograms'),
 ]
 
-VOLUME_UNIT_CHOICES = [
-    ('ml', 'Milliliter'),
-    ('l', 'Liter'),
-]
-
 # Item
 class Product(CommonBaseClass):
     product_template = models.ForeignKey('workshop.Product', blank=True, null=True, on_delete=models.PROTECT)
@@ -49,11 +44,8 @@ class Product(CommonBaseClass):
     image = models.FileField(null=True, blank=True, upload_to='product_images')
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     # data in database normalized in grams
-    weight = models.PositiveSmallIntegerField(help_text="weight in grams", blank=True, null=True)
-    weight_units = models.CharField(max_length=255, choices=WEIGHT_UNIT_CHOICES, blank=True, null=True)
+    weight = models.FloatField(help_text="weight in grams", blank=True, null=True)
     # data in database normalized in milliliter
-    volume = models.PositiveSmallIntegerField(help_text="weight in grams", blank=True, null=True)
-    volume_units = models.CharField(max_length=255, choices=VOLUME_UNIT_CHOICES, blank=True, null=True)
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
@@ -84,6 +76,9 @@ class Product(CommonBaseClass):
             )
         return product
 
+    @property
+    def unit(self):
+        return "g"
 
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
@@ -96,21 +91,6 @@ class Product(CommonBaseClass):
         )
         return child
 
-    def get_physical_representation(self):
-        if self.weight:
-            return "{} {}".format(self.weight, self.weight_units)
-        elif self.volume:
-            return "{} {}".format(self.volume, self.volume_units)
-        else:
-            return ''
-
-    def get_weight(self):
-        if self.weight_units == "kg":
-            return self.weight / 1000
-        else:
-            return self.weight
-
-    
     def get_ingredient_list(self):
         ingredients = []
         for child in self.parents.all():
@@ -254,13 +234,6 @@ class ProductHierarchy(CommonBaseClass):
         else:
             return '-'
 
-    @property
-    def weight_unit(self):
-        if self.child.weight_units:
-            return self.child.weight_units
-        else:
-            return ''
-    
 
 class ProductionPlan(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.SET_NULL, null=True, blank=True, related_name='production_plans')
