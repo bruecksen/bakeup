@@ -29,9 +29,9 @@ class ProductionPlanForm(ModelForm):
 
 
 class ProductKeyFiguresForm(Form):
-    fermentation_loss = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Gärverlust')
-    dough_yield = IntegerField(min_value=100, label='TA')
-    salt = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Salz')
-    starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Starter')
-    wheat = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Mehl')
-    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge')
+    fermentation_loss = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Gärverlust', disabled=True)
+    dough_yield = IntegerField(min_value=100, label='TA', disabled=True)
+    salt = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Salz', disabled=True)
+    starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Starter', disabled=True)
+    wheat = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Mehl', disabled=True)
+    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge', disabled=True)
