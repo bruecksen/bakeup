@@ -142,18 +142,18 @@ class Product(CommonBaseClass):
     def get_dough_yield(self):
         # Netto-Teigausbeute 100 x (Wasser + Mehl) / Mehl
         total_weight_water = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='liquids'))
-        total_weight_flour = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
+        total_weight_flour = self.total_weight_flour
         if total_weight_flour and total_weight_water:
             dough_yield = 100 * (total_weight_water + total_weight_flour) / total_weight_flour
             return round(dough_yield)
 
     def get_fermentation_loss(self):
-        total_weight = Product.calculate_total_weight(self)
+        total_weight = self.total_weight
         if total_weight and self.weight:
             return round(100 - (self.weight / total_weight * 100), 2)
     
     def get_salt_ratio(self):
-        total_weight_flour = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
+        total_weight_flour = self.total_weight_flour
         total_salt = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='salt'))
         if total_weight_flour and total_salt:
             return round(total_salt / total_weight_flour * 100, 2)
@@ -162,10 +162,14 @@ class Product(CommonBaseClass):
         return 10
     
     def get_pre_ferment_ratio(self):
-        total_weight = Product.calculate_total_weight(self)
+        total_weight = self.total_weight
         total_pre_dough = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='pre-dough'))
         if total_weight and total_pre_dough:
             return round(total_pre_dough / total_weight * 100, 2)
+
+    @property
+    def total_weight_flour(self):
+        return Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
 
     @property
     def is_normalized(self):

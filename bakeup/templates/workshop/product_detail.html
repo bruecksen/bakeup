@@ -54,7 +54,7 @@
 </div>
 <div class="row">
   <div class="col">
-    {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 %}
+    {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 show_baker_percentage=True%}
   </div>
 </div>
 {% endblock %}
