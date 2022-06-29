@@ -48,7 +48,7 @@
         <form action="{% url 'workshop:product-normalize' pk=parent.pk %}" method="POST">
           {% csrf_token %}
           <div class="input-group input-group-sm">
-            <input type="number" class="form-control" name="amount" placeholder="" value="{{ parent.total_weight|floatformat:"-1"|unlocalize }}" step="0.1" disabled>
+            <input type="text" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ parent.total_weight|floatformat:"-1"|unlocalize }}" step="0.1" disabled>
             <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-scale-balanced"></i> Norm.</button>
           </div>
         </form>
