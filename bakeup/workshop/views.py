@@ -135,6 +135,13 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
             context['key_figures_form'] = ProductKeyFiguresForm(initial=self.get_key_figures_inital_data())
         return context
 
+
+def product_normalize_view(request, pk):
+    product = Product.objects.get(pk=pk)
+    product.normalize()
+    return redirect(product.get_absolute_url())
+
+
 class RecipeDetailView(StaffPermissionsMixin, DetailView):
     model = Product
     template_name = 'workshop/recipe_detail.html'

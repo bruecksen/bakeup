@@ -120,13 +120,16 @@ class Product(CommonBaseClass):
             })
         return ingredients
 
+    @property
+    def total_weight(self):
+        return Product.calculate_total_weight(self) or self.weight
+
     @classmethod
     def calculate_total_weight(cls, product, quantity=1):
         weight = 0
         for child in product.parents.all():
             if child.is_leaf:
                 product_weight = quantity * child.weight
-                print("{}({}) {}".format(child.child, child.child.category.name, product_weight))
                 weight += product_weight
             else:
                 weight += Product.calculate_total_weight(child.child, quantity * child.quantity)
@@ -183,6 +186,21 @@ class Product(CommonBaseClass):
         total_pre_dough = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='pre-dough'))
         if total_weight and total_pre_dough:
             return round(total_pre_dough / total_weight * 100, 2)
+
+    @property
+    def is_normalized(self):
+        return round(self.total_weight) == 1000
+
+    def normalize(self):
+        ratio = 1000 / self.total_weight
+        for child in self.parents.all():
+            if child.is_leaf:
+                child.quantity = child.quantity * ratio
+                child.save(update_fields=['quantity'])
+        self.weight = 1000
+        self.save(update_fields=['weight'])
+        
+        
 
 
 

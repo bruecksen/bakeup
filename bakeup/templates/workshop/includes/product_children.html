@@ -41,6 +41,21 @@
         </div>      
       </li>
   {% endfor %}
+  {% if parent.is_composable and not parent.is_normalized %}
+  <li class="list-group-item border-top-2">
+    <div class="row">
+      <div class="col-2">
+        <form action="{% url 'workshop:product-normalize' pk=parent.pk %}" method="POST">
+          {% csrf_token %}
+          <div class="input-group input-group-sm">
+            <input type="number" class="form-control" name="amount" placeholder="" value="{{ parent.total_weight|floatformat:"0"|unlocalize }}" step="0.1" disabled>
+            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-scale-balanced"></i> Norm.</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </li>
+  {% endif %}
   </ol>
 
   
