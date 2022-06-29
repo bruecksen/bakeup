@@ -19,12 +19,12 @@
           </div>
           <div class="col-7 align-self-center">
             {% with child.quantity|multiply:quantity|multiply:child.child.weight as child_weight %}
-              {{ child_weight|floatformat:"-1" }}{{ child.child.unit }}
+              <span class="weight">{{ child_weight|floatformat:"-1" }}{{ child.child.unit }}{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight child.parent.total_weight_flour %})</small>{% endif %}</span>
               {% if child.child.parents.all %}
-                <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }} {% if show_baker_percentage %} ({% baker_percentage child_weight child.parent.total_weight_flour %}){% endif %}</a>
+                <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
                 <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
               {% else %}
-              {{ child.child.name }}{% if show_baker_percentage %} ({% baker_percentage child_weight child.parent.total_weight_flour %}){% endif %}
+              {{ child.child.name }}
               {% endif %}
             {% endwith %}
           </div>

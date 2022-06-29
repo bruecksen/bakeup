@@ -38,6 +38,13 @@ body {
   border-top-width: 3px!important;
 }
 
+.weight {
+  display: inline-block;
+  min-width: 100px;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
 
 nav {
   .nav-link {
