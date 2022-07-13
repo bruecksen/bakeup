@@ -1,13 +1,22 @@
-from django.forms import DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form
+from django.forms import CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, formset_factory
 from bakeup.shop.models import ProductionDay
 
-from bakeup.workshop.models import Product, ProductHierarchy, ProductionPlan
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 
 
 class ProductForm(ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'description', 'image', 'category', 'weight', 'is_sellable', 'is_buyable', 'is_composable']
+
+
+class AddProductForm(Form):
+    weight = FloatField(required=True)
+    product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
+    product_new = CharField(required=False, label="New product name")
+    category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="Select a category")
+
+AddProductFormSet = formset_factory(AddProductForm, extra=0)
 
 
 class SelectProductForm(Form):

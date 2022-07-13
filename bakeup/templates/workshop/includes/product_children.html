@@ -1,5 +1,7 @@
 {% load l10n %}
 {% load workshop_tags %}
+{% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
 <ol class="list-group{% if is_root %} list-group-root {% endif %} card">
   {% for child in children %}
       <li class="list-group-item">
@@ -45,6 +47,45 @@
         </div>      
       </li>
   {% endfor %}
+  <form method="POST" class="form-add-inline" action="{% url 'workshop:product-add-inline' pk=parent.pk %}" encrypt="multipart/form-data">
+    {% csrf_token %}
+    {{ formset.management_form }}
+  <div class="list-group-item d-none form-container">
+      <div class="add-product-form">
+        <div class="row">
+          <div class="col-2">
+            {% bootstrap_field formset.empty_form.weight show_label=False size="sm" addon_after='g' required=True %}
+          </div>
+          <div class="col-6">
+            <div class="row">
+              <div class="col-5">
+                {% bootstrap_field formset.empty_form.product_existing show_label=False size="sm" wrapper_class='' %}
+                <p class="text-center mb-0"><small>Or</small></p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-5">
+                {% bootstrap_field formset.empty_form.product_new show_label=False size="sm" %}
+              </div>
+              <div class="col-5">
+                {% bootstrap_field formset.empty_form.category show_label=False size="sm" %}
+              </div>
+            </div>
+          </div>
+          <div class="col-4 text-end">
+            <button type="submit" class="btn btn-outline-primary btn-sm add-another">Save</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <li class="list-group-item add-another-container">
+    <div class="row">
+      <div class="col text-end">
+        <a class="btn btn-primary btn-sm add-another" id="add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
+      </div>
+    </div>
+  </li>
   {% if parent.is_composable and not parent.is_normalized %}
   <li class="list-group-item border-top-2">
     <div class="row">

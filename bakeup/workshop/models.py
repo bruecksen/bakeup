@@ -83,11 +83,11 @@ class Product(CommonBaseClass):
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
     
-    def add_child(self, child):
+    def add_child(self, child, quantity=1):
         child = ProductHierarchy.objects.create(
             parent=self,
             child=child,
-            quantity=1
+            quantity=quantity
         )
         return child
 

@@ -1,12 +1,13 @@
 from itertools import product
 from typing import OrderedDict
 
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError, transaction
 from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse, reverse_lazy
+from django.urls import resolve, reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
@@ -17,7 +18,7 @@ from django_tables2 import SingleTableView
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
-from bakeup.workshop.forms import ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import ProductTable, ProductionDayTable, ProductionPlanTable
 
@@ -69,7 +70,27 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
         if self.product_parent:
             self.product_parent.add_child(product)
         return HttpResponseRedirect(self.get_success_url())
-    
+
+@staff_member_required
+def product_add_inline_view(request, pk):
+    parent_product = Product.objects.get(pk=pk)
+    if request.method == 'POST':
+        formset = AddProductFormSet(request.POST)
+
+        if formset.is_valid():
+            for form in formset:
+                if form.cleaned_data.get('product_existing', None) and form.cleaned_data.get('weight', None):
+                    product = form.cleaned_data['product_existing']
+                if form.cleaned_data.get('product_new', None) and form.cleaned_data.get('weight', None) and form.cleaned_data.get('category', None):
+                    product = Product.objects.create(
+                        name=form.cleaned_data['product_new'],
+                        category=form.cleaned_data['category'],
+                        weight=1000
+                    )
+                if product:
+                    quantity =  form.cleaned_data['weight'] / product.weight
+                    parent_product.add_child(product, quantity)
+    return HttpResponseRedirect(reverse('workshop:product-detail', kwargs={'pk': parent_product.pk}))
 
 class ProductUpdateView(StaffPermissionsMixin, UpdateView):
     model = Product
@@ -131,6 +152,8 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form_add'] = AddProductForm()
+        context['formset'] = AddProductFormSet()
         if self.object.is_composable:
             context['key_figures_form'] = ProductKeyFiguresForm(initial=self.get_key_figures_inital_data())
         return context

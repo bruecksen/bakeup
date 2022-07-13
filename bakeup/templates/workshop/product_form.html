@@ -7,26 +7,6 @@
   {% if object %}
     <h1>Update: {{ object.name }}</h1>
   {% else %}
-    <h1>Add new product
-      {% if product_parent %}
-      to {{ product_parent }}
-      {% endif %}
-    </h1>
-  {% endif %}
-  {% if form_select %}
-  <h2>Add existing product</h2>
-  <form class="form-horizontal" method="post">
-    {% csrf_token %}
-    {{ form_select|crispy }}
-    <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn btn-primary" name="add-existing">
-          Add
-        </button>
-      </div>
-    </div>
-  </form>
-  <hr>
   <h2>Add new product</h2>
   {% endif %}
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
