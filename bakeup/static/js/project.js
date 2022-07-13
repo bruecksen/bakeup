@@ -1,10 +1,3 @@
-/* Project specific Javascript goes here. */
-
-
-$('.add-another').click(function(){
-    console.log('click');
-});
-
 let form = document.querySelectorAll(".form-container");
 let container = document.querySelector(".form-add-inline");
 let addAnotherContainer = document.querySelector(".add-another-container");
