@@ -85,7 +85,10 @@ def product_add_inline_view(request, pk):
                     product = Product.objects.create(
                         name=form.cleaned_data['product_new'],
                         category=form.cleaned_data['category'],
-                        weight=1000
+                        weight=1000,
+                        is_sellable=form.cleaned_data.get('is_sellable', False),
+                        is_buyable=form.cleaned_data.get('is_buyable', False),
+                        is_composable=form.cleaned_data.get('is_composable', False),
                     )
                 if product:
                     quantity =  form.cleaned_data['weight'] / product.weight

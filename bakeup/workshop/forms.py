@@ -1,4 +1,4 @@
-from django.forms import CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, formset_factory
+from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, formset_factory
 from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
@@ -15,6 +15,9 @@ class AddProductForm(Form):
     product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
     product_new = CharField(required=False, label="New product name")
     category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="Select a category")
+    is_sellable = BooleanField(label='Sellable?')
+    is_buyable = BooleanField(label='Buyable?')
+    is_composable = BooleanField(label='Composable?')
 
 AddProductFormSet = formset_factory(AddProductForm, extra=0)
 
