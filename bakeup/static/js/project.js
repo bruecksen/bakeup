@@ -1,7 +1,7 @@
 let form = document.querySelectorAll(".form-container");
 let container = document.querySelector(".form-add-inline");
 let addAnotherContainer = document.querySelector(".add-another-container");
-let addButton = document.querySelector("#add-another-form");
+let addButton = document.querySelector(".add-another-form");
 let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
 addButton.addEventListener('click', addForm);
 

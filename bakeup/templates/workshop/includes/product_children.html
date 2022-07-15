@@ -47,6 +47,7 @@
         </div>      
       </li>
   {% endfor %}
+  {% if is_root %}
   <form method="POST" class="form-add-inline" action="{% url 'workshop:product-add-inline' pk=parent.pk %}" encrypt="multipart/form-data">
     {% csrf_token %}
     {{ formset.management_form }}
@@ -91,10 +92,11 @@
   <li class="list-group-item add-another-container">
     <div class="row">
       <div class="col text-end">
-        <a class="btn btn-outline-primary btn-sm add-another" id="add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
+        <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
       </div>
     </div>
   </li>
+  {% endif %}
   {% if parent.is_composable and not parent.is_normalized %}
   <li class="list-group-item border-top-2">
     <div class="row">
