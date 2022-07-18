@@ -15,9 +15,9 @@ class AddProductForm(Form):
     product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
     product_new = CharField(required=False, label="New product name")
     category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="Select a category")
-    is_sellable = BooleanField(label='Sellable?')
-    is_buyable = BooleanField(label='Buyable?')
-    is_composable = BooleanField(label='Composable?')
+    is_sellable = BooleanField(label='Sellable?', required=False)
+    is_buyable = BooleanField(label='Buyable?', required=False)
+    is_composable = BooleanField(label='Composable?', required=False)
 
 AddProductFormSet = formset_factory(AddProductForm, extra=0)
 
