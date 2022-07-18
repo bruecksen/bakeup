@@ -51,7 +51,16 @@
   <form method="POST" class="form-add-inline" action="{% url 'workshop:product-add-inline' pk=parent.pk %}" encrypt="multipart/form-data">
     {% csrf_token %}
     {{ formset.management_form }}
-  <div class="list-group-item d-none form-container">
+    <li class="list-group-item add-another-container">
+      <div class="row">
+        <div class="col text-end">
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
+          </div>
+        </div>
+      </div>
+    </li>
+    <div class="list-group-item d-none form-container">
       <div class="add-product-form">
         <div class="row">
           <div class="col-2">
@@ -83,19 +92,19 @@
             </div>
           </div>
           <div class="col-2 text-end">
-            <button type="submit" class="btn btn-outline-primary btn-sm add-another">Save</a>
+            <a class="btn btn-outline-primary btn-sm add-another remove-another-form"><i class="fa-solid fa-trash"></i></a>
           </div>
         </div>
       </div>
     </div>
-  </form>
-  <li class="list-group-item add-another-container">
-    <div class="row">
-      <div class="col text-end">
-        <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col text-end">
+          <button type="submit" class="btn btn-primary btn-sm add-another d-none save-another-form">Save</button>
+        </div>
       </div>
-    </div>
-  </li>
+    </li>
+  </form>
   {% endif %}
   {% if parent.is_composable and not parent.is_normalized %}
   <li class="list-group-item border-top-2">
