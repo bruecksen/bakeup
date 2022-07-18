@@ -106,7 +106,7 @@
     </li>
   </form>
   {% endif %}
-  {% if parent.is_composable and not parent.is_normalized %}
+  {% if is_root and parent.is_composable and not parent.is_normalized %}
   <li class="list-group-item border-top-2">
     <div class="row">
       <div class="col-2">
