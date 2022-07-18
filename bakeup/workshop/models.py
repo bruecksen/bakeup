@@ -178,9 +178,8 @@ class Product(CommonBaseClass):
     def normalize(self):
         ratio = 1000 / self.total_weight
         for child in self.parents.all():
-            if child.is_leaf:
-                child.quantity = child.quantity * ratio
-                child.save(update_fields=['quantity'])
+            child.quantity = child.quantity * ratio
+            child.save(update_fields=['quantity'])
         self.weight = 1000
         self.save(update_fields=['weight'])
         

@@ -33,7 +33,7 @@
           <div class="col-3 text-end">
             {% if is_root %}
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary">Delete relation</a>
+              <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary"><i class="fa-solid fa-trash"></i></a>
             </div>
             {% endif %}
           </div>
