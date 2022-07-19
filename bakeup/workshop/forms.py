@@ -47,7 +47,7 @@ class ProductHierarchyForm(Form):
 
 
 class ProductionPlanDayForm(Form):
-    production_day = ModelChoiceField(queryset=ProductionDay.objects.all())
+    production_day = ModelChoiceField(queryset=ProductionDay.objects.filter(production_plans=None))
 
 
 class ProductionPlanForm(ModelForm):

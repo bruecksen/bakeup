@@ -118,29 +118,34 @@ class Product(CommonBaseClass):
         return weight
     
     @classmethod
-    def calculate_total_weight_by_category(cls, product, category, quantity=1, parent_category=None, do_count=False):
+    def calculate_total_weight_by_category(cls, product, category, quantity=1):
         weight = 0
         for child in product.parents.all():
-            if not parent_category or child.child.category == parent_category:
-                do_count = True
             if child.child.category.is_descendant_of(category) or child.child.category == category:
-                if do_count:
-                    product_weight = quantity * child.weight
-                    weight += product_weight
+                product_weight = quantity * child.weight
+                weight += product_weight
             else:
-                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity, parent_category, do_count)
+                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity)
         return weight
 
     @classmethod
     def calculate_total_weight_by_category_and_parent(cls, product, category, quantity=1, parent_category=None, do_count=False):
         weight = 0
+        #Flag that we hit the parent category
+        if not parent_category or product.category == parent_category:
+            do_count = True
+
         for child in product.parents.all():
-            if child.child.category == parent_category:
-                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity, parent_category, do_count=True)
             if child.child.category.is_descendant_of(category) or child.child.category == category:
-                if do_count:
+                if do_count == True:
                     product_weight = quantity * child.weight
                     weight += product_weight
+            else:
+                weight += Product.calculate_total_weight_by_category_and_parent(child.child, category, quantity * child.quantity, parent_category, do_count)
+        # and turn if of again
+        if not parent_category or product.category == parent_category:
+            do_count = False 
+        
         return weight
     
     @classmethod
