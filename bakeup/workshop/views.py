@@ -22,7 +22,7 @@ from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
-from bakeup.workshop.tables import ProductFilter, ProductTable, ProductionDayTable, ProductionPlanTable
+from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanTable
 
 
 
@@ -404,3 +404,10 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
         return reverse(
             'workshop:production-day-list',
         )
+
+
+class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+    model = CustomerOrder
+    table_class = CustomerOrderTable
+    filterset_class = CustomerOrderFilter
+    template_name = 'workshop/order_list.html'

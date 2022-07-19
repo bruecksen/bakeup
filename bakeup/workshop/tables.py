@@ -3,7 +3,7 @@ import django_filters
 from django_tables2.utils import A
 
 from bakeup.workshop.models import Category, Product
-from bakeup.shop.models import ProductionDayProduct
+from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct
 
 
 class ProductFilter(django_filters.FilterSet):
@@ -48,3 +48,23 @@ class ProductionDayTable(tables.Table):
     class Meta:
         model = ProductionDayProduct
         fields = ("day_of_sale", )
+
+
+class CustomerOrderFilter(django_filters.FilterSet):
+    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label='Select a production day')
+    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
+    
+    class Meta:
+        model = CustomerOrder
+        fields = ('production_day','point_of_sale')
+
+
+class CustomerOrderTable(tables.Table):
+    order_nr = tables.Column(verbose_name='#')
+    production_day = tables.Column()
+    customer = tables.TemplateColumn("{{ record.customer.user.email }}")
+    positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+
+    class Meta:
+        model = CustomerOrder
+        fields = ("order_nr", "production_day", "customer", "point_of_sale", "address")

@@ -1,4 +1,5 @@
 <div class="btn-group btn-group-sm" role="group" aria-label="Column action links">
     <a href="{% url 'workshop:production-day-update' pk=record.pk %}" class="btn btn-primary{% if record.is_locked %} disabled{% endif %}"><i class="fas fa-edit"></i></a>
     <a href="{% url 'workshop:production-day-delete' pk=record.pk %}" class="btn btn-primary{% if record.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i></a>
+    <a href="{% url 'workshop:order-list' %}?production_day={{ record.pk }}" class="btn btn-primary"><i class="fas fa-shopping-basket"></i></a>
 </div>

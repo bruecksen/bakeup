@@ -1,0 +1,34 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Products{% endblock %}
+
+{% block page_content %}
+<div class="row mt-2 mb-4">
+  <div class="col-8">
+    <h1>Orders</h1>
+  </div>
+  <div class="col align-self-center">
+  </div>
+</div>
+  {% if filter %}
+  <form action="" method="get" class="form form-inline d-print-none">
+    <div class="row justify-content-end">
+      <div class="col-2">
+        {% bootstrap_field filter.form.point_of_sale size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-2">
+        {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-1">
+        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
+      </div>
+    </div>
+
+  </form>
+  {% endif %}
+  {% render_table table %}
+ 
+  
+{% endblock %}

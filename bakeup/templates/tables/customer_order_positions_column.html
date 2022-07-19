@@ -1,0 +1,5 @@
+<ul>
+    {% for position in record.positions.all %}
+    <li>{{ position.quantity}} x {{ position.product }}</li>    
+    {% endfor %}
+</ul>

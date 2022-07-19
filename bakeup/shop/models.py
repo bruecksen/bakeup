@@ -128,7 +128,7 @@ class CustomerOrderTemplate(CommonBaseClass):
 
 
 class CustomerOrder(CommonBaseClass):
-    order_nr = models.CharField(max_length=255)
+    # order_nr = models.CharField(max_length=255)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='customer_orders')
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
@@ -140,6 +140,13 @@ class CustomerOrder(CommonBaseClass):
     def __str__(self):
         return "{} {}".format(self.production_day, self.customer)
 
+    @property
+    def order_nr(self):
+        """
+        Return an order number for a given basket
+        """
+        return 100000 + self.pk
+
 
     @classmethod
     def create_customer_order(cls, production_day, customer, products):
@@ -148,7 +155,6 @@ class CustomerOrder(CommonBaseClass):
             production_day=production_day,
             customer=customer,
             defaults={
-                'order_nr': '99999',
                 'point_of_sale': customer.point_of_sale,
                 'address': "address",
             }
