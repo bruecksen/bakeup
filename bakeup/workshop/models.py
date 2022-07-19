@@ -44,7 +44,7 @@ class Product(CommonBaseClass):
     image = models.FileField(null=True, blank=True, upload_to='product_images')
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     # data in database normalized in grams
-    weight = models.FloatField(help_text="weight in grams", blank=True, null=True)
+    weight = models.FloatField(help_text="weight in grams", default=1000)
     # data in database normalized in milliliter
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
