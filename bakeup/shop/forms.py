@@ -66,5 +66,5 @@ class ProductionDayProductForm(forms.ModelForm):
 
 
 ProductionDayProductFormSet = modelformset_factory(
-    ProductionDayProduct, fields=("product", "max_quantity"), extra=1,  can_delete=False
+    ProductionDayProduct, fields=("product", "max_quantity"), extra=1,  can_delete=True
 )

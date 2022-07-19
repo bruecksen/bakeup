@@ -340,7 +340,6 @@ class ProductionDayMixin(object):
             context['formset'] = ProductionDayProductFormSet(queryset=ProductionDayProduct.objects.filter(production_day=self.object))
             if self.object:
                 context['formset'].extra = 0
-                context['formset'].can_delete = True
             context['form'] = ProductionDayForm(instance=self.object)
         return context
 
