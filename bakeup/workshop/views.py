@@ -15,6 +15,7 @@ from django.utils.timezone import make_aware
 
 from django_tables2 import SingleTableView
 
+from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
@@ -149,13 +150,13 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
     def get_key_figures_inital_data(self):
         return {
-            'fermentation_loss': self.object.get_fermentation_loss(),
+            'fermentation_loss': clever_rounding(self.object.get_fermentation_loss()),
             'dough_yield': self.object.get_dough_yield(),
-            'salt': self.object.get_salt_ratio(),
+            'salt': clever_rounding(self.object.get_salt_ratio()),
             'starter': self.object.get_starter_ratio(),
             'wheat': '50',
             'pre_ferment': self.object.get_pre_ferment_ratio(),
-            'total_dough_weight': self.object.total_weight
+            'total_dough_weight': clever_rounding(self.object.total_weight),
         }
 
 

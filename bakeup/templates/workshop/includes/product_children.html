@@ -11,7 +11,7 @@
               <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
                 {% csrf_token %}
                 <div class="input-group input-group-sm">
-                  <input type="text" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ child.weight|floatformat:"-1" }}" step="0.1">
+                  <input type="text" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ child.weight|clever_rounding }}" step="0.1">
                   <span class="input-group-text">g</span>
                   <button class="btn btn-outline-secondary" type="submit">Save</button>
                 </div>
@@ -21,7 +21,7 @@
           </div>
           <div class="col-7 align-self-center">
             {% with child.quantity|multiply:quantity|multiply:child.child.weight as child_weight %}
-              <span class="weight">{{ child_weight|floatformat:"-1" }}{{ child.child.unit }}{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight child.parent.total_weight_flour %})</small>{% endif %}</span>
+              <span class="weight">{{ child_weight|clever_rounding }}{{ child.child.unit }}{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight child.parent.total_weight_flour %})</small>{% endif %}</span>
               {% if child.child.parents.all %}
                 <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
                 <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>

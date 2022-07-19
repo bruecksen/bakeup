@@ -14,10 +14,8 @@ def baker_percentage(weight, flour_weight):
 
 @register.filter
 def clever_rounding(value):
-    if value < 5:
-        return floatformat(value, -1)
-    elif value < 1000:
-        return floatformat(value, 0)
+    if float(value) < 100:
+        return floatformat(round(value, 1), -1)
     else:
-        return floatformat(value/1000, 3)
+        return floatformat(round(value), 0)
 
