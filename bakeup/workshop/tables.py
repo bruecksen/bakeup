@@ -67,4 +67,4 @@ class CustomerOrderTable(tables.Table):
 
     class Meta:
         model = CustomerOrder
-        fields = ("order_nr", "production_day", "customer", "point_of_sale", "address")
+        fields = ("order_nr", "production_day", "customer", "point_of_sale")
