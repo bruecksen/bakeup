@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends base_template %}
 {% load static %}
 
 {% block title %}User: {{ object.username }}{% endblock %}
 
-{% block content %}
+{% block page_content %}
 <div class="container">
 
   <div class="row">
@@ -21,7 +21,7 @@
 <div class="row">
 
   <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
+    <a class="btn btn-primary" href="{{ update_url }}" role="button">My Info</a>
   </div>
 
 </div>
@@ -29,4 +29,4 @@
 {% endif %}
 
 </div>
-{% endblock content %}
+{% endblock page_content %}

@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends base_template %}
 {% load crispy_forms_tags %}
 
 {% block title %}{{ user.username }}{% endblock %}
 
-{% block content %}
+{% block page_content %}
   <h1>{{ user.username }}</h1>
   <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
     {% csrf_token %}

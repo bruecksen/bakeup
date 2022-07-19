@@ -25,9 +25,25 @@ class UserProfileView(LoginRequiredMixin, DetailView):
     def get_object(self):
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = "workshop/base.html"
+        context['update_url'] = reverse('users:update')
+        return context
+
+
+
+class ShopUserProfileView(UserProfileView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = "shop/base.html"
+        context['update_url'] = reverse('shop:user-update')
+        return context
+
 
 
 user_profile_view = UserProfileView.as_view()
+shop_user_profile_view = ShopUserProfileView.as_view()
 
 
 class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -45,5 +61,24 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_object(self):
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = "workshop/base.html"
+        return context
+
+
+class ShopUserUpdateView(UserUpdateView):
+
+    def get_success_url(self):
+        return reverse('shop:user-profile')
+
+    def get_object(self):
+        return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = "shop/base.html"
+        return context
 
 user_update_view = UserUpdateView.as_view()
+shop_user_update_view = ShopUserUpdateView.as_view()
