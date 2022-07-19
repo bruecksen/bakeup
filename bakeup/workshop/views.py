@@ -278,6 +278,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
                 positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
                 production_day_product = ProductionDayProduct.objects.get(product_id=product_quantity.get('product'), production_day=production_day)
                 production_day_product.production_plan = obj
+                production_day_product.product = product
                 production_day_product.save()
         return super().form_valid(form)
 
