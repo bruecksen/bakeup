@@ -29,7 +29,7 @@ class ProductionDay(CommonBaseClass):
     day_of_sale = models.DateField(unique=True)
 
     class Meta:
-        ordering = ('day_of_sale',)
+        ordering = ('-day_of_sale',)
 
     def __str__(self):
         return "{}".format(self.day_of_sale.strftime("%d.%m.%Y"))
