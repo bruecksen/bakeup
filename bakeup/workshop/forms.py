@@ -43,7 +43,7 @@ class SelectProductForm(Form):
 
 
 class ProductHierarchyForm(Form):
-    amount = FloatField()
+    amount = FloatField(localize=True)
 
 
 class ProductionPlanDayForm(Form):
