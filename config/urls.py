@@ -5,6 +5,7 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
+from django.views.generic import RedirectView
 
 from bakeup.core.views import HomeView
 from bakeup.users.views import LoginView
@@ -20,6 +21,7 @@ urlpatterns = [
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
     path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name='logout'),
+    path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
