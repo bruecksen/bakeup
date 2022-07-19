@@ -149,6 +149,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
             'starter': self.object.get_starter_ratio(),
             'wheat': '50',
             'pre_ferment': self.object.get_pre_ferment_ratio(),
+            'total_dough_weight': self.object.total_weight
         }
 
 

@@ -47,3 +47,4 @@ class ProductKeyFiguresForm(Form):
     starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Starter', disabled=True, required=False)
     wheat = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Mehl', disabled=True, required=False)
     pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge', disabled=True, required=False)
+    total_dough_weight = DecimalField(decimal_places=2, min_value=0, label='Teiggewicht', disabled=True, required=False)
