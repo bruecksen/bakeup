@@ -163,7 +163,13 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
 def product_normalize_view(request, pk):
     product = Product.objects.get(pk=pk)
-    product.normalize()
+    if request.method == 'POST':
+        form = ProductKeyFiguresForm(request.POST)
+        if form.is_valid():
+            fermentation_loss = form.cleaned_data['fermentation_loss']
+            product.normalize(fermentation_loss)
+        else:
+            raise Exception(form.errors)
     return redirect(product.get_absolute_url())
 
 

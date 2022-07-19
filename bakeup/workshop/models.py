@@ -146,12 +146,7 @@ class Product(CommonBaseClass):
         if total_weight_flour and total_weight_water:
             dough_yield = 100 * (total_weight_water + total_weight_flour) / total_weight_flour
             return round(dough_yield)
-
-    def get_fermentation_loss(self):
-        total_weight = self.total_weight
-        if total_weight and self.weight:
-            return round(100 - (self.weight / total_weight * 100), 2)
-    
+ 
     def get_salt_ratio(self):
         total_weight_flour = self.total_weight_flour
         total_salt = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='salt'))
@@ -175,17 +170,19 @@ class Product(CommonBaseClass):
     def is_normalized(self):
         return round(self.total_weight) == 1000
 
-    def normalize(self):
-        ratio = 1000 / self.total_weight
-        for child in self.parents.all():
-            child.quantity = child.quantity * ratio
-            child.save(update_fields=['quantity'])
-        self.weight = 1000
-        self.save(update_fields=['weight'])
-        
-        
+    def get_fermentation_loss(self):
+        total_weight = self.total_weight
+        if total_weight and self.weight:
+            return round(1 - (self.weight / self.total_weight), 4) * 100
 
-
+    def normalize(self, fermentation_loss):
+        if self.total_weight and self.weight:
+            current_fermantation_loss = round(1 - (self.weight / self.total_weight), 4)
+            fermentation_loss = fermentation_loss / Decimal(100)
+            delta_weight_addon = (1 - Decimal(current_fermantation_loss)) / (1 - fermentation_loss)
+            for child in self.parents.all():
+                child.quantity = child.quantity * float(delta_weight_addon)
+                child.save(update_fields=['quantity'])
 
 # Assembly
 class Instruction(CommonBaseClass):
