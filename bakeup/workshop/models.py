@@ -82,6 +82,9 @@ class Product(CommonBaseClass):
 
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
+
+    def has_child(self, child):
+        return ProductHierarchy.objects.filter(parent=self, child=child).exists()
     
     def add_child(self, child, quantity=1):
         child = ProductHierarchy.objects.create(

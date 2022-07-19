@@ -80,6 +80,9 @@ def product_add_inline_view(request, pk):
             for form in formset:
                 if form.cleaned_data.get('product_existing', None) and form.cleaned_data.get('weight', None):
                     product = form.cleaned_data['product_existing']
+                    if parent_product.has_child(product):
+                        product = None
+                        messages.add_message(request, messages.WARNING, "This product is already a child product.")
                 if form.cleaned_data.get('product_new', None) and form.cleaned_data.get('weight', None) and form.cleaned_data.get('category', None):
                     product = Product.objects.create(
                         name=form.cleaned_data['product_new'],
