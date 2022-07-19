@@ -154,8 +154,8 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
             'dough_yield': self.object.get_dough_yield(),
             'salt': clever_rounding(self.object.get_salt_ratio()),
             'starter': self.object.get_starter_ratio(),
-            'wheat': '50',
-            'pre_ferment': self.object.get_pre_ferment_ratio(),
+            'wheat': self.object.get_wheats(),
+            'pre_ferment': clever_rounding(self.object.get_pre_ferment_ratio()),
             'total_dough_weight': clever_rounding(self.object.total_weight),
         }
 

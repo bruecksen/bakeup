@@ -1,5 +1,5 @@
 from unicodedata import category
-from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, formset_factory
+from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, Textarea, formset_factory
 from django.db.models import Q
 
 from bakeup.shop.models import ProductionDay
@@ -61,6 +61,13 @@ class ProductKeyFiguresForm(Form):
     dough_yield = IntegerField(min_value=100, label='TA', disabled=True, required=False)
     salt = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Salz', disabled=True, required=False, localize=True)
     starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Starter', disabled=True, required=False)
-    wheat = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Mehl', disabled=True, required=False)
-    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge', disabled=True, required=False)
+    wheat = CharField(label='Mehl', disabled=True, required=False, widget=Textarea(attrs={'rows':2,}))
+    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge', disabled=True, required=False, localize=True)
     total_dough_weight = DecimalField(decimal_places=2, min_value=0, label='Teiggewicht', disabled=True, required=False, localize=True)
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'initial' in kwargs and 'wheat' in kwargs['initial']:
+            line_count = kwargs['initial']['wheat'].count('\n')
+            self.fields['wheat'].widget.attrs['rows'] = line_count + 1

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from itertools import count
 from re import T
 from django.db import models
 from django.db.models import Q, F
@@ -9,6 +10,7 @@ from treebeard.mp_tree import MP_Node
 
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.managers import ProductManager, ProductionDayProductManager
+from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 
 
 
@@ -119,15 +121,29 @@ class Product(CommonBaseClass):
         return weight
     
     @classmethod
-    def calculate_total_weight_by_category(cls, product, category, quantity=1):
+    def calculate_total_weight_by_category(cls, product, category, quantity=1, parent_category=None, do_count=False):
         weight = 0
         for child in product.parents.all():
+            if not parent_category or child.child.category == parent_category:
+                do_count = True
             if child.child.category.is_descendant_of(category) or child.child.category == category:
-                product_weight = quantity * child.weight
-                # print("{}({}) {}".format(child.child, child.child.category.name, product_weight))
-                weight += product_weight
+                if do_count:
+                    product_weight = quantity * child.weight
+                    weight += product_weight
             else:
-                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity)
+                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity, parent_category, do_count)
+        return weight
+
+    @classmethod
+    def calculate_total_weight_by_category_and_parent(cls, product, category, quantity=1, parent_category=None, do_count=False):
+        weight = 0
+        for child in product.parents.all():
+            if child.child.category == parent_category:
+                weight += Product.calculate_total_weight_by_category(child.child, category, quantity * child.quantity, parent_category, do_count=True)
+            if child.child.category.is_descendant_of(category) or child.child.category == category:
+                if do_count:
+                    product_weight = quantity * child.weight
+                    weight += product_weight
         return weight
     
     @classmethod
@@ -160,8 +176,8 @@ class Product(CommonBaseClass):
         return 10
     
     def get_pre_ferment_ratio(self):
-        total_weight = self.total_weight
-        total_pre_dough = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='pre-dough'))
+        total_weight = self.total_weight_flour
+        total_pre_dough = Product.calculate_total_weight_by_category_and_parent(self, Category.objects.get(slug='flour'), 1, Category.objects.get(slug='pre-dough'))
         if total_weight and total_pre_dough:
             return round(total_pre_dough / total_weight * 100, 2)
 
@@ -172,6 +188,17 @@ class Product(CommonBaseClass):
     @property
     def is_normalized(self):
         return round(self.total_weight) == 1000
+
+    def get_wheats(self):
+        wheats = ""
+        total_weight_flour = self.total_weight_flour
+        for category in Category.objects.filter(path__contains='000700060'):
+            weight = Product.calculate_total_weight_by_category(self, category)
+            if weight:
+                if wheats:
+                    wheats += '\n'
+                wheats += "{} ({}%)".format(category.name, clever_rounding(weight/total_weight_flour*100))
+        return wheats
 
     def get_fermentation_loss(self):
         total_weight = self.total_weight
