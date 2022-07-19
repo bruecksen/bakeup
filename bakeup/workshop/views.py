@@ -13,7 +13,8 @@ from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
 from django.utils.timezone import make_aware
 
-from django_tables2 import SingleTableView
+from django_filters.views import FilterView
+from django_tables2 import SingleTableMixin, SingleTableView
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
@@ -21,7 +22,7 @@ from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
-from bakeup.workshop.tables import ProductTable, ProductionDayTable, ProductionPlanTable
+from bakeup.workshop.tables import ProductFilter, ProductTable, ProductionDayTable, ProductionPlanTable
 
 
 
@@ -195,18 +196,22 @@ class RecipeDetailView(StaffPermissionsMixin, DetailView):
 
 
 
-class RecipeListView(StaffPermissionsMixin, SingleTableView):
+class RecipeListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     model = Product
     table_class = ProductTable
+    filterset_class = ProductFilter
+    template_name = 'workshop/product_list.html'
 
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.filter(is_sellable=True)
         return qs
 
-class ProductListView(StaffPermissionsMixin, SingleTableView):
+class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     model = Product
     table_class = ProductTable
+    filterset_class = ProductFilter
+    template_name = 'workshop/product_list.html'
 
 
 class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):

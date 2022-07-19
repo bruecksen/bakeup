@@ -1,5 +1,5 @@
 {% extends "workshop/base.html" %}
-{% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
 {% block title %}Products{% endblock %}
@@ -13,6 +13,19 @@
     <a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">Add new product</a>
   </div>
 </div>
+  {% if filter %}
+  <form action="" method="get" class="form form-inline">
+    <div class="row justify-content-end">
+      <div class="col-3">
+        {% bootstrap_field filter.form.category size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-1">
+        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
+      </div>
+    </div>
+
+  </form>
+  {% endif %}
   {% render_table table %}
  
   

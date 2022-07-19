@@ -189,7 +189,7 @@ class Product(CommonBaseClass):
     def get_wheats(self):
         wheats = ""
         total_weight_flour = self.total_weight_flour
-        for category in Category.objects.filter(path__contains='000700060'):
+        for category in Category.objects.filter(path__startswith='000700060'):
             weight = Product.calculate_total_weight_by_category(self, category)
             if weight:
                 if wheats:

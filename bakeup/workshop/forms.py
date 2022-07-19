@@ -25,9 +25,9 @@ class AddProductForm(Form):
     def __init__(self, product=None, parent_products=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         products = Product.objects.filter(
-            Q(category__path__contains='0005') | 
-            Q(category__path__contains='0006') | 
-            Q(category__path__contains='0007')
+            Q(category__path__startswith='0005') | 
+            Q(category__path__startswith='0006') | 
+            Q(category__path__startswith='0007')
         )
         if parent_products:
             products = products.exclude(pk__in=parent_products.values_list('parent__pk', flat=True))

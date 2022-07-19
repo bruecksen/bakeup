@@ -1,9 +1,20 @@
 import django_tables2 as tables
+import django_filters
 from django_tables2.utils import A
 
-from bakeup.workshop.models import Product
+from bakeup.workshop.models import Category, Product
 from bakeup.shop.models import ProductionDayProduct
 
+
+class ProductFilter(django_filters.FilterSet):
+    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all(), method='category_filter')
+
+    class Meta:
+        model = Product
+        fields = ('category',)
+
+    def category_filter(self, queryset, name, value):
+        return queryset.filter(category__path__startswith=value.path)
 
 class ProductTable(tables.Table):
     pk = tables.LinkColumn('workshop:product-detail', args=[A('pk')], verbose_name='#')
