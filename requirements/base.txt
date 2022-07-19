@@ -19,4 +19,4 @@ django-tables2
 django-treebeard
 sorl-thumbnail
 django_bootstrap5
-django_filters
+django_filter
