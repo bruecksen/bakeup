@@ -263,6 +263,8 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
             positions = CustomerOrderPosition.objects.filter(order__production_day=production_day, production_plan__isnull=True)
             product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
             for product_quantity in product_quantities:
+                if product_quantity.get('total_quantity') == 0:
+                    continue
                 product = Product.duplicate(Product.objects.get(pk=product_quantity.get('product')))
                 obj = ProductionPlan.objects.create(
                     parent_plan=None,
