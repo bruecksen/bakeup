@@ -83,6 +83,9 @@ def product_add_inline_view(request, pk):
                     if parent_product.has_child(product):
                         product = None
                         messages.add_message(request, messages.WARNING, "This product is already a child product.")
+                    if parent_product == product:
+                        product = None
+                        messages.add_message(request, messages.WARNING, "You cannot add the parent product as a child product again")
                 if form.cleaned_data.get('product_new', None) and form.cleaned_data.get('weight', None) and form.cleaned_data.get('category', None):
                     product = Product.objects.create(
                         name=form.cleaned_data['product_new'],
@@ -158,8 +161,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_add'] = AddProductForm()
-        context['formset'] = AddProductFormSet()
+        context['formset'] = AddProductFormSet(form_kwargs={'parent_products': self.object.childs.all(), 'product': self.object})
         if self.object.is_composable:
             context['key_figures_form'] = ProductKeyFiguresForm(initial=self.get_key_figures_inital_data())
         return context

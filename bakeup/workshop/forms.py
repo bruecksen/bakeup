@@ -1,4 +1,7 @@
+from unicodedata import category
 from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, formset_factory
+from django.db.models import Q
+
 from bakeup.shop.models import ProductionDay
 
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
@@ -18,6 +21,19 @@ class AddProductForm(Form):
     is_sellable = BooleanField(label='Sellable?', required=False)
     is_buyable = BooleanField(label='Buyable?', required=False)
     is_composable = BooleanField(label='Composable?', required=False)
+
+    def __init__(self, product=None, parent_products=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        products = Product.objects.filter(
+            Q(category__path__contains='0005') | 
+            Q(category__path__contains='0006') | 
+            Q(category__path__contains='0007')
+        )
+        if parent_products:
+            products = products.exclude(pk__in=parent_products.values_list('parent__pk', flat=True))
+        if product:
+            products = products.exclude(pk=product.pk)
+        self.fields['product_existing'].queryset = products
 
 AddProductFormSet = formset_factory(AddProductForm, extra=0)
 
