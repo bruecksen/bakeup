@@ -175,6 +175,7 @@ class Product(CommonBaseClass):
     def get_pre_ferment_ratio(self):
         total_weight = self.total_weight_flour
         total_pre_dough = Product.calculate_total_weight_by_category_and_parent(self, Category.objects.get(slug='flour'), 1, Category.objects.get(slug='pre-dough'))
+        # raise Exception(total_pre_dough)
         if total_weight and total_pre_dough:
             return round(total_pre_dough / total_weight * 100, 2)
 
@@ -271,7 +272,7 @@ class ProductionPlan(CommonBaseClass):
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
-        ordering = ('pk',)
+        ordering = ('-start_date',)
         constraints = [
             models.CheckConstraint(
                 check=~Q(pk=F('parent_plan')),

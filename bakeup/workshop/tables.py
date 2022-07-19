@@ -40,7 +40,7 @@ class ProductionPlanTable(tables.Table):
 
 class ProductionDayTable(tables.Table):
     # pk = tables.LinkColumn('workshop:production-day-update', args=[A('pk')], verbose_name='#')
-    day_of_sale = tables.DateColumn(format ='d.m.Y')
+    day_of_sale = tables.TemplateColumn(template_name="tables/production_day_day_of_sale_column.html")
     # name = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
     products = tables.TemplateColumn(template_name="tables/production_day_products_column.html", verbose_name="Products")
     action = tables.TemplateColumn(template_name="tables/production_day_action_column.html", verbose_name="")
