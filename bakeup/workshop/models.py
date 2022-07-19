@@ -113,11 +113,8 @@ class Product(CommonBaseClass):
     def calculate_total_weight(cls, product, quantity=1):
         weight = 0
         for child in product.parents.all():
-            if child.is_leaf:
-                product_weight = quantity * child.weight
-                weight += product_weight
-            else:
-                weight += Product.calculate_total_weight(child.child, quantity * child.quantity)
+            product_weight = quantity * child.weight
+            weight += product_weight
         return weight
     
     @classmethod
