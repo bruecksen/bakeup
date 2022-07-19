@@ -14,6 +14,8 @@ def baker_percentage(weight, flour_weight):
 
 @register.filter
 def clever_rounding(value):
+    if not value:
+        return None
     if float(value) < 100:
         return floatformat(round(value, 1), -1)
     else:
