@@ -9,7 +9,7 @@
             <th>{% trans "Product" %}</th>
             <th>{% trans "Main-dough" %}</th>
             <th>{% trans "Pre-dough" %}</th>
-            <th>{% trans "Sourdough" %}</th>
+            <th>{% trans "Preparation" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -26,7 +26,7 @@
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
                 </td>
-                <td width="30%">{% for child_plan in production_plan|get_item:'Sauerteig' %}
+                <td width="30%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
                 </td>
