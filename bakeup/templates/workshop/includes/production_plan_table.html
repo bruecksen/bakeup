@@ -16,7 +16,7 @@
         {% for production_plan in production_plans %}
             <tr>
                 {% if not day_filter %}<td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>{% endif %}
-                <td width="5%">{{ production_plan.root.quantity }}</td>
+                <td width="5%">{{ production_plan.root.quantity|floatformat }}</td>
                 <td width="10%">{{ production_plan.root.product }}</td>
                 <td width="30%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
