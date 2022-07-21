@@ -22,7 +22,7 @@
           <div class="col-7 align-self-center">
             {% with child.quantity|multiply:quantity|multiply:child.child.weight as child_weight %}
               <span class="weight">{{ child_weight|clever_rounding }}{{ child.child.unit }}{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight total_weight_flour %})</small>{% endif %}</span>
-              {% if child.child.parents.all %}
+              {% if child.child.is_composable %}
                 <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
                 <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
               {% else %}
