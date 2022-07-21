@@ -62,4 +62,10 @@ You must set the DSN url in production.
 
 ## Deployment
 
-The following details how to deploy this application.
+Make sure pip is up-to-date (pip install --upgrade pip) and requirements are installed (pip install -r requirements/local.txt)
+
+Adjust fabfile.py to your needs, ex. change staging envs to fit your servername and directory or/and configure a totally different environment. We go with staging in this example
+
+Run fab with env and deploy
+
+    $ fab staging deploy
