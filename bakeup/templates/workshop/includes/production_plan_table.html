@@ -1,0 +1,36 @@
+{% load i18n %}
+{% load utils %}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            {% if not day_filter %}<th>{% trans "Day" %}</th>{% endif %}
+            <th>{% trans "Quantity" %}</th>
+            <th>{% trans "Product" %}</th>
+            <th>{% trans "Main-dough" %}</th>
+            <th>{% trans "Pre-dough" %}</th>
+            <th>{% trans "Preparation" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for production_plan in production_plans %}
+            <tr>
+                {% if not day_filter %}<td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>{% endif %}
+                <td width="5%">{{ production_plan.root.quantity|floatformat }}</td>
+                <td width="10%">{{ production_plan.root.product }}</td>
+                <td width="30%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+                </td>
+                <td width="30%">{% for child_plan in production_plan|get_item:'Vorteig' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+                </td>
+                <td width="30%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
+                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

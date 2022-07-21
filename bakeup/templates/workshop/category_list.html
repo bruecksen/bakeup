@@ -1,0 +1,20 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Add new product{% endblock %}
+
+{% block page_content %}
+  <div class="row mt-2 mb-4">
+    <div class="col">
+      <h1>Categories</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      {% include "workshop/includes/category.html" with categories=categories is_root=True %}
+    </div>
+  </div>
+ 
+  
+{% endblock %}

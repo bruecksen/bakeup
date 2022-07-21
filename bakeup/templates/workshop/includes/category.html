@@ -1,0 +1,14 @@
+<ol class="list-group{% if is_root %} list-group-root card{% endif %}">
+{% for category in categories %}
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+        <div class="fw-bold"><a href="{% url 'workshop:product-list' %}?category={{ category.pk }}">{{ category.name }}</a></div>
+        {{ category.description }}
+        </div>
+        <span class="badge bg-primary rounded-pill">{{ category.get_product_count }}</span>
+    </li>
+    {% if category.get_children_count > 0 %}
+    {% include "workshop/includes/category.html" with categories=category.get_children is_root=False %}
+    {% endif %}
+{% endfor %}
+</ol>

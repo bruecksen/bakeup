@@ -1,0 +1,7 @@
+{% load l10n %}
+{% for child in children %}
+    {% include "workshop/includes/production_plan_item.html" with child=child %}
+    {% if child.children.all %}
+        {% include "workshop/includes/production_plan.html" with children=child.children.all is_root=True %}
+    {% endif %}
+{% endfor %}

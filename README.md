@@ -25,7 +25,11 @@ For convenience, you can keep your normal user logged in on Chrome and your supe
 
 ### Load fixtures
 
-    $ python manage.py loaddata 
+    $ python manage.py loaddata bakeup/users/fixtures/demo-data.json
+    $ python manage.py loaddata bakeup/shop/fixtures/demo_customers.json
+    $ python manage.py loaddata bakeup/workshop/fixtures/categories.json
+    $ python manage.py loaddata bakeup/workshop/fixtures/demo-products.json
+    $ python manage.py loaddata bakeup/shop/fixtures/demo_baking_days.json
 
 ### Type checks
 

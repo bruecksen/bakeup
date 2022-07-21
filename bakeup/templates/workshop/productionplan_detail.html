@@ -1,0 +1,14 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Production plan{% endblock %}
+
+{% block page_content %}
+  <h1>Production plan #{{ object.pk }}</h1>
+  <ol class="list-group{% if is_root %} list-group-root {% endif %} card">
+    {% include "workshop/includes/production_plan_item.html" with child=object %}
+    {% include "workshop/includes/production_plan.html" with children=object.children.all is_root=True root=object %}
+  </ol>
+
+  
+{% endblock %}

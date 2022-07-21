@@ -1,37 +1,103 @@
+@import 'variables';
+
+@import '../../../node_modules/bootstrap/scss/bootstrap.scss';
+@import 'reset';
 
 
-
-
-// project specific CSS goes here
-
-////////////////////////////////
-		//Variables//
-////////////////////////////////
-
-// Alert colors
-
-$white: #fff;
-$mint-green: #d6e9c6;
-$black: #000;
-$pink: #f2dede;
-$dark-pink: #eed3d7;
-$red: #b94a48;
-
-////////////////////////////////
-		//Alerts//
-////////////////////////////////
-
-// bootstrap alert CSS, translated to the django-standard levels of
-// debug, info, success, warning, error
-
-.alert-debug {
-  background-color: $white;
-  border-color: $mint-green;
-  color: $black;
+html,
+body {
+  height: 100%;
 }
 
-.alert-error {
-  background-color: $pink;
-  border-color: $dark-pink;
-  color: $red;
+body {
+  background-color: $light;
+}
+
+.card {
+  border: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+.logo {
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  background-color: $light;
+  text-decoration: none;
+  border-radius: 50%;
+  &.large {
+    font-weight: bold;
+    font-size: 4rem;
+  }
+  &.white {
+    color: $white!important;
+  }
+  
+}
+
+.border-top-2 {
+  border-top-width: 3px!important;
+}
+
+.weight {
+  display: inline-block;
+  min-width: 100px;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+
+nav {
+  .nav-link {
+    color: $white;
+    &:hover {
+      color: $white;
+    }
+  }
+}
+
+.page-heading {
+
+}
+
+
+.list-group.list-group-root {
+  // padding: 0;
+  // overflow: hidden;
+  .list-group {
+    margin-bottom: 0;
+    border: 0;
+  }
+  .list-group-item {
+    border-radius: 0;
+    border-width: 1px 0 0 0;
+  }
+  > .list-group-item:first-child {
+    border-top-width: 0;
+  }
+  > .list-group > .list-group-item {
+    padding-left: 30px;
+  }
+  > .list-group > .list-group > .list-group-item {
+    padding-left: 45px;
+  }
+}
+
+
+.input-group .form-control {
+  border-radius: 0.2rem;
+  font-size: .875rem;
+  padding: 0.25rem 0.5rem;
+}
+.input-group .input-group-text {
+  border-radius: 0.2rem;
+  font-size: .875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+textarea {
+  margin-bottom: .5rem;
+}
+
+.resize-none textarea{
+  resize: none;
 }

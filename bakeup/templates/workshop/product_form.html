@@ -1,0 +1,24 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add new product{% endblock %}
+
+{% block page_content %}
+  {% if object %}
+    <h1>Update: {{ object.name }}</h1>
+  {% else %}
+  <h2>Add new product</h2>
+  {% endif %}
+  <form class="form-horizontal" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn btn-primary" name="add-new">
+          {% if object %}Update{% else %}Add{% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+  
+{% endblock %}

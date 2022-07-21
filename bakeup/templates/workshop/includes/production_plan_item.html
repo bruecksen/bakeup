@@ -1,0 +1,32 @@
+{% load i18n %}
+<li class="list-group-item">
+  <div class="row">
+      <div class="col-2">
+          {{ child.product }}
+      </div>
+    <div class="col-10">
+        <form action="{% url 'workshop:production-plan-update' pk=child.pk %}" method="POST">
+          {% csrf_token %}
+          <div class="row">
+              <div class="col-4">
+                  <div class="form-group">
+                    <label for="start_date" class="form-label">{% trans 'Start date' %}</label>
+                    <input type="datetime-local" class="form-control" name="start_date" placeholder="{% trans 'Start date' %}" value="{{ child.start_date|date:'Y-m-d\TH:i' }}">
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-group">
+                    <label for="duration" class="form-label">{% trans 'Duration' %}</label>
+                    <input type="number" class="form-control" name="duration" placeholder="{% trans 'Duration' %}" value="{{ child.duration }}" steps="1">
+                  </div>
+              </div>
+              <div class="col-4 align-self-end">
+                    <button class="btn btn-outline-secondary" type="submit">Save</button>
+              </div>
+          </div>
+        </form>
+    </div>
+  </div>      
+</li>
+
+  

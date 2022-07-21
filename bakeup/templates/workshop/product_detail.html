@@ -1,0 +1,79 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load l10n %}
+{% load thumbnail %}
+{% load django_bootstrap5 %}
+{% load workshop_tags %}
+
+{% block title %}{{ object.name }}{% endblock %}
+
+{% block page_content %}
+<div class="row mt-2 mb-2">
+  <div class="col-7">
+    <h1>{{ object.name }} {{ object.weight|floatformat:"0" }}{{ object.unit }}</h1>
+    <small>
+    <ul class="list-unstyled list-inline mb-1">
+      <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>
+      <li class="list-inline-item">{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
+      <li class="list-inline-item">{% if object.is_buyable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Buyable" %}</li>
+      <li class="list-inline-item">{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>
+    </ul>
+    <ul class="list-unstyled list-inline mb-1">
+      {% for parent in object.childs.all %}
+      <li class="list-inline-item"><i class="fa-solid fa-arrow-up-wide-short"></i> <a href="{% url 'workshop:product-detail' pk=parent.parent.pk %}">{{ parent.parent }} </a></li>
+      {% endfor %}
+    </ul>
+    {% if object.description %}
+    <p>{{ object.description|safe }}</p>
+    {% endif %}
+    </small>
+  </div>
+  <div class="col-5 mt-2">
+    <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
+      <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit product</a>
+      <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add product</a>
+      <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
+    </div>
+    {% if object.image %}
+      {% thumbnail object.image "150" crop="center" as im %}
+      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail float-end mt-2" alt="product image">
+      {% endthumbnail %}
+    {% endif %}
+  </div>
+</div>
+<div class="row mb-4 justify-content-between">
+  {% if key_figures_form %}
+  <div class="col-sm-12 col-md-8 col-lg-6 col-xl-4">
+    <div class="card p-3">
+      <h5>Kennzahlen</h5>
+      <form action="{% url 'workshop:product-normalize' pk=object.pk %}" method="POST">
+        {% csrf_token %}
+        <div class="row">
+          <label class="col-6 col-form-label" for="id_fermentation_loss">Gärverlust</label>
+          <div class="col-6">
+            <div class="input-group input-group-sm">
+              <input type="text" pattern="[0-9]+([\.,][0-9]+)?" name="fermentation_loss" value="{{ object.get_fermentation_loss|clever_rounding|unlocalize }}" min="0" max="100" step="0.1" class="form-control form-control-sm" placeholder="Gärverlust" required="" id="id_fermentation_loss">
+              <span class="input-group-text">%</span>
+              <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-scale-balanced"></i></button>
+            </div>
+          </div>
+        </div>
+      </form>
+      {% bootstrap_field key_figures_form.dough_yield size='sm' addon_before='TA' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
+      {% bootstrap_field key_figures_form.salt size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
+      {% bootstrap_field key_figures_form.total_dough_weight size='sm' addon_after='g' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
+      {% bootstrap_field key_figures_form.wheat size='sm' wrapper_class='resize-none' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-6' %}
+      {% bootstrap_field key_figures_form.pre_ferment size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<div class="row">
+  <div class="col">
+    {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
+  </div>
+</div>
+{% endblock %}
+
+

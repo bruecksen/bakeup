@@ -1,0 +1,51 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load thumbnail %}
+
+{% block title %}Shop{% endblock %}
+
+{% block page_content %}
+  <h1>{% translate "Shop" %}</h1>
+  <div class="row justify-content-between mt-4 mb-4">
+    <div class="col-2"><a href="{% url 'shop:weekly' calendar_week=calendar_week.last.week year=calendar_week.last.year %}"><i class="fa-solid fa-chevron-left"></i> {% translate "Previous Week" %}</a></div>
+    <div class="col-2 text-center">
+      {{ calendar_week.week }}<br \>
+      &nbsp;
+      {% if calendar_week_current  %}
+      <a class="small" href="{% url 'shop:weekly' calendar_week=calendar_week_current.week year=calendar_week_current.year %}">{% translate "Jump to current week" %}</a>
+      {% endif %}
+    </div>
+    <div class="col-2 text-end"><a href="{% url 'shop:weekly' calendar_week=calendar_week.next.week year=calendar_week.next.year %}">{% translate "Next Week" %} <i class="fa-solid fa-chevron-right"></i></a></div>
+  </div>
+  <div class="row justify-content-between">
+    {% for production_day, production_day_products in production_days.items %}
+    <div class="col-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ production_day.day_of_sale|date:'d.m.Y' }}</h5>
+            {% if production_day_products %}
+              <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
+                {% csrf_token %}
+                {% for production_day_product in production_day_products %}
+                  <h5>{{ production_day_product.production_day_product.product.name }}</h5>
+                  {% if production_day_product.production_day_product.product.image %}
+                  {% thumbnail production_day_product.production_day_product.product.image "400" crop="center" as im %}
+                    <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail" alt="product image">
+                  {% endthumbnail %}
+                  {% endif %}
+                  {{ production_day_product.form|crispy }}
+                {% endfor %}
+              <button type="submit" class="btn btn-primary"{% if not production_day.has_products_open_for_order %} disabled{% endif %}>{% translate "Submit order" %}</button>
+              </form>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="row mt-4 mb-4">
+    <div class="col">
+    </div>
+  </div>
+{% endblock %}

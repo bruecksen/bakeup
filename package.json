@@ -1,7 +1,9 @@
 {
   "name": "bakeup",
   "version": "0.1.0",
-  "dependencies": {},
+  "dependencies": {
+    "bootstrap": "^5.1.3"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.0",
     "browser-sync": "^2.27.7",

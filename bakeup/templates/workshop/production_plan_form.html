@@ -1,0 +1,24 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add new product{% endblock %}
+
+{% block page_content %}
+  <h1>Add new production plan</h1>
+  <div class="row">
+    <div class="col col-sm-4">
+      <form class="form-horizontal" method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" class="btn btn-primary" name="add-new">
+              Add
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+{% endblock %}

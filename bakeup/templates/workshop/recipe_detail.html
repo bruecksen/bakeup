@@ -1,0 +1,99 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load thumbnail %}
+
+{% block title %}Add new product{% endblock %}
+
+{% block page_content %}
+<div class="row mt-2 mb-2">
+  <div class="col-7">
+    <h1>{{ object.name }} {{ object.weight|floatformat:"-1" }}{{ object.unit }} - Rezepte</h1>
+  </div>
+  <div class="col-5 align-self-center">
+    <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
+      <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit product</a>
+      <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add product</a>
+      <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    {% if object.childs.all %}
+    <ul class="list-unstyled">
+      {% for parent in object.childs.all %}
+      <li><i class="fa-solid fa-arrow-up-wide-short"></i> <a href="{% url 'workshop:product-detail' pk=parent.parent.pk %}">{{ parent.parent }} </a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+<div class="row mb-5">
+  <div class="col-10">
+    <p>
+      {{ object.description|safe }}
+    </p>
+    <ul class="list-unstyled">
+      <li><i class="fa-solid fa-tags fa-fw"></i> {{ object.category }}</li>
+      <li>{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
+      <li>{% if object.is_buyable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Buyable" %}</li>
+      <li>{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>
+    </ul>
+  </div>
+  {% if object.image %}
+  <div class="col-2">
+    {% thumbnail object.image "400" crop="center" as im %}
+    <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail" alt="product image">
+    {% endthumbnail %}
+  </div>
+  {% endif %}
+</div>
+<div class="row">
+  <div class="col">
+    <ol class="list-group list-group-root card">
+      {% for this_child in object.parents.all %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-2">
+                  <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
+                    {% csrf_token %}
+                    <div class="input-group input-group-sm">
+                      <input type="number" class="form-control" name="amount" placeholder="" value="{{ this_child.weight|floatformat:"0" }}" step="0.1">
+                      <button class="btn btn-outline-secondary" type="submit">Save</button>
+                    </div>
+                  </form>
+                  
+              </div>
+              <div class="col-7 align-self-center">
+                 {{ multiply:quantity|multiply:this_child.child.weight|floatformat:"0" }} g
+                {% if this_child.child.parents.all %}
+                  <a href="{% url 'workshop:product-detail' pk=this_child.child.pk %}">{{ this_child.child.name }}</a>
+                  <a href="#item-{{ this_child.child.pk }}" data-bs-toggle="collapse">+</a>
+                {% else %}
+                {{ this_child.child.name }}
+                {% endif %}
+              </div>
+              <div class="col-3 text-end">
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'workshop:product-hierarchy-delete' pk=this_child.pk %}" class="btn btn-outline-primary">Delete relation</a>
+                </div>
+              </div>
+              <div class="col-12 m-2 collapse" id="item-{{ this_child.child.pk }}">
+                {% if this_child.child.parents.all %}
+    
+                    {% include "workshop/includes/product_children.html" with children=this_child.child.parents.all parent=this_child.child is_root=False quantity=this_child.quantity|multiply:quantity %}
+    
+                  {% endif %}
+              </div>
+            </div>      
+          </li>
+      {% endfor %}
+      </ol>
+  </div>
+</div>
+
+
+{% endblock %}
+
+
