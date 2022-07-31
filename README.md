@@ -39,6 +39,8 @@ Edit your hosts file (/etc/hosts) and add one for the primary tenanat and for al
 
 ### Load fixtures
 
+It is important to set the proper --schema parameter to load the data into the right tenant. For local development this should be --schema=localhost
+
     $ python manage.py tenant_command loaddata --schema=schema_name bakeup/users/fixtures/demo-data.json
     $ python manage.py tenant_command loaddata --schema=schema_name bakeup/shop/fixtures/demo_customers.json
     $ python manage.py tenant_command loaddata --schema=schema_name bakeup/workshop/fixtures/categories.json
