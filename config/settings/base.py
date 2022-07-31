@@ -46,8 +46,13 @@ DATABASES = {
     ),
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
+DATABASES["default"]["ENGINE"] = 'django_tenants.postgresql_backend'
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+DATABASE_ROUTERS = (
+    'django_tenants.routers.TenantSyncRouter',
+)
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -58,7 +63,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # APPS
 # ------------------------------------------------------------------------------
-DJANGO_APPS = [
+SHARED_APPS = [
+    'django_tenants',
+    "bakeup.core",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -66,10 +73,7 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
-    "django.contrib.admin",
     "django.forms",
-]
-THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django_tables2",
@@ -78,16 +82,17 @@ THIRD_PARTY_APPS = [
     "django_bootstrap5",
 ]
 
-LOCAL_APPS = [
+TENANT_APPS = [
+    "django.contrib.admin",
     "bakeup.shop",
     "bakeup.workshop",
     "bakeup.users",
-    "bakeup.core",
     "bakeup.contrib",
-    # Your stuff: custom apps go here
 ]
+
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -132,6 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    'django_tenants.middleware.main.TenantMainMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -260,3 +266,8 @@ LOGGING = {
 
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
+
+
+TENANT_MODEL = "core.Client" # app.Model
+
+TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
