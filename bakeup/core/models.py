@@ -1,4 +1,6 @@
 from django.db import models
+from django_tenants.models import TenantMixin, DomainMixin
+
 
 class CommonBaseClass(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -9,15 +11,12 @@ class CommonBaseClass(models.Model):
         abstract = True
 
 
+class Client(TenantMixin):
+    name = models.CharField(max_length=255)
+    created = models.DateField(auto_now_add=True)
+    # default true, schema will be automatically created and synced when it is saved
+    auto_create_schema = True
 
-# TODO: finish fields!
-class Address(models.Model):
-    address = models.TextField(null=True, blank=True)
 
-    class Meta:
-        verbose_name = 'Address'
-        verbose_name_plural = 'Addresses'
-
-    def __str__(self):
-        return self.address
-
+class Domain(DomainMixin):
+    pass
