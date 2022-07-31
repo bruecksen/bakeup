@@ -23,6 +23,20 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
 
+### Setting up tenants
+
+    $ python manage.py migrate_schemas --shared
+
+Create the first primary tenant, schema_name, name and domain should be **localhost**
+
+    $ python manage.py create_tenant
+
+Edit your hosts file (/etc/hosts) and add one for the primary tenanat and for all the other tenants as well
+
+    127.0.0.1       localhost
+    127.0.0.1       ole.localhost
+
+
 ### Load fixtures
 
     $ python manage.py tenant_command loaddata --schema=schema_name bakeup/users/fixtures/demo-data.json
