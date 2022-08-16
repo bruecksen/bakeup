@@ -88,7 +88,7 @@ class ProductionDayProduct(CommonBaseClass):
 
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255)
-    address = models.OneToOneField('core.Address', on_delete=models.PROTECT)
+    address = models.OneToOneField('contrib.Address', on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name

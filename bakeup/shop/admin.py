@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from bakeup.core.admin import ExcludeAdminMixin
 from .models import Customer, CustomerOrder, CustomerOrderPosition, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
-from bakeup.core.models import Address
 
 
 class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
