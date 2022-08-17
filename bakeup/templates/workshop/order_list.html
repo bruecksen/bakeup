@@ -2,16 +2,10 @@
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
-{% block title %}Products{% endblock %}
+{% block title %}Orders{% endblock %}
+{% block page_heading %}Orders{% endblock %}
 
 {% block page_content %}
-<div class="row mt-2 mb-4">
-  <div class="col-8">
-    <h1>Orders</h1>
-  </div>
-  <div class="col align-self-center">
-  </div>
-</div>
   {% if filter %}
   <form action="" method="get" class="form form-inline d-print-none">
     <div class="row justify-content-end">

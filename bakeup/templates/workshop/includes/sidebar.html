@@ -1,12 +1,12 @@
 {% load i18n %}
-<div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark d-print-none">
+<button class="sidebar-toggler" type="button" aria-controls="plattform-menu" aria-expanded="false" aria-label="Toggle plattform navigation">
+  <i class="fas fa-list fa-fw"></i>
+</button>
+<div class="sidebar col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark d-print-none">
   <nav class="d-flex flex-column align-items-center align-items-sm-start min-vh-100">
-      {% include "includes/logo.html" %}
-      <h3 class="mt-0 mb-0 text-center text-light w-100">{{ request.tenant.domain_url }}</h3>
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
+    {% include "includes/logo.html" %}
+      <span class="sidebar-toggler-hide"><i class="fas fa-chevron-left"></i></span>
+      <h3 class="mt-0 mb-2 mb-sm-5 text-center text-light w-100">{{ request.tenant.domain_url }}</h3>
           <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
               <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>

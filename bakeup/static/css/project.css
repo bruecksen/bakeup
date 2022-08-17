@@ -12998,3 +12998,75 @@ textarea {
 .resize-none textarea {
   resize: none;
 }
+
+.sidebar-toggler {
+  display: none;
+  position: absolute;
+  top: 15px;
+  vertical-align: top;
+  margin-left: -50px;
+  margin-right: 10px;
+  width: 70px;
+  height: 70px;
+  background-color: #4c3699;
+  color: #fefffc;
+  border: none;
+  border-radius: 50%;
+}
+.sidebar-toggler .badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.sidebar-toggler .fas {
+  padding-left: 20px;
+  font-size: 24px;
+  font-size: 1.5rem;
+}
+.sidebar-toggler:focus {
+  outline: none;
+  color: #fefffc;
+}
+
+.sidebar-toggler-hide {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 15px;
+  width: 35px;
+  height: 35px;
+  background-color: #4c3699;
+  border-radius: 50%;
+  margin-right: -17.5px;
+  color: #fefffc;
+}
+.sidebar-toggler-hide:hover {
+  cursor: pointer;
+}
+.sidebar-toggler-hide .fas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+}
+
+@media (max-width: 768px) {
+  .fs-xs-6 {
+    font-size: 0.9rem;
+  }
+
+  .sidebar-toggler-hide {
+    display: none;
+  }
+
+  .sidebar-toggler {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+    position: fixed;
+    z-index: 10;
+  }
+}

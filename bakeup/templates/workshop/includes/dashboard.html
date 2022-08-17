@@ -1,13 +1,5 @@
-<div class="row g-0">
-    <div class="col">
-        <div class="page-heading p-4 bg-primary text-white">
-            <h1>Welcome to bakeup</h1>
-            <p>{{ request.user.get_full_name }}</p>
-        </div>
-    </div>
-</div>
 <div class="row mt-4 mb-4">
-    <div class="col-3 offset-1">
+    <div class="col-12 col-sm-3 offset-sm-1 mb-sm-0 mb-4">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Categories <small class="text-muted">{{ categories_count }}</small></h4>
@@ -16,7 +8,7 @@
             </div>
         </div>
     </div>
-    <div class="col-3">
+    <div class="col-12 col-sm-3 mb-sm-0 mb-4">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Recipies <small class="text-muted">{{ recipies_count }}</small></h4>
@@ -25,7 +17,7 @@
             </div>
         </div>
     </div>
-    <div class="col-3">
+    <div class="col-12 col-sm-3 mb-sm-0">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Products <small class="text-muted">{{ products_count }}</small></h4>
@@ -36,7 +28,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-3 offset-1">
+    <div class="col-12 col-sm-3 offset-sm-1">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Production Plans <small class="text-muted">{{ productionplans_count }}</small></h4>

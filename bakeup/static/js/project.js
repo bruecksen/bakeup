@@ -4,7 +4,9 @@ let addAnotherContainer = document.querySelector(".add-another-container");
 let addButton = document.querySelector(".add-another-form");
 let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
 let saveButton = document.querySelector(".save-another-form");
-addButton.addEventListener('click', addForm);
+if (addButton) {
+    addButton.addEventListener('click', addForm);
+}
 
 function addRemoveButtonEvent(removeButtons) {
     for (let i = 0; i < removeButtons.length; i++) {
@@ -43,5 +45,25 @@ function removeForm(e) {
     totalForms.setAttribute('value', `${totalFormValue-1}`);
     if (totalFormValue - 1 == 0) {
         saveButton.classList.add('d-none');
+    }
+}
+
+// toggle Sidebar
+var sidebarToggler = document.querySelector(".sidebar-toggler");
+if (sidebarToggler) {
+    sidebarToggler.addEventListener('click', toggleSidebar);
+}
+var sidebarTogglerHide = document.querySelector('.sidebar-toggler-hide');
+if (sidebarTogglerHide) {
+    sidebarTogglerHide.addEventListener('click', toggleSidebar);
+}
+function toggleSidebar() {
+    const el = document.querySelector( '.sidebar' );
+    if( window.getComputedStyle( el ).display === "none" ) {
+        el.style.display = "flex";
+        sidebarTogglerHide.style.display = 'block';
+    } else {
+        el.style.display = ""; // unset flex, so it returns to `none` as defined in the CSS.
+        sidebarTogglerHide.style.display = '';
     }
 }

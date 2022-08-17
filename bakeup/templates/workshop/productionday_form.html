@@ -2,13 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block title %}Add new production day{% endblock %}
+{% block page_heading %}
+{% if object %}Update production day{% else %}Add new production day{% endif %}
+{% endblock %}
 
 {% block page_content %}
-<div class="row">
-  <div class="col">
-    <h1>{% if object %}Update production day{% else %}Add new production day{% endif %}</h1>
-    </div>
-  </div>
 <div class="row">
   <div class="col col-sm-4">
     <form class="form-horizontal" method="post">

@@ -5,23 +5,23 @@
 <ol class="list-group{% if is_root %} list-group-root {% endif %} card">
   {% for child in children %}
       <li class="list-group-item">
-        <div class="row">
-          <div class="col-2">
+        <div class="row gx-1 gx-sm-4">
+          <div class="col-4 col-sm-2">
             {% if is_root %}
               <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
                 {% csrf_token %}
                 <div class="input-group input-group-sm">
                   <input type="text" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ child.weight|clever_rounding }}" step="0.1">
-                  <span class="input-group-text">g</span>
-                  <button class="btn btn-outline-secondary" type="submit">Save</button>
+                  <span class="input-group-text d-none d-sm-inline">g</span>
+                  <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-save"></i></button>
                 </div>
               </form>
               
             {% endif %}
           </div>
-          <div class="col-7 align-self-center">
+          <div class="col-7 col-sm-7 align-self-center fs-xs-6">
             {% with child.quantity|multiply:quantity|multiply:child.child.weight as child_weight %}
-              <span class="weight">{{ child_weight|clever_rounding }}{{ child.child.unit }}{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight total_weight_flour %})</small>{% endif %}</span>
+              <span class="weight	d-none d-sm-inline">{{ child_weight|clever_rounding }}{{ child.child.unit }}</span>{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight total_weight_flour %})</small>{% endif %}
               {% if child.child.is_composable %}
                 <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
                 <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
@@ -30,7 +30,7 @@
               {% endif %}
             {% endwith %}
           </div>
-          <div class="col-3 text-end">
+          <div class="col-1 col-sm-3 text-end">
             {% if is_root %}
             <div class="btn-group btn-group-sm">
               <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary"><i class="fa-solid fa-trash"></i></a>
@@ -62,11 +62,11 @@
     </li>
     <div class="list-group-item d-none form-container">
       <div class="add-product-form">
-        <div class="row">
-          <div class="col-2">
+        <div class="row gx-1 gx-sm-4">
+          <div class="col-12 col-sm-2">
             {% bootstrap_field formset.empty_form.weight show_label=False size="sm" addon_after='g' required=True %}
           </div>
-          <div class="col-8">
+          <div class="col-12 col-sm-8">
             <div class="row">
               <div class="col-4">
                 {% bootstrap_field formset.empty_form.product_existing show_label=False size="sm" wrapper_class='' %}
@@ -74,19 +74,19 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-3">
+              <div class="col-6 col-sm-3">
                 {% bootstrap_field formset.empty_form.product_new show_label=False size="sm" %}
               </div>
-              <div class="col-3">
+              <div class="col-6 col-sm-3">
                 {% bootstrap_field formset.empty_form.category show_label=False size="sm" %}
               </div>
-              <div class="col-2">
+              <div class="col-6 col-sm-2">
                 {% bootstrap_field formset.empty_form.is_sellable size="sm" %}
               </div>
-              <div class="col-2">
+              <div class="col-6 col-sm-2">
                 {% bootstrap_field formset.empty_form.is_buyable size="sm" %}
               </div>
-              <div class="col-2">
+              <div class="col-6 col-sm-2">
                 {% bootstrap_field formset.empty_form.is_composable size="sm" %}
               </div>
             </div>

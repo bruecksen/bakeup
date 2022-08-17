@@ -2,12 +2,12 @@
     <div class="col">
             <div class="page-heading pt-4 pb-4">
             <h1>Welcome to the bakeup shop</h1>
-            <p>{{ request.user.get_full_name }}</p>
+            <p>{{ request.user }}</p>
         </div>
     </div>
 </div>
 <div class="row mt-4 mb-4">
-    <div class="col-2">
+    <div class="col-12 col-sm-2">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Baking Days</h4>
@@ -16,7 +16,7 @@
             </div>
         </div>
     </div>
-    <div class="col-2">
+    <div class="col-12 col-sm-2">
         <div class="card">
             <div class="card-body">
               <h4 class="card-title">Orders</h4>

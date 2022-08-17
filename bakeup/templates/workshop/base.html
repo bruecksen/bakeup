@@ -13,6 +13,16 @@
               </div>
             {% endfor %}
           {% endif %}
+          <div class="row mt-2">
+            <div class="col-8">
+              <div class="page-heading p-4">
+                <h1>{% block page_heading %}{% endblock page_heading %}</h1>
+              </div>
+            </div>
+            <div class="col align-self-center d-print-none">
+              {% block page_heading_action %}{% endblock page_heading_action%}
+            </div>
+          </div>
       
           {% block page_content %}
             <p>Use this document as a way to quick start any new project.</p>

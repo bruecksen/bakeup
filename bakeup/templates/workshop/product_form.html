@@ -2,13 +2,16 @@
 {% load crispy_forms_tags %}
 
 {% block title %}Add new product{% endblock %}
+{% block page_heading %}
+{% if object %}
+<h1>Update: {{ object.name }}</h1>
+{% else %}
+<h2>Add new product</h2>
+{% endif %}
+{% endblock %}
 
 {% block page_content %}
-  {% if object %}
-    <h1>Update: {{ object.name }}</h1>
-  {% else %}
-  <h2>Add new product</h2>
-  {% endif %}
+
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form|crispy }}
