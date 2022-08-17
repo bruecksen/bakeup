@@ -5,12 +5,23 @@ from fabric.api import *
 def staging():
     projectname = 'bakeup'
     basepath = '/srv/bakeup.org/%s'
-    env.hosts = ['{0}@bakeup.org'.format(projectname)]
+    env.hosts = ['bakeup@server.brueck.io']
     env.path = basepath % projectname
     env.virtualenv_path = basepath % ('bakeupenv')
     env.push_branch = 'develop'
     env.push_remote = 'origin'
     env.reload_cmd = 'supervisorctl restart {0}'.format(projectname)
+    env.after_deploy_url = 'http://bakeup.org'
+
+def production():
+    projectname = 'bakeup'
+    basepath = '/home/django/%s'
+    env.hosts = ['django@server.bakeup.org']
+    env.path = basepath % projectname
+    env.virtualenv_path = basepath % ('djangoenv')
+    env.push_branch = 'main'
+    env.push_remote = 'origin'
+    env.reload_cmd = 'supervisorctl restart django'
     env.after_deploy_url = 'http://bakeup.org'
 
 
@@ -37,8 +48,8 @@ def deploy():
 
 
 def collectstatic():
-    with cd(env.path):
-        run("./manage.py collectstatic --noinput --settings=config.settings.production")
+    with prefix("source %(virtualenv_path)s/bin/activate" % env):
+        run("%(path)s/manage.py collectstatic --noinput --settings=config.settings.production" % env)
 
 
 def pip():
