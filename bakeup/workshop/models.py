@@ -284,7 +284,7 @@ class ProductionPlan(CommonBaseClass):
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
-        ordering = ('-start_date',)
+        ordering = ('-production_day', 'product__name')
         constraints = [
             models.CheckConstraint(
                 check=~Q(pk=F('parent_plan')),
