@@ -10,6 +10,7 @@
             <th>{% trans "Main-dough" %}</th>
             <th>{% trans "Pre-dough" %}</th>
             <th>{% trans "Preparation" %}</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -29,6 +30,9 @@
                 <td width="30%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
                     {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
                     {% endfor %}
+                </td>
+                <td>
+                    <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i></a>
                 </td>
             </tr>
         {% endfor %}

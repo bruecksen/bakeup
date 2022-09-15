@@ -4,7 +4,7 @@ from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 
-from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView, DeleteView
 from django.shortcuts import get_object_or_404, redirect, render
 from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
@@ -95,8 +95,6 @@ class AddCustomerOrderView(CustomerRequiredMixin, FormView):
     def form_invalid(self, form):
         messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
         return redirect(self.get_success_url())
-
-
 
 
 class ShopView(CustomerRequiredMixin, TemplateView):

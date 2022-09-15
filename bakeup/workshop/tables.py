@@ -64,6 +64,7 @@ class CustomerOrderTable(tables.Table):
     production_day = tables.Column()
     customer = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+    actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='')
 
     class Meta:
         model = CustomerOrder

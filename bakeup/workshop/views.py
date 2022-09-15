@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
+from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
@@ -266,41 +267,29 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
     def form_valid(self, form):
         production_day = form.cleaned_data['production_day']
         if production_day:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=production_day, production_plan__isnull=True)
-            product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
-            for product_quantity in product_quantities:
-                if product_quantity.get('total_quantity') == 0:
-                    continue
-                product = Product.duplicate(Product.objects.get(pk=product_quantity.get('product')))
-                obj = ProductionPlan.objects.create(
-                    parent_plan=None,
-                    production_day=production_day,
-                    product=product,
-                    quantity=product_quantity.get('total_quantity'),
-                    start_date=production_day.day_of_sale,
-                )
-                ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=product_quantity.get('total_quantity'))
-                positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
-                production_day_product = ProductionDayProduct.objects.get(product_id=product_quantity.get('product'), production_day=production_day)
-                production_day_product.production_plan = obj
-                production_day_product.product = product
-                production_day_product.save()
+            production_day.create_production_plans()
         return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('workshop:production-plan-list')
 
 
-class ProductionPlanUpdateView(StaffPermissionsMixin, UpdateView):
+@staff_member_required
+def production_plan_update(request, production_day, product):
+    product = Product.objects.get(pk=product)
+    production_day = ProductionDay.objects.get(pk=production_day)
+    ProductionPlan.objects.get(product__product_template=product, production_day=production_day).delete()
+    production_day.create_production_plans(product)
+    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
+
+class ProductionPlanUpdateView(StaffPermissionsMixin, View):
     model = ProductionPlan
     form_class = ProductionPlanForm
 
 
+
     def get_success_url(self):
-        if self.object.parent_plan:
-            return reverse('workshop:production-plan-detail', kwargs={'pk': self.object.parent_plan.pk })
-        else:
-            return reverse('workshop:production-plan-detail', kwargs={'pk': self.object.pk })
+        return reverse('workshop:production-plan-list')
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -410,3 +399,17 @@ class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView)
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
     template_name = 'workshop/order_list.html'
+
+
+class AddCustomerOrderView(StaffPermissionsMixin, CreateView):
+    model = CustomerOrder
+
+
+class CusatomerOrderDeleteView(DeleteView):
+    model = CustomerOrder
+    template_name = 'workshop/customerorder_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse(
+            'workshop:order-list',
+        )

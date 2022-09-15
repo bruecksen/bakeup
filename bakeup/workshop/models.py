@@ -59,6 +59,13 @@ class Product(CommonBaseClass):
     class Meta:
         ordering = ('name',)
 
+    @classmethod
+    def delete_product_tree(self, product):
+        for child in product.parents.all():
+            Product.delete_product_tree(child.child)
+        product.delete()
+
+
     def __str__(self):
         return self.name
 
@@ -269,10 +276,10 @@ class ProductHierarchy(CommonBaseClass):
 
 
 class ProductionPlan(CommonBaseClass):
-    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.SET_NULL, null=True, blank=True, related_name='production_plans')
-    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, null=True, blank=True, related_name='production_plans')
+    parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     start_date = models.DateField(null=True, blank=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_plans')
+    product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='production_plans')
     quantity = models.FloatField()
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
@@ -284,6 +291,10 @@ class ProductionPlan(CommonBaseClass):
                 name='production_plan_not_equal_parent'
             )
         ]
+
+    def delete(self):
+        Product.delete_product_tree(self.product)
+        super().delete()
 
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):

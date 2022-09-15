@@ -6,6 +6,7 @@ from django.utils import formats
 from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
+from bakeup.workshop.models import Product, ProductionPlan
 
 DAYS_OF_WEEK = (
     (0, 'Monday'),
@@ -48,6 +49,30 @@ class ProductionDay(CommonBaseClass):
     @property
     def is_locked(self):
         return self.customer_orders.exists()
+
+    def create_production_plans(self, filter_product=None):
+        if filter_product:
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)
+        else:
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self)
+        product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
+        for product_quantity in product_quantities:
+            if product_quantity.get('total_quantity') == 0:
+                continue
+            product = Product.duplicate(Product.objects.get(pk=product_quantity.get('product')))
+            obj = ProductionPlan.objects.create(
+                parent_plan=None,
+                production_day=self,
+                product=product,
+                quantity=product_quantity.get('total_quantity'),
+                start_date=self.day_of_sale,
+            )
+            ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=product_quantity.get('total_quantity'))
+            positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
+            production_day_product = ProductionDayProduct.objects.get(product_id=product_quantity.get('product'), production_day=self)
+            production_day_product.production_plan = obj
+            # production_day_product.product = product
+            production_day_product.save()
 
 
 class ProductionDayProduct(CommonBaseClass):
@@ -171,7 +196,7 @@ class CustomerOrder(CommonBaseClass):
 
 
 class CustomerOrderPosition(CommonBaseClass):
-    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.PROTECT, related_name='positions')
+    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     quantity = models.PositiveSmallIntegerField()
