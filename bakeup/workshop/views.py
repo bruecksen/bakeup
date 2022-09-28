@@ -374,7 +374,7 @@ class ProductionDayMixin(object):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        formset = ProductionDayProductFormSet(request.POST, queryset=ProductionDayProduct.objects.filter(production_day=self.object))
+        formset = ProductionDayProductFormSet(request.POST)
         production_day_form = ProductionDayForm(instance=self.object, data=request.POST)
         if formset.is_valid() and production_day_form.is_valid():
             return self.form_valid(formset, production_day_form)

@@ -1,5 +1,6 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
 
 {% block title %}Add new production day{% endblock %}
 {% block page_heading %}
@@ -7,33 +8,49 @@
 {% endblock %}
 
 {% block page_content %}
+<form class="form-horizontal" method="POST">
 <div class="row">
   <div class="col col-sm-4">
-    <form class="form-horizontal" method="post">
       {% csrf_token %}
       {{ formset.management_form }}
       <div class="card p-3 mb-3">
-        {{ form|crispy }}
+        {% bootstrap_field form.day_of_sale %}
       </div>
-      
-      <div class="card p-3 mb-3 formset-container">
-      {% for form in formset %}
-        <div class="formset border-bottom mb-2">
-          {{ form|crispy }}
-        </div>
-        {% endfor %}
-        <span id="formset-before-element"></span>
-        <a id="add-form" class="btn btn-dark d-inline"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
-      </div>
-      <div class="control-group">
-        <div class="controls">
-          <button type="submit" class="btn btn-primary" name="add-new">
-            {% if object %}Update production day{% else %}Create production day{% endif %}
-          </button>
-        </div>
-      </div>
-    </form>
   </div>
 </div>
+<div class="row">
+  <div class="col">
+    <div class="card p-3 mb-3 formset-container">
+      {% for formset_form in formset %}
+        <div class="row formset border-bottom mb-2">
+          <div class="col">
+            {% bootstrap_field formset_form.product label_class='fw-bold' %}
+          </div>
+          <div class="col">
+            {% bootstrap_field formset_form.max_quantity label_class='fw-bold' %}
+          </div>
+          <div class="col">
+            {% bootstrap_field formset_form.DELETE label_class='fw-bold' %}
+            {% bootstrap_field formset_form.id %}
+          </div>
+        </div>
+      {% endfor %}
+      <span id="formset-before-element"></span>
+      <a id="add-form" class="btn btn-dark d-inline"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn btn-primary" name="add-new">
+          {% if object %}Update production day{% else %}Create production day{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</form>
 {% include "workshop/includes/formset.html" %}
 {% endblock %}
