@@ -174,6 +174,10 @@ class CustomerOrder(CommonBaseClass):
         return "{} {}".format(self.production_day, self.customer)
 
     @property
+    def is_planned(self):
+        return self.positions.filter(production_plan__isnull=False).exists()
+
+    @property
     def order_nr(self):
         """
         Return an order number for a given basket

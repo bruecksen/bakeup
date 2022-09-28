@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q, F
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.timezone import datetime
 
 from treebeard.mp_tree import MP_Node
 
@@ -291,6 +292,9 @@ class ProductionPlan(CommonBaseClass):
                 name='production_plan_not_equal_parent'
             )
         ]
+    
+    def is_locked(self):
+        return self.production_day.day_of_sale < datetime.today().date()
 
     def delete(self):
         Product.delete_product_tree(self.product)

@@ -66,6 +66,7 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 
 class CustomerOrderTable(tables.Table):
+    planned = tables.TemplateColumn('{% if record.is_planned %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}', orderable=False, verbose_name='')
     order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.TemplateColumn("{{ record.customer }}")
@@ -74,4 +75,4 @@ class CustomerOrderTable(tables.Table):
 
     class Meta:
         model = CustomerOrder
-        fields = ("order_nr", "production_day", "customer", "point_of_sale")
+        fields = ("planned", "order_nr", "production_day", "customer", "point_of_sale")

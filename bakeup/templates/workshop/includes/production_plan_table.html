@@ -32,7 +32,9 @@
                     {% endfor %}
                 </td>
                 <td>
+                    {% if not production_plan.root.is_locked %}
                     <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i></a>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
