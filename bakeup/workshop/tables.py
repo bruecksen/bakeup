@@ -60,7 +60,7 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 
 class CustomerOrderTable(tables.Table):
-    order_nr = tables.Column(verbose_name='#')
+    order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.TemplateColumn("{{ record.customer }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
