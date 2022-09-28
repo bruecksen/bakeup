@@ -248,7 +248,7 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
             production_plans.append(plan_dict)
         # raise Exception(production_plans)
         context['table_categories'] = table_categories
-        context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('production_day__day_of_sale').distinct()
+        context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('-production_day__day_of_sale').distinct()
         context['production_plans'] = production_plans
         if 'production_day' in self.request.GET and self.request.GET.get('production_day').isnumeric():
             context['day_filter'] = ProductionDay.objects.get(pk=self.request.GET.get('production_day', None))
