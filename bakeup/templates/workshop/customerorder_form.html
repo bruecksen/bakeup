@@ -1,0 +1,63 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}Add new production day{% endblock %}
+{% block page_heading %}
+{% if object %}Update customer order{% else %}Add new production day{% endif %}
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col">
+    <ul class="list-unstyled mt-3 mb-3">
+      <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ object.production_day }}</li>
+      <li><i class="fa-solid fa-user fa-fw"></i>{{ object.customer }} at {{ object.point_of_sale }}</li>
+      <li></li>
+    </ul>
+  </div>
+</div>
+<div class="row">
+  <div class="col col-sm-12">
+    <form class="form-horizontal" method="post">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      <div class="card p-3 mb-3 formset-container">
+      {% for form in formset %}
+        <div class="formset">
+          <div class="row">
+            <div class="col">
+              {% bootstrap_field form.product layout='horizontal'  horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+            </div>
+            <div class="col">
+              {% bootstrap_field form.quantity layout='horizontal' horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+            </div>
+            <div class="col">
+              {% bootstrap_field form.DELETE layout='horizontal' whorizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <span id="formset-before-element"></span>
+      </div>
+      <div class="row">
+        <div class="col">
+          <a id="add-form" class="btn btn-dark d-inline float-end"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col">
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-primary" name="add-new">
+                {% if object %}Update customer order{% else %}Create production day{% endif %}
+              </button>
+            </div>
+          </div>
+          </div>  
+      </div>
+    </form>
+  </div>
+</div>
+{% include "workshop/includes/formset.html" %}
+{% endblock %}

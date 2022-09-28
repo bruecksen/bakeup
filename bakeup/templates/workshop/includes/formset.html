@@ -1,0 +1,36 @@
+<script>
+    let formsetContainer = document.querySelector('.formset-container');
+    let formset = document.querySelectorAll(".formset");
+    let addButton = document.querySelector("#add-form");
+    let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
+    let formsetBeforeElement = document.querySelector("#formset-before-element");
+  
+    let formNum = formset.length-1;
+    addButton.addEventListener('click', addForm);
+  
+    function addForm(e){
+        e.preventDefault();
+  
+        let newForm = formset[0].cloneNode(true);
+        let formRegex = RegExp(`form-(\\d){1}-`,'g');
+  
+        formNum++;
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`);
+        console.log(formset, addButton, totalForms, newForm);
+        console.log(`id_form-${formNum}-product`);
+        formsetContainer.insertBefore(newForm, formsetBeforeElement);
+        var product = document.getElementById(`id_form-${formNum}-product`);
+        if (product) {
+            product.selectedIndex = null;
+        }
+        totalForms.setAttribute('value', `${formNum+1}`);
+        var quantity = document.getElementById(`id_form-${formNum}-quantity`);
+        if (quantity) {
+            quantity.value = null;
+        }
+        var maxQuantity = document.getElementById(`id_form-${formNum}-max_quantity`);
+        if (maxQuantity) {
+            maxQuantity.value = null;
+        }
+    }
+  </script>

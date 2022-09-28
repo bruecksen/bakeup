@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bakeup.workshop.views import CategoryListView, CusatomerOrderDeleteView, CustomerOrderListView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_update
+from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_update, CustomerOrderAddView
 
 
 app_name = "workshop"
@@ -26,8 +26,12 @@ urlpatterns = [
     path("production-plans/add/", view=ProductionPlanAddView.as_view(), name="production-plan-add"),
     path("production-days/", view=ProductionDayListView.as_view(), name="production-day-list"),
     path("production-days/add/", view=ProductionDayAddView.as_view(), name="production-day-add"),
+    path("production-days/<int:pk>/", view=ProductionDayDetailView.as_view(), name="production-day-detail"),
     path("production-days/<int:pk>/update/", view=ProductionDayUpdateView.as_view(), name="production-day-update"),
     path("production-days/<int:pk>/delete/", view=ProductionDayDeleteView.as_view(), name="production-day-delete"),
     path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
-    path("orders/<int:pk>/delete/", view=CusatomerOrderDeleteView.as_view(), name="order-delete"),
+    path("orders/add/", view=CustomerOrderAddView.as_view(), name="order-add"),
+    path("orders/add/<int:pk>/", view=CustomerOrderAddView.as_view(), name="order-add"),
+    path("orders/<int:pk>/delete/", view=CustomerOrderDeleteView.as_view(), name="order-delete"),
+    path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="order-update"),
 ]

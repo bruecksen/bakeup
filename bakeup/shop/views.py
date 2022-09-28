@@ -21,7 +21,7 @@ class ProductListView(CustomerRequiredMixin, ListView):
     model = Product
 
 
-class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
+class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
     template_name = 'shop/weekly.html'
 
 
@@ -65,7 +65,7 @@ class WeeklyProductionDayView(CustomerRequiredMixin, TemplateView):
         return context
 
 
-class AddCustomerOrderView(CustomerRequiredMixin, FormView):
+class CustomerOrderAddView(CustomerRequiredMixin, FormView):
     form_class = CustomerProductionDayOrderForm
     http_method_names = ['post']
 

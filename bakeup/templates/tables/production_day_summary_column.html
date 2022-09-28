@@ -1,0 +1,15 @@
+<table class="table table-sm">
+    <tr>
+        <th>Product</th>
+        <th>ordered qty</th>
+        <th>max qty</th>
+    </tr>
+    {% for product in record.production_day_products.all %}
+    <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
+        <td>{{ product.product }}</td>
+        <td>{{ product.get_order_quantity }}</td>
+        <td>{{ product.max_quantity }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url 'workshop:order-add' pk=record.pk %}" class="btn btn-sm btn-outline-primary">Update orders</a>

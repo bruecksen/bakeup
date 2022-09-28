@@ -5,10 +5,28 @@
 {% block title %}Orders{% endblock %}
 {% block page_heading %}Orders{% endblock %}
 
+{% block page_heading_action %}
+<form action="{% url 'workshop:order-add' %}" method="post">
+  {% csrf_token %}
+  <div class="row justify-content-end">
+    <div class="col-10">
+      <div class="input-group input-group-sm">
+        <select class="form-select form-select-sm" name="select_production_day">
+          {% for key, value in form_add_order.select_production_day.field.choices %}
+            <option value="{{ key }}">{{ value }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-primary" type="submit">Add Orders</button>
+      </div>
+    </div>
+  </div>
+  </form>
+{% endblock %}
+
 {% block page_content %}
   {% if filter %}
   <form action="" method="get" class="form form-inline d-print-none">
-    <div class="row justify-content-end">
+    <div class="row justify-content-end g-2">
       <div class="col-2">
         {% bootstrap_field filter.form.point_of_sale size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
@@ -16,7 +34,7 @@
         {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-1">
-        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
+        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary w-100" size="sm" %}
       </div>
     </div>
 

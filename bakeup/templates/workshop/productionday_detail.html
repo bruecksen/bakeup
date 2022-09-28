@@ -1,0 +1,35 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Production day{% endblock %}
+{% block page_heading %}Production day <small class="text-muted">{{ object }}</small>{% endblock %}
+{% block page_heading_action %}
+<div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
+  <a href="{% url 'workshop:production-day-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>Edit</a>
+      <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> Delete</a>
+      <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> Show orders</a>
+      <a href="{% url 'workshop:production-plan-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
+</div>
+{% endblock %}
+
+{% block page_content %}
+
+<table class="table">
+  <tr>
+      <th>Product</th>
+      <th>ordered qty</th>
+      <th>max qty</th>
+  </tr>
+  {% for product in object.production_day_products.all %}
+  <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
+      <td>{{ product.product }}</td>
+      <td>{{ product.get_order_quantity }}</td>
+      <td>{{ product.max_quantity }}</td>
+  </tr>
+  {% endfor %}
+</table>
+ <p>Total orders: <strong>{{ object.customer_orders.count }}</strong></p>
+ <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary">Update orders</a>
+  
+{% endblock %}

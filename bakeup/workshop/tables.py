@@ -40,9 +40,9 @@ class ProductionPlanTable(tables.Table):
 
 class ProductionDayTable(tables.Table):
     # pk = tables.LinkColumn('workshop:production-day-update', args=[A('pk')], verbose_name='#')
-    day_of_sale = tables.TemplateColumn(template_name="tables/production_day_day_of_sale_column.html")
+    day_of_sale = tables.LinkColumn('workshop:production-day-detail', args=[A('pk')], text=lambda record: record.day_of_sale.strftime('%d.%m.%Y'))
     # name = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
-    products = tables.TemplateColumn(template_name="tables/production_day_products_column.html", verbose_name="Products")
+    summary = tables.TemplateColumn(template_name="tables/production_day_summary_column.html", verbose_name="Summary", orderable=False)
     action = tables.TemplateColumn(template_name="tables/production_day_action_column.html", verbose_name="")
 
     class Meta:
@@ -61,8 +61,8 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 class CustomerOrderTable(tables.Table):
     order_nr = tables.Column(verbose_name='#')
-    production_day = tables.Column()
-    customer = tables.TemplateColumn("{{ record.customer.user.email }}")
+    production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
+    customer = tables.TemplateColumn("{{ record.customer }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='')
 

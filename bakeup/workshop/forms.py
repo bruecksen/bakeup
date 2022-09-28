@@ -71,3 +71,7 @@ class ProductKeyFiguresForm(Form):
         if 'initial' in kwargs and 'wheat' in kwargs['initial']:
             line_count = kwargs['initial']['wheat'].count('\n')
             self.fields['wheat'].widget.attrs['rows'] = line_count + 1
+
+
+class SelectProductionDayForm(Form):
+    select_production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), empty_label='Select production day')

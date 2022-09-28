@@ -22,6 +22,7 @@
           {{ form|crispy }}
         </div>
         {% endfor %}
+        <span id="formset-before-element"></span>
         <a id="add-form" class="btn btn-dark d-inline"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
       </div>
       <div class="control-group">
@@ -34,27 +35,5 @@
     </form>
   </div>
 </div>
-<script>
-  let formsetContainer = document.querySelector('.formset-container');
-  let formset = document.querySelectorAll(".formset");
-  let addButton = document.querySelector("#add-form");
-  let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
-
-  let formNum = formset.length-1;
-  addButton.addEventListener('click', addForm);
-
-  function addForm(e){
-      e.preventDefault();
-
-      let newForm = formset[0].cloneNode(true);
-      let formRegex = RegExp(`form-(\\d){1}-`,'g');
-
-      formNum++;
-      newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`);
-      console.log(formset, addButton, totalForms, newForm);
-      formsetContainer.insertBefore(newForm, addButton);
-      
-      totalForms.setAttribute('value', `${formNum+1}`);
-  }
-</script>
+{% include "workshop/includes/formset.html" %}
 {% endblock %}

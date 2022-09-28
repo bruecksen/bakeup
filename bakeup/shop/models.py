@@ -100,6 +100,13 @@ class ProductionDayProduct(CommonBaseClass):
         )
         return form
 
+    def get_order_quantity(self):
+        orders = CustomerOrderPosition.objects.filter(
+            product=self.product, 
+            order__production_day=self.production_day
+        )
+        return orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
+
     def calculate_max_quantity(self, exclude_customer=None):
         orders = CustomerOrderPosition.objects.filter(
             product=self.product, 
@@ -138,7 +145,7 @@ class Customer(CommonBaseClass):
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
-        return "{} {}".format(self.user, self.point_of_sale)
+        return "{}".format(self.user)
 
 # Abo
 # TODO install django-recurrence
@@ -161,6 +168,7 @@ class CustomerOrder(CommonBaseClass):
 
     class Meta:
         unique_together = ['production_day', 'customer']
+        ordering = ['-production_day', '-created']
 
     def __str__(self):
         return "{} {}".format(self.production_day, self.customer)

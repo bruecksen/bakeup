@@ -19,9 +19,9 @@ from django_tables2 import SingleTableMixin, SingleTableView
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.shop.forms import ProductionDayProductFormSet, ProductionDayForm
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
-from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm
+from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanTable
 
@@ -282,6 +282,7 @@ def production_plan_update(request, production_day, product):
     production_day.create_production_plans(product)
     return HttpResponseRedirect(reverse('workshop:production-plan-list'))
 
+
 class ProductionPlanUpdateView(StaffPermissionsMixin, View):
     model = ProductionPlan
     form_class = ProductionPlanForm
@@ -310,12 +311,51 @@ class CategoryListView(StaffPermissionsMixin, ListView):
         return context
 
 
+class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
+    model = CustomerOrder
+    fields = []
+    template_name = "workshop/customerorder_form.html"
+    success_url = reverse_lazy('workshop:order-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = CustomerOrderPositionFormSet(self.request.POST, form_kwargs={'production_day_products': Product.objects.filter(production_days__production_day=self.object.production_day)})
+        else:
+            context['formset'] = CustomerOrderPositionFormSet(queryset=self.object.positions.all(), form_kwargs={'production_day_products': Product.objects.filter(production_days__production_day=self.object.production_day)})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        formset = CustomerOrderPositionFormSet(request.POST)
+        if formset.is_valid():
+            return self.form_valid(formset)
+        else:
+            return self.form_invalid(formset)
+
+    def form_valid(self, formset):
+        with transaction.atomic():
+            instances = formset.save(commit=False)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            for instance in instances:
+                instance.order = self.object
+                instance.save()
+        return HttpResponseRedirect(reverse('workshop:order-list'))
+
+    def form_invalid(self, formset):
+        return self.render_to_response(self.get_context_data())
 
 
 class ProductionDayListView(StaffPermissionsMixin, SingleTableView):
     model = ProductionDay
     table_class = ProductionDayTable
     template_name = "workshop/productionday_list.html"
+
+
+class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
+    model = ProductionDay
+    template_name = "workshop/productionday_detail.html"
 
 
 class ProductionDayMixin(object):
@@ -371,12 +411,6 @@ class ProductionDayUpdateView(ProductionDayMixin, UpdateView):
     model =  ProductionDay
     form_class = ProductionDayForm
 
-    def get_object(self):
-        object = super().get_object()
-        if object.is_locked:
-            raise Http404()
-        return object
-
 
 class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
     model = ProductionDay
@@ -400,12 +434,90 @@ class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView)
     filterset_class = CustomerOrderFilter
     template_name = 'workshop/order_list.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_add_order'] = SelectProductionDayForm()
+        return context
 
-class AddCustomerOrderView(StaffPermissionsMixin, CreateView):
+
+class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
     model = CustomerOrder
+    fields = ['customer',]
+    template_name = "workshop/batch_customerorder_form.html"
+    production_day = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if not 'pk' in kwargs and not request.POST.get('select_production_day', None):
+            return HttpResponseRedirect(reverse('workshop:order-list'))
+        if not 'pk' in kwargs:
+            return HttpResponseRedirect(reverse('workshop:order-add', kwargs={'pk': request.POST.get('select_production_day')}))
+        self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))   
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_formset_initial(self):
+        initial = []
+        for customer in Customer.objects.all():
+            initial_customer = {
+                'customer': customer.pk
+            }
+            for product in self.production_day.production_day_products.all():
+                quantity = None
+                if CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=product.product).exists():
+                    quantity = CustomerOrderPosition.objects.get(order__customer=customer, order__production_day=self.production_day, product=product.product).quantity
+                initial_customer['product_{}'.format(product.product.pk)] = quantity
+            initial.append(initial_customer)
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['production_day'] = self.production_day
+        if self.request.POST:
+            context['formset'] = BatchCustomerOrderFormSet(self.request.POST, initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
+        else:
+            context['formset'] = BatchCustomerOrderFormSet(initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        formset = BatchCustomerOrderFormSet(request.POST, form_kwargs={'production_day': self.production_day})
+        if formset.is_valid():
+            return self.form_valid(formset)
+        else:
+            return self.form_invalid(formset)
+
+    def form_valid(self, formset):
+        with transaction.atomic():
+            for form in formset:
+                customer = form.cleaned_data['customer']
+                products = {k:v for k, v in form.cleaned_data.items() if k.startswith('product_')}
+                # if customer.pk == 2:
+                #     raise Exception(not any([v and v > 0 for v in products.values()]))
+                if not any([v and v > 0 for v in products.values()]):
+                    CustomerOrder.objects.filter(production_day=self.production_day, customer=customer).delete()
+                    continue
+                customer_order, created = CustomerOrder.objects.get_or_create(
+                    production_day=self.production_day,
+                    customer=customer,
+                    point_of_sale=customer.point_of_sale,
+                )
+                for product in Product.objects.filter(production_days__production_day=self.production_day):
+                    quantity = form.cleaned_data['product_%s' % (product.pk,)]
+                    if not quantity or quantity == 0:
+                        CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
+                    else:
+                        position, created = CustomerOrderPosition.objects.update_or_create(
+                            order=customer_order,
+                            product=product,
+                            defaults={
+                                'quantity': quantity
+                            }
+                        )
+        return HttpResponseRedirect(reverse('workshop:production-day-list'))
+
+    def form_invalid(self, formset):
+        return self.render_to_response(self.get_context_data())
 
 
-class CusatomerOrderDeleteView(DeleteView):
+class CustomerOrderDeleteView(DeleteView):
     model = CustomerOrder
     template_name = 'workshop/customerorder_confirm_delete.html'
 

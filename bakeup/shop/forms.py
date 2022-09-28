@@ -1,7 +1,8 @@
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.forms import formset_factory, modelformset_factory
-from bakeup.shop.models import ProductionDay, ProductionDayProduct
+from bakeup.users.models import User
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 
 from bakeup.workshop.models import Product
 
@@ -65,6 +66,43 @@ class ProductionDayProductForm(forms.ModelForm):
         fields = ['product', 'max_quantity']
 
 
+class CustomerOrderPositionForm(forms.ModelForm):
+
+    class Meta:
+        model = CustomerOrderPosition
+        fields = ['product', 'quantity']
+
+    def __init__(self, *args, **kwargs):
+        self.production_day_products = kwargs.pop('production_day_products', Product.objects.all())
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = self.production_day_products
+
+
+class BatchCustomerOrderForm(forms.Form):
+    customer = forms.ModelChoiceField(queryset=Customer.objects.all(), empty_label="Select customer")
+
+    def __init__(self, *args, **kwargs):
+        self.production_day = kwargs.pop('production_day')
+        self.production_day_products = Product.objects.filter(production_days__production_day=self.production_day)
+        super().__init__(*args, **kwargs)
+        for product in self.production_day_products:
+            field_name = 'product_{}'.format(product.pk)
+            self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
+
+    def get_product_fields(self):
+        for field_name in self.fields:
+            if field_name.startswith('product_'):
+                yield self[field_name]
+
+
 ProductionDayProductFormSet = modelformset_factory(
     ProductionDayProduct, fields=("product", "max_quantity"), extra=1,  can_delete=True
+)
+
+CustomerOrderPositionFormSet = modelformset_factory(
+    CustomerOrderPosition, form=CustomerOrderPositionForm, extra=0, can_delete=True
+)
+
+BatchCustomerOrderFormSet = formset_factory(
+    form=BatchCustomerOrderForm, extra=0
 )
