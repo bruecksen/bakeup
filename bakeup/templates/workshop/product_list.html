@@ -15,6 +15,9 @@
   <form action="" method="get" class="form form-inline">
     <div class="row justify-content-end">
       <div class="col-3">
+        {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-3">
         {% bootstrap_field filter.form.category size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-1">

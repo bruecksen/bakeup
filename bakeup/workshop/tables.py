@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 import django_tables2 as tables
 import django_filters
 from django_tables2.utils import A
@@ -7,7 +9,8 @@ from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, Produc
 
 
 class ProductFilter(django_filters.FilterSet):
-    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all(), method='category_filter')
+    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all(), method='category_filter', empty_label='Select category')
+    search = django_filters.filters.CharFilter(method='filter_search', label="Search")
 
     class Meta:
         model = Product
@@ -15,6 +18,9 @@ class ProductFilter(django_filters.FilterSet):
 
     def category_filter(self, queryset, name, value):
         return queryset.filter(category__path__startswith=value.path)
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(Q(name__icontains=value) | Q(description__icontains=value))
 
 class ProductTable(tables.Table):
     pk = tables.LinkColumn('workshop:product-detail', args=[A('pk')], verbose_name='#')
