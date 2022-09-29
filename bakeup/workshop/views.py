@@ -364,7 +364,7 @@ class ProductionDayMixin(object):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
             context['formset'] = ProductionDayProductFormSet(self.request.POST)
-            context['form'] = ProductionDayForm(data=self.request.POST)
+            context['form'] = ProductionDayForm(instance=self.object, data=self.request.POST)
         else:
             context['formset'] = ProductionDayProductFormSet(queryset=ProductionDayProduct.objects.filter(production_day=self.object))
             if self.object:
