@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row flex-nowrap">
       {% include "workshop/includes/sidebar.html" %}
-      <div class="col">
+      <div class="col offset-0 offset-md-3 offset-xl-2">
           {% if messages %}
             {% for message in messages %}
               <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
