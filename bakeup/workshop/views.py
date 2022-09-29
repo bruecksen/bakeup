@@ -366,8 +366,9 @@ class ProductionDayMixin(object):
             context['formset'] = ProductionDayProductFormSet(self.request.POST)
             context['form'] = ProductionDayForm(instance=self.object, data=self.request.POST)
         else:
-            context['formset'] = ProductionDayProductFormSet(queryset=ProductionDayProduct.objects.filter(production_day=self.object))
-            if self.object:
+            production_day_products = ProductionDayProduct.objects.filter(production_day=self.object)
+            context['formset'] = ProductionDayProductFormSet(queryset=production_day_products)
+            if self.object and production_day_products.count() > 0:
                 context['formset'].extra = 0
             context['form'] = ProductionDayForm(instance=self.object)
         return context
