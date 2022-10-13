@@ -311,6 +311,13 @@ def production_plan_next_state_view(request, pk):
     return HttpResponseRedirect(reverse('workshop:production-plan-list'))
 
 
+@staff_member_required
+def production_plan_cancel_view(request, pk):
+    production_plan = ProductionPlan.objects.get(pk=pk)
+    production_plan.set_state(ProductionPlan.State.CANCELED)
+    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
+
+
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
     model = ProductionPlan
 

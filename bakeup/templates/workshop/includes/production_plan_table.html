@@ -32,8 +32,8 @@
                     {% elif production_plan.root.is_production %}
                     <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-success btn-sm">Finish</a>
                     {% endif %}
+                    <a href="{% url "workshop:production-plan-cancel" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Cancel</a>
                     <!-- <div class="btn-group btn-group-sm">
-                        <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Cancel</a>
                         <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Delete</a>
                     </div> -->
                 </td>

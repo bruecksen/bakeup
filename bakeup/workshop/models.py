@@ -354,10 +354,12 @@ class ProductionPlan(CommonBaseClass):
             return self.State.PRODUCED
         return None
 
-    def set_next_state(self):
-        self.state = self.get_next_state()
+    def set_state(self, state):
+        self.state = state
         self.save(update_fields=['state'])
-        
+
+    def set_next_state(self):
+        self.set_state(self.get_next_state())
 
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):
