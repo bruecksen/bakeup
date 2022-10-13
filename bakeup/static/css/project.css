@@ -12914,6 +12914,14 @@ body {
   background-color: #FAF6F2;
 }
 
+.btn-xs {
+  border-radius: 0.2rem;
+  font-size: 10.8px;
+  font-size: 0.675rem;
+  padding: 1.6px 3.2px;
+  padding: 0.1rem 0.2rem;
+}
+
 .card {
   border: none;
   -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
@@ -12949,11 +12957,23 @@ body {
   padding-right: 0.5rem;
 }
 
+button[aria-expanded=true] .fa-chevron-right {
+  display: none;
+}
+
+button[aria-expanded=false] .fa-chevron-down {
+  display: none;
+}
+
 nav .nav-link {
   color: #fefffc;
 }
 nav .nav-link:hover {
   color: #fefffc;
+}
+
+.tr-collapsed > td {
+  padding: 0;
 }
 
 .list-group.list-group-root .list-group {

@@ -67,3 +67,23 @@ function toggleSidebar() {
         sidebarTogglerHide.style.display = '';
     }
 }
+
+
+document.getElementById('expand-all').onclick = function(){
+    //click me function!
+    this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== true);
+    this.classList.toggle('show');
+    var addShow = false;
+    if (this.classList.contains('show')) {
+        addShow = true;
+    }
+    let children = document.querySelectorAll('.collapse');
+    // console.log(children);
+    children.forEach((c)=>{
+        if (addShow) {
+            c.classList.add('show');
+        } else {
+            c.classList.remove('show');
+        }
+    })
+}

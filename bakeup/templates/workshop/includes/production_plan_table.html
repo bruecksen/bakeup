@@ -1,40 +1,73 @@
 {% load i18n %}
 {% load utils %}
 
-<table class="table table-striped table-hover">
+<table class="table">
     <thead>
         <tr>
-            {% if not day_filter %}<th>{% trans "Day" %}</th>{% endif %}
-            <th>{% trans "Quantity" %}</th>
+            <th><button id="expand-all" class="btn btn-xs btn-outline-primary rounded-circle" type="button" aria-expanded="false">
+                <i class="fa fa-chevron-right fa-fw"></i>
+                <i class="fa fa-chevron-down fa-fw"></i>
+              </button></th>
+            <th>{% trans "Day" %}</th>
+            <th>{% trans "Qty" %}</th>
             <th>{% trans "Product" %}</th>
-            <th>{% trans "Main-dough" %}</th>
-            <th>{% trans "Pre-dough" %}</th>
-            <th>{% trans "Preparation" %}</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         {% for production_plan in production_plans %}
             <tr>
-                {% if not day_filter %}<td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>{% endif %}
+                <td width="2%">
+                    <button class="btn btn-xs btn-outline-primary rounded-circle" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="false" aria-controls="collapseExample">
+                        <i class="fa fa-chevron-right fa-fw"></i>
+                        <i class="fa fa-chevron-down fa-fw"></i>
+                      </button>
+                </td>
+                <td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
                 <td width="5%">{{ production_plan.root.quantity|floatformat }}</td>
-                <td width="10%">{{ production_plan.root.product }}</td>
-                <td width="30%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
-                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                    {% endfor %}
-                </td>
-                <td width="30%">{% for child_plan in production_plan|get_item:'Vorteig' %}
-                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                    {% endfor %}
-                </td>
-                <td width="30%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
-                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                    {% endfor %}
-                </td>
-                <td>
-                    {% if not production_plan.root.is_locked %}
-                    <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i></a>
+                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" class="accordion-toggle align-middle">{{ production_plan.root.product }} <span class="badge rounded-pill {{ production_plan.root.get_state_css_class }}">{{ production_plan.root.get_state_display_value }}</span></td>
+                <td class="text-end">
+                    {% if production_plan.root.is_planned %}
+                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-warning btn-sm col-3">Start</a>
+                    {% elif production_plan.root.is_production %}
+                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-success btn-sm col-3">Finish</a>
                     {% endif %}
+                    <!-- <div class="btn-group btn-group-sm">
+                        <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Cancel</a>
+                        <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Delete</a>
+                    </div> -->
+                </td>
+            </tr>
+            <tr class="tr-collapsed">
+                <td></td>
+                <td colspan="4">
+                    <div class="collapse" id="pb-{{ production_plan.root.pk }}">
+                    <table class="table table-sm table-borderless">
+                        <tbody>
+                            <tr>
+                                <td width=33%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                    {% endfor %}
+                                </td>
+                                <td width="33%">{% for child_plan in production_plan|get_item:'Vorteig' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                    {% endfor %}
+                                </td>
+                                <td width="33%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% if not production_plan.root.is_locked %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt"></i> Update plan</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    </div>
                 </td>
             </tr>
         {% endfor %}

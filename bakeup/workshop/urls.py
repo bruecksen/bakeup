@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_update, CustomerOrderAddView
+from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView
 
 
 app_name = "workshop"
@@ -21,6 +21,7 @@ urlpatterns = [
     path("categories/", view=CategoryListView.as_view(), name="category-list"),
     path("production-plans/", view=ProductionPlanListView.as_view(), name="production-plan-list"),
     path("production-plans/<int:pk>/", view=ProductionPlanDetailView.as_view(), name="production-plan-detail"),
+    path("production-plans/<int:pk>/next-state/", view=production_plan_next_state_view, name="production-plan-next-state"),
     path("production-plans/<int:pk>/delete/", view=ProductionPlanDeleteView.as_view(), name="production-plan-delete"),
     path("production-plans/<int:production_day>/<int:product>/update/", view=production_plan_update, name="production-plan-update"),
     path("production-plans/add/", view=ProductionPlanAddView.as_view(), name="production-plan-add"),

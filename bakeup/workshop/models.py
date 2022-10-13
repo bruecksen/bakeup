@@ -277,6 +277,12 @@ class ProductHierarchy(CommonBaseClass):
 
 
 class ProductionPlan(CommonBaseClass):
+    class State(models.IntegerChoices):
+        PLANNED = 0
+        IN_PRODUCTION = 1
+        PRODUCED = 2
+        CANCELED = 3
+    state = models.IntegerField(choices=State.choices, default=State.PLANNED)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, null=True, blank=True, related_name='production_plans')
     parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     start_date = models.DateField(null=True, blank=True)
@@ -293,12 +299,65 @@ class ProductionPlan(CommonBaseClass):
             )
         ]
     
+    @property
     def is_locked(self):
-        return self.production_day.day_of_sale < datetime.today().date()
+        return self.state > 0
+
+    @property
+    def is_planned(self):
+        return self.state == self.State.PLANNED
+
+    @property
+    def is_production(self):
+        return self.state == self.State.IN_PRODUCTION
+    
+    @property
+    def is_produced(self):
+        return self.state == self.State.PRODUCED
+    
+    @property
+    def is_canceled(self):
+        return self.state == self.State.CANCELED
 
     def delete(self):
         Product.delete_product_tree(self.product)
         super().delete()
+
+    @classmethod
+    def state_display_value(self, value):
+        if value == 0:
+            return 'planned'
+        elif value == 1:
+            return 'in production'
+        elif value == 2:
+            return 'produced'
+        elif value == 3:
+            return 'canceled'
+
+    def get_state_display_value(self):
+        return ProductionPlan.state_display_value(self.state)
+    
+    def get_state_css_class(self):
+        if self.is_planned:
+            return 'bg-secondary'
+        elif self.is_production:
+            return 'bg-warning'
+        elif self.is_produced:
+            return 'bg-success'
+        elif self.is_canceled:
+            return 'canceled'
+
+    def get_next_state(self):
+        if self.is_planned:
+            return self.State.PRODUCTION
+        elif self.is_production:
+            return self.State.PRODUCED
+        return None
+
+    def set_next_state(self):
+        self.state = self.get_next_state()
+        self.save(update_fields=['state'])
+        
 
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):

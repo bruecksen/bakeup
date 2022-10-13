@@ -1,10 +1,10 @@
 from django.db.models import Q
-
+from django import forms
 import django_tables2 as tables
 import django_filters
 from django_tables2.utils import A
 
-from bakeup.workshop.models import Category, Product
+from bakeup.workshop.models import Category, Product, ProductionPlan
 from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct
 
 
@@ -76,3 +76,14 @@ class CustomerOrderTable(tables.Table):
     class Meta:
         model = CustomerOrder
         fields = ("planned", "order_nr", "production_day", "customer", "point_of_sale")
+
+
+
+
+class ProductionPlanFilter(django_filters.FilterSet):
+    state = django_filters.MultipleChoiceFilter(choices=ProductionPlan.State.choices, widget=forms.CheckboxSelectMultiple)
+    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label='Select a production day')
+    
+    class Meta:
+        model = ProductionPlan
+        fields = ('production_day', )

@@ -1,6 +1,7 @@
 from itertools import product
 from typing import OrderedDict
 
+from django.utils.datastructures import MultiValueDict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError, transaction
 from django.contrib import messages
@@ -23,7 +24,7 @@ from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFo
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
-from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanTable
+from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
 
 
@@ -215,20 +216,34 @@ class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     template_name = 'workshop/product_list.html'
 
 
-class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
+class ProductionPlanListView(StaffPermissionsMixin, FilterView):
     model = ProductionPlan
     context_object_name = 'production_plans'
+    filterset_class = ProductionPlanFilter
+    template_name = 'workshop/productionplan_list.html'
+    ordering = ('-production_day', 'product__name')
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if 'production_day' in self.request.GET and self.request.GET.get('production_day').isnumeric():
-            qs = qs.filter(production_day__pk=self.request.GET.get('production_day'))
         return qs.filter(parent_plan__isnull=True)
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        if kwargs['data'] is None:
+            filter_values = MultiValueDict()
+        else:
+            filter_values = kwargs['data'].copy()
+
+        if not filter_values:
+            # we need to use `setlist` for multi-valued fields to emulate this coming from a query dict
+            filter_values.setlist('state', ['0', '1'])
+        
+        kwargs['data'] = filter_values
+        return kwargs
 
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_header = ProductionPlan.objects.filter(parent_plan__isnull=False).values_list('product__category__name', flat=True).order_by('product__category__name').distinct()
         table_categories = OrderedDict()
         for category in ProductionPlan.objects.filter(parent_plan__isnull=False).order_by('pk').values_list('product__category__name', flat=True):
             if not category in table_categories:
@@ -246,12 +261,8 @@ class ProductionPlanListView(StaffPermissionsMixin, SingleTableView):
                     plan_dict.setdefault(child.product.category.name, [])
                     plan_dict[child.product.category.name].append(child)
             production_plans.append(plan_dict)
-        # raise Exception(production_plans)
         context['table_categories'] = table_categories
-        context['days'] = ProductionPlan.objects.all().values_list('production_day__day_of_sale', 'production_day__pk').order_by('-production_day__day_of_sale').distinct()
         context['production_plans'] = production_plans
-        if 'production_day' in self.request.GET and self.request.GET.get('production_day').isnumeric():
-            context['day_filter'] = ProductionDay.objects.get(pk=self.request.GET.get('production_day', None))
         return context
 
 
@@ -291,6 +302,13 @@ class ProductionPlanUpdateView(StaffPermissionsMixin, View):
 
     def get_success_url(self):
         return reverse('workshop:production-plan-list')
+
+
+@staff_member_required
+def production_plan_next_state_view(request, pk):
+    production_plan = ProductionPlan.objects.get(pk=pk)
+    production_plan.set_next_state()
+    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
