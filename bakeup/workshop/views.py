@@ -82,6 +82,7 @@ def product_add_inline_view(request, pk):
         formset = AddProductFormSet(request.POST)
         if formset.is_valid():
             for form in formset:
+                product = None
                 if form.cleaned_data.get('product_existing', None) and form.cleaned_data.get('weight', None):
                     product = form.cleaned_data['product_existing']
                     if parent_product.has_child(product):
