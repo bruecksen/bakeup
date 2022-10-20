@@ -2,9 +2,9 @@
 {% load utils %}
 
 <table class="table">
-    <thead>
+    <thead class="d-print-none">
         <tr>
-            <th><button id="expand-all" class="btn btn-xs btn-outline-primary rounded-circle" type="button" aria-expanded="false">
+            <th><button id="expand-all" class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" aria-expanded="false">
                 <i class="fa fa-chevron-right fa-fw"></i>
                 <i class="fa fa-chevron-down fa-fw"></i>
               </button></th>
@@ -14,25 +14,25 @@
             <th></th>
         </tr>
     </thead>
-    <tbody>
-        {% for production_plan in production_plans %}
-            <tr>
+    {% for production_plan in production_plans %}
+        <tbody>
+            <tr class="tr-no-border-bottom">
                 <td width="2%">
-                    <button class="btn btn-xs btn-outline-primary rounded-circle" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="false" aria-controls="collapseExample">
+                    <button class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="false" aria-controls="collapseExample">
                         <i class="fa fa-chevron-right fa-fw"></i>
                         <i class="fa fa-chevron-down fa-fw"></i>
-                      </button>
+                    </button>
                 </td>
                 <td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
-                <td width="5%">{{ production_plan.root.quantity|floatformat }}</td>
-                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" class="accordion-toggle align-middle">{{ production_plan.root.product }} <span class="badge rounded-pill {{ production_plan.root.get_state_css_class }}">{{ production_plan.root.get_state_display_value }}</span></td>
+                <td width="5%">{{ production_plan.root.quantity|floatformat }}x</td>
+                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" class="accordion-toggle align-middle"><span class="text-uppercase fw-bold">{{ production_plan.root.product }}</span> <span class="badge rounded-pill {{ production_plan.root.get_state_css_class }}">{{ production_plan.root.get_state_display_value }}</span></td>
                 <td class="text-end">
                     {% if production_plan.root.is_planned %}
-                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-warning btn-sm">Start</a>
+                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-warning btn-sm d-print-none">Start</a>
                     {% elif production_plan.root.is_production %}
-                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-success btn-sm">Finish</a>
+                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-success btn-sm d-print-none">Finish</a>
                     {% endif %}
-                    <a href="{% url "workshop:production-plan-cancel" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Cancel</a>
+                    <a href="{% url "workshop:production-plan-cancel" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none">Cancel</a>
                     <!-- <div class="btn-group btn-group-sm">
                         <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Delete</a>
                     </div> -->
@@ -41,35 +41,35 @@
             <tr class="tr-collapsed">
                 <td></td>
                 <td colspan="4">
-                    <div class="collapse" id="pb-{{ production_plan.root.pk }}">
-                    <table class="table table-sm table-borderless">
-                        <tbody>
-                            <tr>
-                                <td width=33%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
-                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                    {% endfor %}
-                                </td>
-                                <td width="33%">{% for child_plan in production_plan|get_item:'Vorteig' %}
-                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                    {% endfor %}
-                                </td>
-                                <td width="33%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
-                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                            {% if not production_plan.root.is_locked %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-sync-alt"></i> Update plan</a>
-                                </td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+                    <div class="collapse d-print-block" id="pb-{{ production_plan.root.pk }}">
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td width=33%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
+                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                        {% endfor %}
+                                    </td>
+                                    <td width="33%">{% for child_plan in production_plan|get_item:'Vorteig' %}
+                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                        {% endfor %}
+                                    </td>
+                                    <td width="33%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
+                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% if not production_plan.root.is_locked %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-outline-primary btn-sm d-print-none"><i class="fas fa-sync-alt"></i> Update plan</a>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
                 </td>
             </tr>
-        {% endfor %}
-    </tbody>
+        </tbody>
+    {% endfor %}
 </table>

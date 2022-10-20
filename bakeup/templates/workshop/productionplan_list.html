@@ -4,7 +4,7 @@
 {% load i18n %}
 {% block title %}Production plans{% endblock %}
 {% block page_heading %}
-<span class="d-print-none">Production plans <small class="text-muted">{{ day_filter.day_of_sale }}</small></span>
+<span class="d-print-none">Production plans <small class="text-muted">{{ day_of_sale_selected }}</small></span>
 {% endblock %}
 {% block page_heading_action %}
 <a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary btn-sm float-end">Add new production plan</a>
@@ -13,11 +13,11 @@
 {% block page_content %}
 <div class="row mt-2 mb-4">
   <div class="col-8">
-    <h6 class="d-none d-print-block">Production plans {{ day_filter.day_of_sale }}</h6>
+    <h6 class="d-none d-print-block">Production plans {{ day_of_sale_selected }}</h6>
   </div>
 </div>
   {% if filter %}
-  <form action="" method="get" class="form form-inline">
+  <form action="" method="get" class="form form-inline d-print-none">
     <div class="row justify-content-end">
       <div class="col-6 text-end align-middle">
         {% for choice in filter.form.state.field.widget.choices %}

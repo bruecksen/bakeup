@@ -69,11 +69,24 @@ nav {
 .page-heading {
 
 }
+@media print {
+  tbody {
+    display: block;
+    // page-break-after: always;
+    page-break-inside: avoid;
+    page-break-before: avoid;
+  }
+}
 
 .tr-collapsed > td {
   padding: 0;
+  padding-left: 1rem;
+  border-bottom-width: 2px;
 }
-
+.tr-no-border-bottom > td{
+  border-bottom-width: 0;
+  background-color: var(--bs-table-bg);
+}
 .list-group.list-group-root {
   // padding: 0;
   // overflow: hidden;

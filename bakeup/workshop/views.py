@@ -268,6 +268,7 @@ class ProductionPlanListView(StaffPermissionsMixin, FilterView):
             production_plans.append(plan_dict)
         context['table_categories'] = table_categories
         context['production_plans'] = production_plans
+        context['day_of_sale_selected'] = context['filter'].form.cleaned_data.get('production_day') or ''
         return context
 
 

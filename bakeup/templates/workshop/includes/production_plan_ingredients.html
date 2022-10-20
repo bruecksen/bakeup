@@ -1,11 +1,11 @@
-<p class="mb-1">{{ plan.product }}({{ plan.quantity|multiply:plan.product.weight|floatformat:0 }} g)</p>
+<p class="mb-1"><strong>{{ plan.product }}</strong> ({{ plan.quantity|multiply:plan.product.weight|floatformat:0 }} g)</p>
 <div class="row mb-2">
     {% for ingredient in plan.product.get_ingredient_list %}
         <div class="col-3">
             <nobr>{{ ingredient.product.weight|multiply:plan.quantity|multiply:ingredient.quantity|floatformat:0 }}{{ ingredient.product.unit }}</nobr>
         </div>
         <div class="col-9">
-            <strong>{{ ingredient.product.name }}</strong>
+            {{ ingredient.product.name }}
         </div>
     {% endfor %}
 </div>
