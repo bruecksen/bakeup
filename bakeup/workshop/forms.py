@@ -14,7 +14,7 @@ class ProductForm(ModelForm):
 
 
 class AddProductForm(Form):
-    weight = FloatField(required=True)
+    weight = FloatField(required=False)
     product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
     product_new = CharField(required=False, label="New product name")
     category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="Select a category")

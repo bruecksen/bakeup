@@ -83,6 +83,7 @@ def product_add_inline_view(request, pk):
         if formset.is_valid():
             for form in formset:
                 product = None
+                quantity = None
                 if form.cleaned_data.get('product_existing', None) and form.cleaned_data.get('weight', None):
                     product = form.cleaned_data['product_existing']
                     if parent_product.has_child(product):
@@ -91,7 +92,8 @@ def product_add_inline_view(request, pk):
                     if parent_product == product:
                         product = None
                         messages.add_message(request, messages.WARNING, "You cannot add the parent product as a child product again")
-                if form.cleaned_data.get('product_new', None) and form.cleaned_data.get('weight', None) and form.cleaned_data.get('category', None):
+                    quantity =  form.cleaned_data.get('weight', 1000) / product.weight
+                if form.cleaned_data.get('product_new', None) and form.cleaned_data.get('category', None):
                     product = Product.objects.create(
                         name=form.cleaned_data['product_new'],
                         category=form.cleaned_data['category'],
@@ -100,9 +102,11 @@ def product_add_inline_view(request, pk):
                         is_buyable=form.cleaned_data.get('is_buyable', False),
                         is_composable=form.cleaned_data.get('is_composable', False),
                     )
-                if product:
-                    quantity =  form.cleaned_data['weight'] / product.weight
+                    quantity = 1
+                if product and quantity:
                     parent_product.add_child(product, quantity)
+        else:
+            raise Exception(formset.errors)
     return HttpResponseRedirect(reverse('workshop:product-detail', kwargs={'pk': parent_product.pk}))
 
 class ProductUpdateView(StaffPermissionsMixin, UpdateView):
