@@ -349,7 +349,7 @@ class ProductionPlan(CommonBaseClass):
 
     def get_next_state(self):
         if self.is_planned:
-            return self.State.PRODUCTION
+            return self.State.IN_PRODUCTION
         elif self.is_production:
             return self.State.PRODUCED
         return None
