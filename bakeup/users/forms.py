@@ -24,14 +24,10 @@ class TokenAuthenticationForm(forms.Form):
 
     def clean(self):
         token = self.cleaned_data.get('token')
-
         if token:
             self.user_cache = authenticate(self.request, token=token)
             if self.user_cache is None:
-                return ValidationError(
-                    "Please enter a valid token.",
-                    code='invalid_login',
-                )
+                raise ValidationError({"token": "Please enter a valid token."})
         return self.cleaned_data
 
     def get_user(self):

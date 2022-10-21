@@ -18,8 +18,11 @@ class LoginView(_LoginView):
             return reverse('workshop:workshop')
         else:
             return reverse('shop:shop')
-        return super().get_success_url()
-
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_token'] = TokenAuthenticationForm()
+        return context
 
 class TokenLoginView(_LoginView):
     form_class = TokenAuthenticationForm
