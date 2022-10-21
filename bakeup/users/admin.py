@@ -18,7 +18,7 @@ class UserAdmin(BaseUserAdmin):
 
 
 @admin.register(Token)
-class TokenAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class TokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'token', 'created_at')
     fields = ('user', 'token', 'ttl', 'created_at', 'token_url', 'qr_code_svg')
     readonly_fields = ('created_at', 'token_url', 'qr_code_svg')
