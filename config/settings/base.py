@@ -86,7 +86,7 @@ TENANT_APPS = [
     "django.contrib.admin",
     "bakeup.shop",
     "bakeup.workshop",
-    "bakeup.users.apps.UsersConfig",
+    "bakeup.users",
     "bakeup.contrib",
 ]
 
