@@ -21,3 +21,4 @@ sorl-thumbnail
 django_bootstrap5
 django_filter
 django-tenants
+qrcode

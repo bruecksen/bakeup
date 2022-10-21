@@ -7,7 +7,4 @@ class UsersConfig(AppConfig):
     verbose_name = _("Users")
 
     def ready(self):
-        try:
-            import bakeup.users.signals  # noqa F401
-        except ImportError:
-            pass
+        import bakeup.users.signals  # noqa F401

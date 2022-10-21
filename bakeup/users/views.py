@@ -1,10 +1,13 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
+from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.views import LoginView as _LoginView
 from django.views.generic import DetailView, RedirectView, UpdateView
+
+from bakeup.users.forms import TokenAuthenticationForm
 
 User = get_user_model()
 
@@ -16,6 +19,22 @@ class LoginView(_LoginView):
         else:
             return reverse('shop:shop')
         return super().get_success_url()
+
+
+class TokenLoginView(_LoginView):
+    form_class = TokenAuthenticationForm
+    template_name = "registration/token.html"
+
+    def get_success_url(self) -> str:
+        if self.request.user.is_staff:
+            return reverse('workshop:workshop')
+        else:
+            return reverse('shop:shop')
+
+    def form_valid(self, form):
+        """Security check complete. Log the user in."""
+        login(self.request, form.get_user(), backend='core.backends.TokenBackend')
+        return HttpResponseRedirect(self.get_success_url())
 
 
 

@@ -86,7 +86,7 @@ TENANT_APPS = [
     "django.contrib.admin",
     "bakeup.shop",
     "bakeup.workshop",
-    "bakeup.users",
+    "bakeup.users.apps.UsersConfig",
     "bakeup.contrib",
 ]
 
@@ -104,6 +104,7 @@ MIGRATION_MODULES = {"sites": "bakeup.contrib.sites.migrations"}
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "core.backends.TokenBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
