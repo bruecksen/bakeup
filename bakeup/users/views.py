@@ -6,8 +6,10 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.views import LoginView as _LoginView
 from django.views.generic import DetailView, RedirectView, UpdateView
+from django.shortcuts import redirect
 
 from bakeup.users.forms import TokenAuthenticationForm
+from bakeup.users.models import Token
 
 User = get_user_model()
 
@@ -27,6 +29,15 @@ class LoginView(_LoginView):
 class TokenLoginView(_LoginView):
     form_class = TokenAuthenticationForm
     template_name = "registration/token.html"
+
+    def get(self, request, *args, **kwargs):
+        token = kwargs.get('token', None)
+        if token and Token.objects.filter(token=token).exists():
+            user = Token.objects.get(token=token).user
+            login(self.request, user, backend='core.backends.TokenBackend')
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return redirect('login')
 
     def get_success_url(self) -> str:
         if self.request.user.is_staff:
