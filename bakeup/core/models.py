@@ -28,8 +28,10 @@ class Client(TenantMixin):
         http_type = 'https://' if request.is_secure() else 'http://'
 
         domain = get_current_site(request).domain
-
-        url = ''.join((http_type, self.schema_name, '.', domain, reverse(view_name, kwargs=kwargs)))
+        if self.domains.filter(is_primary=True).exists():
+            url = ''.join((http_type, domain, reverse(view_name, kwargs=kwargs)))
+        else:
+            url = ''.join((http_type, self.schema_name, '.', domain, reverse(view_name, kwargs=kwargs)))
 
         return url
 
