@@ -10,7 +10,7 @@
     <div class="row justify-content-center">
 
         {% for production_day_product in production_day_products %}
-        <div class="col-12 col-md-6 col-lg-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
             <div class="card h-100">
                 {% if production_day_product.production_day_product.product.image %}
                 {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
