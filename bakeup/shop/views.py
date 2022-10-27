@@ -4,6 +4,7 @@ from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 
+from django.db.models import Q
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView, DeleteView
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -75,7 +76,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.filter(production_plan__state=0)
+        kwargs['production_day_products'] = self.production_day.production_day_products.filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
         kwargs['customer'] = self.request.user.customer
         return kwargs
 
