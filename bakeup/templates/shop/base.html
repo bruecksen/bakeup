@@ -3,11 +3,11 @@
 {% block content %}
 {% include "shop/includes/header.html" %}
 <div class="container">
-  <div class="row">
+  <div class="row mt-2">
     <div class="col">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            <div class="alert alert-dismissible alert-dark">
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

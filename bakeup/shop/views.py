@@ -90,6 +90,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
             self.request.user.customer,
             form.product_quantity,
         )
+        messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
         return super().form_valid(form)
 
     def get_success_url(self):
