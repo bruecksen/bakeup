@@ -10,21 +10,23 @@
     <div class="row justify-content-center">
 
         {% for production_day_product in production_day_products %}
-        <div class="col-12 col-sm-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-3 mb-4">
             <div class="card h-100">
                 {% if production_day_product.production_day_product.product.image %}
-                {% thumbnail production_day_product.production_day_product.product.image "300x200" crop="center" as im %}
-                <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top" alt="product image">
+                {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
+                <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
                 {% endthumbnail %}
                 {% endif %}
                 <div class="card-body">
                     <h2 class="card-title">{{ production_day_product.production_day_product.product.name }}</h2>
                     <p>{{ production_day_product.production_day_product.product.description }}</p>
+                </div>
+                <div class="card-footer">
                     <div class="row">
                         {% with is_locked=production_day_product.production_day_product.production_plan.is_locked %}
                         <div class="col-7">
                             {{ production_day_product.form.product }}
-                            <div class="input-group mb-3">
+                            <div class="input-group">
                                 <button class="btn btn-outline-secondary btn-minus" {% if is_locked %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
                                 <input type="number" {% if is_locked %} disabled{% endif %} value="{{ production_day_product.form.quantity.value }}" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
                                 <button class="btn btn-outline-secondary btn-plus" {% if is_locked %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
