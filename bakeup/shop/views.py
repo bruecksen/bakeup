@@ -6,13 +6,17 @@ from django.contrib import messages
 
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView, DeleteView
 from django.shortcuts import get_object_or_404, redirect, render
+
 from django_tables2 import SingleTableView
+
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
+
 
 from bakeup.workshop.models import Product
+from bakeup.shop.tables import CustomerOrderTable
 
 # Limit orders in the future
 MAX_FUTURE_ORDER_YEARS = 2
@@ -71,7 +75,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.filter(production_plan__isnull=True)
+        kwargs['production_day_products'] = self.production_day.production_day_products.filter(production_plan__state=0)
         kwargs['customer'] = self.request.user.customer
         return kwargs
 
@@ -90,11 +94,22 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
     def get_success_url(self):
         week = self.production_day.calendar_week
         year = self.production_day.year
-        return reverse('shop:weekly', kwargs={'year': year, 'calendar_week': week})
+        # return reverse('shop:weekly', kwargs={'year': year, 'calendar_week': week})
+        return reverse('shop:shop')
 
     def form_invalid(self, form):
         messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
         return redirect(self.get_success_url())
+
+
+class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
+    model = CustomerOrder
+    template_name = 'shop/customer_order_list.html'
+    table_class = CustomerOrderTable
+
+
+    def get_queryset(self):
+        return super().get_queryset().filter(customer=self.request.user.customer)
 
 
 class ShopView(CustomerRequiredMixin, TemplateView):
@@ -103,7 +118,17 @@ class ShopView(CustomerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
-        context['production_days'] = ProductionDay.objects.filter(day_of_sale__gte=today)
+        production_day_next = ProductionDay.objects.filter(day_of_sale__gte=today).first()
+        context['production_day_next'] = production_day_next
+        if production_day_next:
+            production_day_products = []
+            for production_day_product in production_day_next.production_day_products.all():
+                form = production_day_product.get_order_form(self.request.user.customer)
+                production_day_products.append({
+                    'production_day_product': production_day_product,
+                    'form': form
+                })
+            context['production_day_products'] = production_day_products
         return context
 
 

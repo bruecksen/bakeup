@@ -68,22 +68,45 @@ function toggleSidebar() {
     }
 }
 
-
-document.getElementById('expand-all').onclick = function(){
-    //click me function!
-    this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== true);
-    this.classList.toggle('show');
-    var addShow = false;
-    if (this.classList.contains('show')) {
-        addShow = true;
+let expandAll = document.getElementById('expand-all');
+if (expandAll) {
+    document.getElementById('expand-all').onclick = function(){
+        //click me function!
+        this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== true);
+        this.classList.toggle('show');
+        var addShow = false;
+        if (this.classList.contains('show')) {
+            addShow = true;
+        }
+        let children = document.querySelectorAll('.collapse');
+        // console.log(children);
+        children.forEach((c)=>{
+            if (addShow) {
+                c.classList.add('show');
+            } else {
+                c.classList.remove('show');
+            }
+        })
     }
-    let children = document.querySelectorAll('.collapse');
-    // console.log(children);
-    children.forEach((c)=>{
-        if (addShow) {
-            c.classList.add('show');
-        } else {
-            c.classList.remove('show');
+
+}
+let plus_btns = document.querySelectorAll('.input-group .btn-plus');
+let minus_btns = document.querySelectorAll('.input-group .btn-minus');
+let qty_inputs = document.querySelectorAll('.input-group input[type=number]');
+console.log(plus_btns, minus_btns, qty_inputs);
+   plus_btns.forEach(btn=>{
+    console.log(btn.disabled)
+    if (!btn.previousElementSibling.disabled){
+        btn.addEventListener('click', ()=>{
+         console.log(btn.previousElementSibling.value == btn.previousElementSibling.max);
+            btn.previousElementSibling.value = (btn.previousElementSibling.value == btn.previousElementSibling.max) ? btn.previousElementSibling.max : parseInt(btn.previousElementSibling.value) + 1;
+        })
+    }
+    })
+    minus_btns.forEach(btn=>{
+        if (!btn.nextElementSibling.disabled) {
+            btn.addEventListener('click', ()=>{
+                 btn.nextElementSibling.value = (btn.nextElementSibling.value == 0) ? 0 : btn.nextElementSibling.value - 1;
+             })
         }
     })
-}

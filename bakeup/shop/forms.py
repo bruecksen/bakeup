@@ -15,7 +15,7 @@ class CustomerOrderForm(forms.Form):
         production_day_product = kwargs.pop('production_day_product')
         customer = kwargs.pop('customer')
         super().__init__(*args, **kwargs)
-        if production_day_product.production_plan:
+        if production_day_product.production_plan.is_locked:
             self.fields['product'].disabled = True
             self.fields['quantity'].disabled = True
         self.fields['quantity'].widget.attrs.update({'min': 0, 'max': production_day_product.calculate_max_quantity(customer)})
