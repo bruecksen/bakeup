@@ -345,7 +345,7 @@ class ProductionPlan(CommonBaseClass):
         elif self.is_produced:
             return 'bg-success'
         elif self.is_canceled:
-            return 'canceled'
+            return 'bg-dark'
 
     def get_next_state(self):
         if self.is_planned:
