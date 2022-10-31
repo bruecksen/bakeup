@@ -22,7 +22,7 @@
                         <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
                     </h2>
                     <p>{{ production_day_product.production_day_product.product.description }}</p>
-                    {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+                    {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
                 </div>
                 <div class="card-footer">
                     <div class="row">
