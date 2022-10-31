@@ -18,7 +18,9 @@
                 {% endthumbnail %}
                 {% endif %}
                 <div class="card-body">
-                    <h2 class="card-title">{{ production_day_product.production_day_product.product.name }}</h2>
+                    <h2 class="card-title">{{ production_day_product.production_day_product.product.name }} 
+                        <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
+                    </h2>
                     <p>{{ production_day_product.production_day_product.product.description }}</p>
                 </div>
                 <div class="card-footer">
