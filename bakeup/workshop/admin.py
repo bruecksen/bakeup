@@ -24,5 +24,5 @@ class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(ProductionPlan)
-class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('parent_plan', 'start_date', 'quantity')
+class ProductionPlanAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('parent_plan', 'product', 'start_date', 'quantity')
