@@ -28,6 +28,7 @@ class ProductionDayTemplate(CommonBaseClass):
 
 class ProductionDay(CommonBaseClass):
     day_of_sale = models.DateField(unique=True)
+    description = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ('-day_of_sale',)

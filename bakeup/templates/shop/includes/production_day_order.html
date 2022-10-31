@@ -2,7 +2,10 @@
 {% load i18n %}
 {% load thumbnail %}
 
-<h2 class="text-center mb-4">Unser nächster Backtag:<br> <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
+<h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag:<br> <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
+{% if production_day.description %}
+<p class="text-center mb-4">{{ production_day.description }}</p>
+{% endif %}
 
 {% if production_day_products %}
 <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">

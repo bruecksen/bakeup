@@ -53,9 +53,10 @@ class CustomerProductionDayOrderForm(forms.Form):
 class ProductionDayForm(forms.ModelForm):
     class Meta:
         model = ProductionDay
-        fields = ['day_of_sale']
+        fields = ['day_of_sale', 'description']
         widgets = {
             'day_of_sale': forms.DateInput(format=('%Y-%m-%d'), attrs={'class':'form-control', 'placeholder':'Select a date', 'type':'date'}),
+            'description': forms.Textarea(attrs={'rows':3}),
         }
 
 
