@@ -80,6 +80,7 @@ SHARED_APPS = [
     "treebeard",
     "sorl.thumbnail",
     "django_bootstrap5",
+    'taggit'
 ]
 
 TENANT_APPS = [

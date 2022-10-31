@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import datetime
 
+from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
 
 from bakeup.core.models import CommonBaseClass
@@ -54,6 +55,7 @@ class Product(CommonBaseClass):
     is_composable = models.BooleanField(default=False)
 
 
+    tags = TaggableManager()
     objects = ProductManager()
     production = ProductionDayProductManager()
 

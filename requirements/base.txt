@@ -22,3 +22,4 @@ django_bootstrap5
 django_filter
 django-tenants
 qrcode
+django-taggit
