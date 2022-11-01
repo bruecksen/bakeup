@@ -200,7 +200,8 @@ class CustomerOrder(CommonBaseClass):
         for product, quantity in products.items():
             if quantity == 0 and CustomerOrderPosition.objects.filter(order=customer_order, product=product).exists():
                 CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
-            else:
+            elif quantity > 0:
+                all_positions_zero = False
                 position, created = CustomerOrderPosition.objects.update_or_create(
                     order=customer_order,
                     product=product,
@@ -208,6 +209,10 @@ class CustomerOrder(CommonBaseClass):
                         'quantity': quantity
                     }
                 )
+            
+        if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
+            customer_order.delete()
+            return None
         return created_order
 
 

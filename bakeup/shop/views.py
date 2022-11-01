@@ -90,7 +90,9 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
             self.request.user.customer,
             form.product_quantity,
         )
-        if created_order:
+        if created_order is None:
+            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
+        elif created_order:
             messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
         else:
             messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
