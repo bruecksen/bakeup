@@ -198,13 +198,16 @@ class CustomerOrder(CommonBaseClass):
             }
         )
         for product, quantity in products.items():
-            position, created = CustomerOrderPosition.objects.update_or_create(
-                order=customer_order,
-                product=product,
-                defaults={
-                    'quantity': quantity
-                }
-            )
+            if quantity == 0 and CustomerOrderPosition.objects.filter(order=customer_order, product=product).exists():
+                CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
+            else:
+                position, created = CustomerOrderPosition.objects.update_or_create(
+                    order=customer_order,
+                    product=product,
+                    defaults={
+                        'quantity': quantity
+                    }
+                )
 
 
 
