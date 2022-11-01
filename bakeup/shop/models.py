@@ -189,7 +189,7 @@ class CustomerOrder(CommonBaseClass):
     @classmethod
     def create_customer_order(cls, production_day, customer, products):
         # TODO order_nr, address, should point of sale really be saved in order?
-        customer_order, created = CustomerOrder.objects.get_or_create(
+        customer_order, created_order = CustomerOrder.objects.get_or_create(
             production_day=production_day,
             customer=customer,
             defaults={
@@ -208,6 +208,7 @@ class CustomerOrder(CommonBaseClass):
                         'quantity': quantity
                     }
                 )
+        return created_order
 
 
 

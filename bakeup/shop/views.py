@@ -85,12 +85,15 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        CustomerOrder.create_customer_order(
+        created_order = CustomerOrder.create_customer_order(
             self.production_day,
             self.request.user.customer,
             form.product_quantity,
         )
-        messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
+        if created_order:
+            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
+        else:
+            messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
         return super().form_valid(form)
 
     def get_success_url(self):
