@@ -37,7 +37,7 @@
                             {{ production_day_product.form.product }}
                             <div class="input-group">
                                 <button class="btn btn-outline-secondary btn-minus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
-                                <input type="number" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} value="{{ production_day_product.form.quantity.value }}" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
+                                <input type="number" {% if is_locked %} disabled{% endif %} value="{{ production_day_product.form.quantity.value }}" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
                                 <button class="btn btn-outline-secondary btn-plus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
                             </div>
                         </div>
