@@ -86,6 +86,9 @@ class ProductionDayProduct(CommonBaseClass):
         ordering = ('production_day',)
         unique_together = ['production_day', 'product']
 
+    @property
+    def is_sold_out(self):
+        return self.calculate_max_quantity() <= 0
     
     def get_order_form(self, customer):
         from bakeup.shop.forms import CustomerOrderForm

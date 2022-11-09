@@ -13055,6 +13055,12 @@ textarea {
   resize: none;
 }
 
+.badge.top-right {
+  position: absolute;
+  right: -15px;
+  top: -10px;
+}
+
 .sidebar-toggler {
   display: none;
   position: absolute;
