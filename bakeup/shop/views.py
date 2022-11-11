@@ -125,7 +125,7 @@ class ShopView(CustomerRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
-        production_day_next = ProductionDay.objects.filter(day_of_sale__gte=today).first()
+        production_day_next = ProductionDay.objects.filter(day_of_sale__gte=today).order_by('day_of_sale').first()
         context['production_day_next'] = production_day_next
         if production_day_next:
             production_day_products = []
