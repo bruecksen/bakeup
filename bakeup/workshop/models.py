@@ -288,7 +288,7 @@ class ProductionPlan(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, null=True, blank=True, related_name='production_plans')
     parent_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     start_date = models.DateField(null=True, blank=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='production_plans')
+    product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='production_plans', blank=True)
     quantity = models.FloatField()
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
 
