@@ -37,6 +37,7 @@ Edit your hosts file (/etc/hosts) and add one for the primary tenanat and for al
     127.0.0.1       ole.localhost
     
 In production add subdomain to nginx config and update letsencrypt certificate:
+
     certbot --expand -d bakeup.org,matthias.bakeup.org,niels.bakeup.org,ole.bakeup.org,hasenbrot.bakeup.org
 
 
