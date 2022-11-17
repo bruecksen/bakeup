@@ -12,10 +12,10 @@
         <div class="card-header">
           <ul class="nav nav-tabs card-header-tabs" data-bs-tabs="tabs">
               <li class="nav-item">
-                  <a class="nav-link active" aria-current="true" data-bs-toggle="tab" href="#token">Token</a>
+                  <a class="nav-link{% if not form.errors %} active{% endif %}" aria-current="true" data-bs-toggle="tab" href="#token">Token</a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link" data-bs-toggle="tab" href="#login">Login</a>
+                  <a class="nav-link{% if form.errors %} active{% endif %}" data-bs-toggle="tab" href="#login">Login</a>
               </li>
           </ul>
         </div>
@@ -25,14 +25,14 @@
             {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' %}
           </div>
           <h2 class="text-center my-3">{% translate "Welcome to" %} {{ request.tenant.domain_url }}</h2>
-          <div class="tab-pane active pt-4 pb-4" id="token">
+          <div class="tab-pane{% if not form.errors %} active{% endif %} pt-4 pb-4" id="token">
             <form method="post" action="{% url 'users:login-token' %}">
               {% csrf_token %}
               {{ form_token|crispy }}
               <button type="submit" class="btn btn-primary">Login</button>
             </form>
           </div>
-          <div class="tab-pane align-items-center" id="login">
+          <div class="tab-pane{% if form.errors %} active{% endif %} align-items-center" id="login">
             <form method="post">
               {% csrf_token %}
               {{ form|crispy }}
