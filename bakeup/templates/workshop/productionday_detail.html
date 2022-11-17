@@ -1,4 +1,5 @@
 {% extends "workshop/base.html" %}
+{% load workshop_tags %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
@@ -14,22 +15,59 @@
 {% endblock %}
 
 {% block page_content %}
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">Orders</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">Ingredients</button>
+  </li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+    <h2 class="mt-4">Orders</h2>
+    <table class="table">
+      <tr>
+          <th>Product</th>
+          <th>ordered qty</th>
+          <th>max qty</th>
+      </tr>
+      {% for product in object.production_day_products.all %}
+      <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
+          <td>{{ product.product }}</td>
+          <td>{{ product.get_order_quantity }}</td>
+          <td>{{ product.max_quantity }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p>Total orders: <strong>{{ object.customer_orders.count }}</strong>  <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Update orders</a></p>
+  </div>
 
-<table class="table">
-  <tr>
-      <th>Product</th>
-      <th>ordered qty</th>
-      <th>max qty</th>
-  </tr>
-  {% for product in object.production_day_products.all %}
-  <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
-      <td>{{ product.product }}</td>
-      <td>{{ product.get_order_quantity }}</td>
-      <td>{{ product.max_quantity }}</td>
-  </tr>
-  {% endfor %}
-</table>
- <p>Total orders: <strong>{{ object.customer_orders.count }}</strong></p>
- <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary">Update orders</a>
-  
+<div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
+  <h2 class="mt-4">Ingredients Summary</h2>
+  <table class="table">
+    <tr>
+        <th>Ingredient</th>
+        <th>Amount</th>
+    </tr>
+    {% for category, products in object.get_ingredient_summary_list.items %}
+      <tr class="table-active">
+        <td><strong>{{ category.name }}</strong></td>
+        <td><strong>{{ products.sum|clever_rounding }} g</strong></td>
+      </tr>
+      {% for ingredient, quantity in products.items %}
+      {% if ingredient != 'sum' %}
+        <tr>
+          <td>{{ ingredient }}</td>
+          <td>{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
+        </tr>
+      {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </table>
+</div>
+</div>
+
+ 
+
 {% endblock %}

@@ -1,6 +1,8 @@
-from email.policy import default
+import collections
+
 from django.db import models
 from django.db.models import Sum
+from django.db.models import Q
 from django.utils import formats
 
 from recurrence.fields import RecurrenceField
@@ -74,6 +76,30 @@ class ProductionDay(CommonBaseClass):
             production_day_product.production_plan = obj
             # production_day_product.product = product
             production_day_product.save()
+
+    def get_ingredient_summary_list(self):
+        ingredients = {}
+        for production_plan in self.production_plans.all():
+            for child in ProductionPlan.objects.filter(
+                Q(parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan__parent_plan=production_plan) |
+                Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
+                for ingredient in child.product.get_ingredient_list():
+                    product = ingredient['product']
+                    quantity = ingredient['quantity']
+                    # ingredient.product.weight|multiply:plan.quantity|multiply:ingredient.quantity|floatformat:0
+                    category = product.category.get_parent() or product.category
+                    category = ingredients.setdefault(category, {})
+                    product_quantity = category.setdefault(product.product_template, 0)
+                    category_sum = category.setdefault('sum', 0)
+                    if category_sum == 0:
+                        print(category)
+                    product_quantity = product_quantity + (product.weight * child.quantity * quantity)
+                    category[product.product_template] = product_quantity
+                    category_sum = category_sum + (product.weight * child.quantity * quantity)
+                    category['sum'] = category_sum
+        return collections.OrderedDict(sorted(ingredients.items(), key=lambda t: t[0].path))
 
 
 class ProductionDayProduct(CommonBaseClass):
