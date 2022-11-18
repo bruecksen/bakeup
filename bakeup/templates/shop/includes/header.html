@@ -23,14 +23,17 @@
             {% endif %}
             {% if request.user.is_authenticated %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'shop:user-update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
+                <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Logout</a>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
             </li>
             {% else %}
             <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Login</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
+            </li>
+            <li class="nav-item">
+                <a id="log-in-link" class="nav-link" href="{% url 'account_signup' %}"><i class="fa-solid fa-user-plus fa-fw"></i> Registrieren</a>
             </li>
             {% endif %}
         </ul>

@@ -8,7 +8,11 @@
 <div class="row">
   <div class="col">
           <div class="page-heading pt-4 pb-4">
-          <h5 class="">Hallo <a href="{% url 'shop:user-profile' %}">{{ request.user }}</a>, willkommen bei bakeup!</h5>
+          {% if user.is_authenticated %}
+          <h5 class="">Hallo <a href="{% url 'shop:user-profile' %}">{{ request.user }}</a>, willkommen bei {{ request.tenant.name }}!</h5>
+          {% else %}
+          <h5 class="">Hallo und willkommen im {{ request.tenant.name }} Shop! Um bestellen zu können musst du dich <a href="{% url 'account_login' %}">anmelden</a> oder registrieren</h5>
+          {% endif %}
       </div>
   </div>
 </div>
@@ -16,8 +20,8 @@
   <div class="col">
     {% if not production_day_next %}
     <div class="alert alert-warning" role="alert">
-      <h4 class="alert-heading">The shop is closed!</h4>
-      <p class="mb-0">At the moment there is no production day planned. Please come back anytime soon.</p>
+      <h4 class="alert-heading">Der Shop ist momentan geschlossen!</h4>
+      <p class="mb-0">Im moment ist leider kein Backtag geplant, bitte komm bald wieder zurück!</p>
     </div>
     {% else %}
       {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}

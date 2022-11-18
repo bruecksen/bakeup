@@ -80,7 +80,7 @@ SHARED_APPS = [
     "treebeard",
     "sorl.thumbnail",
     "django_bootstrap5",
-    'taggit'
+    'taggit',
 ]
 
 TENANT_APPS = [
@@ -89,6 +89,9 @@ TENANT_APPS = [
     "bakeup.workshop",
     "bakeup.users",
     "bakeup.contrib",
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 
@@ -106,12 +109,13 @@ MIGRATION_MODULES = {"sites": "bakeup.contrib.sites.migrations"}
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "core.backends.TokenBackend",
+     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = "users:profile"
-LOGOUT_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "shop:shop"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
@@ -195,6 +199,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
+                "bakeup.core.context_processors.base_template_context_processor",
             ],
         },
     }
@@ -279,3 +284,13 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
 TENANT_MODEL = "core.Client" # app.Model
 
 TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
+
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_UNIQUE_EMAIL = True
+
+ACCOUNT_ADAPTER = 'bakeup.users.allauth.AccountAdapter'

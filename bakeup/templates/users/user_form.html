@@ -1,11 +1,22 @@
 {% extends base_template %}
 {% load crispy_forms_tags %}
+{% load i18n %}
 
 {% block title %}{{ user.username }}{% endblock %}
 
 {% block page_content %}
-  <h1>{{ user.username }}</h1>
-  <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
+  <h1>Hallo {{ user }}</h1>
+  <p>Aktuell ist <strong>{{ user.email }}</strong> in deinem Account hinterlegt. Du kannst eine neue E-Mail adresse hinzufügen in dem du in dem folgenden Formular die neue E-Mail adresse eingibst und anschließend bestätigst.</p>
+  <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
+    {% csrf_token %}
+    {{ add_email_form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <button name="action_add" type="submit" class="btn btn-primary">{% trans "Add E-mail" %}</button>
+      </div>
+    </div>
+  </form>
+  <form class="form-horizontal mt-4" method="post" action="{% url 'shop:user-profile' %}">
     {% csrf_token %}
     {{ form|crispy }}
     <div class="control-group">

@@ -119,7 +119,7 @@ class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
         return super().get_queryset().filter(customer=self.request.user.customer)
 
 
-class ShopView(CustomerRequiredMixin, TemplateView):
+class ShopView(TemplateView):
     template_name = 'shop/shop.html'
 
     def get_context_data(self, **kwargs):

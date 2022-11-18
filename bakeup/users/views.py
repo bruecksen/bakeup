@@ -4,9 +4,11 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.views import LoginView as _LoginView
 from django.views.generic import DetailView, RedirectView, UpdateView
 from django.shortcuts import redirect
+
+from allauth.account.views import LoginView as _LoginView, EmailView
+from allauth.account.forms import AddEmailForm
 
 from bakeup.users.forms import TokenAuthenticationForm
 from bakeup.users.models import Token
@@ -37,7 +39,7 @@ class TokenLoginView(_LoginView):
             login(self.request, user, backend='core.backends.TokenBackend')
             return HttpResponseRedirect(self.get_success_url())
         else:
-            return redirect('login')
+            return redirect('account_login')
 
     def get_success_url(self) -> str:
         if self.request.user.is_staff:
@@ -83,6 +85,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     model = User
     fields = ["first_name", "last_name"]
+    add_email_form = AddEmailForm
     success_message = _("Information successfully updated")
 
     def get_success_url(self):
@@ -97,6 +100,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['base_template'] = "workshop/base.html"
+        context['add_email_form'] = AddEmailForm()
         return context
 
 
