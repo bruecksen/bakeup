@@ -1,3 +1,18 @@
-<a class="logo {{ logo_size }} d-flex align-self-center" href="{% url home_url %}">
+{% load thumbnail %}
+{% if client_logo %}
+<a class="d-flex logo mt-3 mb-3 align-self-center bg-light" href="{% url home_url %}">
+    {% if logo_size == 'small' %}
+    {% thumbnail client_logo "75" format="PNG" as logo %}
+        <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
+    {% endthumbnail %}
+    {% else %}
+    {% thumbnail client_logo "150" format="PNG" as logo %}
+        <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
+    {% endthumbnail %}
+    {% endif %}
+</a>
+{% else %}
+<a class="logo {{ logo_size }} rounded-circle d-flex align-self-center" href="{% url home_url %}">
     <i class="fa-solid fa-bread-slice"></i></i>
 </a>
+{% endif %}
