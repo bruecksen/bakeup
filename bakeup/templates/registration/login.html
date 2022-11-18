@@ -22,7 +22,7 @@
   
         <div class="card-body tab-content min-height-500">
           <div class="d-flex justify-content-center">
-            {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' %}
+            {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' client_logo=request.tenant.logo %}
           </div>
           <h2 class="text-center my-3">{% translate "Welcome to" %} {{ request.tenant.domain_url }}</h2>
           <div class="tab-pane{% if not form.errors %} active{% endif %} pt-4 pb-4" id="token">
