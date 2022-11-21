@@ -18,6 +18,7 @@ class Client(TenantMixin):
     name = models.CharField(max_length=255)
     created = models.DateField(auto_now_add=True)
     logo = models.ImageField(upload_to='logos', blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
 
