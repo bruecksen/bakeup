@@ -12,7 +12,10 @@
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
 
     <meta property="og:title" content="{{ request.tenant.name }}" />
+    {% if request.tenant.description %}
     <meta property="og:description" content="{{ request.tenant.description }}" />
+    <meta property="og:author" content="" />
+    {% endif %}
     {% if request.tenant.logo %}
     <meta property="og:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
     <meta name="twitter:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
