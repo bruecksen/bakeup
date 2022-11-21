@@ -13,8 +13,8 @@
 
     <meta property="og:title" content="{{ request.tenant.name }}" />
     {% if request.tenant.logo %}
-    <meta property="og:image" content="https://bakeup.org{% static request.tenant.logo %}" />
-    <meta name="twitter:image" content="https://bakeup.org{% static request.tenant.logo %}" />
+    <meta property="og:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
+    <meta name="twitter:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
     {% endif %}
     <meta property="twitter:title" content="{{ request.tenant.name }}" />
     <meta name="twitter:card" content="summary_large_image" />
