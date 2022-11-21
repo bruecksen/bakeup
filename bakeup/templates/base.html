@@ -11,14 +11,14 @@
 
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
 
-    <meta property="og:title" content="bakeup.org" />
-    <meta property="og:description" content="bakeup release party 12.11. 15 Uhr @pumpele_bakery" />
-    <meta property="og:image" content="https://bakeup.org{% static 'images/bakeup-banner.jpg' %}" />
-    
-    <meta property="twitter:description" content="bakeup release party 12.11. 15 Uhr @pumpele_bakery" />
-    <meta property="twitter:title" content="bakeup.org" />
-    <meta name="twitter:image" content="https://bakeup.org{% static 'images/bakeup-banner.jpg' %}" />
+    <meta property="og:title" content="{{ request.tenant.name }}" />
+    {% if request.tenant.logo %}
+    <meta property="og:image" content="https://bakeup.org{% static request.tenant.logo %}" />
+    <meta name="twitter:image" content="https://bakeup.org{% static request.tenant.logo %}" />
+    {% endif %}
+    <meta property="twitter:title" content="{{ request.tenant.name }}" />
     <meta name="twitter:card" content="summary_large_image" />
+    
 
     {% block css %}
     <!-- Latest compiled and minified Bootstrap CSS -->
