@@ -1,0 +1,11 @@
+
+
+{% load i18n %}{% autoescape off %}
+Hallo!
+
+{% block content %}{% endblock %}
+
+--
+{{ current_tenant.name }}{% if current_tenant.description %} - {{ current_tenant.description}}{% endif %}
+{{ current_tenant_domain }}
+{% endautoescape %}

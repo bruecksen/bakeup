@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 
+from bakeup.shop.models import Customer, PointOfSale
 from bakeup.users.models import User, Token
 
 
@@ -13,6 +14,16 @@ def create_user_token(sender, instance, created, **kwargs):
         Token.objects.create(
             user=instance,
             token=Token.generate_token(),
+        )
+
+
+@receiver(post_save, sender=User)
+def create_user_customer(sender, instance, created, **kwargs):
+    if not hasattr(instance, 'customer'):
+        point_of_sale = PointOfSale.objects.all().count() == 1 and PointOfSale.objects.first() or None
+        Customer.objects.create(
+            user=instance,
+            point_of_sale=point_of_sale,
         )
 
 

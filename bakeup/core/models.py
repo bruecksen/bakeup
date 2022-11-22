@@ -21,6 +21,12 @@ class Client(TenantMixin):
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
 
+    def get_absolute_primary_domain(self, request):
+        http_type = 'https://' if request.is_secure() else 'http://'
+        domain = get_current_site(request).domain
+        return "".join([http_type, domain])
+
+
 
     def reverse(self, request, view_name, **kwargs):
         """
@@ -39,3 +45,15 @@ class Client(TenantMixin):
 
 class Domain(DomainMixin):
     pass
+
+
+class ClientSetting(models.Model):
+    client = models.OneToOneField('Client', on_delete=models.CASCADE)
+    default_from_email = models.EmailField(blank=True, null=True)
+    email_host = models.CharField(max_length=1024, blank=True, null=True)
+    email_host_password = models.CharField(max_length=1024, blank=True, null=True)
+    email_host_user = models.CharField(max_length=1024, blank=True, null=True)
+    email_port = models.PositiveSmallIntegerField(default=25)
+    emaiL_use_tls = models.BooleanField(default=False)
+    
+

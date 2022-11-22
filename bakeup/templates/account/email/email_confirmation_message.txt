@@ -1,0 +1,7 @@
+{% extends "account/email/base_message.txt" %}
+{% load account %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}Bitte bestätige, dass die E-Mail-Adresse von Dir ist um deinen Account auf {{ current_tenant.get_primary_domain.domain }} anzulegen:
+
+{{ activate_url }}{% endautoescape %}{% endblock %}
