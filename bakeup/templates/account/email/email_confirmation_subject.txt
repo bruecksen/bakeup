@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+Bitte E-Mail-Adresse bestätigen!
+{% endautoescape %}

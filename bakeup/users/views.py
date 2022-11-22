@@ -1,15 +1,21 @@
+from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.views import LoginView as _LoginView
 from django.views.generic import DetailView, RedirectView, UpdateView
 from django.shortcuts import redirect
 
+from allauth.account.adapter import get_adapter
+from allauth.account.views import LoginView as _LoginView, EmailView
+from allauth.account.forms import AddEmailForm, ChangePasswordForm
+from allauth.account import signals
+
 from bakeup.users.forms import TokenAuthenticationForm
 from bakeup.users.models import Token
+
 
 User = get_user_model()
 
@@ -37,7 +43,7 @@ class TokenLoginView(_LoginView):
             login(self.request, user, backend='core.backends.TokenBackend')
             return HttpResponseRedirect(self.get_success_url())
         else:
-            return redirect('login')
+            return redirect('account_login')
 
     def get_success_url(self) -> str:
         if self.request.user.is_staff:
@@ -97,7 +103,37 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['base_template'] = "workshop/base.html"
+        if self.request.method.lower() == 'post':
+            context['add_email_form'] = AddEmailForm(data=self.request.POST, user=self.get_object())
+            context['form'] = self.get_form()
+        else:
+            context['add_email_form'] = AddEmailForm()
+            context['change_password_form'] = ChangePasswordForm()
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if 'add-email' in request.POST:
+            form = AddEmailForm(data=request.POST, user=self.get_object())
+            if form.is_valid():
+                email_address = form.save(self.request)
+                get_adapter(self.request).add_message(
+                    self.request,
+                    messages.INFO,
+                    "account/messages/email_confirmation_sent.txt",
+                    {"email": form.cleaned_data["email"]},
+                )
+                signals.email_added.send(
+                    sender=self.request.user.__class__,
+                    request=self.request,
+                    user=self.request.user,
+                    email_address=email_address,
+                )
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                return self.render_to_response(self.get_context_data())
+        else:
+            return super().post(request, *args, **kwargs)
 
 
 class ShopUserUpdateView(UserUpdateView):

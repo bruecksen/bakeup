@@ -16,10 +16,12 @@ urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
+    path("accounts/login/", view=LoginView.as_view(), name="login"),
+    path('accounts/', include('allauth.urls')),
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
-    path("login/", LoginView.as_view(), name='login'),
+    # path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name='logout'),
     path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

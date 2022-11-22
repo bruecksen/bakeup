@@ -56,10 +56,11 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
         
         production_days = ProductionDay.objects.filter(day_of_sale__week=self.calendar_week.week, day_of_sale__year=self.calendar_week.year)
         forms = {}
+        customer = None if self.request.user.is_anonymous else self.request.user.customer
         for production_day in production_days:
             production_day_products = []
             for production_day_product in production_day.production_day_products.all():
-                form = production_day_product.get_order_form(self.request.user.customer)
+                form = production_day_product.get_order_form(customer)
                 production_day_products.append({
                     'production_day_product': production_day_product,
                     'form': form
@@ -119,7 +120,7 @@ class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
         return super().get_queryset().filter(customer=self.request.user.customer)
 
 
-class ShopView(CustomerRequiredMixin, TemplateView):
+class ShopView(TemplateView):
     template_name = 'shop/shop.html'
 
     def get_context_data(self, **kwargs):
@@ -127,10 +128,11 @@ class ShopView(CustomerRequiredMixin, TemplateView):
         today = datetime.now().date()
         production_day_next = ProductionDay.objects.filter(day_of_sale__gte=today).order_by('day_of_sale').first()
         context['production_day_next'] = production_day_next
+        customer = None if self.request.user.is_anonymous else self.request.user.customer
         if production_day_next:
             production_day_products = []
             for production_day_product in production_day_next.production_day_products.all():
-                form = production_day_product.get_order_form(self.request.user.customer)
+                form = production_day_product.get_order_form(customer)
                 production_day_products.append({
                     'production_day_product': production_day_product,
                     'form': form

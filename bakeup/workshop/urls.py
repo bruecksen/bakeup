@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView
 

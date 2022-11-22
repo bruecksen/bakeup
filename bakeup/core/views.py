@@ -27,4 +27,4 @@ class HomeView(RedirectView):
             else:
                 return reverse('shop:shop')
         else:
-            return reverse('login')
+            return reverse('shop:shop')
