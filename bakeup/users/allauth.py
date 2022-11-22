@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_str
 
 from allauth.account.adapter import DefaultAccountAdapter
 
@@ -7,6 +8,12 @@ from allauth.account.adapter import DefaultAccountAdapter
 class AccountAdapter(DefaultAccountAdapter):
 
     def get_signup_redirect_url(self, request):
+        if request.user.is_staff:
+            return reverse('workshop:workshop')
+        else:
+            return reverse('shop:shop')
+    
+    def get_email_confirmation_redirect_url(self, request):
         if request.user.is_staff:
             return reverse('workshop:workshop')
         else:
@@ -28,3 +35,10 @@ class AccountAdapter(DefaultAccountAdapter):
         else:
             email_template = "account/email/email_confirmation"
         self.send_mail(email_template, emailconfirmation.email_address.email, ctx)
+
+    def format_email_subject(self, subject):
+        prefix = self.request.tenant.clientsetting.email_subject_prefix
+        if prefix is None:
+            site = get_current_site(self.request)
+            prefix = "[{name}] ".format(name=site.name)
+        return prefix + force_str(subject)

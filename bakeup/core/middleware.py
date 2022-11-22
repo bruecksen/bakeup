@@ -17,6 +17,7 @@ class TenantSettingsMiddleware:
         if hasattr(current_schema_obj, 'clientsetting'):
             client_settings = current_schema_obj.clientsetting
             settings.DEFAULT_FROM_EMAIL = client_settings.default_from_email
+            settings.SERVER_EMAIL = client_settings.default_from_email
             settings.EMAIL_HOST = client_settings.email_host
             settings.EMAIL_HOST_PASSWORD = client_settings.email_host_password
             settings.EMAIL_HOST_USER = client_settings.email_host_user
