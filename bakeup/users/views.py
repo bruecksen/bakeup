@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 
 from allauth.account.adapter import get_adapter
 from allauth.account.views import LoginView as _LoginView, EmailView
-from allauth.account.forms import AddEmailForm
+from allauth.account.forms import AddEmailForm, ChangePasswordForm
 from allauth.account import signals
 
 from bakeup.users.forms import TokenAuthenticationForm
@@ -108,6 +108,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
             context['form'] = self.get_form()
         else:
             context['add_email_form'] = AddEmailForm()
+            context['change_password_form'] = ChangePasswordForm()
         return context
 
     def post(self, request, *args, **kwargs):

@@ -117,12 +117,13 @@ class ProductionDayProduct(CommonBaseClass):
     def is_sold_out(self):
         return self.calculate_max_quantity() <= 0
     
-    def get_order_form(self, customer):
+    def get_order_form(self, customer=None):
         from bakeup.shop.forms import CustomerOrderForm
         quantity = 0
-        existing_order = CustomerOrderPosition.objects.filter(product=self.product, order__customer=customer, order__production_day=self.production_day)
-        if existing_order:
-            quantity = existing_order.first().quantity
+        if customer:
+            existing_order = CustomerOrderPosition.objects.filter(product=self.product, order__customer=customer, order__production_day=self.production_day)
+            if existing_order:
+                quantity = existing_order.first().quantity
         form = CustomerOrderForm(
             initial={'product': self.product.pk, 'quantity': quantity}, 
             prefix=f'production_day_{self.product.pk}', 

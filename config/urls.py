@@ -16,7 +16,7 @@ urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
-    path("login/", view=LoginView.as_view()),
+    path("accounts/login/", view=LoginView.as_view(), name="login"),
     path('accounts/', include('allauth.urls')),
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),

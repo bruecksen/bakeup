@@ -6,6 +6,7 @@
 
 {% block page_content %}
   <h1>Hallo {{ user }}</h1>
+  <p>Hier kannst du deine E-Mail Adresse und deinen Namen ändern.</p>
   <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
   <div class="row">
     <div class="col col-md-4">
@@ -17,6 +18,7 @@
             <button type="submit" name="update-data" class="btn btn-primary">Aktualisieren</button>
           </div>
         </div>
+        <hr>
     </div>
   </div>
   <div class="row">
@@ -29,7 +31,20 @@
             <button name="add-email" type="submit" class="btn btn-primary">E-Mail ändern</button>
           </div>
         </div>
+        <hr class="">
       </div>
     </div>
   </form>
+  <div class="row">
+    <div class="col col-md-4">
+      <h4 class="mt-4">{% trans "Change Password" %}</h4>
+
+      <form method="POST" action="{% url 'account_change_password' %}" class="password_change">
+          {% csrf_token %}
+          {{ change_password_form|crispy }}
+          <button type="submit" name="action" class="btn btn-primary">{% trans "Change Password" %}</button>
+          <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+      </form>
+    </div>
+  </div>
 {% endblock %}

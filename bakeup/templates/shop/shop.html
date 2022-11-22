@@ -11,7 +11,7 @@
           {% if user.is_authenticated %}
           <h5 class="">Hallo <a href="{% url 'shop:user-profile' %}">{{ request.user }}</a>, willkommen bei {{ request.tenant.name }}!</h5>
           {% else %}
-          <h5 class="">Hallo und willkommen im {{ request.tenant.name }} Shop! Um bestellen zu können musst du dich <a href="{% url 'account_login' %}">anmelden</a> oder registrieren</h5>
+          <h5 class="">Hallo und willkommen im {{ request.tenant.name }} Shop! Um bestellen zu können musst du dich <a href="{% url 'account_login' %}">anmelden</a> oder <a href="{% url 'account_signup' %}">registrieren</a>.</h5>
           {% endif %}
       </div>
   </div>
