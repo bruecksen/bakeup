@@ -18,15 +18,16 @@
             <button type="submit" name="update-data" class="btn btn-primary">Aktualisieren</button>
           </div>
         </div>
-        </form>
-        <hr>
-      </div>
+      </form>
+      <hr>
     </div>
-    <div class="row">
-      <div class="col col-md-4">
-        <h4 class="mt-4">E-Mail:</h4>
-        <p>Aktuell ist <strong>{{ user.email }}</strong> in deinem Account hinterlegt. Du kannst eine neue E-Mail adresse hinzufügen in dem du in dem folgenden Formular die neue E-Mail adresse eingibst und anschließend bestätigst.</p>
-        <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
+  </div>
+  <div class="row">
+    <div class="col col-md-4">
+      <h4 class="mt-4">E-Mail:</h4>
+      <p>Aktuell ist <strong>{{ user.email }}</strong> in deinem Account hinterlegt. Du kannst eine neue E-Mail adresse hinzufügen in dem du in dem folgenden Formular die neue E-Mail adresse eingibst und anschließend bestätigst.</p>
+      <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
+        {% csrf_token %}
         {{ add_email_form|crispy }}
         <div class="control-group">
           <div class="controls">
