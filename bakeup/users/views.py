@@ -5,7 +5,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView, RedirectView, UpdateView
+from django.views.generic import DetailView, RedirectView, UpdateView, FormView
 from django.shortcuts import redirect
 
 from allauth.account.adapter import get_adapter
@@ -13,9 +13,9 @@ from allauth.account.views import LoginView as _LoginView, EmailView
 from allauth.account.forms import AddEmailForm, ChangePasswordForm
 from allauth.account import signals
 
-from bakeup.users.forms import TokenAuthenticationForm
+from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm
 from bakeup.users.models import Token
-
+from bakeup.shop.forms import CustomerForm
 
 User = get_user_model()
 
@@ -85,11 +85,13 @@ user_profile_view = UserProfileView.as_view()
 shop_user_profile_view = ShopUserProfileView.as_view()
 
 
-class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, FormView):
 
     model = User
     fields = ["first_name", "last_name"]
-    success_message = _("Information successfully updated")
+    success_message = "Daten erfolgreich aktualisiert"
+    form_class = UserProfileForm
+    template_name = 'users/user_profile.html'
 
     def get_success_url(self):
         assert (
@@ -99,6 +101,15 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_object(self):
         return self.request.user
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update({
+            'first_name': self.request.user.first_name,
+            'last_name': self.request.user.last_name,
+            'point_of_sale': self.request.user.customer.point_of_sale,
+        })
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -135,6 +146,17 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
         else:
             return super().post(request, *args, **kwargs)
 
+    def form_valid(self, form, *args, **kwargs):
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        point_of_sale = form.cleaned_data['point_of_sale']
+        user = self.request.user
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save(update_fields=['first_name', 'last_name'])
+        user.customer.point_of_sale = point_of_sale
+        user.customer.save(update_fields=['point_of_sale'])
+        return super().form_valid(form, *args, **kwargs)
 
 class ShopUserUpdateView(UserUpdateView):
 

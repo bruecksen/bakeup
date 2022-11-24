@@ -59,3 +59,9 @@ class SignupForm(_SignupForm):
             user.customer.save(update_fields=['point_of_sale'])
         # You must return the original result.
         return user
+
+
+class UserProfileForm(forms.Form):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    point_of_sale = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)

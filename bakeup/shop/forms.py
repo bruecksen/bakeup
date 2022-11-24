@@ -107,3 +107,9 @@ CustomerOrderPositionFormSet = modelformset_factory(
 BatchCustomerOrderFormSet = formset_factory(
     form=BatchCustomerOrderForm, extra=0
 )
+
+class CustomerForm(forms.ModelForm):
+
+    class Meta:
+        model = Customer
+        fields = ['point_of_sale']
