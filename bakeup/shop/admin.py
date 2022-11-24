@@ -11,7 +11,7 @@ class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
 
 @admin.register(PointOfSale)
 class PointOfSaleAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'address')
+    list_display = ('name', 'is_primary', 'address')
     inlines = (PointOfSaleOpeningHourInline, )
 
 

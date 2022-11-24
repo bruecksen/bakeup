@@ -6,7 +6,8 @@ from bakeup.shop.models import CustomerOrder
 
 class CustomerOrderTable(tables.Table):
     order_nr = tables.Column(verbose_name='#', order_by='pk')
-    # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
+    production_day = tables.Column(verbose_name='Produktionstag')
+    point_of_sale = tables.Column(verbose_name='Depot')
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
 
     class Meta:
