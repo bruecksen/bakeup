@@ -153,6 +153,7 @@ class ProductionDayProduct(CommonBaseClass):
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255)
     address = models.OneToOneField('contrib.Address', on_delete=models.PROTECT)
+    is_primary = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -173,7 +174,7 @@ class PointOfSaleOpeningHour(CommonBaseClass):
 
 
 class Customer(CommonBaseClass):
-    user = models.OneToOneField('users.User', on_delete=models.PROTECT)
+    user = models.OneToOneField('users.User', on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
