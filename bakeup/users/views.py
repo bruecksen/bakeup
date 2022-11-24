@@ -116,7 +116,8 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         context['base_template'] = "workshop/base.html"
         if self.request.method.lower() == 'post':
             context['add_email_form'] = AddEmailForm(data=self.request.POST, user=self.get_object())
-            context['form'] = self.get_form()
+            context['form'] = UserProfileForm(initial=self.get_initial())
+            context['change_password_form'] = ChangePasswordForm()
         else:
             context['add_email_form'] = AddEmailForm()
             context['change_password_form'] = ChangePasswordForm()
