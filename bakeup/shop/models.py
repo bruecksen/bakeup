@@ -255,6 +255,9 @@ class CustomerOrderPosition(CommonBaseClass):
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     quantity = models.PositiveSmallIntegerField()
 
+    class Meta:
+        ordering = ['product']
+
     
 
     
