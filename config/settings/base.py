@@ -295,3 +295,4 @@ ACCOUNT_UNIQUE_EMAIL = True
 
 ACCOUNT_ADAPTER = 'bakeup.users.allauth.AccountAdapter'
 ACCOUNT_FORMS = {'signup': 'bakeup.users.forms.SignupForm'}
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
