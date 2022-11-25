@@ -21,7 +21,7 @@ from django_tables2 import SingleTableMixin, SingleTableView
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
@@ -387,6 +387,20 @@ class ProductionDayListView(StaffPermissionsMixin, SingleTableView):
 class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionDay
     template_name = "workshop/productionday_detail.html"
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        point_of_sales = []
+        for point_of_sale in PointOfSale.objects.filter(customer_orders__production_day=self.object).distinct():
+            order_summary = CustomerOrderPosition.objects.filter(order__point_of_sale=point_of_sale, order__production_day=self.object).values('product__name').annotate(quantity=Sum('quantity'))
+            point_of_sales.append({
+                'point_of_sale': point_of_sale,
+                'orders': CustomerOrder.objects.filter(point_of_sale=point_of_sale, production_day=self.object),
+                'summary': order_summary,
+            })
+        context['point_of_sales'] = point_of_sales
+        return context
 
 
 class ProductionDayMixin(object):

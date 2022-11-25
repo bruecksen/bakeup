@@ -25,7 +25,7 @@
                 </td>
                 <td width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
                 <td width="5%">{{ production_plan.root.quantity|floatformat }}x</td>
-                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" class="accordion-toggle align-middle"><span class="text-uppercase fw-bold">{{ production_plan.root.product }}</span> <span class="badge rounded-pill {{ production_plan.root.get_state_css_class }}">{{ production_plan.root.get_state_display_value }}</span></td>
+                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" class="accordion-toggle align-middle"><span class="text-uppercase fw-bold">{{ production_plan.root.product }}</span> {% include "workshop/includes/production_plan_state.html" with production_plan=production_plan.root %}</td>
                 <td class="text-end">
                     {% if production_plan.root.is_planned %}
                     <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-warning btn-sm d-print-none">Start</a>

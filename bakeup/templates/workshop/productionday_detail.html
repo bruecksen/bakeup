@@ -15,17 +15,20 @@
 {% endblock %}
 
 {% block page_content %}
-<ul class="nav nav-tabs" role="tablist">
+<ul class="nav nav-tabs d-print-none" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="true">Orders</button>
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">Summary</button>
   </li>
   <li class="nav-item" role="presentation">
     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">Ingredients</button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">Orders</button>
+  </li>
 </ul>
 <div class="tab-content">
-  <div class="tab-pane fade show active" id="orders" role="tabpanel" aria-labelledby="orders-tab">
-    <h2 class="mt-4">Orders</h2>
+  <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+    <h2 class="mt-4">Summary</h2>
     <table class="table">
       <tr>
           <th>Product</th>
@@ -34,7 +37,7 @@
       </tr>
       {% for product in object.production_day_products.all %}
       <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
-          <td>{{ product.product }}</td>
+          <td>{{ product.product }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td>{{ product.get_order_quantity }}</td>
           <td>{{ product.max_quantity }}</td>
       </tr>
@@ -42,30 +45,60 @@
     </table>
     <p>Total orders: <strong>{{ object.customer_orders.count }}</strong>  <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Update orders</a></p>
   </div>
-
-<div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
-  <h2 class="mt-4">Ingredients Summary</h2>
-  <table class="table">
-    <tr>
-        <th>Ingredient</th>
-        <th>Amount</th>
-    </tr>
-    {% for category, products in object.get_ingredient_summary_list.items %}
-      <tr class="table-active">
-        <td><strong>{{ category.name }}</strong></td>
-        <td><strong>{{ products.sum|clever_rounding }} g</strong></td>
+  <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+    {% for point_of_sale in point_of_sales %}
+    <div class="mt-10 d-print-none"></div>
+    <h3 class="mt-4 mb-3 border-bottom border-3">{{ point_of_sale.point_of_sale }} <small class="text-muted float-end">{{ object }}</small></h3>
+    <ul class="list-unstyled ml-4">
+      {% for order_summary in point_of_sale.summary %}
+      <li><span class="quantity">{{ order_summary.quantity }} x</span> {{ order_summary.product__name }}</li>
+      {% endfor%}
+    </ul>
+    <table class="table" style="table-layout: fixed;">
+      <tr>
+          <th width="">Benutzer</th>
+          <th width="70%">Produkte</th>
+          <th></th>
       </tr>
-      {% for ingredient, quantity in products.items %}
-      {% if ingredient != 'sum' %}
-        <tr>
-          <td>{{ ingredient }}</td>
-          <td>{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
-        </tr>
-      {% endif %}
+      {% for order in point_of_sale.orders %}
+      <tr>
+          <td>{{ order.customer }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
+          <td><ul class="list-unstyled mb-0">
+            {% for position in order.positions.all %}
+            <li>{{ position.quantity}} x {{ position.product }} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</li>    
+            {% endfor %}
+          </ul></td>
+          <td><i class="fa-regular fa-square fa-lg"></i></td>
+      </tr>
       {% endfor %}
+    </table>
+    <div class="pagebreak"></div>
+
     {% endfor %}
-  </table>
-</div>
+  </div>
+  <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
+    <h2 class="mt-4">Ingredients Summary</h2>
+    <table class="table">
+      <tr>
+          <th>Ingredient</th>
+          <th>Amount</th>
+      </tr>
+      {% for category, products in object.get_ingredient_summary_list.items %}
+        <tr class="table-active">
+          <td><strong>{{ category.name }}</strong></td>
+          <td><strong>{{ products.sum|clever_rounding }} g</strong></td>
+        </tr>
+        {% for ingredient, quantity in products.items %}
+        {% if ingredient != 'sum' %}
+          <tr>
+            <td>{{ ingredient }}</td>
+            <td>{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
+          </tr>
+        {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </table>
+  </div>
 </div>
 
  

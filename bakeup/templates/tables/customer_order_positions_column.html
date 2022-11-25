@@ -1,5 +1,5 @@
 <ul class="list-unstyled">
     {% for position in record.positions.all %}
-    <li>{{ position.quantity}} x {{ position.product }} <span class="badge {{ position.production_plan.get_state_css_class }}">{{ position.production_plan.get_state_display_value }}</span></span></li>    
+    <li>{{ position.quantity}} x {{ position.product }} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</li>    
     {% endfor %}
 </ul>

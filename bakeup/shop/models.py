@@ -110,7 +110,7 @@ class ProductionDayProduct(CommonBaseClass):
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     
     class Meta:
-        ordering = ('production_day',)
+        ordering = ('production_day', 'product')
         unique_together = ['production_day', 'product']
 
     @property
@@ -196,7 +196,7 @@ class CustomerOrder(CommonBaseClass):
     # order_nr = models.CharField(max_length=255)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='customer_orders')
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
-    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True)
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.PROTECT, blank=True, null=True, related_name='customer_orders')
     address = models.TextField()
 
     class Meta:

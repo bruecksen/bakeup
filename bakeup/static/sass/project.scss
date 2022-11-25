@@ -54,6 +54,13 @@ body {
   
 }
 
+.quantity {
+  display: inline-block;
+  min-width: 32px;
+  min-width: 3rem;
+  text-align: right;
+}
+
 .border-top-2 {
   border-top-width: 3px!important;
 }
@@ -84,6 +91,10 @@ nav {
 .page-heading {
 
 }
+.mt-10 {
+  margin-top: 5rem;
+}
+
 @media print {
   tbody {
     display: block;
@@ -91,6 +102,11 @@ nav {
     page-break-inside: avoid;
     page-break-before: avoid;
   }
+  table,
+  tr  {
+    width: 100%;
+  }
+  .pagebreak { page-break-before: always; } /* page-break-after works, as well */
 }
 
 .tr-collapsed > td {
