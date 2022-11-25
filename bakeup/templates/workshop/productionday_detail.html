@@ -58,14 +58,14 @@
       <tr>
           <th width="">Benutzer</th>
           <th width="70%">Produkte</th>
-          <th></th>
+          <th>Abgeholt</th>
       </tr>
       {% for order in point_of_sale.orders %}
       <tr>
           <td>{{ order.customer }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td><ul class="list-unstyled mb-0">
             {% for position in order.positions.all %}
-            <li>{{ position.quantity}} x {{ position.product }}</li>    
+            <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}</li>    
             {% endfor %}
           </ul></td>
           <td><i class="fa-regular fa-square fa-lg"></i></td>
