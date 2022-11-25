@@ -64,7 +64,7 @@ class ProductionDayProductForm(forms.ModelForm):
 
     class Meta:
         model = ProductionDayProduct
-        fields = ['product', 'max_quantity']
+        fields = ['product', 'max_quantity', 'is_published']
 
 
 class CustomerOrderPositionForm(forms.ModelForm):
@@ -97,7 +97,7 @@ class BatchCustomerOrderForm(forms.Form):
 
 
 ProductionDayProductFormSet = modelformset_factory(
-    ProductionDayProduct, fields=("product", "max_quantity"), extra=1,  can_delete=True
+    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True
 )
 
 CustomerOrderPositionFormSet = modelformset_factory(

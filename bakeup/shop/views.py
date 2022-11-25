@@ -126,18 +126,19 @@ class ShopView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
-        production_day_next = ProductionDay.objects.filter(day_of_sale__gte=today).order_by('day_of_sale').first()
-        context['production_day_next'] = production_day_next
+        production_day_next = ProductionDayProduct.objects.filter(is_published=True, production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale').first()
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if production_day_next:
+            context['production_day_next'] = production_day_next.production_day
             production_day_products = []
-            for production_day_product in production_day_next.production_day_products.all():
+            for production_day_product in production_day_next.production_day.production_day_products.filter(is_published=True):
                 form = production_day_product.get_order_form(customer)
                 production_day_products.append({
                     'production_day_product': production_day_product,
                     'form': form
                 })
             context['production_day_products'] = production_day_products
+            
         return context
 
 
