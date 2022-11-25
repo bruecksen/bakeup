@@ -65,7 +65,7 @@
           <td>{{ order.customer }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td><ul class="list-unstyled mb-0">
             {% for position in order.positions.all %}
-            <li>{{ position.quantity}} x {{ position.product }} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</li>    
+            <li>{{ position.quantity}} x {{ position.product }}</li>    
             {% endfor %}
           </ul></td>
           <td><i class="fa-regular fa-square fa-lg"></i></td>
