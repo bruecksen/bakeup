@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
+from allauth.utils import set_form_field_order
 from allauth.account.forms import SignupForm as _SignupForm
 
 from bakeup.shop.models import PointOfSale
@@ -39,6 +40,9 @@ class TokenAuthenticationForm(forms.Form):
 
 
 class SignupForm(_SignupForm):
+    first_name = forms.CharField(required=True, label='Vorname')
+    last_name = forms.CharField(required=True, label='Nachname')
+    field_order = ['first_name', 'last_name', 'point_of_sale', 'email', 'password']
     # point_of_sale = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot")
 
     def __init__(self, *args, **kwargs):
@@ -47,6 +51,8 @@ class SignupForm(_SignupForm):
             self.fields["point_of_sale"] = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)
             if PointOfSale.objects.filter(is_primary=True).exists():
                 self.fields["point_of_sale"].initial = PointOfSale.objects.get(is_primary=True)
+        if hasattr(self, "field_order"):
+            set_form_field_order(self, self.field_order)
 
     def save(self, request):
 
@@ -56,6 +62,9 @@ class SignupForm(_SignupForm):
 
         if 'point_of_sale' in self.cleaned_data:
             user.customer.point_of_sale = self.cleaned_data['point_of_sale']
+            user.first_name = self.cleaned_data['first_name']
+            user.last_name = self.cleaned_data['last_name']
+            user.save(update_fields=['first_name', 'last_name'])
             user.customer.save(update_fields=['point_of_sale'])
         # You must return the original result.
         return user

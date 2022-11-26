@@ -6,11 +6,27 @@
 {% if production_day.description %}
 <p class="text-center mb-4">{{ production_day.description }}</p>
 {% endif %}
-
 {% if production_day_products %}
 <form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
     {% csrf_token %}
     <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">Deine akutelle Bestellung</h2>
+                    {% if current_order %}
+                    <ul class="list-unstyled mb-0">
+                        {% for position in current_order.positions.all %}
+                        <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}</li>    
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>Du hast bisher keine Produkte bestellt.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
 
         {% for production_day_product in production_day_products %}
         <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
@@ -33,12 +49,21 @@
                 {% if user.is_authenticated %}
                     <div class="card-footer">
                         <div class="row">
+                            <div class="col">
+                                {% if production_day_product.form.quantity.value > 0 %}
+                                <p class="small text-muted mb-2">Du hast bereits {{ production_day_product.form.quantity.value }} {{ production_day_product.production_day_product.product.name }} bestellt.</p>
+                                {% else %}
+                                <p class="small text-muted mb-2">Du hast noch kein {{ production_day_product.production_day_product.product.name }} bestellt.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
                             {% with is_locked=production_day_product.production_day_product.production_plan.is_locked %}
                             <div class="col-7">
                                 {{ production_day_product.form.product }}
                                 <div class="input-group">
                                     <button class="btn btn-outline-secondary btn-minus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
-                                    <input type="number" {% if is_locked %} disabled{% endif %} value="{{ production_day_product.form.quantity.value }}" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
+                                    <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
                                     <button class="btn btn-outline-secondary btn-plus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
                                 </div>
                             </div>
