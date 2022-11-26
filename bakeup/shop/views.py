@@ -138,7 +138,6 @@ class ShopView(TemplateView):
                     'form': form
                 })
             context['production_day_products'] = production_day_products
-            context['current_order'] = CustomerOrder.objects.filter(production_day=production_day_next.production_day).first()
             
         return context
 
