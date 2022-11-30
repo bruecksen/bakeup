@@ -7,18 +7,20 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="row">
-  <div class="col">
-    <ul class="list-unstyled mt-3 mb-3">
-      <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ object.production_day }}</li>
-      <li><i class="fa-solid fa-user fa-fw"></i>{{ object.customer }} at {{ object.point_of_sale }}</li>
-      <li></li>
-    </ul>
+<form class="form-horizontal" method="post">
+<div class="row mb-4">
+  <div class="col-3">
+    <div class="card p-3 mb-3">
+      <ul class="list-unstyled mt-3 mb-3">
+        <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ object.production_day }}</li>
+        <li><i class="fa-solid fa-user fa-fw"></i>{{ object.customer }}</li>
+      </ul>
+      {% bootstrap_field form.point_of_sale %}
+    </div>
   </div>
 </div>
 <div class="row">
   <div class="col col-sm-12">
-    <form class="form-horizontal" method="post">
       {% csrf_token %}
       {{ formset.management_form }}
       <div class="card p-3 mb-3 formset-container">
@@ -33,6 +35,7 @@
             </div>
             <div class="col">
               {% bootstrap_field form.DELETE layout='horizontal' whorizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+              {% bootstrap_field form.id %}
             </div>
           </div>
         </div>
@@ -56,8 +59,8 @@
           </div>
           </div>  
       </div>
-    </form>
+    </div>
   </div>
-</div>
+</form>
 {% include "workshop/includes/formset.html" %}
 {% endblock %}

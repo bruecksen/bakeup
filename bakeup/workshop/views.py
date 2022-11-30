@@ -344,7 +344,7 @@ class CategoryListView(StaffPermissionsMixin, ListView):
 
 class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
     model = CustomerOrder
-    fields = []
+    fields = ['point_of_sale']
     template_name = "workshop/customerorder_form.html"
     success_url = reverse_lazy('workshop:order-list')
 
@@ -359,13 +359,15 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         formset = CustomerOrderPositionFormSet(request.POST)
-        if formset.is_valid():
-            return self.form_valid(formset)
+        form = self.get_form()
+        if formset.is_valid() and form.is_valid():
+            return self.form_valid(form, formset)
         else:
-            return self.form_invalid(formset)
+            return self.form_invalid(form, formset)
 
-    def form_valid(self, formset):
+    def form_valid(self, form, formset):
         with transaction.atomic():
+            form.save()
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 obj.delete()
@@ -374,7 +376,8 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
                 instance.save()
         return HttpResponseRedirect(reverse('workshop:order-list'))
 
-    def form_invalid(self, formset):
+    def form_invalid(self, form, formset):
+        raise Exception(form.errors, formset.errors)
         return self.render_to_response(self.get_context_data())
 
 
