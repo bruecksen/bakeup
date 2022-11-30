@@ -86,6 +86,8 @@ class BatchCustomerOrderForm(forms.Form):
         self.production_day = kwargs.pop('production_day')
         self.production_day_products = Product.objects.filter(production_days__production_day=self.production_day)
         super().__init__(*args, **kwargs)
+        self.fields['customer'].widget.attrs['disabled'] = True
+        self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
         for product in self.production_day_products:
             field_name = 'product_{}'.format(product.pk)
             self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
