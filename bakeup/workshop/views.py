@@ -402,7 +402,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         context['point_of_sales'] = point_of_sales
         return context
 
-
+#
 class ProductionDayMixin(object):
 
     def get_context_data(self, **kwargs):
@@ -540,10 +540,10 @@ class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
                 if not any([v and v > 0 for v in products.values()]):
                     CustomerOrder.objects.filter(production_day=self.production_day, customer=customer).delete()
                     continue
-                customer_order, created = CustomerOrder.objects.get_or_create(
+                customer_order, created = CustomerOrder.objects.update_or_create(
                     production_day=self.production_day,
                     customer=customer,
-                    point_of_sale=customer.point_of_sale,
+                    defaults={'point_of_sale': customer.point_of_sale}
                 )
                 for product in Product.objects.filter(production_days__production_day=self.production_day):
                     quantity = form.cleaned_data['product_%s' % (product.pk,)]
