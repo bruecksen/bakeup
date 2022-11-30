@@ -227,7 +227,6 @@ class CustomerOrder(CommonBaseClass):
             customer=customer,
             defaults={
                 'point_of_sale': customer.point_of_sale,
-                'address': "address",
             }
         )
         for product, quantity in products.items():
