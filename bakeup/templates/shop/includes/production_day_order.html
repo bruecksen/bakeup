@@ -14,6 +14,7 @@
 
 {% if production_day_products %}
 <div class="row justify-content-center">
+    {% if current_customer_order.positions.all %}
     <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
         <div class="card primary-gradient text-white" id="current-order">
             <div class="card-body">
@@ -41,6 +42,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     
     {% for production_day_product in production_day_products %}
     <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
