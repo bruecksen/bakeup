@@ -94,6 +94,9 @@ nav {
 .mt-10 {
   margin-top: 5rem;
 }
+.primary-gradient {
+  background-image: linear-gradient(to right top, #051937, #0a2250, #1b2a69, #313182, #4c3699);
+}
 
 @media print {
   tbody {

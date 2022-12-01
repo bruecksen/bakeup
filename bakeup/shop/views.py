@@ -72,24 +72,25 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
 
 
 class CustomerOrderAddView(CustomerRequiredMixin, FormView):
-    form_class = CustomerProductionDayOrderForm
+    form_class = CustomerOrderForm
     http_method_names = ['post']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
+        kwargs['production_day_product'] = self.production_day_product
         kwargs['customer'] = self.request.user.customer
         return kwargs
 
     def post(self, request, *args, **kwargs):
-        self.production_day = get_object_or_404(ProductionDay, pk=kwargs['production_day'])
+        self.production_day_product = get_object_or_404(ProductionDayProduct, pk=kwargs['production_day_product'])
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        created_order = CustomerOrder.create_customer_order(
-            self.production_day,
+        created_order = CustomerOrder.create_or_update_customer_order(
+            self.production_day_product.production_day,
             self.request.user.customer,
-            form.product_quantity,
+            self.production_day_product.product,
+            form.cleaned_data["quantity"],
         )
         if created_order is None:
             messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
@@ -100,9 +101,6 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        week = self.production_day.calendar_week
-        year = self.production_day.year
-        # return reverse('shop:weekly', kwargs={'year': year, 'calendar_week': week})
         return reverse('shop:shop')
 
     def form_invalid(self, form):
@@ -120,6 +118,12 @@ class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
         return super().get_queryset().filter(customer=self.request.user.customer)
 
 
+class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
+    model = CustomerOrderPosition
+    success_url = reverse_lazy("shop:shop")
+
+
+
 class ShopView(TemplateView):
     template_name = 'shop/shop.html'
 
@@ -130,15 +134,8 @@ class ShopView(TemplateView):
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if production_day_next:
             context['production_day_next'] = production_day_next.production_day
-            production_day_products = []
-            for production_day_product in production_day_next.production_day.production_day_products.filter(is_published=True):
-                form = production_day_product.get_order_form(customer)
-                production_day_products.append({
-                    'production_day_product': production_day_product,
-                    'form': form
-                })
-            context['production_day_products'] = production_day_products
-            
+            context['production_day_products'] = production_day_next.production_day.production_day_products.filter(is_published=True)
+            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=production_day_next.production_day).first()
         return context
 
 

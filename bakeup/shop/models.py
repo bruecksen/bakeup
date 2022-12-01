@@ -117,6 +117,10 @@ class ProductionDayProduct(CommonBaseClass):
     @property
     def is_sold_out(self):
         return self.calculate_max_quantity() <= 0
+
+    @property
+    def is_locked(self):
+        return self.production_plan and self.production_plan.is_locked
     
     def get_order_form(self, customer=None):
         from bakeup.shop.forms import CustomerOrderForm
@@ -148,7 +152,7 @@ class ProductionDayProduct(CommonBaseClass):
         if exclude_customer:
             orders = orders.exclude(order__customer=exclude_customer)
         ordered_quantity = orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
-        return self.max_quantity - ordered_quantity
+        return max(self.max_quantity - ordered_quantity, 0)
 
 
 class PointOfSale(CommonBaseClass):
@@ -220,7 +224,7 @@ class CustomerOrder(CommonBaseClass):
 
 
     @classmethod
-    def create_customer_order(cls, production_day, customer, products):
+    def create_or_update_customer_order(cls, production_day, customer, product, quantity):
         # TODO order_nr, address, should point of sale really be saved in order?
         customer_order, created_order = CustomerOrder.objects.update_or_create(
             production_day=production_day,
@@ -229,22 +233,15 @@ class CustomerOrder(CommonBaseClass):
                 'point_of_sale': customer.point_of_sale,
             }
         )
-        for product, quantity in products.items():
-            if quantity == 0 and CustomerOrderPosition.objects.filter(order=customer_order, product=product).exists():
-                CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
-            elif quantity > 0:
-                all_positions_zero = False
-                position, created = CustomerOrderPosition.objects.update_or_create(
-                    order=customer_order,
-                    product=product,
-                    defaults={
-                        'quantity': quantity
-                    }
-                )
+        position, created = CustomerOrderPosition.objects.get_or_create(
+            order=customer_order,
+            product=product,
+            defaults={'quantity': quantity}
+        )
+        if not created:
+            position.quantity = (position.quantity or 0) + quantity
+            position.save(update_fields=['quantity'])
             
-        if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
-            customer_order.delete()
-            return None
         return created_order
 
 

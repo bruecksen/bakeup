@@ -1,6 +1,7 @@
 {% load django_bootstrap5 %}
 {% load i18n %}
 {% load thumbnail %}
+{% load shop_tags %}
 
 <h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag: <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
 {% if production_day.description %}
@@ -12,50 +13,96 @@
 {% endif %}
 
 {% if production_day_products %}
-<form class="form-horizontal" method="post" action="{% url 'shop:order-add' production_day=production_day.pk %}">
-    {% csrf_token %}
-    <div class="row justify-content-center">
-
-        {% for production_day_product in production_day_products %}
-        <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <div class="card primary-gradient text-white" id="current-order">
+            <div class="card-body">
+                <h2 class="card-title hyphens-auto mb-4">Deine aktuelle Bestellung:</h2>
+                <div class="mt-4 mb-4">
+                    {% for position in current_customer_order.positions.all %}
+                    <div class="row no-gutters fw-bold">
+                        <div class="col-2">{{ position.quantity}}&nbsp;x</div>
+                        <div class="col-8">
+                            {{ position.product }}
+                        </div>
+                        <div class="col-2">
+                            <form method="POST" action="{% url "shop:customer-order-position-delete" pk=position.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link btn-sm"><i class="fas fa-trash text-white"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    <hr>
+                    {% empty %}
+                    <p>Bisher wurde noch kein Brot für den aktuellen Backtag bestellt.</p>
+                    {% endfor %}
+                    <p class="mt-2">Du kannst deine Bestellung am Backtag ab xx Uhr an deinem Depot {{ current_customer_order.point_of_sale}} abholen.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% for production_day_product in production_day_products %}
+    <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+        <form class="form-horizontal h-100" method="post" action="{% url 'shop:order-add' production_day_product=production_day_product.pk %}">
+            {% csrf_token %}
             <div class="card h-100">
-                {% if production_day_product.production_day_product.is_sold_out %}
-                <span class="badge bg-primary top-right">Ausverkauft</span>
+                {% if production_day_product.is_sold_out %}
+                <span class="badge bg-dark top-right text-uppercase fs-6">Ausverkauft</span>
                 {% endif %}
-                {% if production_day_product.production_day_product.product.image %}
-                {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
+                {% if production_day_product.is_locked %}
+                <span class="badge bg-dark top-right text-uppercase fs-6">In Produktion</span>
+                {% endif %}
+                {% if production_day_product.product.image %}
+                {% thumbnail production_day_product.product.image "600x450" crop="center" as im %}
                 <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
                 {% endthumbnail %}
                 {% endif %}
                 <div class="card-body">
-                    <h2 class="card-title hyphens-auto">{{ production_day_product.production_day_product.product.name }} 
-                        <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
+                    <h2 class="card-title hyphens-auto">{{ production_day_product.product.name }} 
+                        <span class="small text-muted">{{ production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.product.unit}}</span>
                     </h2>
-                    <p>{{ production_day_product.production_day_product.product.description }}</p>
-                    {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+                    <p>{{ production_day_product.product.description }}</p>
+                    {% for tag in production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
                 </div>
                 {% if user.is_authenticated %}
                     <div class="card-footer">
-                        <div class="row">
-                            {% with is_locked=production_day_product.production_day_product.production_plan.is_locked %}
+                        {% if not production_day_product.is_sold_out and not production_day_product.is_locked %}
+                        <div class="row mb-2">
                             <div class="col-7">
-                                {{ production_day_product.form.product }}
                                 <div class="input-group">
-                                    <button class="btn btn-outline-secondary btn-minus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
-                                    <input type="number" {% if is_locked %} disabled{% endif %} value="{{ production_day_product.form.quantity.value }}" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
-                                    <button class="btn btn-outline-secondary btn-plus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
+                                    <button class="btn btn-outline-secondary btn-minus" {% if is_locked %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
+                                    <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="0" max="{{ production_day_product.calculate_max_quantity }}" class="form-control" placeholder="Quantity" name="quantity" id="quantity_id">
+                                    <button class="btn btn-outline-secondary btn-plus" {% if is_locked %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
                                 </div>
                             </div>
                             <div class="col-5">
-                                <button type="submit" class="btn btn-primary"{% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %}>Bestellen</button>
+                                <button type="submit" class="btn btn-primary"{% if is_locked %} disabled{% endif %}>Bestellen</button>
                             </div>
-                            {% endwith %}
                         </div>
+                        {% else %}
+                            {% if production_day_product.is_sold_out %}
+                            <p>Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
+                            {% elif production_day_product.is_locked %}
+                            <p>Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
+                            {% endif %}
+                        {% endif %}
+
+                    </div>
+                    <div class="card-footer">
+                        <p class="small text-center mb-0">
+                            {% customer_quantity production_day_product as customer_quantity %}
+                            {% if customer_quantity %}
+                            Du hast dieses Produkt bereits <strong>{{ customer_quantity }} mal</strong> bestellt. <a href="#current-order">Zur Bestellung springen.</a>
+                            {% else %}
+                            Du hast dieses Produkt bisher noch nicht bestellt.
+                            {% endif %}
+                        </p>
                     </div>
                 {% endif %}
             </div>
         </div>
+    </form>
         {% endfor %}
     </div>
-</form>
 {% endif %}

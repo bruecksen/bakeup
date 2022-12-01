@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bakeup.shop.views import CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView
+from bakeup.shop.views import CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView
 
 from bakeup.users.views import (
     shop_user_profile_view,
@@ -16,7 +16,8 @@ urlpatterns = [
    path("weekly/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
    path("weekly/<int:year>/<int:calendar_week>/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
    path("products/", view=ProductListView.as_view(), name="product-list"),
-   path("orders/add/<int:production_day>/", view=CustomerOrderAddView.as_view(), name="order-add"),
+   path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),
+   path("orders/positions/<int:pk>/delete/", view=CustomerOrderPositionDeleteView.as_view(), name="customer-order-position-delete"),
    path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
    path("profile/", view=shop_user_update_view, name="user-profile"),
 #    path("product/add/", view=ProductAddView.as_view(), name="product-add"),

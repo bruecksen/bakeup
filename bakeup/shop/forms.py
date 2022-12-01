@@ -8,21 +8,28 @@ from bakeup.workshop.models import Product
 
 
 class CustomerOrderForm(forms.Form):
-    product = forms.CharField(widget=forms.HiddenInput)
     quantity = forms.IntegerField(label="Quantity")
 
     def __init__(self, *args, **kwargs):
-        production_day_product = kwargs.pop('production_day_product')
-        customer = kwargs.pop('customer')
+        self.production_day_product = kwargs.pop('production_day_product')
+        self.product = self.production_day_product.product
+        self.customer = kwargs.pop('customer', None)
         super().__init__(*args, **kwargs)
-        if production_day_product.production_plan and production_day_product.production_plan.is_locked:
-            self.fields['product'].disabled = True
+        if self.production_day_product.production_plan and self.production_day_product.production_plan.is_locked:
             self.fields['quantity'].disabled = True
-        self.fields['quantity'].widget.attrs.update({'min': 0, 'max': production_day_product.calculate_max_quantity(customer)})
+        self.fields['quantity'].widget.attrs.update({'min': 0, 'max': self.production_day_product.calculate_max_quantity(self.customer)})
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if int(cleaned_data['quantity']) > self.production_day_product.calculate_max_quantity(self.customer):
+            raise forms.ValidationError("Sorry, but we don't have enough products.")
+        if self.production_day_product.is_locked:
+            raise forms.ValidationError("Sorry, aber es sind keine Bestellungen für diesen Tag möglich")
+
+        return cleaned_data
     
 
 class CustomerProductionDayOrderForm(forms.Form):
-
     product_quantity = None
 
     def __init__(self, *args, **kwargs):
