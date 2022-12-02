@@ -75,7 +75,7 @@
                             <div class="col-7">
                                 <div class="input-group">
                                     <button class="btn btn-outline-secondary btn-minus" {% if is_locked %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
-                                    <input type="text" {% if is_locked %} disabled{% endif %} value="0" min="-{{ customer_quantity |add:"-1" }}" max="{{ production_day_product.calculate_max_quantity }}" class="form-control input-number" placeholder="Quantity" name="quantity" id="quantity_id">
+                                    <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="-{{ customer_quantity |add:"-1" }}" max="{{ production_day_product.calculate_max_quantity }}" class="form-control input-number" placeholder="Quantity" name="quantity" id="quantity_id">
                                     <button class="btn btn-outline-secondary btn-plus" {% if is_locked %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
                                 </div>
                             </div>
