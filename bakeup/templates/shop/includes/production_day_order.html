@@ -69,7 +69,6 @@
                 </div>
                 {% if user.is_authenticated %}
                     <div class="card-footer">
-                        {% if not production_day_product.is_sold_out and not production_day_product.is_locked %}
                         {% customer_quantity production_day_product as customer_quantity %}
                         <div class="row mb-2">
                             <div class="col-7">
@@ -83,14 +82,11 @@
                                 <button type="submit" class="btn btn-primary"{% if is_locked %} disabled{% endif %}>Bestellen</button>
                             </div>
                         </div>
-                        {% else %}
-                            {% if production_day_product.is_sold_out %}
-                            <p>Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
-                            {% elif production_day_product.is_locked %}
-                            <p>Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
-                            {% endif %}
+                        {% if production_day_product.is_sold_out %}
+                        <p>Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
+                        {% elif production_day_product.is_locked %}
+                        <p>Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
                         {% endif %}
-
                     </div>
                     <div class="card-footer">
                         <p class="small text-center mb-0">
