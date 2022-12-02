@@ -108,7 +108,7 @@ class ProductionDayProduct(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
     max_quantity = models.PositiveSmallIntegerField()
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
-    is_published = models.BooleanField(default=True, verbose_name="Published?")
+    is_published = models.BooleanField(default=False, verbose_name="Published?")
     
     class Meta:
         ordering = ('production_day', 'product')
