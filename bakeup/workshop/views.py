@@ -501,13 +501,15 @@ class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
         if not 'pk' in kwargs:
             return HttpResponseRedirect(reverse('workshop:order-add', kwargs={'pk': request.POST.get('select_production_day')}))
         self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))   
+        self.object = ProductionDay.objects.get(pk=kwargs.get('pk'))   
         return super().dispatch(request, *args, **kwargs)
 
     def get_formset_initial(self):
         initial = []
         for customer in Customer.objects.all():
             initial_customer = {
-                'customer': customer.pk
+                'customer': customer.pk,
+                'customer_name': "{} ({})".format(customer, customer.user.email)
             }
             for product in self.production_day.production_day_products.all():
                 quantity = None
@@ -531,12 +533,14 @@ class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
         if formset.is_valid():
             return self.form_valid(formset)
         else:
+            raise Exception(formset.errors)
             return self.form_invalid(formset)
 
     def form_valid(self, formset):
         with transaction.atomic():
             for form in formset:
                 customer = form.cleaned_data['customer']
+                customer = Customer.objects.get(pk=customer)
                 products = {k:v for k, v in form.cleaned_data.items() if k.startswith('product_')}
                 # if customer.pk == 2:
                 #     raise Exception(not any([v and v > 0 for v in products.values()]))

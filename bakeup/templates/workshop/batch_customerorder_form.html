@@ -18,11 +18,11 @@ Update orders for <small class="text-muted">{{ production_day }}</small>
           <div class="row">
             <div class="col">
               {% if forloop.first %}
-                {% bootstrap_field form.customer label_class='fw-bold' %}
+              <strong>Customer</strong>
               {% else %}
-                {{ form.customer.customer_name }}
-                {% bootstrap_field form.customer show_label='skip' %}
+              {% bootstrap_field form.customer_name show_label='skip' %}
               {% endif %}
+              {% bootstrap_field form.customer show_label='skip' %}
             </div>
             {% for field in form.get_product_fields %}
             <div class="col">
