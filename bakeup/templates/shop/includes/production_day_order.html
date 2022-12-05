@@ -2,9 +2,13 @@
 {% load i18n %}
 {% load thumbnail %}
 
-<h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag:<br> <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
+<h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag: <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
 {% if production_day.description %}
-<p class="text-center mb-4">{{ production_day.description }}</p>
+<div class="row justify-content-center">
+    <div class="col-8">
+        <p class="text-center mb-4 lead">{{ production_day.description }}</p>
+    </div>
+</div>
 {% endif %}
 
 {% if production_day_products %}
