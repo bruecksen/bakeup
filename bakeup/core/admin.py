@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django_tenants.admin import TenantAdminMixin
 
-from bakeup.core.models import Client, Domain, ClientSetting
+from bakeup.core.models import Client, Domain, ClientSetting, ClientInfo
 
 # Register your models here.
 
@@ -14,9 +14,13 @@ class ExcludeAdminMixin(object):
 class ClientSettingInline(admin.StackedInline):
     model = ClientSetting
 
+
+class ClientInfoInline(admin.StackedInline):
+    model = ClientInfo
+
 @admin.register(Client)
 class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
-        inlines = (ClientSettingInline, )
+        inlines = (ClientSettingInline, ClientInfoInline)
         list_display = ('name', 'created')
 
 

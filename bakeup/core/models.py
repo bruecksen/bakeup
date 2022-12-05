@@ -59,3 +59,9 @@ class ClientSetting(models.Model):
     email_subject_prefix = models.CharField(max_length=1024, blank=True, null=True)
     
 
+class ClientInfo(models.Model):
+    client = models.OneToOneField('Client', on_delete=models.CASCADE)
+    contact_email = models.EmailField(blank=True, null=True)
+    contact_phone = models.CharField(max_length=255, blank=True, null=True)
+    contact_instagram = models.CharField(max_length=255, blank=True, null=True)
+    contact_text = models.TextField(blank=True, null=True)

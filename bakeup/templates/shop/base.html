@@ -37,3 +37,27 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block footer %}
+{% if request.tenant.clientinfo %}
+<footer class="footer mt-auto py-4 bg-dark text-light">
+  <div class="container">
+    <div class="row align-items-center justify-content-center">
+      <div class="col-3">
+        <ul class="list-unstyled">
+          <li class="py-1"><i class="far fa-envelope fa-fw"></i> <a href="mailto:{{ request.tenant.clientinfo.contact_email }}" class="text-light">{{ request.tenant.clientinfo.contact_email }}</a></li>
+          <li class="py-1"><i class="fas fa-phone fa-fw"></i> <a href="tel:{{ request.tenant.clientinfo.contact_phone }}" class="text-light">{{ request.tenant.clientinfo.contact_phone }}</a></li>
+          <li class="py-1"><i class="fab fa-instagram fa-fw"></i> <a href="https://www.instagram.com/{{ request.tenant.clientinfo.contact_instagram }}/" target="_blank" class="text-light">{{ request.tenant.clientinfo.contact_instagram }}</a></li>
+        </ul>
+
+      </div>
+      <div class="col-4">
+        <p class="lead">
+          {{ request.tenant.clientinfo.contact_text }}
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+{% endif %}
+{% endblock footer %}

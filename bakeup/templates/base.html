@@ -1,6 +1,6 @@
 {% load static i18n %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE }}" class="h-100">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -46,7 +46,7 @@
 
   </head>
 
-  <body>
+  <body class="h-100 d-flex flex-column">
 
     
     {% block content %}
@@ -55,6 +55,8 @@
 
 
     {% block modal %}{% endblock modal %}
+    {% block footer %}
+    {% endblock footer %}
 
     {% block inline_javascript %}
     {% comment %}
