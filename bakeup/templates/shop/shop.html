@@ -16,9 +16,9 @@
       </div>
   </div>
 </div>
+{% if not production_day_next %}
 <div class="row">
   <div class="col">
-    {% if not production_day_next %}
     <div class="alert alert-warning" role="alert">
       <h4 class="alert-heading">Der Shop ist momentan geschlossen!</h4>
       <p class="mb-0">Im moment ist leider kein Backtag geplant, bitte komm bald wieder zurück!</p>
