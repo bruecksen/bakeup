@@ -29,7 +29,22 @@ body {
 .hyphens-auto {
   hyphens: auto;
 }
-
+.position-absolute-not-mobile {
+  position: absolute;
+  @media (max-width: 768px) {
+    position: static;
+  }
+}
+.form-select-xs {
+  border-radius: 0.2rem;
+  font-size: 14px;
+  font-size: .875rem;
+  padding-bottom: 0.1rem;
+  padding-left: 0.1rem;
+  padding-top: 0.1rem;
+  padding-right: 0.1rem;
+  font-weight: bold;
+}
 .logo {
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
   background-color: $light;

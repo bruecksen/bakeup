@@ -27,6 +27,20 @@ class CustomerOrderForm(forms.Form):
             raise forms.ValidationError("Sorry, aber es sind keine Bestellungen für diesen Tag möglich")
 
         return cleaned_data
+
+
+class CustomerOrderBatchForm(forms.Form):
+    product = forms.CharField(widget=forms.HiddenInput)
+    quantity = forms.IntegerField(label="Quantity")
+
+    def __init__(self, *args, **kwargs):
+        production_day_product = kwargs.pop('production_day_product')
+        customer = kwargs.pop('customer')
+        super().__init__(*args, **kwargs)
+        if production_day_product.production_plan and production_day_product.production_plan.is_locked:
+            self.fields['product'].disabled = True
+            self.fields['quantity'].disabled = True
+        self.fields['quantity'].widget.attrs.update({'min': 0, 'max': production_day_product.calculate_max_quantity()})
     
 
 class CustomerProductionDayOrderForm(forms.Form):
@@ -37,24 +51,23 @@ class CustomerProductionDayOrderForm(forms.Form):
         self.customer = kwargs.pop('customer', None)
         super().__init__(*args, **kwargs)
         for production_day_product in self.production_day_products:
-            self.fields[f'production_day_{production_day_product.product.pk}-product'] = forms.IntegerField(widget=forms.HiddenInput)
-            self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label="Quantity")
+            if not production_day_product.is_locked and not production_day_product.is_sold_out:
+                self.fields[f'production_day_{production_day_product.product.pk}-product'] = forms.IntegerField(widget=forms.HiddenInput)
+                self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label="Quantity")
     
     def clean(self):
         cleaned_data = self.cleaned_data
         self.product_quantity = {}
         for production_day_product in self.production_day_products:
-            product = cleaned_data[f'production_day_{production_day_product.product.pk}-product']
-            quantity = cleaned_data[f'production_day_{production_day_product.product.pk}-quantity']
-            if not product == production_day_product.product.pk:
-                raise forms.ValidationError("Wrong product")
-            if quantity > production_day_product.calculate_max_quantity(self.customer):
-                raise forms.ValidationError("Sorry, but we don't have enough products.")
-            self.product_quantity[production_day_product.product] = quantity
+            if cleaned_data.get(f'production_day_{production_day_product.product.pk}-product'):
+                product = cleaned_data[f'production_day_{production_day_product.product.pk}-product']
+                quantity = cleaned_data[f'production_day_{production_day_product.product.pk}-quantity']
+                if not product == production_day_product.product.pk:
+                    raise forms.ValidationError("Wrong product")
+                if quantity > production_day_product.calculate_max_quantity(self.customer):
+                    raise forms.ValidationError("Sorry, but we don't have enough products.")
+                self.product_quantity[production_day_product.product] = quantity
         return cleaned_data
-
-    def get_product_quantity(self):
-        return self.product_quantity
 
 
 class ProductionDayForm(forms.ModelForm):

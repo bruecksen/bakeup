@@ -23,9 +23,9 @@
       <h4 class="alert-heading">Der Shop ist momentan geschlossen!</h4>
       <p class="mb-0">Im moment ist leider kein Backtag geplant, bitte komm bald wieder zurück!</p>
     </div>
-    {% else %}
-      {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
-    {% endif %}
   </div>
 </div>
+{% else %}
+  {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
+{% endif %}
 {% endblock %}

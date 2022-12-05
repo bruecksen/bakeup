@@ -3,9 +3,10 @@ from itertools import product
 from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from django.db.models import Q
-from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView, DeleteView
+from django.views.generic import CreateView, DetailView, ListView, TemplateView, FormView, DeleteView, UpdateView
 from django.shortcuts import get_object_or_404, redirect, render
 
 from django_tables2 import SingleTableView
@@ -86,7 +87,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        created_order = CustomerOrder.create_or_update_customer_order(
+        created_order = CustomerOrder.create_or_update_customer_order_position(
             self.production_day_product.production_day,
             self.request.user.customer,
             self.production_day_product.product,
@@ -108,6 +109,42 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return redirect(self.get_success_url())
 
 
+class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
+    form_class = CustomerProductionDayOrderForm
+    http_method_names = ['post']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['production_day_products'] = self.production_day.production_day_products.filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
+        kwargs['customer'] = self.request.user.customer
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        self.production_day = get_object_or_404(ProductionDay, pk=kwargs['production_day'])
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        created_order = CustomerOrder.create_or_update_customer_order(
+            self.production_day,
+            self.request.user.customer,
+            form.product_quantity,
+        )
+        if created_order is None:
+            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
+        elif created_order:
+            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
+        else:
+            messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return "{}#current-order".format(reverse('shop:shop'))
+
+    def form_invalid(self, form):
+        messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
+        return redirect(self.get_success_url())
+
+
 class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
     model = CustomerOrder
     template_name = 'shop/customer_order_list.html'
@@ -120,7 +157,23 @@ class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
 
 class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
     model = CustomerOrderPosition
-    success_url = reverse_lazy("shop:shop")
+
+    def get_success_url(self):
+        return "{}#current-order".format(reverse('shop:shop'))
+
+
+class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
+    model = CustomerOrderPosition
+    fields = ['quantity']
+
+    def get_success_url(self):
+        return "{}#current-order".format(reverse('shop:shop'))
+
+    def form_valid(self, form):
+        self.object = form.save()
+        if self.object.quantity == 0:
+            self.object.delete()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 
@@ -136,6 +189,14 @@ class ShopView(TemplateView):
             context['production_day_next'] = production_day_next.production_day
             context['production_day_products'] = production_day_next.production_day.production_day_products.filter(is_published=True)
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=production_day_next.production_day).first()
+            production_day_products = []
+            for production_day_product in production_day_next.production_day.production_day_products.filter(is_published=True):
+                form = production_day_product.get_order_form(customer)
+                production_day_products.append({
+                    'production_day_product': production_day_product,
+                    'form': form
+                })
+            context['production_day_products'] = production_day_products
         return context
 
 

@@ -123,13 +123,13 @@ class ProductionDayProduct(CommonBaseClass):
         return self.production_plan and self.production_plan.is_locked
     
     def get_order_form(self, customer=None):
-        from bakeup.shop.forms import CustomerOrderForm
+        from bakeup.shop.forms import CustomerOrderBatchForm
         quantity = 0
         if customer:
             existing_order = CustomerOrderPosition.objects.filter(product=self.product, order__customer=customer, order__production_day=self.production_day)
             if existing_order:
                 quantity = existing_order.first().quantity
-        form = CustomerOrderForm(
+        form = CustomerOrderBatchForm(
             initial={'product': self.product.pk, 'quantity': quantity}, 
             prefix=f'production_day_{self.product.pk}', 
             production_day_product=self,
@@ -224,7 +224,7 @@ class CustomerOrder(CommonBaseClass):
 
 
     @classmethod
-    def create_or_update_customer_order(cls, production_day, customer, product, quantity):
+    def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):
         # TODO order_nr, address, should point of sale really be saved in order?
         customer_order, created_order = CustomerOrder.objects.update_or_create(
             production_day=production_day,
@@ -242,6 +242,35 @@ class CustomerOrder(CommonBaseClass):
             position.quantity = (position.quantity or 0) + quantity
             position.save(update_fields=['quantity'])
             
+        return created_order
+
+
+    @classmethod
+    def create_or_update_customer_order(cls, production_day, customer, products):
+        # TODO order_nr, address, should point of sale really be saved in order?
+        customer_order, created_order = CustomerOrder.objects.update_or_create(
+            production_day=production_day,
+            customer=customer,
+            defaults={
+                'point_of_sale': customer.point_of_sale,
+            }
+        )
+        for product, quantity in products.items():
+            if quantity > 0:
+                position, created = CustomerOrderPosition.objects.get_or_create(
+                    order=customer_order,
+                    product=product,
+                    defaults={
+                        'quantity': quantity
+                    }
+                )
+                if not created:
+                    position.quantity = (position.quantity or 0) + quantity
+                    position.save(update_fields=['quantity'])
+            
+        if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
+            customer_order.delete()
+            return None
         return created_order
 
 
