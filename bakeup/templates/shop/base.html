@@ -45,9 +45,15 @@
     <div class="row align-items-center justify-content-center">
       <div class="col-3">
         <ul class="list-unstyled">
+          {% if request.tenant.clientinfo.contact_email %}
           <li class="py-1"><i class="far fa-envelope fa-fw"></i> <a href="mailto:{{ request.tenant.clientinfo.contact_email }}" class="text-light">{{ request.tenant.clientinfo.contact_email }}</a></li>
+          {% endif %}
+          {% if request.tenant.clientinfo.contact_phone %}
           <li class="py-1"><i class="fas fa-phone fa-fw"></i> <a href="tel:{{ request.tenant.clientinfo.contact_phone }}" class="text-light">{{ request.tenant.clientinfo.contact_phone }}</a></li>
+          {% endif %}
+          {% if request.tenant.clientinfo.contact_instagram %}
           <li class="py-1"><i class="fab fa-instagram fa-fw"></i> <a href="https://www.instagram.com/{{ request.tenant.clientinfo.contact_instagram }}/" target="_blank" class="text-light">{{ request.tenant.clientinfo.contact_instagram }}</a></li>
+          {% endif %}
         </ul>
 
       </div>
