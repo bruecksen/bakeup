@@ -50,6 +50,7 @@
                         </div>
                     </div>
                     <hr>
+                    <p>Bei deiner Bestellung ist die Abholstelle: <strong>{{ current_customer_order.point_of_sale }}</strong> hinterlegt.</p>
                     {% empty %}
                     <p>Bisher wurde noch kein Brot für den aktuellen Backtag bestellt.</p>
                     {% endfor %}
