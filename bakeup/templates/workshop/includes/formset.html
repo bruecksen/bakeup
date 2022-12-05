@@ -32,5 +32,9 @@
         if (maxQuantity) {
             maxQuantity.value = null;
         }
+        var published = document.getElementById(`id_form-${formNum}-is_published`);
+        if (published) {
+            published.checked = false;
+        }
     }
   </script>
