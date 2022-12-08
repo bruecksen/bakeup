@@ -14,7 +14,7 @@ class CustomerInline(admin.StackedInline):
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'date_joined')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'date_joined', 'is_staff')
     inlines = (CustomerInline,)
 
 
