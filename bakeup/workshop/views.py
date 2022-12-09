@@ -102,7 +102,7 @@ def product_add_inline_view(request, pk):
                         is_buyable=form.cleaned_data.get('is_buyable', False),
                         is_composable=form.cleaned_data.get('is_composable', False),
                     )
-                    quantity = 1
+                    quantity =  form.cleaned_data.get('weight', 1000) / product.weight
                 if product and quantity:
                     parent_product.add_child(product, quantity)
         else:
