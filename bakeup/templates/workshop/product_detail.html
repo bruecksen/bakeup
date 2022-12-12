@@ -77,7 +77,7 @@
     {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
   </div>
 </div>
-<div class="card p-3 mt-4">
+<div class="card p-3 mt-4 mb-4">
   <div class="row">
     <div class="col-8">
       <h2>Instructions</h2>
@@ -89,7 +89,11 @@
   <hr>
   <div class="row">
     <div class="col">
+      {% if object.instructions %}
       <p>{{ object.instructions.instruction|linebreaksbr }}</p>
+      {% else %}
+      <p>No instructions yet!</p>
+      {% endif %}
     </div>
   </div>
 </div>
