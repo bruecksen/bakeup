@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView
+from bakeup.workshop.views import CategoryListView, CustomerOrderDeleteView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, ProductionPlanUpdateView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
 
 
 app_name = "workshop"
@@ -13,6 +13,7 @@ urlpatterns = [
     path("products/<int:pk>/normalize/", view=product_normalize_view, name="product-normalize"),
     path("products/<int:pk>/", view=ProductDetailView.as_view(), name="product-detail"),
     path("products/<int:pk>/add/", view=product_add_inline_view, name="product-add-inline"),
+    path("products/<int:pk>/instructions/", view=CreateUpdateInstructionsView.as_view(), name='product-instructions-update'),
     path("products/", view=ProductListView.as_view(), name="product-list"),
     path("recipes/<int:pk>/", view=RecipeDetailView.as_view(), name="recipe-detail"),
     path("recipes/", view=RecipeListView.as_view(), name="recipe-list"),

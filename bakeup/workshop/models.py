@@ -230,8 +230,8 @@ class Product(CommonBaseClass):
 # Assembly
 class Instruction(CommonBaseClass):
     product = models.OneToOneField('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
-    instruction = models.TextField()
-    duration = models.PositiveSmallIntegerField(help_text="duration in seconds")
+    instruction = models.TextField(blank=True, null=True)
+    duration = models.PositiveSmallIntegerField(help_text="duration in seconds", blank=True, null=True)
 
 """ 
 Add this in verison 0.2

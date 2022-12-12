@@ -23,7 +23,7 @@ from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
 
@@ -578,3 +578,17 @@ class CustomerOrderDeleteView(DeleteView):
         return reverse(
             'workshop:order-list',
         )
+
+
+class CreateUpdateInstructionsView(UpdateView):
+    model = Instruction
+    fields = ['instruction']
+
+    def get_object(self, queryset=None):
+        obj, created = Instruction.objects.get_or_create(
+            product__pk=self.kwargs['pk']
+            , defaults={'product': Product.objects.get(pk=self.kwargs['pk'])})
+        return obj
+
+    def get_success_url(self):
+        return reverse('workshop:product-detail', kwargs={'pk': self.kwargs['pk']})
