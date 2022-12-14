@@ -99,17 +99,18 @@
                             </div>
                         </div>
                         {% else %}
-                            {% if production_day_product.production_day_product.is_sold_out %}
-                            <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
-                            {% elif production_day_product.production_day_product.is_locked %}
+                            {% if production_day_product.production_day_product.is_locked %}
                             <p class="small mb-0">Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
+                            {% elif production_day_product.production_day_product.is_sold_out %}
+                            <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
                             {% endif %}
                         {% endif %}
 
                     </div>
+                    {% customer_quantity production_day_product.production_day_product as customer_quantity %}
+                    {% if not production_day_product.production_day_product.is_locked or customer_quantity %}
                     <div class="card-footer">
                         <p class="small text-center mb-0">
-                            {% customer_quantity production_day_product.production_day_product as customer_quantity %}
                             {% if customer_quantity %}
                             Du hast dieses Produkt bereits <strong>{{ customer_quantity }} mal</strong> bestellt. <a href="#current-order">Zur Bestellung springen.</a>
                             {% else %}
@@ -117,6 +118,7 @@
                             {% endif %}
                         </p>
                     </div>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
