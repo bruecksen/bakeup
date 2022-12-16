@@ -89,7 +89,7 @@ class CustomerTable(tables.Table):
 
     class Meta:
         model = Customer
-        fields = ("user__email", "user__first_name", "user__last_name", "point_of_sale")
+        fields = ("user__email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale")
 
 
 class CustomerFilter(django_filters.FilterSet):
