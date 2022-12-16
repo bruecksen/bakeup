@@ -328,13 +328,13 @@ class ProductionPlan(CommonBaseClass):
     @classmethod
     def state_display_value(self, value):
         if value == 0:
-            return 'planned'
+            return 'geplant'
         elif value == 1:
-            return 'in production'
+            return 'in produktion'
         elif value == 2:
-            return 'produced'
+            return 'produziert'
         elif value == 3:
-            return 'canceled'
+            return 'abgebrochen'
 
     def get_state_display_value(self):
         return ProductionPlan.state_display_value(self.state)

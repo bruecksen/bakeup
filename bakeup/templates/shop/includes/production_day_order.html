@@ -19,14 +19,14 @@
     <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4 position-absolute-not-mobile pe-0 pe-md-3">
         <div class="card primary-gradient text-white" id="current-order">
             <div class="card-body">
-                <h2 class="card-title hyphens-auto mb-4">Deine aktuelle Bestellung:</h2>
+                <h4 class="card-title hyphens-auto mb-4">Deine aktuelle Bestellung:</h4>
                 <div class="mt-4 mb-4">
                     {% for position in current_customer_order.positions.all %}
-                    <div class="row no-gutters fw-bold">
-                        <div class="col-3">
+                    <div class="row g-0 fw-bold">
+                        <div class="col-2">
                             {% if not position.production_plan or not position.production_plan.is_locked %}
                             {% max_quantity production_day_next position.product as production_day_product_max_quantity %}
-                            <form method="POST" action="{% url "shop:customer-order-position-update" pk=position.pk %}">
+                            <form method="POST" action="{% url "shop:customer-order-position-update" pk=position.pk %}" class="me-2">
                                 {% csrf_token %}
                                 <select class="form-select form-select-xs" name="quantity" onchange="this.form.submit()">
                                     {% for i in production_day_product_max_quantity|times %}
@@ -38,17 +38,21 @@
                             {{ position.quantity}}&nbsp;x
                             {% endif %}
                         </div>
-                        <div class="col-7">
+                        <div class="col">
                             {{ position.product }}
                         </div>
-                        <div class="col-2">
-                            {% if not position.production_plan or not position.production_plan.is_locked %}
+                        {% if not position.production_plan or not position.production_plan.is_locked %}
+                        <div class="col-2 text-end">
                             <form method="POST" action="{% url "shop:customer-order-position-delete" pk=position.pk %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-link btn-sm"><i class="fas fa-trash text-white"></i></button>
                             </form>
-                            {% endif %}
                         </div>
+                        {% else %}
+                        <div class="col text-end">
+                            {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan css_class='bg-light text-dark' %}
+                        </div>
+                        {% endif %}
                     </div>
                     <hr>
                     {% empty %}
