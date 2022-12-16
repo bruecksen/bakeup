@@ -72,7 +72,7 @@ SHARED_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize", # Handy template tags
     "django.forms",
     "crispy_forms",
     "crispy_bootstrap5",

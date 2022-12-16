@@ -2,8 +2,9 @@
 {% load i18n %}
 {% load thumbnail %}
 {% load shop_tags %}
+{% load humanize %}
 
-<h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag: <span class="badge bg-primary">{{ production_day.day_of_sale|date:'d.m.Y' }}</span></h2>
+<h2 class="text-center{% if not production_day.description %} mb-4{% endif %}">Unser nächster Backtag: <span class="badge bg-primary">{{ production_day.day_of_sale|naturalday:'d.m.Y' }}</span></h2>
 {% if production_day.description %}
 <div class="row justify-content-center">
     <div class="col-8">
