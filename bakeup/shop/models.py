@@ -53,6 +53,10 @@ class ProductionDay(CommonBaseClass):
     def is_locked(self):
         return self.customer_orders.exists()
 
+    def update_production_plan(self, filter_product):
+        ProductionPlan.objects.get(product__product_template=filter_product, production_day=self).delete()
+        self.create_production_plans(filter_product)
+
     def create_production_plans(self, filter_product=None):
         if filter_product:
             positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)
@@ -60,9 +64,14 @@ class ProductionDay(CommonBaseClass):
             positions = CustomerOrderPosition.objects.filter(order__production_day=self)
         product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
         for product_quantity in product_quantities:
+            product_template = Product.objects.get(pk=product_quantity.get('product'))
             if product_quantity.get('total_quantity') == 0:
                 continue
-            product = Product.duplicate(Product.objects.get(pk=product_quantity.get('product')))
+            if ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template).exists():
+                if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
+                    self.update_production_plan(product_template)
+                continue
+            product = Product.duplicate(product_template)
             obj = ProductionPlan.objects.create(
                 parent_plan=None,
                 production_day=self,

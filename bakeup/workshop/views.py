@@ -298,19 +298,8 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
-    ProductionPlan.objects.get(product__product_template=product, production_day=production_day).delete()
-    production_day.create_production_plans(product)
+    production_day.update_production_plan(product)
     return HttpResponseRedirect(reverse('workshop:production-plan-list'))
-
-
-class ProductionPlanUpdateView(StaffPermissionsMixin, View):
-    model = ProductionPlan
-    form_class = ProductionPlanForm
-
-
-
-    def get_success_url(self):
-        return reverse('workshop:production-plan-list')
 
 
 @staff_member_required

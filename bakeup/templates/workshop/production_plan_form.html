@@ -1,12 +1,13 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}Add new product{% endblock %}
-{% block page_heading %}Add new production plan{% endblock %}
+{% block title %}Create or update production plans for a production day{% endblock %}
+{% block page_heading %}Create or update production plans for a production day{% endblock %}
 
 {% block page_content %}
   <div class="row">
     <div class="col col-sm-4">
+      <p>This will create all production plans for a production day or if the production plan already exists and its still in planned state will update the plan.</p>
       <form class="form-horizontal" method="post">
         {% csrf_token %}
         {{ form|crispy }}
