@@ -1,0 +1,31 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Customers{% endblock %}
+{% block page_heading %}Customers{% endblock %}
+
+{% block page_heading_action %}
+{% endblock %}
+
+{% block page_content %}
+  {% if filter %}
+  <form action="" method="get" class="form form-inline d-print-none">
+    <div class="row justify-content-end g-2">
+      <div class="col-2">
+        {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-2">
+        {% bootstrap_field filter.form.point_of_sale size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-1">
+        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary w-100" size="sm" %}
+      </div>
+    </div>
+
+  </form>
+  {% endif %}
+  {% render_table table %}
+ 
+  
+{% endblock %}

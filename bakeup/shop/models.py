@@ -182,6 +182,9 @@ class Customer(CommonBaseClass):
     user = models.OneToOneField('users.User', on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True)
 
+    class Meta:
+        ordering = ('user__email', )
+
     def __str__(self):
         return "{}".format(self.user)
 

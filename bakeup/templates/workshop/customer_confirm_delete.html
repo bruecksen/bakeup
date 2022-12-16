@@ -1,0 +1,38 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load utils%}
+
+{% block page_heading %}Delete customer{% endblock page_heading %}
+
+{% block page_content %}
+<div id="content-container" class="container">
+    <div>
+        {% if protected %}
+        <p>The deletion of the selected object: <strong>{{ object }}</strong> would require first the deletion of the protected related objects:</p>
+            <p>
+                <ul>
+                    {% for item in protected %}
+                    <li>{{ item|verbose_name }}: <a href="{% url 'workshop:order-list' %}?customer={{ item.customer.pk }}">{{ item }}</a></li>
+                    {% endfor %}
+                </ul>
+            </p>
+        {% else %}
+            <h3>Are you sure?</h3>
+            <p>You're about to delete the following customer: <strong>{{ object }}</strong>. Please confirm.</p>
+            <p>Related objects that will be deleted as well:
+                <ul>
+                {{ deletable_objects|unordered_list }}
+                </ul>
+            </p>
+            <form action="" method="post">
+                {% csrf_token %}
+                <input class="btn btn-link" 
+                    type="button" value="Cancel" 
+                    onclick="window.history.go(-1);"/>
+                <input class="btn btn-primary" type="submit" value="Confirm"/>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

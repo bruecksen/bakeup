@@ -5,7 +5,7 @@ import django_filters
 from django_tables2.utils import A
 
 from bakeup.workshop.models import Category, Product, ProductionPlan
-from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct
+from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct, Customer
 
 
 class ProductFilter(django_filters.FilterSet):
@@ -57,12 +57,13 @@ class ProductionDayTable(tables.Table):
 
 
 class CustomerOrderFilter(django_filters.FilterSet):
+    customer = django_filters.ModelChoiceFilter(queryset=Customer.objects.all(), empty_label='Select a customer')
     production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label='Select a production day')
     point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
     
     class Meta:
         model = CustomerOrder
-        fields = ('production_day','point_of_sale')
+        fields = ('production_day','point_of_sale', 'customer')
 
 
 class CustomerOrderTable(tables.Table):
@@ -77,6 +78,30 @@ class CustomerOrderTable(tables.Table):
         model = CustomerOrder
         fields = ("planned", "order_nr", "production_day", "customer", "point_of_sale")
 
+
+class CustomerTable(tables.Table):
+    # planned = tables.TemplateColumn('{% if record.is_planned %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}', orderable=False, verbose_name='')
+    # order_nr = tables.Column(verbose_name='#', order_by='pk')
+    # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
+    # customer = tables.TemplateColumn("{{ record.customer }}")
+    # positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+    actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='')
+
+    class Meta:
+        model = Customer
+        fields = ("user__email", "user__first_name", "user__last_name", "point_of_sale")
+
+
+class CustomerFilter(django_filters.FilterSet):
+    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
+    search = django_filters.filters.CharFilter(method='filter_search', label="Search")
+    
+    class Meta:
+        model = Customer
+        fields = ('point_of_sale', )
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(Q(user__first_name__icontains=value) | Q(user__last_name__icontains=value)| Q(user__email__icontains=value))
 
 
 

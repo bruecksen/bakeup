@@ -4,6 +4,7 @@ from typing import OrderedDict
 from django.utils.datastructures import MultiValueDict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError, transaction
+from django.db.models import ProtectedError
 from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
@@ -20,12 +21,14 @@ from django_tables2 import SingleTableMixin, SingleTableView
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
+from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
-from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction
-from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
+from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
+from bakeup.users.models import User
 
 
 class WorkshopView(StaffPermissionsMixin, TemplateView):
@@ -475,6 +478,54 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
         return reverse(
             'workshop:production-day-list',
         )
+
+
+class CustomerListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+    model = Customer
+    table_class = CustomerTable
+    filterset_class = CustomerFilter
+    template_name = 'workshop/customer_list.html'
+
+
+class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
+    model = User
+    template_name = 'workshop/customer_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse(
+            'workshop:customer-list',
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            self.object.delete()
+        except ProtectedError as e:
+            messages.error(request, e)
+        finally:
+            return redirect(success_url)
+
+class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
+    template_name = "workshop/customer_form.html"
+    model =  Customer
+    # fields = ['point_of_sale', 'user__first_name']
+    form_class = CustomerForm
+    success_url = reverse_lazy('workshop:customer-list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['first_name'] = self.object.user.first_name
+        initial['last_name'] = self.object.user.last_name
+        return initial
 
 
 class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView):

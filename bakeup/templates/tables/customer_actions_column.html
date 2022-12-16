@@ -1,0 +1,4 @@
+<div class="btn-group btn-group-sm" role="group" aria-label="Column action links">
+    <a href="{% url 'workshop:customer-update' pk=record.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i></a>
+    <a href="{% url 'workshop:customer-delete' pk=record.user.pk %}" class="btn btn-primary"><i class="fas fa-trash"></i></a>
+</div>

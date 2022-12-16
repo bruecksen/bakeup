@@ -1,0 +1,33 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Update{% else %}{% endif %} Customer{% endblock %}
+{% block page_heading %}
+{% if object %}
+<h1>Update: {{ object }}</h1>
+{% else %}
+<h2>Add new customer</h2>
+{% endif %}
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col col-md-6">
+    <form class="form-horizontal" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <div class="control-group">
+        <div class="controls">
+          <input class="btn btn-link" 
+                   type="button" value="Cancel" 
+                   onclick="window.history.go(-1);"/>
+          <button type="submit" class="btn btn-primary" name="add-new">
+            {% if object %}Update{% else %}Add{% endif %}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+  
+{% endblock %}

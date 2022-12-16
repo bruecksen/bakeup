@@ -17,3 +17,7 @@ def divide(value, arg):
         return int(value) / int(arg)
     except (ValueError, ZeroDivisionError):
         return None
+
+@register.filter
+def verbose_name(instance):
+    return instance._meta.verbose_name

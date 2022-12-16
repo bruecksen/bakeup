@@ -2,7 +2,7 @@ from unicodedata import category
 from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, Textarea, formset_factory
 from django.db.models import Q
 
-from bakeup.shop.models import ProductionDay
+from bakeup.shop.models import ProductionDay, Customer
 
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 
@@ -75,3 +75,12 @@ class ProductKeyFiguresForm(Form):
 
 class SelectProductionDayForm(Form):
     select_production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), empty_label='Select production day')
+
+
+class CustomerForm(ModelForm):
+    first_name = CharField()
+    last_name = CharField()
+
+    class Meta:
+        model = Customer
+        fields = ['point_of_sale', ]
