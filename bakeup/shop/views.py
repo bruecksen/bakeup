@@ -115,7 +115,7 @@ class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
+        kwargs['production_day_products'] = self.production_day.production_day_products.filter(is_published=True).filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
         kwargs['customer'] = self.request.user.customer
         return kwargs
 
@@ -141,6 +141,7 @@ class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
         return "{}#current-order".format(reverse('shop:shop'))
 
     def form_invalid(self, form):
+        raise Exception(form)
         messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
         return redirect(self.get_success_url())
 
