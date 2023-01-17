@@ -520,18 +520,19 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
                 if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
                     continue
                 for customer_order_template in customer.order_templates.filter(quantity__gt=0):
-                    customer_order, created = CustomerOrder.objects.get_or_create(
-                        production_day=self.production_day,
-                        customer=customer,
-                        defaults={'point_of_sale': customer.point_of_sale}
-                    )
-                    position, created = CustomerOrderPosition.objects.get_or_create(
-                        order=customer_order,
-                        product=meta_product_mapping[customer_order_template.product],
-                        defaults={
-                            'quantity': customer_order_template.quantity
-                        }
-                    )
+                    if meta_product_mapping[customer_order_template.product]:
+                        customer_order, created = CustomerOrder.objects.get_or_create(
+                            production_day=self.production_day,
+                            customer=customer,
+                            defaults={'point_of_sale': customer.point_of_sale}
+                        )
+                        position, created = CustomerOrderPosition.objects.get_or_create(
+                            order=customer_order,
+                            product=meta_product_mapping[customer_order_template.product],
+                            defaults={
+                                'quantity': customer_order_template.quantity
+                            }
+                        )
                         
 
         return HttpResponseRedirect(reverse('workshop:production-day-list'))
