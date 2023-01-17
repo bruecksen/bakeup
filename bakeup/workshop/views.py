@@ -519,7 +519,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
             for customer in Customer.objects.exclude(order_templates__isnull=True):
                 if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
                     continue
-                for customer_order_template in customer.order_templates.all():
+                for customer_order_template in customer.order_templates.filter(quantity__gt=0):
                     customer_order, created = CustomerOrder.objects.get_or_create(
                         production_day=self.production_day,
                         customer=customer,
