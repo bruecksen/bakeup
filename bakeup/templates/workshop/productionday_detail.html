@@ -7,10 +7,11 @@
 {% block page_heading %}Production day <small class="text-muted">{{ object }}</small>{% endblock %}
 {% block page_heading_action %}
 <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
-  <a href="{% url 'workshop:production-day-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>Edit</a>
+      <a href="{% url 'workshop:production-day-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>Edit</a>
       <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> Delete</a>
       <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> Show orders</a>
       <a href="{% url 'workshop:production-plan-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
+      <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-retweet"></i> Abos</a>
 </div>
 {% endblock %}
 

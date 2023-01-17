@@ -8,7 +8,7 @@ def staging():
     env.hosts = ['bakeup@server.brueck.io']
     env.path = basepath % projectname
     env.virtualenv_path = basepath % ('bakeupenv')
-    env.push_branch = 'develop'
+    env.push_branch = 'staging'
     env.push_remote = 'origin'
     env.reload_cmd = 'supervisorctl restart {0}'.format(projectname)
     env.after_deploy_url = 'http://bakeup.org'
