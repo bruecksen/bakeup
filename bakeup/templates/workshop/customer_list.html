@@ -6,12 +6,16 @@
 {% block page_heading %}Customers{% endblock %}
 
 {% block page_heading_action %}
+<a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm float-end">Manage customer abos</a>
 {% endblock %}
 
 {% block page_content %}
   {% if filter %}
   <form action="" method="get" class="form form-inline d-print-none">
     <div class="row justify-content-end g-2">
+      <div class="col-2">
+        {% bootstrap_field filter.form.abos size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
       <div class="col-2">
         {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>

@@ -1,6 +1,8 @@
 from unicodedata import category
 from django.forms import BooleanField, CharField, DecimalField, FloatField, IntegerField, ModelChoiceField, ModelForm, Form, Textarea, formset_factory
 from django.db.models import Q
+from django import forms
+from django.conf import settings
 
 from bakeup.shop.models import ProductionDay, Customer
 
@@ -84,3 +86,19 @@ class CustomerForm(ModelForm):
     class Meta:
         model = Customer
         fields = ['point_of_sale', ]
+
+
+class ProductionDayMetaProductForm(forms.Form):
+    meta_product = forms.CharField(widget=forms.HiddenInput)
+    meta_product_name = forms.CharField(disabled=True, required=False)
+    product = forms.ModelChoiceField(queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME))
+
+    def __init__(self, *args, **kwargs):
+        self.production_day = kwargs.pop('production_day')
+        super().__init__(*args, **kwargs)
+        self.fields['product'].queryset = Product.objects.filter(production_days__production_day=self.production_day)
+
+
+ProductionDayMetaProductformSet = formset_factory(
+    form=ProductionDayMetaProductForm, extra=0
+)

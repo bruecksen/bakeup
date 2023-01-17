@@ -71,6 +71,7 @@ class ProductionDay(CommonBaseClass):
                 if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
                     self.update_production_plan(product_template)
                 continue
+            print()
             product = Product.duplicate(product_template)
             obj = ProductionPlan.objects.create(
                 parent_plan=None,
@@ -201,12 +202,12 @@ class Customer(CommonBaseClass):
 # TODO install django-recurrence
 class CustomerOrderTemplate(CommonBaseClass):
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
-    from_date = models.DateField()
-    to_date = models.DateField()
+    from_date = models.DateField(blank=True, null=True)
+    to_date = models.DateField(blank=True, null=True)
     day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK, blank=True, null=True)
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_templates')
     quantity = models.PositiveSmallIntegerField()
-    recurrences = RecurrenceField()
+    recurrences = RecurrenceField(blank=True, null=True)
 
 
 class CustomerOrder(CommonBaseClass):

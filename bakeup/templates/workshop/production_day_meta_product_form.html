@@ -1,0 +1,53 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}Select abo products{% endblock %}
+{% block page_heading %}
+Select abo products for <small class="text-muted">{{ production_day }}</small>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col col-sm-10">
+    <form class="form-horizontal" method="post">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      <div class="card p-3 mb-3 formset-container">
+      {% for form in formset %}
+        <div class="formset">
+          <div class="row">
+            <div class="col">
+              {% if forloop.first %}
+              <label class="form-label fw-bold">Meta product</label>
+              {% endif %}
+              {% bootstrap_field form.meta_product show_label='skip' %}
+              {% bootstrap_field form.meta_product_name show_label='skip' %}
+            </div>
+            <div class="col">
+              {% if forloop.first %}
+                {% bootstrap_field form.product label_class='fw-bold' %}
+              {% else %}
+                {% bootstrap_field form.product show_label='skip' %}
+              {% endif %}
+              </div>
+          </div>
+        </div>
+        {% endfor %}
+        <span id="formset-before-element"></span>
+      </div>
+      <div class="row mt-4">
+        <div class="col">
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-primary float-end" name="add-new" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="bottom" data-bs-content="This will create customer orders for all customers that have an active abo but only if no customer order for this production day exists yet.">
+                Create customer orders
+              </button>
+              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+            </div>
+          </div>
+        </div>  
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

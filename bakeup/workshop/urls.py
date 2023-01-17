@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from bakeup.workshop.views import CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
+from bakeup.workshop.views import ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
 
 
 app_name = "workshop"
@@ -32,12 +32,14 @@ urlpatterns = [
     path("production-days/<int:pk>/", view=ProductionDayDetailView.as_view(), name="production-day-detail"),
     path("production-days/<int:pk>/update/", view=ProductionDayUpdateView.as_view(), name="production-day-update"),
     path("production-days/<int:pk>/delete/", view=ProductionDayDeleteView.as_view(), name="production-day-delete"),
+    path("production-days/<int:pk>/abo/", view=ProductionDayMetaProductView.as_view(), name="production-day-meta-product"),
     path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
     path("orders/add/", view=CustomerOrderAddView.as_view(), name="order-add"),
     path("orders/add/<int:pk>/", view=CustomerOrderAddView.as_view(), name="order-add"),
     path("orders/<int:pk>/delete/", view=CustomerOrderDeleteView.as_view(), name="order-delete"),
     path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="order-update"),
     path("customers/", view=CustomerListView.as_view(), name="customer-list"),
+    path("customers/abo/", view=BatchCustomerTemplateView.as_view(), name="customer-abo"),
     path("customers/<int:pk>/delete/", view=CustomerDeleteView.as_view(), name="customer-delete"),
     path("customers/<int:pk>/update/", view=CustomerUpdateView.as_view(), name="customer-update"),
 ]

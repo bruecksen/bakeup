@@ -15,6 +15,7 @@ from django.views.generic import CreateView, DetailView, ListView, DeleteView, U
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
 from django.utils.timezone import make_aware
+from django.conf import settings
 
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
@@ -22,9 +23,9 @@ from django_tables2 import SingleTableMixin, SingleTableView
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.core.utils import get_deleted_objects
-from bakeup.shop.forms import BatchCustomerOrderFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
-from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm
+from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
@@ -469,6 +470,73 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
         )
 
 
+class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
+    model = CustomerOrder
+    fields = ['customer',]
+    template_name = "workshop/production_day_meta_product_form.html"
+    production_day = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))   
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_formset_initial(self):
+        initial = []
+        for meta_product in Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME):
+            initial_meta_product = {
+                'meta_product': meta_product.pk,
+                'meta_product_name': meta_product,
+                'product': None,
+            }
+            initial.append(initial_meta_product)
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['production_day'] = self.production_day
+        if self.request.POST:
+            context['formset'] = ProductionDayMetaProductformSet(self.request.POST, initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
+        else:
+            context['formset'] = ProductionDayMetaProductformSet(initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
+        return context
+
+    def post(self, request, *args, **kwargs):
+        formset = ProductionDayMetaProductformSet(request.POST, form_kwargs={'production_day': self.production_day})
+        if formset.is_valid():
+            return self.form_valid(formset)
+        else:
+            raise Exception(formset.errors)
+            return self.form_invalid(formset)
+
+    def form_valid(self, formset):
+        with transaction.atomic():
+            meta_product_mapping = {}
+            for form in formset:
+                # raise Exception('here')
+                meta_product = Product.objects.get(pk=form.cleaned_data['meta_product'])
+                product = form.cleaned_data['product']
+                meta_product_mapping[meta_product] = product
+            for customer in Customer.objects.exclude(order_templates__isnull=True):
+                if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
+                    continue
+                for customer_order_template in customer.order_templates.all():
+                    customer_order, created = CustomerOrder.objects.get_or_create(
+                        production_day=self.production_day,
+                        customer=customer,
+                        defaults={'point_of_sale': customer.point_of_sale}
+                    )
+                    position, created = CustomerOrderPosition.objects.get_or_create(
+                        order=customer_order,
+                        product=meta_product_mapping[customer_order_template.product],
+                        defaults={
+                            'quantity': customer_order_template.quantity
+                        }
+                    )
+                        
+
+        return HttpResponseRedirect(reverse('workshop:production-day-list'))
+
+
 class CustomerListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     model = Customer
     table_class = CustomerTable
@@ -632,3 +700,59 @@ class CreateUpdateInstructionsView(UpdateView):
 
     def get_success_url(self):
         return reverse('workshop:product-detail', kwargs={'pk': self.kwargs['pk']})
+
+
+class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
+    model = CustomerOrderTemplate
+    fields = ['customer',]
+    template_name = "workshop/batch_customerordertemplate_form.html"
+
+    def get_formset_initial(self):
+        initial = []
+        for customer in Customer.objects.all():
+            initial_customer = {
+                'customer': customer.pk,
+                'customer_name': "{} ({})".format(customer, customer.user.email)
+            }
+            for order_template in customer.order_templates.all():
+                initial_customer['product_{}'.format(order_template.product.pk)] = order_template.quantity
+            initial.append(initial_customer)
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['formset'] = BatchCustomerOrderTemplateFormSet(self.request.POST, initial=self.get_formset_initial())
+        else:
+            context['formset'] = BatchCustomerOrderTemplateFormSet(initial=self.get_formset_initial())
+        return context
+
+    def post(self, request, *args, **kwargs):
+        formset = BatchCustomerOrderTemplateFormSet(request.POST)
+        if formset.is_valid():
+            return self.form_valid(formset)
+        else:
+            raise Exception(formset.errors)
+            return self.form_invalid(formset)
+
+    def form_valid(self, formset):
+        with transaction.atomic():
+            for form in formset:
+                customer = form.cleaned_data['customer']
+                customer = Customer.objects.get(pk=customer)
+                for product in Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME):
+                    quantity = form.cleaned_data['product_%s' % (product.pk,)]
+                    if not quantity or quantity == 0:
+                        CustomerOrderTemplate.objects.filter(customer=customer, product=product).delete()
+                    else:
+                        position, created = CustomerOrderTemplate.objects.update_or_create(
+                            customer=customer,
+                            product=product,
+                            defaults={
+                                'quantity': quantity
+                            }
+                        )
+        return HttpResponseRedirect(reverse('workshop:customer-list'))
+
+    def form_invalid(self, formset):
+        return self.render_to_response(self.get_context_data())

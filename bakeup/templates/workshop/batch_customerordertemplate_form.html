@@ -1,0 +1,56 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}Manage customer abos{% endblock %}
+{% block page_heading %}
+Manage customer abos
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col col-sm-12">
+    <form class="form-horizontal" method="post">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      <div class="card p-3 mb-3 formset-container">
+      {% for form in formset %}
+        <div class="formset">
+          <div class="row">
+            <div class="col">
+              {% if forloop.first %}
+              <label class="form-label fw-bold">Customer</label>
+              {% endif %}
+              {% bootstrap_field form.customer_name show_label='skip' %}
+              {% bootstrap_field form.customer show_label='skip' %}
+            </div>
+            {% for field in form.get_product_fields %}
+            <div class="col">
+              {% if forloop.parentloop.first %}
+                {% bootstrap_field field label_class='fw-bold' %}
+              {% else %}
+                {% bootstrap_field field show_label='skip' %}
+              {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <span id="formset-before-element"></span>
+      </div>
+      <div class="row mt-4">
+        <div class="col">
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-primary float-end" name="add-new">
+                Save
+              </button>
+              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+            </div>
+          </div>
+          </div>  
+      </div>
+    </form>
+  </div>
+</div>
+{% include "workshop/includes/formset.html" %}
+{% endblock %}

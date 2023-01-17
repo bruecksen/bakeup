@@ -12914,6 +12914,11 @@ body {
   background-color: #FAF6F2;
 }
 
+.popover-body {
+  padding: 6.4px;
+  padding: 0.4rem;
+}
+
 .btn-xs {
   border-radius: 0.2rem;
   font-size: 10.8px;

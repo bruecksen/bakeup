@@ -1,6 +1,9 @@
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.forms import formset_factory, modelformset_factory
+from django.conf import settings
+
+
 from bakeup.users.models import User
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
 
@@ -136,3 +139,28 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ['point_of_sale']
+
+
+
+class BatchCustomerOrderTemplateForm(forms.Form):
+    customer = forms.CharField(widget=forms.HiddenInput)
+    customer_name = forms.CharField(disabled=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.products = Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME)
+        super().__init__(*args, **kwargs)
+        # self.fields['customer'].widget.attrs['disabled'] = True
+        # self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
+        for product in self.products:
+            field_name = 'product_{}'.format(product.pk)
+            self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
+
+    def get_product_fields(self):
+        for field_name in self.fields:
+            if field_name.startswith('product_'):
+                yield self[field_name]
+
+
+BatchCustomerOrderTemplateFormSet = formset_factory(
+    form=BatchCustomerOrderTemplateForm, extra=0
+)

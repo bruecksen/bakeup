@@ -1,0 +1,5 @@
+<ul class="list-unstyled">
+    {% for position in record.order_templates.all %}
+    <li>{{ position.quantity}} x {{ position.product }}</li>    
+    {% endfor %}
+</ul>

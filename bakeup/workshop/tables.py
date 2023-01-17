@@ -3,6 +3,7 @@ from django import forms
 import django_tables2 as tables
 import django_filters
 from django_tables2.utils import A
+from django.conf import settings
 
 from bakeup.workshop.models import Category, Product, ProductionPlan
 from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct, Customer
@@ -84,21 +85,25 @@ class CustomerTable(tables.Table):
     # order_nr = tables.Column(verbose_name='#', order_by='pk')
     # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     # customer = tables.TemplateColumn("{{ record.customer }}")
-    # positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+    abos = tables.TemplateColumn(template_name='tables/customer_abos_column.html', verbose_name='Abos')
     actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='')
 
     class Meta:
         model = Customer
-        fields = ("user__email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale")
+        fields = ("user__email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale", "abos")
 
 
 class CustomerFilter(django_filters.FilterSet):
+    abos = django_filters.ModelChoiceFilter(method='filter_abos', queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME), empty_label='Select abo')
     point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
     search = django_filters.filters.CharFilter(method='filter_search', label="Search")
     
     class Meta:
         model = Customer
         fields = ('point_of_sale', )
+
+    def filter_abos(self, queryset, name, value):
+        return queryset.filter(order_templates__product=value)
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(Q(user__first_name__icontains=value) | Q(user__last_name__icontains=value)| Q(user__email__icontains=value))

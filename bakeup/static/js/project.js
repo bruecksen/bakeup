@@ -1,3 +1,9 @@
+var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+  return new bootstrap.Popover(popoverTriggerEl)
+})
+
+
 let form = document.querySelectorAll(".form-container");
 let container = document.querySelector(".form-add-inline");
 let addAnotherContainer = document.querySelector(".add-another-container");
