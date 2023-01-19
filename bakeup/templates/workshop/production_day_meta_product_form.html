@@ -7,9 +7,9 @@ Select abo products for <small class="text-muted">{{ production_day }}</small>
 {% endblock %}
 
 {% block page_content %}
+<form class="form-horizontal" method="post">
 <div class="row">
-  <div class="col col-sm-10">
-    <form class="form-horizontal" method="post">
+  <div class="col-12 col-sm-8">
       {% csrf_token %}
       {{ formset.management_form }}
       <div class="card p-3 mb-3 formset-container">
@@ -18,7 +18,7 @@ Select abo products for <small class="text-muted">{{ production_day }}</small>
           <div class="row">
             <div class="col">
               {% if forloop.first %}
-              <label class="form-label fw-bold">Meta product</label>
+              <label class="form-label fw-bold">Source Product</label>
               {% endif %}
               {% bootstrap_field form.meta_product show_label='skip' %}
               {% bootstrap_field form.meta_product_name show_label='skip' %}
@@ -47,7 +47,22 @@ Select abo products for <small class="text-muted">{{ production_day }}</small>
           </div>
         </div>  
       </div>
-    </form>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card p-3 mb-3 mt-4 mt-sm-0 small">
+        <h5>Previous product mappings:</h5>
+        {% for mappings in product_mappings %}
+          <ul class="list-unstyled mb-1">
+          <li>{{ mappings.production_day|date:'d.m.Y' }}</li>
+            {% for product_mapping in mappings.product_mappings %}
+            <li>{{ product_mapping.source_product }}-> {{ product_mapping.target_product }}</li>
+            {% endfor %}
+          </ul>
+          {% empty %}
+          <li>No previous product mappings yet.</li>
+          {% endfor %}
+      </div>
+    </div>
   </div>
-</div>
+</form>
 {% endblock %}

@@ -26,7 +26,7 @@ from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
 from bakeup.users.models import User
@@ -498,6 +498,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
             context['formset'] = ProductionDayMetaProductformSet(self.request.POST, initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
         else:
             context['formset'] = ProductionDayMetaProductformSet(initial=self.get_formset_initial(), form_kwargs={'production_day': self.production_day})
+        context['product_mappings'] = ProductMapping.latest_product_mappings(3)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -515,7 +516,16 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
                 # raise Exception('here')
                 meta_product = Product.objects.get(pk=form.cleaned_data['meta_product'])
                 product = form.cleaned_data['product']
-                meta_product_mapping[meta_product] = product
+                product_mapping, created = ProductMapping.objects.get_or_create(
+                    source_product=meta_product,
+                    target_product=product,
+                    production_day=self.production_day
+                )
+                meta_product_mapping[meta_product] = {
+                    'target_product': product,
+                    'product_mapping': product_mapping,
+                    'count': 0,
+                }
             for customer in Customer.objects.exclude(order_templates__isnull=True):
                 if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
                     continue
@@ -528,11 +538,14 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
                         )
                         position, created = CustomerOrderPosition.objects.get_or_create(
                             order=customer_order,
-                            product=meta_product_mapping[customer_order_template.product],
+                            product=meta_product_mapping[customer_order_template.product]['target_product'],
                             defaults={
                                 'quantity': customer_order_template.quantity
                             }
                         )
+                        product_mapping = meta_product_mapping[customer_order_template.product]['product_mapping']
+                        product_mapping.matched_count = (product_mapping.matched_count or 0) + 1
+                        product_mapping.save(update_fields=['matched_count'])
                         
 
         return HttpResponseRedirect(reverse('workshop:production-day-list'))

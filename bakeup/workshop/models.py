@@ -278,6 +278,31 @@ class ProductHierarchy(CommonBaseClass):
             return '-'
 
 
+    
+class ProductMapping(CommonBaseClass):
+    source_product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='source_product')
+    target_product = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='target_product')
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.SET_NULL, blank=True, null=True, related_name='product_mapping')
+    matched_count = models.PositiveSmallIntegerField(blank=True, null=True)
+
+    class Meta:
+        ordering = ('production_day', )
+
+
+    @classmethod
+    def latest_product_mappings(cls, count):
+        latest_mappings = []
+        for production_day in ProductMapping.objects.all().values('production_day', 'production_day__day_of_sale').distinct()[:count]:
+            product_mappings = []
+            for product_mapping in ProductMapping.objects.filter(production_day=production_day.get('production_day')):
+                product_mappings.append(product_mapping)
+            latest_mappings.append({
+                'production_day': production_day.get('production_day__day_of_sale'),
+                'product_mappings': product_mappings
+            })
+        return latest_mappings
+
+
 class ProductionPlan(CommonBaseClass):
     class State(models.IntegerChoices):
         PLANNED = 0
