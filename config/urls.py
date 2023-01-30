@@ -13,6 +13,8 @@ from bakeup.users.views import LoginView, TokenLoginView
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+    path("impressum/", TemplateView.as_view(template_name="pages/impressum.html"), name="impressum"),
+    path("datenschutz/", TemplateView.as_view(template_name="pages/datenschutz.html"), name="datenschutz"),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
