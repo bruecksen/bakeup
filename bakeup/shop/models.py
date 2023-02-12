@@ -57,6 +57,10 @@ class ProductionDay(CommonBaseClass):
         ProductionPlan.objects.get(product__product_template=filter_product, production_day=self).delete()
         self.create_production_plans(filter_product)
 
+    @property
+    def total_ordered_quantity(self):
+        return CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(Sum('quantity'))['quantity__sum']
+
     def create_production_plans(self, filter_product=None):
         if filter_product:
             positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)

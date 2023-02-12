@@ -44,7 +44,7 @@
       </tr>
       {% endfor %}
     </table>
-    <p>Total orders: <strong>{{ object.customer_orders.count }}</strong>  <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Update orders</a></p>
+    <p>Total ordered quantity: <strong>{{ object.total_ordered_quantity }}</strong> (from {{ object.customer_orders.count }} orders)  <a href="{% url 'workshop:order-add' pk=object.pk %}" class="btn btn-primary btn-sm float-end">Update orders</a></p>
     <h2 class="mt-4">Product Mapping</h2>
     <table class="table">
       <tr>
