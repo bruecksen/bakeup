@@ -60,6 +60,10 @@ class ProductionDay(CommonBaseClass):
     @property
     def total_ordered_quantity(self):
         return CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(Sum('quantity'))['quantity__sum']
+    
+    @property
+    def total_published_ordered_quantity(self):
+        return CustomerOrderPosition.objects.filter(order__production_day=self, product__in=self.production_day_products.filter(is_published=True).values_list('product', flat=True)).aggregate(Sum('quantity'))['quantity__sum']
 
     def create_production_plans(self, filter_product=None):
         if filter_product:
