@@ -1,5 +1,6 @@
 import collections
 
+from datetime import datetime
 from django.db import models
 from django.db.models import Sum
 from django.db.models import Q
@@ -27,10 +28,17 @@ class ProductionDayTemplate(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates', limit_choices_to={'is_sellable': True})
     quantity = models.PositiveSmallIntegerField()
 
+class ProductionDayQuerySet(models.QuerySet):
+    def upcoming(self):
+        today = datetime.now().date()
+        return self.filter(day_of_sale__gte=today).order_by('day_of_sale')
+
 
 class ProductionDay(CommonBaseClass):
     day_of_sale = models.DateField(unique=True)
     description = models.TextField(blank=True, null=True)
+
+    objects = ProductionDayQuerySet.as_manager()
 
     class Meta:
         ordering = ('-day_of_sale',)

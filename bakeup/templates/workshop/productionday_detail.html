@@ -1,21 +1,31 @@
 {% extends "workshop/base.html" %}
 {% load workshop_tags %}
 {% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
 {% block title %}Production day{% endblock %}
-{% block page_heading %}Production day <small class="text-muted">{{ object }}</small>{% endblock %}
+{% block page_heading %}Production day <form class="d-inline-block" method="post" action="{% url 'workshop:production-day-next' %}">
+  {% csrf_token %}
+  {% bootstrap_field production_day_form.production_day show_label=False size='lg' %}
+</form>
+{% endblock %}
 {% block page_heading_action %}
-<div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
+<a href="{% url 'workshop:production-day-add' %}" class="btn btn-primary btn-sm float-end">Add new production day</a>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col">
+    <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
       <a href="{% url 'workshop:production-day-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>Edit</a>
       <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> Delete</a>
       <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> Show orders</a>
       <a href="{% url 'workshop:production-plan-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
       <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-retweet"></i> Abos</a>
+    </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block page_content %}
 <ul class="nav nav-tabs d-print-none" role="tablist">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">Summary</button>
