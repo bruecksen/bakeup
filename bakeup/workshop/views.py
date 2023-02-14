@@ -11,7 +11,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
+from django.views.generic import RedirectView, CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.db.models import Sum
 from django.utils.timezone import make_aware
@@ -373,6 +373,20 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
         raise Exception(form.errors, formset.errors)
         return self.render_to_response(self.get_context_data())
 
+@staff_member_required
+def production_day_redirect_view(request):
+    if request.method == 'POST':
+        form = ProductionPlanDayForm(request.POST)
+        if form.is_valid():
+            url = reverse('workshop:production-day-detail', kwargs={'pk': form.cleaned_data['production_day'].pk})
+    else:
+        production_day = ProductionDay.objects.upcoming().first()
+        if not production_day:
+            production_day = ProductionDay.objects.all().first()
+        if production_day:
+            url = reverse('workshop:production-day-detail', kwargs={'pk': production_day.pk})
+    return HttpResponseRedirect(url)
+
 
 class ProductionDayListView(StaffPermissionsMixin, SingleTableView):
     model = ProductionDay
@@ -396,6 +410,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 'summary': order_summary,
             })
         context['point_of_sales'] = point_of_sales
+        context['production_day_form'] = ProductionPlanDayForm(initial={'production_day': self.object})
         return context
 
 #
