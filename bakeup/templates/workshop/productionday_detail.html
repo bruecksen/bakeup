@@ -8,9 +8,9 @@
 {% block page_heading %}Production day <form class="d-inline-block" method="post" action="{% url 'workshop:production-day-next' %}">
   {% csrf_token %}
   <div class="input-group">
-    <a class="btn btn-outline-primary{% if not production_day_prev %} disabled{% endif %}" type="button" href="{% if production_day_prev %}{% url 'workshop:production-day-detail' pk=production_day_prev.pk %}{% endif %}">Prev</a>
+    <a class="btn btn-outline-primary{% if not production_day_prev %} disabled{% endif %}" type="button" href="{% if production_day_prev %}{% url 'workshop:production-day-detail' pk=production_day_prev.pk %}{% endif %}"><i class="fas fa-chevron-left"></i></a>
     {{ production_day_form.production_day }}
-    <a class="btn btn-outline-primary{% if not production_day_next %} disabled{% endif %}" type="button" href="{% if production_day_next %}{% url 'workshop:production-day-detail' pk=production_day_next.pk %}{% endif %}">Next</a>
+    <a class="btn btn-outline-primary{% if not production_day_next %} disabled{% endif %}" type="button" href="{% if production_day_next %}{% url 'workshop:production-day-detail' pk=production_day_next.pk %}{% endif %}"><i class="fas fa-chevron-right"></i></a>
   </div>
 </form>
 {% endblock %}
