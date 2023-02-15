@@ -411,6 +411,14 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             })
         context['point_of_sales'] = point_of_sales
         context['production_day_form'] = ProductionPlanDayForm(initial={'production_day': self.object})
+        try:
+            context['production_day_prev'] = ProductionDay.get_previous_by_day_of_sale(self.object)
+        except:
+            pass
+        try:
+            context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.object)
+        except:
+            pass
         return context
 
 #

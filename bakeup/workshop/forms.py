@@ -49,7 +49,7 @@ class ProductHierarchyForm(Form):
 
 
 class ProductionPlanDayForm(Form):
-    production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), widget=forms.Select(attrs={"onchange":'this.form.submit()'}))
+    production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), widget=forms.Select(attrs={"onchange":'this.form.submit()', "class": 'form-select'}))
 
 
 class ProductionPlanForm(ModelForm):
