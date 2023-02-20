@@ -403,10 +403,11 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         context = super().get_context_data(**kwargs)
         point_of_sales = []
         for point_of_sale in PointOfSale.objects.filter(customer_orders__production_day=self.object).distinct():
-            order_summary = CustomerOrderPosition.objects.filter(order__point_of_sale=point_of_sale, order__production_day=self.object).values('product__name').annotate(quantity=Sum('quantity'))
+            positions = CustomerOrderPosition.objects.filter(production_plan__state=ProductionPlan.State.PRODUCED, order__point_of_sale=point_of_sale, order__production_day=self.object)
+            order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
-                'orders': CustomerOrder.objects.filter(point_of_sale=point_of_sale, production_day=self.object),
+                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)),
                 'summary': order_summary,
             })
         context['point_of_sales'] = point_of_sales

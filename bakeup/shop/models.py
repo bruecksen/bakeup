@@ -303,12 +303,19 @@ class CustomerOrder(CommonBaseClass):
         return created_order
 
 
+class CustomerOrderPositionQuerySet(models.QuerySet):
+    def produced(self):
+        return self.filter(production_plan__state=ProductionPlan.State.PRODUCED)
+
+
 
 class CustomerOrderPosition(CommonBaseClass):
     order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     quantity = models.PositiveSmallIntegerField()
+
+    objects = CustomerOrderPositionQuerySet.as_manager()
 
     class Meta:
         ordering = ['product']
