@@ -1,5 +1,6 @@
 import collections
 
+from django.urls import reverse
 from datetime import datetime
 from django.db import models
 from django.db.models import Sum
@@ -45,6 +46,9 @@ class ProductionDay(CommonBaseClass):
 
     def __str__(self):
         return "{}".format(self.day_of_sale.strftime("%d.%m.%Y"))
+
+    def get_absolute_url(self):
+        return reverse('workshop:production-day-detail', kwargs={'pk': self.pk })
 
     def has_products_open_for_order(self):
         return self.production_day_products.filter(production_plan__isnull=True).exists()

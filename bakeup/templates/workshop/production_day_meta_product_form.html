@@ -8,6 +8,7 @@ Select abo products for <small class="text-muted">{{ production_day }}</small>
 
 {% block page_content %}
 <form class="form-horizontal" method="post">
+  <input type="hidden" name="next" value="{{ next }}" />
 <div class="row">
   <div class="col-12 col-sm-8">
       {% csrf_token %}

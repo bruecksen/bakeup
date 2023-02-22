@@ -21,7 +21,7 @@ from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
-from bakeup.core.views import StaffPermissionsMixin
+from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
 from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
@@ -472,7 +472,7 @@ class ProductionDayAddView(ProductionDayMixin, CreateView):
         return None
 
 
-class ProductionDayUpdateView(ProductionDayMixin, UpdateView):
+class ProductionDayUpdateView(NextUrlMixin, ProductionDayMixin, UpdateView):
     template_name = "workshop/productionday_form.html"
     model =  ProductionDay
     form_class = ProductionDayForm
