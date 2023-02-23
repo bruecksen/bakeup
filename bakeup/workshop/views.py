@@ -490,18 +490,20 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
 
     def get_success_url(self):
         return reverse(
-            'workshop:production-day-list',
+            'workshop:production-day-next',
         )
 
 
-class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
+class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateView):
     model = CustomerOrder
     fields = ['customer',]
     template_name = "workshop/production_day_meta_product_form.html"
     production_day = None
+    success_url = reverse_lazy('workshop:production-day-list')
 
     def dispatch(self, request, *args, **kwargs):
-        self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))   
+        self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))
+        self.object = self.production_day
         return super().dispatch(request, *args, **kwargs)
 
     def get_formset_initial(self):
@@ -571,9 +573,8 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, CreateView):
                         product_mapping.matched_count = (product_mapping.matched_count or 0) + 1
                         product_mapping.save(update_fields=['matched_count'])
                         
-
-        return HttpResponseRedirect(reverse('workshop:production-day-list'))
-
+        return HttpResponseRedirect(self.get_success_url())
+    
 
 class CustomerListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     model = Customer
@@ -635,11 +636,12 @@ class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView)
         return context
 
 
-class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
+class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
     model = CustomerOrder
     fields = ['customer',]
     template_name = "workshop/batch_customerorder_form.html"
     production_day = None
+    success_url = reverse_lazy('workshop:production-day-list')
 
     def dispatch(self, request, *args, **kwargs):
         if not 'pk' in kwargs and not request.POST.get('select_production_day', None):
@@ -647,7 +649,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
         if not 'pk' in kwargs:
             return HttpResponseRedirect(reverse('workshop:order-add', kwargs={'pk': request.POST.get('select_production_day')}))
         self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))   
-        self.object = ProductionDay.objects.get(pk=kwargs.get('pk'))   
+        self.object = ProductionDay.objects.get(pk=kwargs.get('pk'))  
         return super().dispatch(request, *args, **kwargs)
 
     def get_formset_initial(self):
@@ -710,7 +712,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, CreateView):
                                 'quantity': quantity
                             }
                         )
-        return HttpResponseRedirect(reverse('workshop:production-day-list'))
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, formset):
         return self.render_to_response(self.get_context_data())

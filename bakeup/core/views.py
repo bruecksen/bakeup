@@ -64,6 +64,14 @@ class NextUrlMixin(GetNextPageMixin):
         if next_page:
             return HttpResponseRedirect(next_page)
         return ret_val
+    
+    def get_success_url(self, *args, **kwargs):
+        ret_val = super().get_success_url(*args, **kwargs)
+        next_page = self.get_next_page()
+        if next_page:
+            return next_page
+        return ret_val
+
 
 
 
