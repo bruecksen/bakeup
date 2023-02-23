@@ -30,8 +30,9 @@
       <div class="col-3">
         {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' success_css_class='' %}
       </div>
-      <div class="col-1">
-        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-secondary" size="sm" %}
+      <div class="col-2">
+        {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
+        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> Reset filters</button>
       </div>
     </div>
   </form>

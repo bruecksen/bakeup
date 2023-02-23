@@ -2,6 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
+from django.urls import reverse_lazy
 
 import environ
 
@@ -155,6 +156,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "persistent_filters.middleware.PersistentFiltersMiddleware",
 ]
 
 # STATIC
@@ -300,3 +302,13 @@ ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 
 META_PRODUCT_CATEGORY_NAME = 'META PRODUCTS'
+
+
+PERSISTENT_FILTERS_URLS = [
+    # You can use name urls
+    reverse_lazy("workshop:product-list"),
+    reverse_lazy("workshop:recipe-list"),
+    reverse_lazy("workshop:production-plan-list"),
+    reverse_lazy("workshop:order-list"),
+    reverse_lazy("workshop:customer-list"),
+]

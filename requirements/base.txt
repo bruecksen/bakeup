@@ -24,3 +24,4 @@ django-tenants
 qrcode
 django-taggit
 django-allauth
+django-persistent-filters==0.21
