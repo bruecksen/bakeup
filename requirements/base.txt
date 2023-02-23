@@ -14,14 +14,14 @@ django-model-utils==4.2.0  # https://github.com/jazzband/django-model-utils
 django-crispy-forms==1.14.0  # https://github.com/django-crispy-forms/django-crispy-forms
 crispy-bootstrap5==0.6  # https://github.com/django-crispy-forms/crispy-bootstrap5
 django-redis==5.2.0  # https://github.com/jazzband/django-redis
-django-recurrence
-django-tables2
-django-treebeard
-sorl-thumbnail
-django_bootstrap5
-django_filter
-django-tenants
-qrcode
-django-taggit
-django-allauth
+django-recurrence==1.11.1
+django-tables2==2.4.1
+django-treebeard==4.5.1
+sorl-thumbnail==12.8.0
+django_bootstrap5==21.3
+django_filter==21.1
+django-tenants==3.4.2
+qrcode==7.3.1
+django-taggit==3.0.0
+django-allauth==0.49.0
 django-persistent-filters==0.21
