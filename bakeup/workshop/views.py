@@ -457,13 +457,18 @@ class ProductionDayMixin(object):
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
-        return HttpResponseRedirect(reverse('workshop:production-day-list'))
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
         return self.render_to_response(self.get_context_data())
+    
+    def get_success_url(self):
+        return reverse(
+            'workshop:production-day-next',
+        )
 
 
-class ProductionDayAddView(ProductionDayMixin, CreateView):
+class ProductionDayAddView(NextUrlMixin, ProductionDayMixin, CreateView):
     template_name = "workshop/productionday_form.html"
     model =  ProductionDay
     form_class = ProductionDayForm
