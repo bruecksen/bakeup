@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('is_archived', models.BooleanField(default=False)),
                 ('name', models.CharField(max_length=255)),
-                ('address', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, to='core.address')),
+                ('address', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, to='contrib.address')),
             ],
             options={
                 'abstract': False,
