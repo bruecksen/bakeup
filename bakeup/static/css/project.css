@@ -12976,9 +12976,6 @@ body {
 }
 
 .logo {
-  -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
-          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
-  background-color: #FAF6F2;
   text-decoration: none;
 }
 .logo.large {

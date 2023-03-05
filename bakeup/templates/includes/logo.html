@@ -1,6 +1,6 @@
 {% load thumbnail %}
 {% if client_logo %}
-<a class="d-flex logo mt-3 mb-3 align-self-center bg-light" href="{% url home_url %}">
+<a class="d-flex logo mt-3 mb-3 align-self-center" href="{% url home_url %}">
     {% if logo_size == 'small' %}
     {% thumbnail client_logo "75" format="PNG" as logo %}
         <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
