@@ -45,7 +45,7 @@
             <tr class="tr-collapsed">
                 <td></td>
                 <td colspan="4">
-                    <div class="collapse d-print-block" id="pb-{{ production_plan.root.pk }}">
+                    <div class="collapse d-print-block{% if expand_all %} show{% endif %}" id="pb-{{ production_plan.root.pk }}">
                         <table class="table table-sm table-borderless">
                             <tbody>
                                 <tr>

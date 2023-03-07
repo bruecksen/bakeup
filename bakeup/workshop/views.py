@@ -225,6 +225,71 @@ class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     template_name = 'workshop/product_list.html'
 
 
+@staff_member_required
+def production_plan_redirect_view(request):
+    if request.method == 'POST':
+        form = ProductionPlanDayForm(request.POST)
+        if form.is_valid():
+            url = reverse('workshop:production-plan-production-day', kwargs={'pk': form.cleaned_data['production_day'].pk})
+    else:
+        production_day = ProductionDay.objects.upcoming().first()
+        if not production_day:
+            production_day = ProductionDay.objects.all().first()
+        if production_day:
+            url = reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk})
+    return HttpResponseRedirect(url)
+
+
+class ProductionPlanOfProductionDay(StaffPermissionsMixin, ListView):
+    model = ProductionPlan
+    context_object_name = 'production_plans'
+    template_name = 'workshop/productionplan_productionday.html'
+    ordering = ('-production_day', 'product__name')
+    production_day = None
+
+    def setup(self, request, *args, **kwargs):
+        self.production_day = ProductionDay.objects.get(pk=kwargs['pk'])
+        return super().setup(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(parent_plan__isnull=True, production_day=self.production_day)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table_categories = OrderedDict()
+        for category in ProductionPlan.objects.filter(parent_plan__isnull=False).order_by('pk').values_list('product__category__name', flat=True):
+            if not category in table_categories:
+                table_categories[category] = {
+                }
+        production_plans = []
+        for production_plan in context['production_plans']:
+            plan_dict = OrderedDict()
+            plan_dict['root'] = production_plan
+            for child in ProductionPlan.objects.filter(
+                Q(parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan=production_plan) | 
+                Q(parent_plan__parent_plan__parent_plan=production_plan) |
+                Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
+                    plan_dict.setdefault(child.product.category.name, [])
+                    plan_dict[child.product.category.name].append(child)
+            production_plans.append(plan_dict)
+        context['table_categories'] = table_categories
+        context['production_plans'] = production_plans
+        context['production_day'] = self.production_day
+        context['production_day_form'] = ProductionPlanDayForm(initial={'production_day': self.production_day})
+        try:
+            context['production_day_prev'] = ProductionDay.get_previous_by_day_of_sale(self.production_day)
+        except:
+            pass
+        try:
+            context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.production_day)
+        except:
+            pass
+        return context
+
+
+
 class ProductionPlanListView(StaffPermissionsMixin, FilterView):
     model = ProductionPlan
     context_object_name = 'production_plans'
@@ -287,12 +352,13 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 
     def form_valid(self, form):
         production_day = form.cleaned_data['production_day']
+        self.production_day = production_day 
         if production_day:
             production_day.create_production_plans()
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('workshop:production-plan-list')
+        return reverse('workshop:production-plan-production-day', kwargs={'pk': self.production_day.pk})
 
 
 @staff_member_required
@@ -300,21 +366,21 @@ def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
     production_day.update_production_plan(product)
-    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
 @staff_member_required
 def production_plan_next_state_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_next_state()
-    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
 
 @staff_member_required
 def production_plan_cancel_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_state(ProductionPlan.State.CANCELED)
-    return HttpResponseRedirect(reverse('workshop:production-plan-list'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -322,7 +388,7 @@ class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
 
 
     def get_success_url(self):
-        return reverse('workshop:production-plan-list')
+        return reverse('workshop:production-plan-next')
 
 
 class CategoryListView(StaffPermissionsMixin, ListView):
