@@ -79,7 +79,7 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
             self.product_parent.add_child(product)
         return HttpResponseRedirect(self.get_success_url())
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def product_add_inline_view(request, pk):
     parent_product = Product.objects.get(pk=pk)
     if request.method == 'POST':
@@ -225,7 +225,7 @@ class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     template_name = 'workshop/product_list.html'
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def production_plan_redirect_view(request):
     if request.method == 'POST':
         form = ProductionPlanDayForm(request.POST)
@@ -361,7 +361,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
         return reverse('workshop:production-plan-production-day', kwargs={'pk': self.production_day.pk})
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
@@ -369,14 +369,14 @@ def production_plan_update(request, production_day, product):
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def production_plan_next_state_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_next_state()
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def production_plan_cancel_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_state(ProductionPlan.State.CANCELED)
@@ -439,7 +439,7 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
         raise Exception(form.errors, formset.errors)
         return self.render_to_response(self.get_context_data())
 
-@staff_member_required
+@staff_member_required(login_url='login')
 def production_day_redirect_view(request):
     if request.method == 'POST':
         form = ProductionPlanDayForm(request.POST)
