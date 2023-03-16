@@ -1,3 +1,4 @@
+import copy
 from itertools import product
 from typing import OrderedDict
 
@@ -612,12 +613,13 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, FormMixin, 
             user_emails = self.object.customer_orders.all()
         emails = []
         for order in user_emails:
-            body = body.replace('{{ user }}', order.customer.user.get_full_name())
-            body = body.replace('{{ client }}', self.request.tenant.name)
-            body = body.replace('{{ order }}', order.get_order_positions_string())
+            user_body = body
+            user_body = user_body.replace('{{ user }}', order.customer.user.get_full_name())
+            user_body = user_body.replace('{{ client }}', self.request.tenant.name)
+            user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
             emails.append((
                 subject,
-                body,
+                user_body,
                 settings.DEFAULT_FROM_EMAIL,
                 [order.customer.user.email]
             ))
