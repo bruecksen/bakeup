@@ -1,6 +1,7 @@
 from itertools import product
 from typing import OrderedDict
 
+from django.core.mail import send_mass_mail
 from django.utils.datastructures import MultiValueDict
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError, transaction
@@ -13,6 +14,7 @@ from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
 from django.views.generic import RedirectView, CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import FormMixin
 from django.db.models import Sum
 from django.utils.timezone import make_aware
 from django.conf import settings
@@ -25,7 +27,7 @@ from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
 from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
-from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping
 from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 
@@ -563,6 +565,66 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
         return reverse(
             'workshop:production-day-next',
         )
+    
+
+class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, FormMixin, DetailView):
+    form_class = ProductionDayReminderForm
+    model = ProductionDay
+    template_name = 'workshop/productionday_reminder.html'
+    success_url = reverse_lazy('workshop:production-day-list')
+
+    def get_initial(self):
+        if hasattr(self.request.tenant, 'clientemailtemplate'):
+            email_template = self.request.tenant.clientemailtemplate
+            initial = {
+                'subject': email_template.production_day_reminder_subject,
+                'body': email_template.production_day_reminder_body,
+            }
+            return initial
+        return super().get_initial()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['emails'] = {}
+        for point_of_sale in PointOfSale.objects.all():
+            context['emails'][point_of_sale.pk] = list(self.object.customer_orders.filter(point_of_sale=point_of_sale).values_list('customer__user__email', flat=True))
+            
+        context['emails']['all'] = list(self.object.customer_orders.all().values_list('customer__user__email', flat=True))
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+
+    def form_valid(self, form):
+        subject = form.cleaned_data['subject']
+        body = form.cleaned_data['body']
+        point_of_sale = form.cleaned_data['point_of_sale']
+        user_emails = None
+        if point_of_sale:
+            user_emails = self.object.customer_orders.filter(point_of_sale=point_of_sale)
+        else:
+            user_emails = self.object.customer_orders.all()
+        emails = []
+        for order in user_emails:
+            body = body.replace('{{ user }}', order.customer.user.get_full_name())
+            body = body.replace('{{ client }}', self.request.tenant.name)
+            body = body.replace('{{ order }}', order.get_order_positions_string())
+            emails.append((
+                subject,
+                body,
+                settings.DEFAULT_FROM_EMAIL,
+                [order.customer.user.email]
+            ))
+        send_mass_mail(emails, fail_silently=False)
+        messages.info(self.request, '{} reminder emails succsessfully sent.'.format(len(emails)))
+        return super().form_valid(form)
+
 
 
 class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateView):

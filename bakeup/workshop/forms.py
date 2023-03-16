@@ -6,6 +6,7 @@ from django.conf import settings
 
 from bakeup.shop.models import ProductionDay, Customer
 
+from bakeup.shop.models import PointOfSale
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 
 
@@ -102,3 +103,9 @@ class ProductionDayMetaProductForm(forms.Form):
 ProductionDayMetaProductformSet = formset_factory(
     form=ProductionDayMetaProductForm, extra=0
 )
+
+
+class ProductionDayReminderForm(forms.Form):
+    point_of_sale = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), required=False, label='Point of sale', help_text="Send emails to orders of specific point of sale, leave empty to send to all point of sales.")
+    subject = forms.CharField(required=True)
+    body = forms.CharField(required=True, widget=forms.Textarea)

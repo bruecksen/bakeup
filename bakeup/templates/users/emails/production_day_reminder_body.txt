@@ -1,0 +1,8 @@
+Hallo {{ user }},
+
+deine Bestellung ist fertig und abholbereit.
+
+{{ order }}
+
+Viele Grüße,
+{{ client }}

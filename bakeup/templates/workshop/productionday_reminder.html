@@ -1,0 +1,84 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+{% load django_bootstrap5 %}
+
+{% block title %}Send production day reminder{% endblock %}
+{% block page_heading %}
+Production day reminder <small class="text-muted">{{ object }}</small>
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col col-md-10">
+    <form class="form-horizontal" method="POST">
+      <input type="hidden" name="next" value="{{ next }}" />
+      {% csrf_token %}
+      <div class="row">
+        <div class="col">
+          {% bootstrap_field form.point_of_sale %}
+        </div>
+        <div class="col">
+          <label for="send-to-emails" class="form-label" id="send-to-emails-label">Send email to:</label>
+          <textarea class="form-control" id="send-to-emails" rows="2" readonly>{{ emails.all|join:', ' }}</textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          {% bootstrap_field form.subject %}
+        </div>
+        <div class="col">
+          <label for="email-subject" class="form-label">Subject:</label>
+          <input class="form-control" id="email-subject" readonly>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          {% bootstrap_field form.body %}
+        </div>
+        <div class="col">
+          <label for="email-body" class="form-label">Send email to:</label>
+          <textarea class="form-control" id="email-body" rows="10" readonly></textarea>
+          <button type="submit" class="btn btn-primary" id="send-emails-button">Send emails</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{{ emails |json_script:"emails" }}
+<script type="text/javascript">
+  var emails = JSON.parse(document.getElementById('emails').textContent);
+  var select = document.getElementById('id_point_of_sale')
+  select.addEventListener('change', function() {
+    if (this.value) {
+      document.getElementById('send-to-emails').value = emails[this.value];
+      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails[this.value].length + " users";
+      document.getElementById('send-emails-button').innerHTML = "Send " + emails[this.value].length + " emails";
+    } else {
+      document.getElementById('send-to-emails').value = emails['all'];
+      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails['all'].length + " users";
+      document.getElementById('send-emails-button').innerHTML = "Send " + emails['all'].length + " emails";
+
+    }
+  });
+  select.dispatchEvent(new Event('change'));
+
+  var source = document.getElementById('id_body');
+  var target = document.getElementById('email-body');
+  
+  source.addEventListener('input', function() {
+    var sourceValue = source.value;
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    target.value = sourceValue;
+  });
+  source.dispatchEvent(new Event('input'));
+  var source2 = document.getElementById('id_subject');
+  var target2 = document.getElementById('email-subject');
+  
+  source2.addEventListener('input', function() {
+    target2.value = source2.value;
+  });
+  source2.dispatchEvent(new Event('input'));
+</script>
+{% endblock %}

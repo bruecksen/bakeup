@@ -1,6 +1,7 @@
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import models
 from django.urls import reverse
+from django.template.loader import render_to_string
 
 from django_tenants.models import TenantMixin, DomainMixin
 
@@ -65,3 +66,12 @@ class ClientInfo(models.Model):
     contact_phone = models.CharField(max_length=255, blank=True, null=True)
     contact_instagram = models.CharField(max_length=255, blank=True, null=True)
     contact_text = models.TextField(blank=True, null=True)
+
+
+def get_production_day_reminder_body():
+    return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}'})
+
+class ClientEmailTemplate(models.Model):
+    client = models.OneToOneField('Client', on_delete=models.CASCADE)
+    production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024)
+    production_day_reminder_body = models.TextField(default=get_production_day_reminder_body)

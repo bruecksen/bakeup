@@ -243,6 +243,9 @@ class CustomerOrder(CommonBaseClass):
 
     def __str__(self):
         return "{} {}".format(self.production_day, self.customer)
+    
+    def get_order_positions_string(self):
+        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
 
     @property
     def is_planned(self):
