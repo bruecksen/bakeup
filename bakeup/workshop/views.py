@@ -614,7 +614,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, FormMixin, 
         emails = []
         for order in user_emails:
             user_body = body
-            user_body = user_body.replace('{{ user }}', order.customer.user.get_full_name())
+            user_body = user_body.replace('{{ user }}', order.customer.user.first_name)
             user_body = user_body.replace('{{ client }}', self.request.tenant.name)
             user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
             emails.append((
