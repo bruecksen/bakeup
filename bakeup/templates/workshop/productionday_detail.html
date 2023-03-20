@@ -61,7 +61,7 @@
       </tr>
       {% endfor %}
     </table>
-    <a href="{% url 'workshop:order-add' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">Update orders</a>
+    <a href="{% url 'workshop:order-add' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">Edit orders</a>
     <p>Customer ordered quantity: <strong>{{ object.total_published_ordered_quantity }}</strong> (from {{ object.customer_orders.count }} orders)  <br>
       Total ordered quantity: <strong>{{ object.total_ordered_quantity }}</strong>
     </p>
