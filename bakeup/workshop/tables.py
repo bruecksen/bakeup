@@ -72,12 +72,14 @@ class CustomerOrderTable(tables.Table):
     order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.TemplateColumn("{{ record.customer }}")
+    email = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='')
 
     class Meta:
         model = CustomerOrder
-        fields = ("planned", "order_nr", "production_day", "customer", "point_of_sale")
+        order_by = 'production_day'
+        fields = ("planned", "order_nr", "production_day", "customer", "email", "point_of_sale")
 
 
 class CustomerTable(tables.Table):
