@@ -50,12 +50,14 @@
     <table class="table">
       <tr>
           <th>Product</th>
-          <th>Ordered qty</th>
-          <th>Max qty</th>
+          <th>Published in shop</th>
+          <th>Ordered qty.</th>
+          <th>Max qty.</th>
       </tr>
       {% for product in object.production_day_products.all %}
       <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
           <td>{{ product.product }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
+          <td>{% if  product.is_published %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}</td>
           <td>{{ product.get_order_quantity }}</td>
           <td>{{ product.max_quantity }}</td>
       </tr>
