@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal
 from itertools import count
 from re import T
@@ -105,6 +106,19 @@ class Product(CommonBaseClass):
             quantity=quantity
         )
         return child
+    
+    def get_full_ingredient_list(self):
+        ingredients = defaultdict(int)
+        def generate_ingredient_list(product, quantity):
+            for child in product.parents.all():
+                if child.is_leaf:
+                    product_weight = quantity * child.weight
+                    ingredients[child.child] = ingredients[child.child] + product_weight
+                else:
+                    generate_ingredient_list(child.child, quantity * child.quantity)
+        generate_ingredient_list(self, 1)
+        ingredients = sorted(ingredients.items(), key=lambda kv: kv[1], reverse=True)
+        return ingredients
 
     def get_ingredient_list(self):
         ingredients = []
