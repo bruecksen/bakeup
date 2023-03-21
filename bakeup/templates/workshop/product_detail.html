@@ -33,7 +33,7 @@
       {% endfor %}
     </ul>
     {% if object.description %}
-    <p>{{ object.description|safe }}</p>
+    <p>{{ object.description|safe|linebreaksbr|urlize }}</p>
     {% endif %}
     </small>
   </div>
