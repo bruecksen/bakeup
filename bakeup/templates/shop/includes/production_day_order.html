@@ -83,13 +83,19 @@
                 {% endthumbnail %}
                 {% endif %}
                 <div class="card-body">
-                    <h2 class="card-title hyphens-auto">{{ production_day_product.production_day_product.product.name }} 
-                        <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
-                    </h2>
-                    <p class="">{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
-                    <p class="small">Zutaten: {% for ingredient in production_day_product.production_day_product.product.get_full_ingredient_list %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
-                    {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
-                </div>
+                        <h2 class="card-title hyphens-auto">{{ production_day_product.production_day_product.product.name }} 
+                            <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
+                        </h2>
+                        <p>{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
+                        {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+                    </div>
+                    <div class="card-footer bg-white">
+                        {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
+                        {% if ingredients %}
+                        <p class="small mb-0"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
                 {% if user.is_authenticated %}
                     <div class="card-footer">
                         {% if not production_day_product.production_day_product.is_sold_out and not production_day_product.production_day_product.is_locked %}
