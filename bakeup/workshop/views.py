@@ -674,19 +674,19 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
         with transaction.atomic():
             meta_product_mapping = {}
             for form in formset:
-                # raise Exception('here')
                 meta_product = Product.objects.get(pk=form.cleaned_data['meta_product'])
                 product = form.cleaned_data['product']
-                product_mapping, created = ProductMapping.objects.get_or_create(
-                    source_product=meta_product,
-                    target_product=product,
-                    production_day=self.production_day
-                )
-                meta_product_mapping[meta_product] = {
-                    'target_product': product,
-                    'product_mapping': product_mapping,
-                    'count': 0,
-                }
+                if product:
+                    product_mapping, created = ProductMapping.objects.get_or_create(
+                        source_product=meta_product,
+                        target_product=product,
+                        production_day=self.production_day
+                    )
+                    meta_product_mapping[meta_product] = {
+                        'target_product': product,
+                        'product_mapping': product_mapping,
+                        'count': 0,
+                    }
             for customer in Customer.objects.exclude(order_templates__isnull=True):
                 if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
                     continue
