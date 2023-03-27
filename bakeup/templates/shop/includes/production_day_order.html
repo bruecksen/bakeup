@@ -87,16 +87,15 @@
                             <span class="small text-muted">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
                         </h2>
                         <p>{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
-                    </div>
-                    
-                    <div class="card-footer bg-white">
+                        <hr class="mr--1 ml--1">
                         {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
                         {% if ingredients %}
                         <p class="small mb-0"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
                         {% endif %}
                         {% endwith %}
-                    </div>
-                    <div class="card-footer bg-white text-end">
+                </div>
+                    
+                    <div class="card-footer bg-white text-end border-top-0">
                         {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
                     </div>
                 {% if user.is_authenticated %}

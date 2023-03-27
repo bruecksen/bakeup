@@ -124,6 +124,13 @@ nav {
   background-image: linear-gradient(to right top, #051937, #0a2250, #1b2a69, #313182, #4c3699);
 }
 
+.mr--1 {
+  margin-right: -1rem;
+}
+.ml--1 {
+  margin-left: -1rem;
+}
+
 @media print {
   tbody {
     display: block;
