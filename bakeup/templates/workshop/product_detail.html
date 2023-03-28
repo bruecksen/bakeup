@@ -74,7 +74,7 @@
 </div>
 <div class="row mb-4">
   <div class="col">
-    {% include "workshop/includes/product_children.html" with children=object.parents.all parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
+    {% include "workshop/includes/product_children.html" with children=object.parents.with_weights parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
   </div>
 </div>
 <div class="card p-3 mt-4 mb-4">

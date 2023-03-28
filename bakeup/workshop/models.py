@@ -12,7 +12,7 @@ from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
 
 from bakeup.core.models import CommonBaseClass
-from bakeup.workshop.managers import ProductManager, ProductionDayProductManager
+from bakeup.workshop.managers import ProductManager, ProductionDayProductManager, ProductHierarchyManager
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 
 
@@ -269,6 +269,8 @@ class ProductHierarchy(CommonBaseClass):
     parent = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='parents')
     child = models.ForeignKey('workshop.Product', on_delete=models.CASCADE, related_name='childs')
     quantity = models.FloatField()
+
+    objects = ProductHierarchyManager()
     
     class Meta:
         ordering = ('pk',)

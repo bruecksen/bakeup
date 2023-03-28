@@ -177,7 +177,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['formset'] = AddProductFormSet(form_kwargs={'parent_products': self.object.childs.all(), 'product': self.object})
+        context['formset'] = AddProductFormSet(form_kwargs={'parent_products': self.object.childs.with_weights(), 'product': self.object})
         if self.object.is_composable:
             context['key_figures_form'] = ProductKeyFiguresForm(initial=self.get_key_figures_inital_data())
         return context

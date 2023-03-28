@@ -40,7 +40,7 @@
           <div class="col-12 m-2 collapse" id="item-{{ child.child.pk }}">
             {% if child.child.parents.all %}
 
-                {% include "workshop/includes/product_children.html" with children=child.child.parents.all parent=child.child is_root=False quantity=child.quantity|multiply:quantity show_baker_percentage=True %}
+                {% include "workshop/includes/product_children.html" with children=child.child.parents.with_weights parent=child.child is_root=False quantity=child.quantity|multiply:quantity show_baker_percentage=True %}
 
               {% endif %}
           </div>
