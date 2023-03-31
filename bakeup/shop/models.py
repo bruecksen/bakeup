@@ -217,6 +217,7 @@ class Customer(CommonBaseClass):
 
     def __str__(self):
         return "{}".format(self.user)
+    
 
 # Abo
 # TODO install django-recurrence

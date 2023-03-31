@@ -100,7 +100,13 @@
       </tr>
       {% for order in point_of_sale.orders %}
       <tr>
-          <td>{{ order.customer }} {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
+          <td>
+            {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
+            {{ order.customer }}
+            {% else %}
+            {{ order.customer.user.short_name }}
+            {% endif %}
+            {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td><ul class="list-unstyled mb-0">
             {% for position in order.positions.produced %}
             <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}</li>

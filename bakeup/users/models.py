@@ -33,6 +33,14 @@ class User(AbstractUser):
     @property
     def is_customer(self):
         return hasattr(self, 'customer')
+    
+    @property
+    def short_name(self):
+        if self.first_name and self.last_name:
+            return "{} {}.".format(self.first_name, self.last_name[0])
+        else:
+            return self.first_name
+
 
 
 class Token(models.Model):
