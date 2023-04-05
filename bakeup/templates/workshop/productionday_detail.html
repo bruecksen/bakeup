@@ -108,8 +108,8 @@
             {% endif %}
             {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td><ul class="list-unstyled mb-0">
-            {% for position in order.positions.produced %}
-            <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}</li>
+            {% for position in order.positions.all %}
+            <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}{% if not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}{% endif %}</li>
             {% endfor %}
           </ul></td>
           <td><i class="fa-regular fa-square fa-lg"></i></td>

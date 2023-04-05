@@ -472,7 +472,13 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         context = super().get_context_data(**kwargs)
         point_of_sales = []
         for point_of_sale in PointOfSale.objects.filter(customer_orders__production_day=self.object).distinct():
-            positions = CustomerOrderPosition.objects.filter(production_plan__state=ProductionPlan.State.PRODUCED, order__point_of_sale=point_of_sale, order__production_day=self.object)
+            positions = CustomerOrderPosition.objects.exclude(
+                Q(production_plan__state=ProductionPlan.State.CANCELED) |
+                Q(production_plan__state__isnull=True)
+            ).filter(
+                order__point_of_sale=point_of_sale, 
+                order__production_day=self.object
+            )
             order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
@@ -760,6 +766,13 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         initial['first_name'] = self.object.user.first_name
         initial['last_name'] = self.object.user.last_name
         return initial
+    
+    def form_valid(self, form):
+        self.object = form.save()
+        self.object.user.first_name = form.cleaned_data['first_name']
+        self.object.user.last_name = form.cleaned_data['last_name']
+        self.object.user.save(update_fields=['first_name', 'last_name'])
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
