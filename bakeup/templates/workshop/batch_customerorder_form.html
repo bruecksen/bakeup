@@ -11,6 +11,22 @@ Update orders for <small class="text-muted">{{ production_day }}</small>
   <div class="col col-sm-12">
     <form class="form-horizontal" method="post">
       {% csrf_token %}
+      <div class="row mb-4">
+        <div class="col">
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-primary float-end" name="add-new">
+                Update orders
+              </button>
+              {% if next %}
+              <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+              {% else %}
+              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+              {% endif %}
+            </div>
+          </div>
+          </div>  
+      </div>
       <input type="hidden" name="next" value="{{ next }}" />
       {{ formset.management_form }}
       <div class="card p-3 mb-3 formset-container">
