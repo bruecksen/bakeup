@@ -704,6 +704,9 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                                 'quantity': customer_order_template.quantity
                             }
                         )
+                        if created:
+                            position.quantity = position.quantity + customer_order_template.quantity
+                            position.save(update_fields=['quantity'])
                         product_mapping = meta_product_mapping[customer_order_template.product]['product_mapping']
                         product_mapping.matched_count = (product_mapping.matched_count or 0) + 1
                         product_mapping.save(update_fields=['matched_count'])
