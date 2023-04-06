@@ -9,7 +9,7 @@ def update_production_plan(sender, instance, **kwargs):
     production_plan = ProductionPlan.objects.filter(
         production_day=instance.order.production_day,
         product__product_template=instance.product
-    )
-    if not instance.production_plan and production_plan.exists():
-        instance.production_plan = production_plan.first()
+    ).first()
+    if not instance.production_plan and production_plan:
+        instance.production_plan = production_plan
         instance.save(update_fields=['production_plan'])

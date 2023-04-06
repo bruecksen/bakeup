@@ -82,6 +82,7 @@ SHARED_APPS = [
     "sorl.thumbnail",
     "django_bootstrap5",
     'taggit',
+    "betterforms",
 ]
 
 TENANT_APPS = [
