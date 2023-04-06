@@ -86,8 +86,8 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     "django.contrib.admin",
-    "bakeup.shop",
-    "bakeup.workshop",
+    "bakeup.shop.apps.ShopConfig",
+    "bakeup.workshop.apps.WorkshopConfig",
     "bakeup.users",
     "bakeup.contrib",
     'allauth',

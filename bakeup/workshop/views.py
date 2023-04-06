@@ -357,7 +357,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
         production_day = form.cleaned_data['production_day']
         self.production_day = production_day 
         if production_day:
-            production_day.create_production_plans()
+            production_day.create_production_plans(create_max_quantity=True)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -368,14 +368,17 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
-    production_day.update_production_plan(product)
+    production_day.update_production_plan(filter_product=product, create_max_quantity=False)
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
 @staff_member_required(login_url='login')
 def production_plan_next_state_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
-    production_plan.set_next_state()
+    if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
+        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+    if ProductionPlan.objects.filter(pk=pk).exists():
+        production_plan.set_next_state()
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
 
@@ -532,6 +535,7 @@ class ProductionDayMixin(object):
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
+            production_day.create_production_plans(create_max_quantity=True)
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):

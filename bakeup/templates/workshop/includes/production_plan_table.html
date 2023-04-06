@@ -4,7 +4,7 @@
 <table class="table">
     <thead class="d-print-none">
         <tr>
-            <th><button id="expand-all" class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" aria-expanded="false">
+            <th><button id="expand-all" class="btn btn-xs btn-outline-primary rounded-circle d-print-none show" type="button" aria-expanded="true">
                 <i class="fa fa-chevron-right fa-fw"></i>
                 <i class="fa fa-chevron-down fa-fw"></i>
               </button></th>
@@ -17,14 +17,14 @@
     {% for production_plan in production_plans %}
         <tbody>
             <tr class="tr-no-border-bottom">
-                <td width="2%">
-                    <button class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="false" aria-controls="collapseExample">
+                <td class="align-middle" width="2%">
+                    <button class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="true" aria-controls="collapseExample">
                         <i class="fa fa-chevron-right fa-fw"></i>
                         <i class="fa fa-chevron-down fa-fw"></i>
                     </button>
                 </td>
-                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
-                <td data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.quantity|floatformat }}x</td>
+                <td class="align-middle" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
+                <td class="align-middle" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.quantity|floatformat }}x</td>
                 <td class="accordion-toggle align-middle"><span class="text-uppercase fw-bold"><a href="{% url 'workshop:product-detail' pk=production_plan.root.product.product_template.pk %}">{{ production_plan.root.product }}</a></span> ({{ production_plan.root.quantity|multiply:production_plan.root.product.weight|floatformat:0 }} g) {% include "workshop/includes/production_plan_state.html" with production_plan=production_plan.root %}</td>
                 <td class="text-end">
                     {% if production_plan.root.is_planned %}

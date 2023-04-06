@@ -78,7 +78,8 @@ let expandAll = document.getElementById('expand-all');
 if (expandAll) {
     document.getElementById('expand-all').onclick = function(){
         //click me function!
-        this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== true);
+        console.log(this.getAttribute('aria-expanded'));
+        this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true');
         this.classList.toggle('show');
         var addShow = false;
         if (this.classList.contains('show')) {
@@ -89,8 +90,10 @@ if (expandAll) {
         children.forEach((c)=>{
             if (addShow) {
                 c.classList.add('show');
+                document.querySelector('[data-bs-target="#' + c.id + '"]').setAttribute('aria-expanded', true);
             } else {
                 c.classList.remove('show');
+                document.querySelector('[data-bs-target="#' + c.id + '"]').setAttribute('aria-expanded', false);
             }
         })
     }
