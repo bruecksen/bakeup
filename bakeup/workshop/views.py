@@ -289,6 +289,8 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, ListView):
             context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.production_day)
         except:
             pass
+        context['has_plans_to_start'] = self.get_queryset().filter(state=ProductionPlan.State.PLANNED).exists()
+        context['has_plans_to_finish'] = self.get_queryset().filter(state=ProductionPlan.State.IN_PRODUCTION).exists()
         return context
 
 
@@ -380,6 +382,36 @@ def production_plan_next_state_view(request, pk):
     if ProductionPlan.objects.filter(pk=pk).exists():
         production_plan.set_next_state()
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
+
+
+@staff_member_required(login_url='login')
+def production_plans_start_view(request, production_day):
+    production_day = ProductionDay.objects.get(pk=production_day)
+    production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
+    for production_plan in production_plans:
+        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+    production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
+    production_plans.update(
+        state=ProductionPlan.State.IN_PRODUCTION
+    )
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-next'))
+
+
+@staff_member_required(login_url='login')
+def production_plans_finish_view(request, production_day):
+    production_day = ProductionDay.objects.get(pk=production_day)
+    production_plans = ProductionPlan.objects.filter(
+        production_day=production_day, 
+        state=ProductionPlan.State.IN_PRODUCTION, 
+        parent_plan__isnull=True)
+    production_plans.update(
+        state=ProductionPlan.State.PRODUCED
+    )
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-next'))
 
 
 @staff_member_required(login_url='login')
@@ -498,6 +530,8 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.object)
         except:
             pass
+        context['has_plans_to_start'] = ProductionPlan.objects.filter(production_day=self.object, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True).exists()
+        context['has_plans_to_finish'] = ProductionPlan.objects.filter(production_day=self.object, state=ProductionPlan.State.IN_PRODUCTION, parent_plan__isnull=True).exists()
         return context
 
 #

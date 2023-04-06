@@ -47,6 +47,9 @@ class ProductionDay(CommonBaseClass):
     def __str__(self):
         return "{}".format(self.day_of_sale.strftime("%d.%m.%Y"))
 
+    def get_production_day_production_plan_url(self):
+        return reverse('workshop:production-plan-production-day', kwargs={'pk': self.pk })
+
     def get_absolute_url(self):
         return reverse('workshop:production-day-detail', kwargs={'pk': self.pk })
 

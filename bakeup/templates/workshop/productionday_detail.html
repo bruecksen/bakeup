@@ -44,9 +44,13 @@
 </ul>
 <div class="tab-content">
   <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-    <h2 class="mt-4">Description</h2>
-    {{ object.description }}
-    <h2 class="mt-4">Order Summary</h2>
+    <p class="mt-4"><strong>Description: </strong> {{ object.description }}</p>
+    
+    <h2 class="mt-4">Summary
+      
+      <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>Start all</a>
+      <a href="{% url 'workshop:production-plans-finish' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>Finish all</a>
+    </h2>
     <table class="table">
       <tr>
           <th>Product</th>
@@ -67,7 +71,7 @@
     <p>Customer ordered quantity: <strong>{{ object.total_published_ordered_quantity }}</strong> (from {{ object.customer_orders.count }} orders)  <br>
       Total ordered quantity: <strong>{{ object.total_ordered_quantity }}</strong>
     </p>
-    <h2 class="mt-4">Product Mapping</h2>
+    <h3 class="mt-4">Product Mapping</h3>
     <table class="table">
       <tr>
           <th>Source Product</th>
