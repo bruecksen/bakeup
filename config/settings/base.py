@@ -3,6 +3,7 @@ Base settings to build other settings files upon.
 """
 from pathlib import Path
 from django.urls import reverse_lazy
+from django.contrib.messages import constants as messages
 
 import environ
 
@@ -82,7 +83,6 @@ SHARED_APPS = [
     "sorl.thumbnail",
     "django_bootstrap5",
     'taggit',
-    "betterforms",
 ]
 
 TENANT_APPS = [
@@ -313,3 +313,7 @@ PERSISTENT_FILTERS_URLS = [
     reverse_lazy("workshop:order-list"),
     reverse_lazy("workshop:customer-list"),
 ]
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}

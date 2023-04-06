@@ -141,7 +141,7 @@ class ProductionDay(CommonBaseClass):
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
-    max_quantity = models.PositiveSmallIntegerField()
+    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False)
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     is_published = models.BooleanField(default=False, verbose_name="Published?")
     

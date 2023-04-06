@@ -539,6 +539,13 @@ class ProductionDayMixin(object):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
+        if form.errors:
+            messages.error(self.request, form.errors)
+        for form_error in formset.errors:
+            if form_error:
+                messages.error(self.request, form_error)
+        if formset.non_form_errors():
+            messages.error(self.request, formset.non_form_errors())
         return self.render_to_response(self.get_context_data())
     
     def get_success_url(self):

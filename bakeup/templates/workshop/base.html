@@ -7,7 +7,7 @@
       <div class="col offset-0 offset-md-3 offset-xl-2 mb-4">
           {% if messages %}
             {% for message in messages %}
-              <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %} mt-2">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>

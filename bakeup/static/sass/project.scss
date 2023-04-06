@@ -4,6 +4,8 @@
 @import 'reset';
 
 
+
+
 html,
 body {
   height: 100%;
@@ -16,7 +18,11 @@ body {
 .popover-body {
   padding: 0.4rem;
 }
-
+.alert {
+  ul, p {
+    margin-bottom: 0;
+  }
+}
 .btn-xs {
   border-radius: 0.2rem;
   font-size: .675rem;

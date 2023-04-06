@@ -1,6 +1,6 @@
+from django.core.exceptions import ValidationError
 from django import forms
-from django.forms.formsets import BaseFormSet
-from django.forms import formset_factory, modelformset_factory
+from django.forms import formset_factory, modelformset_factory, BaseModelFormSet
 from django.conf import settings
 
 
@@ -122,8 +122,25 @@ class BatchCustomerOrderForm(forms.Form):
                 yield self[field_name]
 
 
+class BaseProductionDayProductFormSet(BaseModelFormSet):
+     def clean(self):
+        """Checks that no two articles have the same title."""
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+
+        products = []
+        for form in self.forms:
+            if self.can_delete and self._should_delete_form(form):
+                continue
+            product = form.cleaned_data.get('product')
+            if product in products:
+                raise ValidationError("You can't add the same product twice!")
+            products.append(product)
+
+
 ProductionDayProductFormSet = modelformset_factory(
-    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True
+    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True, formset=BaseProductionDayProductFormSet
 )
 
 CustomerOrderPositionFormSet = modelformset_factory(
