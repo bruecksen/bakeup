@@ -83,7 +83,7 @@ class ProductionDay(CommonBaseClass):
         else:
             positions = CustomerOrderPosition.objects.filter(order__production_day=self)
         product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
-        if create_max_quantity:
+        if not product_quantities and create_max_quantity:
             # fallback to max product quantities of production day
             if filter_product:
                 product_quantities = self.production_day_products.filter(product=filter_product).values('product', total_quantity=F('max_quantity'))
