@@ -48,8 +48,8 @@
     
     <h2 class="mt-4">Summary
       
-      <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>Start all</a>
       <a href="{% url 'workshop:production-plans-finish' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>Finish all</a>
+      <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>Start all</a>
     </h2>
     <table class="table">
       <tr>
