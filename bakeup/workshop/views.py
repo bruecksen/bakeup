@@ -377,9 +377,12 @@ def production_plan_update(request, production_day, product):
 @staff_member_required(login_url='login')
 def production_plan_next_state_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
+    production_day = production_plan.production_day
+    product = production_plan.product.product_template
     if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
         production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
-    if ProductionPlan.objects.filter(pk=pk).exists():
+    if ProductionPlan.objects.filter(production_day=production_day, product__product_template=product).exists():
+        production_plan = ProductionPlan.objects.get(production_day=production_day, product__product_template=product)
         production_plan.set_next_state()
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
@@ -877,7 +880,6 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         if formset.is_valid():
             return self.form_valid(formset)
         else:
-            raise Exception(formset.errors)
             return self.form_invalid(formset)
 
     def form_valid(self, formset):
@@ -911,6 +913,11 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, formset):
+        for form_error in formset.errors:
+            if form_error:
+                messages.error(self.request, form_error)
+        if formset.non_form_errors():
+            messages.error(self.request, formset.non_form_errors())
         return self.render_to_response(self.get_context_data())
 
 

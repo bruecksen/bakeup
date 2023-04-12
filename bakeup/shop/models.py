@@ -115,6 +115,7 @@ class ProductionDay(CommonBaseClass):
             # production_day_product.product = product
             production_day_product.save()
 
+
     def get_ingredient_summary_list(self):
         ingredients = {}
         for production_plan in self.production_plans.filter(parent_plan__isnull=True):
