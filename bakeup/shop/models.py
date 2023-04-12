@@ -153,6 +153,9 @@ class ProductionDayProduct(CommonBaseClass):
         ordering = ('production_day', 'product')
         unique_together = ['production_day', 'product']
 
+    def __str__(self):
+        return "{}: {}".format(self.production_day, self.product)
+
     @property
     def is_sold_out(self):
         return self.calculate_max_quantity() <= 0

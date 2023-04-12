@@ -568,11 +568,14 @@ class ProductionDayMixin(object):
             self.object = production_day
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
-                obj.delete()
+                try:
+                    obj.delete()
+                except ProtectedError as e:
+                    messages.error(self.request, e)
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
-            production_day.create_production_plans(create_max_quantity=True)
+        production_day.create_production_plans(create_max_quantity=True)
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
