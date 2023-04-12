@@ -930,6 +930,16 @@ class CustomerOrderDeleteView(DeleteView):
             'workshop:order-list',
         )
 
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            self.object.delete()
+        except ProtectedError as e:
+            messages.error(request, e)
+        finally:
+            return redirect(success_url)
+
 
 class CreateUpdateInstructionsView(UpdateView):
     model = Instruction
