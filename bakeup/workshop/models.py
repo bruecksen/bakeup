@@ -408,7 +408,7 @@ class ProductionPlan(CommonBaseClass):
     def create_all_child_plans(cls, parent, children, quantity_parent):
         for child in children:
             if not child.is_leaf:
-                print("Productionplan: {}".format(child.child))
+                # print("Productionplan: {}".format(child.child))
                 obj, created = ProductionPlan.objects.update_or_create(
                     parent_plan=parent,
                     production_day=parent.production_day,

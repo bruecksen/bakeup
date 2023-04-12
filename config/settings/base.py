@@ -3,6 +3,7 @@ Base settings to build other settings files upon.
 """
 from pathlib import Path
 from django.urls import reverse_lazy
+from django.contrib.messages import constants as messages
 
 import environ
 
@@ -86,8 +87,8 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     "django.contrib.admin",
-    "bakeup.shop",
-    "bakeup.workshop",
+    "bakeup.shop.apps.ShopConfig",
+    "bakeup.workshop.apps.WorkshopConfig",
     "bakeup.users",
     "bakeup.contrib",
     'allauth',
@@ -312,3 +313,7 @@ PERSISTENT_FILTERS_URLS = [
     reverse_lazy("workshop:order-list"),
     reverse_lazy("workshop:customer-list"),
 ]
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}

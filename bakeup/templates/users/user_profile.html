@@ -10,12 +10,12 @@
   <div class="row">
     <div class="col col-md-4">
       <h4>Stammdaten:</h4>
-      <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
+      <form class="form-horizontal" method="post" id="user_profile">
         {% csrf_token %}
-        {{ form|crispy }}
+        {{ forms.user_profile|crispy }}
         <div class="control-group">
           <div class="controls">
-            <button type="submit" name="update-data" class="btn btn-primary">Aktualisieren</button>
+            <button type="submit" name="action" value="user_profile" class="btn btn-primary">Aktualisieren</button>
           </div>
         </div>
       </form>
@@ -26,12 +26,12 @@
     <div class="col col-md-4">
       <h4 class="mt-4">E-Mail:</h4>
       <p>Aktuell ist <strong>{{ user.email }}</strong> in deinem Account hinterlegt. Du kannst eine neue E-Mail adresse hinzufügen in dem du in dem folgenden Formular die neue E-Mail adresse eingibst und anschließend bestätigst.</p>
-      <form class="form-horizontal" method="post" action="{% url 'shop:user-profile' %}">
+      <form class="form-horizontal" method="post" id="add_email">
         {% csrf_token %}
-        {{ add_email_form|crispy }}
+        {{ forms.add_email|crispy }}
         <div class="control-group">
           <div class="controls">
-            <button name="add-email" type="submit" class="btn btn-primary">E-Mail ändern</button>
+            <button name="action" type="submit" value="add_email" class="btn btn-primary">E-Mail ändern</button>
           </div>
         </div>
         </form>
@@ -43,12 +43,18 @@
     <div class="col col-md-4">
       <h4 class="mt-4">{% trans "Change Password" %}</h4>
 
-      <form method="POST" action="{% url 'account_change_password' %}" class="password_change">
+      <form method="POST" class="password_change" id="change_password">
           {% csrf_token %}
-          {{ change_password_form|crispy }}
-          <button type="submit" name="action" class="btn btn-primary">{% trans "Change Password" %}</button>
+          {{ forms.change_password|crispy }}
+          <button type="submit" name="action" value='change_password' class="btn btn-primary">{% trans "Change Password" %}</button>
           <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
       </form>
     </div>
   </div>
+  <script>
+    {% if first_invalid_form %}
+    var anchor = document.querySelector('#{{ first_invalid_form }}');
+    anchor.scrollIntoView(true);
+    {% endif %}
+  </script>
 {% endblock %}

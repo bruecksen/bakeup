@@ -12,10 +12,12 @@ from allauth.account.adapter import get_adapter
 from allauth.account.views import LoginView as _LoginView, EmailView
 from allauth.account.forms import AddEmailForm, ChangePasswordForm
 from allauth.account import signals
+from allauth.account.utils import logout_on_password_change
 
 from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm
 from bakeup.users.models import Token
 from bakeup.shop.forms import CustomerForm
+from bakeup.contrib.forms import MultiFormsView
 
 User = get_user_model()
 
@@ -85,69 +87,64 @@ user_profile_view = UserProfileView.as_view()
 shop_user_profile_view = ShopUserProfileView.as_view()
 
 
-class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
+    form_classes = {
+        'user_profile': UserProfileForm,
+        'add_email': AddEmailForm,
+        'change_password': ChangePasswordForm,
+    }
 
-    model = User
-    fields = ["first_name", "last_name"]
     success_message = "Daten erfolgreich aktualisiert"
-    form_class = UserProfileForm
     template_name = 'users/user_profile.html'
 
     def get_success_url(self):
         assert (
             self.request.user.is_authenticated
         )  # for mypy to know that the user is authenticated
-        return self.request.user.get_absolute_url()
+        return reverse('users:update')
 
     def get_object(self):
         return self.request.user
 
-    def get_initial(self):
-        initial = super().get_initial()
-        initial.update({
+    def get_user_profile_initial(self):
+        return {
             'first_name': self.request.user.first_name,
             'last_name': self.request.user.last_name,
             'point_of_sale': self.request.user.customer.point_of_sale,
-        })
-        return initial
+        }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['base_template'] = "workshop/base.html"
-        if self.request.method.lower() == 'post':
-            context['add_email_form'] = AddEmailForm(data=self.request.POST, user=self.get_object())
-            context['form'] = UserProfileForm(initial=self.get_initial())
-            context['change_password_form'] = ChangePasswordForm()
-        else:
-            context['add_email_form'] = AddEmailForm()
-            context['change_password_form'] = ChangePasswordForm()
         return context
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if 'add-email' in request.POST:
-            form = AddEmailForm(data=request.POST, user=self.get_object())
-            if form.is_valid():
-                email_address = form.save(self.request)
-                get_adapter(self.request).add_message(
-                    self.request,
-                    messages.INFO,
-                    "account/messages/email_confirmation_sent.txt",
-                    {"email": form.cleaned_data["email"]},
-                )
-                signals.email_added.send(
-                    sender=self.request.user.__class__,
-                    request=self.request,
-                    user=self.request.user,
-                    email_address=email_address,
-                )
-                return HttpResponseRedirect(self.get_success_url())
-            else:
-                return self.render_to_response(self.get_context_data())
-        else:
-            return super().post(request, *args, **kwargs)
+    def get_form_kwargs(self, form_name, bind_form):
+        kwargs = super().get_form_kwargs(form_name, bind_form=bind_form)
+        if form_name in ('add_email', 'change_password'):
+            kwargs.update({
+                'user': self.request.user,
+            })
+        return kwargs
 
-    def form_valid(self, form, *args, **kwargs):
+
+    def add_email_form_valid(self, form, *args, **kwargs):
+        email_address = form.save(self.request)
+        get_adapter(self.request).add_message(
+            self.request,
+            messages.INFO,
+            "account/messages/email_confirmation_sent.txt",
+            {"email": form.cleaned_data["email"]},
+        )
+        signals.email_added.send(
+            sender=self.request.user.__class__,
+            request=self.request,
+            user=self.request.user,
+            email_address=email_address,
+        )
+        return HttpResponseRedirect(self.get_success_url())
+    
+
+    def user_profile_form_valid(self, form, *args, **kwargs):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
         point_of_sale = form.cleaned_data['point_of_sale']
@@ -157,7 +154,22 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, FormView):
         user.save(update_fields=['first_name', 'last_name'])
         user.customer.point_of_sale = point_of_sale
         user.customer.save(update_fields=['point_of_sale'])
-        return super().form_valid(form, *args, **kwargs)
+        return HttpResponseRedirect(self.get_success_url())
+    
+    def change_password_form_valid(self, form, *args, **kwargs):
+        form.save()
+        logout_on_password_change(self.request, form.user)
+        get_adapter(self.request).add_message(
+            self.request,
+            messages.SUCCESS,
+            "account/messages/password_changed.txt",
+        )
+        signals.password_changed.send(
+            sender=self.request.user.__class__,
+            request=self.request,
+            user=self.request.user,
+        )
+        return HttpResponseRedirect(self.get_success_url())
 
 class ShopUserUpdateView(UserUpdateView):
 

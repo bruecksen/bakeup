@@ -9,7 +9,6 @@ from bakeup.users.views import (
 app_name = "users"
 urlpatterns = [
     path("update/", view=user_update_view, name="update"),
-    path("profile/", view=user_profile_view, name="profile"),
     path("token/<slug:token>/", TokenLoginView.as_view(), name='login-token'),
     path("token/", TokenLoginView.as_view(), name='login-token'),
 ]

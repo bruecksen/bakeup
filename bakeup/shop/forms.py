@@ -1,6 +1,6 @@
+from django.core.exceptions import ValidationError
 from django import forms
-from django.forms.formsets import BaseFormSet
-from django.forms import formset_factory, modelformset_factory
+from django.forms import formset_factory, modelformset_factory, BaseModelFormSet, BaseFormSet
 from django.conf import settings
 
 
@@ -102,19 +102,41 @@ class CustomerOrderPositionForm(forms.ModelForm):
         self.fields['product'].queryset = self.production_day_products
 
 
+class BaseBatchCustomerOrderFormFormSet(BaseFormSet):
+     def clean(self):
+        """Checks that orders don't exceed max or quantity in production"""
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        if self.forms:
+            production_day = self.forms[0].production_day
+            products_qty = {}
+            for product in production_day.production_day_products.all():
+                products_qty['product_{}'.format(product.product.pk)] = {
+                    'max_qty': product.max_quantity,
+                    'ordered_qty': 0,
+                    'is_locked': product.production_plan and product.production_plan.is_locked,
+                }
+            for form in self.forms:
+                for product in products_qty.keys():
+                    ordered_qty = form.cleaned_data.get(product)
+                    if ordered_qty:
+                        products_qty[product]['ordered_qty'] = products_qty[product]['ordered_qty'] + ordered_qty
+            if any(v['is_locked'] and v['ordered_qty'] > v['max_qty'] for k, v in products_qty.items()):
+                raise ValidationError("There are more products ordered then max qty")
+
 class BatchCustomerOrderForm(forms.Form):
     customer = forms.CharField(widget=forms.HiddenInput)
     customer_name = forms.CharField(disabled=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.production_day = kwargs.pop('production_day')
-        self.production_day_products = Product.objects.filter(production_days__production_day=self.production_day)
         super().__init__(*args, **kwargs)
         # self.fields['customer'].widget.attrs['disabled'] = True
         # self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
-        for product in self.production_day_products:
-            field_name = 'product_{}'.format(product.pk)
-            self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
+        for product in self.production_day.production_day_products.all():
+            field_name = 'product_{}'.format(product.product.pk)
+            self.fields[field_name] = forms.IntegerField(required=False, label="{} (max. {})".format(product.product.name, product.max_quantity), widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
 
     def get_product_fields(self):
         for field_name in self.fields:
@@ -122,8 +144,25 @@ class BatchCustomerOrderForm(forms.Form):
                 yield self[field_name]
 
 
+class BaseProductionDayProductFormSet(BaseModelFormSet):
+     def clean(self):
+        """Checks that no two articles have the same title."""
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+
+        products = []
+        for form in self.forms:
+            if self.can_delete and self._should_delete_form(form):
+                continue
+            product = form.cleaned_data.get('product')
+            if product in products:
+                raise ValidationError("You can't add the same product twice!")
+            products.append(product)
+
+
 ProductionDayProductFormSet = modelformset_factory(
-    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True
+    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True, formset=BaseProductionDayProductFormSet
 )
 
 CustomerOrderPositionFormSet = modelformset_factory(
@@ -131,7 +170,7 @@ CustomerOrderPositionFormSet = modelformset_factory(
 )
 
 BatchCustomerOrderFormSet = formset_factory(
-    form=BatchCustomerOrderForm, extra=0
+    form=BatchCustomerOrderForm, extra=0,  formset=BaseBatchCustomerOrderFormFormSet, 
 )
 
 class CustomerForm(forms.ModelForm):
@@ -139,7 +178,6 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ['point_of_sale']
-
 
 
 class BatchCustomerOrderTemplateForm(forms.Form):

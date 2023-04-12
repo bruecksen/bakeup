@@ -12919,6 +12919,10 @@ body {
   padding: 0.4rem;
 }
 
+.alert ul, .alert p {
+  margin-bottom: 0;
+}
+
 .btn-xs {
   border-radius: 0.2rem;
   font-size: 10.8px;

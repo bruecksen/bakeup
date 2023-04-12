@@ -46,7 +46,7 @@
             </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'users:profile' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
+                <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Logout</a>

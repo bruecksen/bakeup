@@ -289,6 +289,8 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, ListView):
             context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.production_day)
         except:
             pass
+        context['has_plans_to_start'] = self.get_queryset().filter(state=ProductionPlan.State.PLANNED).exists()
+        context['has_plans_to_finish'] = self.get_queryset().filter(state=ProductionPlan.State.IN_PRODUCTION).exists()
         return context
 
 
@@ -357,7 +359,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
         production_day = form.cleaned_data['production_day']
         self.production_day = production_day 
         if production_day:
-            production_day.create_production_plans()
+            production_day.create_production_plans(create_max_quantity=True)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -368,15 +370,51 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
-    production_day.update_production_plan(product)
+    production_day.update_production_plan(filter_product=product, create_max_quantity=False)
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
 @staff_member_required(login_url='login')
 def production_plan_next_state_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
-    production_plan.set_next_state()
+    production_day = production_plan.production_day
+    product = production_plan.product.product_template
+    if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
+        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+    if ProductionPlan.objects.filter(production_day=production_day, product__product_template=product).exists():
+        production_plan = ProductionPlan.objects.get(production_day=production_day, product__product_template=product)
+        production_plan.set_next_state()
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
+
+
+@staff_member_required(login_url='login')
+def production_plans_start_view(request, production_day):
+    production_day = ProductionDay.objects.get(pk=production_day)
+    production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
+    for production_plan in production_plans:
+        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+    production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
+    production_plans.update(
+        state=ProductionPlan.State.IN_PRODUCTION
+    )
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-next'))
+
+
+@staff_member_required(login_url='login')
+def production_plans_finish_view(request, production_day):
+    production_day = ProductionDay.objects.get(pk=production_day)
+    production_plans = ProductionPlan.objects.filter(
+        production_day=production_day, 
+        state=ProductionPlan.State.IN_PRODUCTION, 
+        parent_plan__isnull=True)
+    production_plans.update(
+        state=ProductionPlan.State.PRODUCED
+    )
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-next'))
 
 
 @staff_member_required(login_url='login')
@@ -495,6 +533,8 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             context['production_day_next'] = ProductionDay.get_next_by_day_of_sale(self.object)
         except:
             pass
+        context['has_plans_to_start'] = ProductionPlan.objects.filter(production_day=self.object, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True).exists()
+        context['has_plans_to_finish'] = ProductionPlan.objects.filter(production_day=self.object, state=ProductionPlan.State.IN_PRODUCTION, parent_plan__isnull=True).exists()
         return context
 
 #
@@ -532,9 +572,17 @@ class ProductionDayMixin(object):
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
+            production_day.create_production_plans(create_max_quantity=True)
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
+        if form.errors:
+            messages.error(self.request, form.errors)
+        for form_error in formset.errors:
+            if form_error:
+                messages.error(self.request, form_error)
+        if formset.non_form_errors():
+            messages.error(self.request, formset.non_form_errors())
         return self.render_to_response(self.get_context_data())
     
     def get_success_url(self):
@@ -832,7 +880,6 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         if formset.is_valid():
             return self.form_valid(formset)
         else:
-            raise Exception(formset.errors)
             return self.form_invalid(formset)
 
     def form_valid(self, formset):
@@ -866,6 +913,11 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, formset):
+        for form_error in formset.errors:
+            if form_error:
+                messages.error(self.request, form_error)
+        if formset.non_form_errors():
+            messages.error(self.request, formset.non_form_errors())
         return self.render_to_response(self.get_context_data())
 
 

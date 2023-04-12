@@ -4,7 +4,7 @@ from django.urls import reverse
 from datetime import datetime
 from django.db import models
 from django.db.models import Sum
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import formats
 
 from recurrence.fields import RecurrenceField
@@ -47,6 +47,9 @@ class ProductionDay(CommonBaseClass):
     def __str__(self):
         return "{}".format(self.day_of_sale.strftime("%d.%m.%Y"))
 
+    def get_production_day_production_plan_url(self):
+        return reverse('workshop:production-plan-production-day', kwargs={'pk': self.pk })
+
     def get_absolute_url(self):
         return reverse('workshop:production-day-detail', kwargs={'pk': self.pk })
 
@@ -65,9 +68,9 @@ class ProductionDay(CommonBaseClass):
     def is_locked(self):
         return self.customer_orders.exists()
 
-    def update_production_plan(self, filter_product):
+    def update_production_plan(self, filter_product, create_max_quantity):
         ProductionPlan.objects.get(product__product_template=filter_product, production_day=self).delete()
-        self.create_production_plans(filter_product)
+        self.create_production_plans(filter_product, create_max_quantity)
 
     @property
     def total_ordered_quantity(self):
@@ -77,21 +80,26 @@ class ProductionDay(CommonBaseClass):
     def total_published_ordered_quantity(self):
         return CustomerOrderPosition.objects.filter(order__production_day=self, product__in=self.production_day_products.filter(is_published=True).values_list('product', flat=True)).aggregate(Sum('quantity'))['quantity__sum']
 
-    def create_production_plans(self, filter_product=None):
+    def create_production_plans(self, filter_product=None, create_max_quantity=False):
         if filter_product:
             positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)
         else:
             positions = CustomerOrderPosition.objects.filter(order__production_day=self)
         product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
+        if not product_quantities and create_max_quantity:
+            # fallback to max product quantities of production day
+            if filter_product:
+                product_quantities = self.production_day_products.filter(product=filter_product).values('product', total_quantity=F('max_quantity'))
+            else:
+                product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
         for product_quantity in product_quantities:
             product_template = Product.objects.get(pk=product_quantity.get('product'))
             if product_quantity.get('total_quantity') == 0:
                 continue
             if ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template).exists():
                 if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
-                    self.update_production_plan(product_template)
+                    self.update_production_plan(product_template, create_max_quantity)
                 continue
-            print()
             product = Product.duplicate(product_template)
             obj = ProductionPlan.objects.create(
                 parent_plan=None,
@@ -106,6 +114,7 @@ class ProductionDay(CommonBaseClass):
             production_day_product.production_plan = obj
             # production_day_product.product = product
             production_day_product.save()
+
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -136,7 +145,7 @@ class ProductionDay(CommonBaseClass):
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
-    max_quantity = models.PositiveSmallIntegerField()
+    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False)
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     is_published = models.BooleanField(default=False, verbose_name="Published?")
     
