@@ -710,7 +710,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                                 'quantity': customer_order_template.quantity
                             }
                         )
-                        if created:
+                        if not created:
                             position.quantity = position.quantity + customer_order_template.quantity
                             position.save(update_fields=['quantity'])
                         product_mapping = meta_product_mapping[customer_order_template.product]['product_mapping']
