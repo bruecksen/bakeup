@@ -100,7 +100,7 @@
       <tr>
           <th width="">Benutzer</th>
           <th width="70%">Produkte</th>
-          <th>Abgeholt</th>
+          <th width="10%" class="text-center">Abgeholt</th>
       </tr>
       {% for order in point_of_sale.orders %}
       <tr>
@@ -116,7 +116,19 @@
             <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}{% if not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}{% endif %}</li>
             {% endfor %}
           </ul></td>
-          <td><i class="fa-regular fa-square fa-lg"></i></td>
+          <td class="text-center">
+            <form method="POST">
+              {% csrf_token %}
+              <input 
+              {% if order.is_picked_up %} checked{% endif %}
+              class="form-check-input form-input-lg" 
+              type="checkbox" 
+              aria-label="is picked up"
+              hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
+              hx-trigger="click"
+              >
+            </form>
+          </td>
       </tr>
       {% endfor %}
     </table>

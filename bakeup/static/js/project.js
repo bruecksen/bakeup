@@ -1,3 +1,16 @@
+$(document).ready(function() {
+    if (location.hash) {
+        $("button[data-bs-target='" + location.hash + "']").tab("show");
+    }
+    $(document.body).on("click", "button[data-bs-toggle='tab']", function(event) {
+        location.hash = this.getAttribute("data-bs-target");
+    });
+});
+$(window).on("popstate", function() {
+    var anchor = location.hash || $("button[data-bs-toggle='tab']").first().attr("data-bs-target");
+    $("button[data-bs-target='" + anchor + "']").tab("show");
+});
+
 var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
 var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
   return new bootstrap.Popover(popoverTriggerEl)
@@ -119,3 +132,4 @@ console.log(plus_btns, minus_btns, qty_inputs);
              })
         }
     })
+

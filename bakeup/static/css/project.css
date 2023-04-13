@@ -12957,6 +12957,11 @@ body {
   }
 }
 
+.form-input-lg {
+  font-size: 24px;
+  font-size: 1.5rem;
+}
+
 .form-select-lg {
   font-size: 24px;
   font-size: 1.5rem;

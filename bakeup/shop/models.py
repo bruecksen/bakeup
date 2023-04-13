@@ -261,6 +261,10 @@ class CustomerOrder(CommonBaseClass):
         return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
 
     @property
+    def is_picked_up(self):
+        return not self.positions.filter(is_picked_up=False).exists()
+
+    @property
     def is_planned(self):
         return self.positions.filter(production_plan__isnull=False).exists()
 
@@ -334,6 +338,10 @@ class CustomerOrderPosition(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     quantity = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    is_picked_up = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
 
     objects = CustomerOrderPositionQuerySet.as_manager()
 

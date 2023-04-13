@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from bakeup.workshop.views import production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
+from bakeup.workshop.views import customer_order_toggle_picked_up_view, production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
 
 
 app_name = "workshop"
@@ -44,6 +44,7 @@ urlpatterns = [
     path("orders/add/<int:pk>/", view=CustomerOrderAddView.as_view(), name="order-add"),
     path("orders/<int:pk>/delete/", view=CustomerOrderDeleteView.as_view(), name="order-delete"),
     path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="order-update"),
+    path("orders/<int:pk>/is-picked-up/", view=customer_order_toggle_picked_up_view, name="order-is-picked-up"),
     path("customers/", view=CustomerListView.as_view(), name="customer-list"),
     path("customers/abo/", view=BatchCustomerTemplateView.as_view(), name="customer-abo"),
     path("customers/<int:pk>/delete/", view=CustomerDeleteView.as_view(), name="customer-delete"),

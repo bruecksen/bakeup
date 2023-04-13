@@ -1,4 +1,4 @@
-{% load static i18n %}<!DOCTYPE html>
+{% load static i18n %}{% load django_htmx %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}" class="h-100">
   <head>
@@ -36,7 +36,10 @@
     {# Placed at the top of the document so pages load faster with defer #}
     {% block javascript %}
       <!-- Bootstrap JS -->
+      <script defer src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
       <script defer src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+      <script defer src="{% static 'js/htmx.min.js' %}" ></script>
+      {% load django_htmx %}
       <!-- Your stuff: Third-party javascript libraries go here -->
 
       <!-- place project specific Javascript in this file -->

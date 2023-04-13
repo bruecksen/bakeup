@@ -8,11 +8,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
+from django.views.decorators.http import require_POST
 from django.views.generic import RedirectView, CreateView, DetailView, ListView, DeleteView, UpdateView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
@@ -422,6 +423,14 @@ def production_plan_cancel_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_state(ProductionPlan.State.CANCELED)
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
+
+
+@require_POST
+@staff_member_required(login_url='login')
+def customer_order_toggle_picked_up_view(request, pk):
+    customer_order = CustomerOrder.objects.get(pk=pk)
+    customer_order.positions.all().update(is_picked_up=not customer_order.is_picked_up)
+    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': customer_order.production_day.pk})))
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
