@@ -68,18 +68,18 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 
 class CustomerOrderTable(tables.Table):
-    planned = tables.TemplateColumn('{% if record.is_planned %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}', orderable=False, verbose_name='')
     order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.TemplateColumn("{{ record.customer }}")
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+    picked_up = tables.TemplateColumn('{% if record.is_picked_up %}<i class="far fa-check-square fa-lg"></i>{% endif %}', verbose_name='Picked up', orderable=False)
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='')
 
     class Meta:
         model = CustomerOrder
         order_by = 'production_day'
-        fields = ("planned", "order_nr", "production_day", "customer", "email", "point_of_sale")
+        fields = ("order_nr", "production_day", "customer", "email", "point_of_sale")
 
 
 class CustomerTable(tables.Table):
