@@ -204,7 +204,7 @@ class PointOfSale(CommonBaseClass):
 
     def __str__(self):
         return self.name
-
+    
 
 # TODO how to handle public holidays, exceptional closing days, etc.
 class PointOfSaleOpeningHour(CommonBaseClass):

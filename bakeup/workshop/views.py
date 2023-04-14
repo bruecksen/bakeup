@@ -21,6 +21,7 @@ from django.db.models import Sum
 from django.utils.timezone import make_aware
 from django.conf import settings
 
+from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
 
@@ -433,6 +434,17 @@ def customer_order_toggle_picked_up_view(request, pk):
     return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': customer_order.production_day.pk})))
 
 
+@staff_member_required(login_url='login')
+def customer_order_all_picked_up_view(request, pk):
+    CustomerOrderPosition.objects.filter(order__production_day=pk).update(is_picked_up=True)
+    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
+
+@staff_member_required(login_url='login')
+def pos_order_all_picked_up_view(request, production_day, pos):
+    CustomerOrderPosition.objects.filter(order__production_day=production_day, order__point_of_sale=pos).update(is_picked_up=True)
+    return HttpResponseClientRefresh()
+
+
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
     model = ProductionPlan
 
@@ -531,7 +543,9 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 'point_of_sale': point_of_sale,
                 'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)),
                 'summary': order_summary,
+                'all_picked_up': not CustomerOrderPosition.objects.filter(order__production_day=self.object, order__point_of_sale=point_of_sale, is_picked_up=False).exists()
             })
+        # raise Exception(point_of_sales)
         context['point_of_sales'] = point_of_sales
         context['production_day_form'] = ProductionPlanDayForm(initial={'production_day': self.object})
         try:

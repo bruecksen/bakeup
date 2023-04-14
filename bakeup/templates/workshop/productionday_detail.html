@@ -91,16 +91,28 @@
     {% for point_of_sale in point_of_sales %}
     <div class="mt-10 d-print-none"></div>
     <h3 class="mt-4 mb-3 border-bottom border-3">{{ point_of_sale.point_of_sale }} <small class="text-muted float-end">{{ object }}</small></h3>
-    <ul class="list-unstyled ml-4">
-      {% for order_summary in point_of_sale.summary %}
-      <li><span class="quantity">{{ order_summary.quantity }} x</span> {{ order_summary.product__name }}</li>
-      {% endfor%}
-    </ul>
+        <ul class="list-unstyled ml-4">
+          {% for order_summary in point_of_sale.summary %}
+          <li><span class="quantity">{{ order_summary.quantity }} x</span> {{ order_summary.product__name }}</li>
+          {% endfor%}
+        </ul>
     <table class="table" style="table-layout: fixed;">
       <tr>
           <th width="">Benutzer</th>
           <th width="70%">Produkte</th>
-          <th width="10%" class="text-center">Abgeholt</th>
+          <th width="10%" class="text-center">
+            Abgeholt
+          </th>
+      </tr>
+      <tr class="d-print-none">
+        <td></td>
+        <td></td>
+        <td class="text-center">
+          <button class="btn btn-link"
+          hx-get="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
+          hx-trigger="click"
+          ><i class="far fa-square-check fa-xl"></i></button>
+        </td>
       </tr>
       {% for order in point_of_sale.orders %}
       <tr>
@@ -120,9 +132,9 @@
             <form method="POST">
               {% csrf_token %}
               <input 
-              {% if order.is_picked_up %} checked{% endif %}
-              class="form-check-input form-input-lg" 
-              type="checkbox" 
+              {% if order.is_picked_up %}checked {% endif %}
+              class="form-check-input form-input-lg"
+              type="checkbox"
               aria-label="is picked up"
               hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
               hx-trigger="click"
