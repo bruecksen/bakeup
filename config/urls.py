@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from django.views.generic import RedirectView
 
 from bakeup.core.views import HomeView
-from bakeup.users.views import LoginView, TokenLoginView
+from bakeup.users.views import LoginView, TokenLoginView, SignupView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -19,6 +19,7 @@ urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
     path("accounts/login/", view=LoginView.as_view(), name="login"),
+    path("accounts/signup/", view=SignupView.as_view(), name="signup"),
     path('accounts/', include('allauth.urls')),
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),

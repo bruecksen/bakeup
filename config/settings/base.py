@@ -304,6 +304,7 @@ ACCOUNT_FORMS = {'signup': 'bakeup.users.forms.SignupForm'}
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+# ACCOUNT_SIGNUP_FORM_CLASS = 'bakeup.users.forms.UserFormMixin'
 
 META_PRODUCT_CATEGORY_NAME = 'META PRODUCTS'
 

@@ -58,7 +58,8 @@ class ClientSetting(models.Model):
     email_port = models.PositiveSmallIntegerField(default=25)
     emaiL_use_tls = models.BooleanField(default=False)
     email_subject_prefix = models.CharField(max_length=1024, blank=True, null=True)
-    show_full_name_delivery_bill = models.BooleanField(default=True) 
+    show_full_name_delivery_bill = models.BooleanField(default=True)
+    extended_user_registration = models.BooleanField(default=False)
     
 
 class ClientInfo(models.Model):

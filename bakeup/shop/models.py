@@ -223,6 +223,11 @@ class PointOfSaleOpeningHour(CommonBaseClass):
 class Customer(CommonBaseClass):
     user = models.OneToOneField('users.User', on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True)
+    street = models.CharField(max_length=100, blank=True, null=True)
+    street_number = models.CharField(max_length=10, blank=True, null=True)
+    postal_code = models.CharField(max_length=10, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    telephone_number = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         ordering = ('user__email', )
