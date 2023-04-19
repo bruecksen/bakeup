@@ -77,6 +77,7 @@ class ClientSetting(models.Model):
     email_subject_prefix = models.CharField(max_length=1024, blank=True, null=True)
     show_full_name_delivery_bill = models.BooleanField(default=True)
     user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)
+    show_remaining_products = models.BooleanField(default=False)
     
 
 class ClientInfo(models.Model):

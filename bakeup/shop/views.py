@@ -211,6 +211,7 @@ class ShopView(TemplateView):
                 })
             context['production_day_products'] = production_day_products
         context['point_of_sales'] = PointOfSale.objects.all()
+        context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         return context
 
 
