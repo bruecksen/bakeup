@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0014_clientsetting_show_full_name_delivery_bill'),
+        ('core', '0015_clientsetting_user_registration_fields'),
     ]
 
     operations = [
