@@ -235,6 +235,10 @@ class Customer(CommonBaseClass):
     def __str__(self):
         return "{}".format(self.user)
     
+    @property
+    def total_ordered_positions(self):
+        return CustomerOrderPosition.objects.filter(order__customer=self).count()
+    
 
 # Abo
 # TODO install django-recurrence
@@ -257,7 +261,7 @@ class CustomerOrder(CommonBaseClass):
 
     class Meta:
         unique_together = ['production_day', 'customer']
-        ordering = ['-production_day', '-created']
+        ordering = ['production_day', '-created']
 
     def __str__(self):
         return "{} {}".format(self.production_day, self.customer)
@@ -279,8 +283,7 @@ class CustomerOrder(CommonBaseClass):
         Return an order number for a given basket
         """
         return 100000 + self.pk
-
-
+    
     @classmethod
     def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):
         # TODO order_nr, address, should point of sale really be saved in order?

@@ -15,7 +15,7 @@ from allauth.account.forms import AddEmailForm, ChangePasswordForm
 from allauth.account import signals
 from allauth.account.utils import logout_on_password_change
 
-from bakeup.users.forms import UserProfileExtendedForm, TokenAuthenticationForm, UserProfileForm, SignupExtendedForm, SignupForm
+from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm,SignupForm
 from bakeup.users.models import Token
 from bakeup.shop.forms import CustomerForm
 from bakeup.contrib.forms import MultiFormsView
@@ -61,12 +61,12 @@ class TokenLoginView(_LoginView):
 
 
 class SignupView(_SignupView):
-
-    def get_form_class(self):
-        if self.request.tenant.clientsetting.extended_user_registration:
-            return SignupExtendedForm
-        else:
-            return SignupForm
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'request': self.request
+        })
+        return kwargs
 
 
 
@@ -108,17 +108,6 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
     success_message = "Daten erfolgreich aktualisiert"
     template_name = 'users/user_profile.html'
 
-    def get_form_classes(self):
-        if self.request.tenant.clientsetting.extended_user_registration:
-            self.form_classes.update({
-                'user_profile': UserProfileExtendedForm
-            })
-        else:
-            self.form_classes.update({
-                'user_profile': UserProfileForm
-            })
-        return self.form_classes
-
     def get_success_url(self):
         assert (
             self.request.user.is_authenticated
@@ -129,23 +118,16 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         return self.request.user
 
     def get_user_profile_initial(self):
-        if self.request.tenant.clientsetting.extended_user_registration:
-            return {
-                'first_name': self.request.user.first_name,
-                'last_name': self.request.user.last_name,
-                'point_of_sale': self.request.user.customer.point_of_sale,
-                'street': self.request.user.customer.street,
-                'street_number': self.request.user.customer.street_number,
-                'postal_code': self.request.user.customer.postal_code,
-                'city': self.request.user.customer.city,
-                'telephone_number': self.request.user.customer.telephone_number,
-            }
-        else:
-            return {
-                'first_name': self.request.user.first_name,
-                'last_name': self.request.user.last_name,
-                'point_of_sale': self.request.user.customer.point_of_sale,
-            }
+        return {
+            'first_name': self.request.user.first_name,
+            'last_name': self.request.user.last_name,
+            'point_of_sale': self.request.user.customer.point_of_sale,
+            'street': self.request.user.customer.street,
+            'street_number': self.request.user.customer.street_number,
+            'postal_code': self.request.user.customer.postal_code,
+            'city': self.request.user.customer.city,
+            'telephone_number': self.request.user.customer.telephone_number,
+        }
     
 
     def get_context_data(self, **kwargs):
@@ -158,6 +140,10 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         if form_name in ('add_email', 'change_password'):
             kwargs.update({
                 'user': self.request.user,
+            })
+        elif form_name == 'user_profile':
+            kwargs.update({
+                'request': self.request
             })
         return kwargs
 
