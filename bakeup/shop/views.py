@@ -14,7 +14,7 @@ from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
 
 
 from bakeup.workshop.models import Product
@@ -177,6 +177,18 @@ class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
+    model = CustomerOrder
+    fields = ['point_of_sale']
+
+    def get_success_url(self):
+        return "{}#current-order".format(reverse('shop:shop'))
+
+    # def form_valid(self, form):
+    #     self.object = form.save()
+    #     return HttpResponseRedirect(self.get_success_url())
+
+
 
 class ShopView(TemplateView):
     template_name = 'shop/shop.html'
@@ -198,6 +210,7 @@ class ShopView(TemplateView):
                     'form': form
                 })
             context['production_day_products'] = production_day_products
+        context['point_of_sales'] = PointOfSale.objects.all()
         return context
 
 
