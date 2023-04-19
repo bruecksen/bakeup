@@ -321,3 +321,37 @@ PERSISTENT_FILTERS_URLS = [
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+USER_REGISTRATION_FORM_FIELDS = {
+    'first_name': {
+        'label': 'Vorname',
+        'required': True,
+    },
+    'last_name': {
+        'label': 'Nachname',
+        'required': True,
+    },
+    'point_of_sale': {
+        'label': 'Abholstation',
+        'required': True,
+    },
+    'street': {
+        'label': 'Straße',
+        'required': True,
+    },
+    'street_number': {
+        'label': 'Hausnummer',
+        'required': True,
+    },
+    'postal_code': {
+        'label': 'PLZ',
+        'required': True,
+    },
+    'city': {
+        'label': 'Stadt',
+        'required': True,
+    },
+    'telephone_number': {
+        'label': 'Telefonnummer',
+        'required': False,
+    },
+}

@@ -1,9 +1,12 @@
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import models
 from django.urls import reverse
+from django.db.models.enums import TextChoices
 from django.template.loader import render_to_string
 
 from django_tenants.models import TenantMixin, DomainMixin
+
+from bakeup.contrib.fields import ChoiceArrayField
 
 
 class CommonBaseClass(models.Model):
@@ -49,6 +52,20 @@ class Domain(DomainMixin):
     pass
 
 
+class RegistrationFieldOption(TextChoices):
+    FIRST_NAME = 'first_name', "First name"
+    LAST_NAME = 'last_name', "Last name"
+    POINT_OF_SALE = 'point_of_sale', "Point of sale"
+    STREET = 'street', "Street"
+    STREET_NUMBER = 'street_number', "Street number"
+    POSTAL_CODE = 'postal_code', "Postal code"
+    CITY = 'city', "City"
+    TELEPHONE_NUMBER = 'telephone_number', "Telephone number"
+
+def default_registration_fields():
+    return ['first_name', 'last_name', 'point_of_sale']
+
+
 class ClientSetting(models.Model):
     client = models.OneToOneField('Client', on_delete=models.CASCADE)
     default_from_email = models.EmailField(blank=True, null=True)
@@ -59,7 +76,7 @@ class ClientSetting(models.Model):
     emaiL_use_tls = models.BooleanField(default=False)
     email_subject_prefix = models.CharField(max_length=1024, blank=True, null=True)
     show_full_name_delivery_bill = models.BooleanField(default=True)
-    extended_user_registration = models.BooleanField(default=False)
+    user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)
     
 
 class ClientInfo(models.Model):

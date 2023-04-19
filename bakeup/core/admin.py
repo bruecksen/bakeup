@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.forms.widgets import CheckboxSelectMultiple
 
 from django_tenants.admin import TenantAdminMixin
 
+from bakeup.contrib.fields import ChoiceArrayField
 from bakeup.core.models import Client, Domain, ClientSetting, ClientInfo, ClientEmailTemplate
 
 # Register your models here.
@@ -16,6 +18,9 @@ class ClientEmailTemplateInline(admin.StackedInline):
 
 class ClientSettingInline(admin.StackedInline):
     model = ClientSetting
+    formfield_overrides = {
+        ChoiceArrayField: {'widget': CheckboxSelectMultiple}
+    }
 
 
 class ClientInfoInline(admin.StackedInline):
