@@ -198,6 +198,7 @@ class ShopView(TemplateView):
                     'form': form
                 })
             context['production_day_products'] = production_day_products
+        context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         return context
 
 
