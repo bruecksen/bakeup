@@ -58,7 +58,18 @@
                     {% empty %}
                     <p>Bisher wurde noch kein Brot für den aktuellen Backtag bestellt.</p>
                     {% endfor %}
-                    <p>Bei deiner Bestellung ist die Abholstelle: <strong>{{ current_customer_order.point_of_sale }}</strong> hinterlegt.</p>
+                    {% if point_of_sales.count > 1 %}
+                    <form method="POST" action="{% url "shop:customer-order-update" pk=current_customer_order.pk %}">
+                        {% csrf_token %}
+                    <p class="small">Bei deiner Bestellung ist die Abholstelle: <select class="form-select form-select-xs d-inline w-auto pe-3" name="point_of_sale" onchange="this.form.submit()">
+                        {% for point_of_sale in point_of_sales %}
+                        <option value="{{ point_of_sale.pk }}" {% if current_customer_order.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
+                        {% endfor %}
+                      </select> hinterlegt.</p>
+                    </form>
+                    {% else %}
+                      <p>Bei deiner Bestellung ist die Abholstelle: <strong>{{ current_customer_order.point_of_sale }}</strong> hinterlegt.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
