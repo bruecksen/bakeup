@@ -1,3 +1,4 @@
+import subprocess
 from django.template.defaulttags import register
 
 
@@ -21,3 +22,14 @@ def divide(value, arg):
 @register.filter
 def verbose_name(instance):
     return instance._meta.verbose_name
+
+@register.simple_tag
+def current_git_tag():
+    tag = subprocess.check_output(["git", "describe", "--tags"]).strip().decode('utf-8')
+    return tag
+
+
+@register.simple_tag
+def current_git_commit():
+    commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).strip().decode('utf-8')
+    return commit_hash
