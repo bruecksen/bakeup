@@ -40,6 +40,7 @@ def ping():
 
 def deploy():
     with cd(env.path):
+        run("git fetch --all --tags")
         run("git pull %(push_remote)s %(push_branch)s" % env)
     migrate()
     collectstatic()
