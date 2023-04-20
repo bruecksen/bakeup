@@ -304,6 +304,7 @@ ACCOUNT_FORMS = {'signup': 'bakeup.users.forms.SignupForm'}
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+# ACCOUNT_SIGNUP_FORM_CLASS = 'bakeup.users.forms.UserFormMixin'
 
 META_PRODUCT_CATEGORY_NAME = 'META PRODUCTS'
 
@@ -319,4 +320,38 @@ PERSISTENT_FILTERS_URLS = [
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
+}
+USER_REGISTRATION_FORM_FIELDS = {
+    'first_name': {
+        'label': 'Vorname',
+        'required': True,
+    },
+    'last_name': {
+        'label': 'Nachname',
+        'required': True,
+    },
+    'point_of_sale': {
+        'label': 'Abholstation',
+        'required': True,
+    },
+    'street': {
+        'label': 'Straße',
+        'required': True,
+    },
+    'street_number': {
+        'label': 'Hausnummer',
+        'required': True,
+    },
+    'postal_code': {
+        'label': 'PLZ',
+        'required': True,
+    },
+    'city': {
+        'label': 'Stadt',
+        'required': True,
+    },
+    'telephone_number': {
+        'label': 'Telefonnummer',
+        'required': False,
+    },
 }

@@ -1,0 +1,5 @@
+<ul class="list-unstyled mb-0">
+    {% for position in positions %}
+    <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}{% if not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}{% endif %}</li>
+    {% endfor %}
+</ul>

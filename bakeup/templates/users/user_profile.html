@@ -12,7 +12,7 @@
       <h4>Stammdaten:</h4>
       <form class="form-horizontal" method="post" id="user_profile">
         {% csrf_token %}
-        {{ forms.user_profile|crispy }}
+        {% crispy forms.user_profile %}
         <div class="control-group">
           <div class="controls">
             <button type="submit" name="action" value="user_profile" class="btn btn-primary">Aktualisieren</button>

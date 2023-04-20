@@ -123,11 +123,9 @@
             {{ order.customer.user.short_name }}
             {% endif %}
             {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
-          <td><ul class="list-unstyled mb-0">
-            {% for position in order.positions.all %}
-            <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}{% if not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}{% endif %}</li>
-            {% endfor %}
-          </ul></td>
+          <td>
+            {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
+          </td>
           <td class="text-center">
             <form method="POST">
               {% csrf_token %}

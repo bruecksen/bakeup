@@ -1,0 +1,111 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Customer {{ object }}{% endblock %}
+{% block page_heading %}
+Customer {{ object }}
+{% endblock %}
+
+{% block page_content %}
+<div class="row">
+  <div class="col col-md-6">
+    <div class="card p-3">
+      <h3>Account:</h3>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          Email:
+        </div>
+        <div class="col-8">
+          <a href="mailto:{{ object.user.email }}">{{ object.user.email }}</a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          First name:
+        </div>
+        <div class="col-8">
+          {{ object.user.first_name }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          Last name:
+        </div>
+        <div class="col-8">
+          {{ object.user.last_name }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          Point of sale:
+        </div>
+        <div class="col-8">
+          {{ object.point_of_sale }}
+        </div>
+      </div>
+      {% if object.street %}
+      <div class="row">
+        <div class="col-4 fw-bold">
+          Street:
+        </div>
+        <div class="col-8">
+          {{ object.street }} {{ object.street_number }}
+        </div>
+      </div>
+      {% endif %}
+      {% if object.city or object.postal_code %}
+      <div class="row">
+        <div class="col-4 fw-bold">
+          City:
+        </div>
+        <div class="col-8">
+          {{ object.postal_code }} {{ object.city }}
+        </div>
+      </div>
+      {% endif %}
+      {% if object.telephone_number %}
+      <div class="row">
+        <div class="col-4 fw-bold">
+          Telephone:
+        </div>
+        <div class="col-8">
+          {{ object.telephone_number }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col col-md-6">
+    <div class="card p-3">
+      <h3>Abo:</h3>
+      <ul class="list-unstyled">
+        {% for position in object.order_templates.all %}
+        <li>{{ position.quantity}} x {{ position.product }}</li>    
+        {% endfor %}
+    </ul>
+    </div>
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col col-md-6">
+    <div class="card p-3">
+      <h3>Order history:</h3>
+      <p>Total orders: <strong>{{ object.orders.all.count }}</strong><br>
+        Total positions: <strong>{{ object.total_ordered_positions }}</strong></p>
+      {% for order in customer.orders.all %}
+        <div class="row border-bottom">
+          <div class="col-4 fw-bold">
+            {{ order.production_day }}
+          </div>
+          <div class="col-8">
+            {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+  
+{% endblock %}

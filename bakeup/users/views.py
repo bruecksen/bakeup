@@ -8,13 +8,14 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView, FormView
 from django.shortcuts import redirect
 
+from allauth.account.views import SignupView as _SignupView
 from allauth.account.adapter import get_adapter
 from allauth.account.views import LoginView as _LoginView, EmailView
 from allauth.account.forms import AddEmailForm, ChangePasswordForm
 from allauth.account import signals
 from allauth.account.utils import logout_on_password_change
 
-from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm
+from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm,SignupForm
 from bakeup.users.models import Token
 from bakeup.shop.forms import CustomerForm
 from bakeup.contrib.forms import MultiFormsView
@@ -57,6 +58,16 @@ class TokenLoginView(_LoginView):
         """Security check complete. Log the user in."""
         login(self.request, form.get_user(), backend='core.backends.TokenBackend')
         return HttpResponseRedirect(self.get_success_url())
+
+
+class SignupView(_SignupView):
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'request': self.request
+        })
+        return kwargs
+
 
 
 
@@ -111,7 +122,13 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
             'first_name': self.request.user.first_name,
             'last_name': self.request.user.last_name,
             'point_of_sale': self.request.user.customer.point_of_sale,
+            'street': self.request.user.customer.street,
+            'street_number': self.request.user.customer.street_number,
+            'postal_code': self.request.user.customer.postal_code,
+            'city': self.request.user.customer.city,
+            'telephone_number': self.request.user.customer.telephone_number,
         }
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -123,6 +140,10 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         if form_name in ('add_email', 'change_password'):
             kwargs.update({
                 'user': self.request.user,
+            })
+        elif form_name == 'user_profile':
+            kwargs.update({
+                'request': self.request
             })
         return kwargs
 
@@ -147,13 +168,12 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
     def user_profile_form_valid(self, form, *args, **kwargs):
         first_name = form.cleaned_data['first_name']
         last_name = form.cleaned_data['last_name']
-        point_of_sale = form.cleaned_data['point_of_sale']
         user = self.request.user
         user.first_name = first_name
         user.last_name = last_name
         user.save(update_fields=['first_name', 'last_name'])
-        user.customer.point_of_sale = point_of_sale
-        user.customer.save(update_fields=['point_of_sale'])
+        form.update_customer(user)
+        messages.add_message(self.request, messages.INFO, "Daten erfolgreich aktualisiert")
         return HttpResponseRedirect(self.get_success_url())
     
     def change_password_form_valid(self, form, *args, **kwargs):
