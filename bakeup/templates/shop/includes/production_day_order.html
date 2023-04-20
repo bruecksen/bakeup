@@ -87,6 +87,8 @@
                 <span class="badge bg-dark top-right text-uppercase fs-6">Produziert</span>
                 {% elif production_day_product.production_day_product.is_sold_out %}
                 <span class="badge bg-dark top-right text-uppercase fs-6">Ausverkauft</span>
+                {% elif show_remaining_products %}
+                <span class="badge bg-success top-right text-uppercase fs-6">Noch {{ production_day_product.production_day_product.calculate_max_quantity }} / {{ production_day_product.production_day_product.max_quantity }} verfügbar</span>
                 {% endif %}
                 {% if production_day_product.production_day_product.product.image %}
                 {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
