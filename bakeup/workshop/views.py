@@ -828,6 +828,11 @@ class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
         finally:
             return redirect(success_url)
 
+class CustomerDetailView(StaffPermissionsMixin, DetailView):
+    model =  Customer
+    template_name = "workshop/customer_detail.html"
+
+
 class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
     template_name = "workshop/customer_form.html"
     model =  Customer

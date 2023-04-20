@@ -87,12 +87,13 @@ class CustomerTable(tables.Table):
     # order_nr = tables.Column(verbose_name='#', order_by='pk')
     # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     # customer = tables.TemplateColumn("{{ record.customer }}")
+    email = tables.LinkColumn('workshop:customer-detail', args=[A('pk')], text=lambda record: record.user.email, verbose_name='E-Mail')
     abos = tables.TemplateColumn(template_name='tables/customer_abos_column.html', verbose_name='Abos')
     actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='')
 
     class Meta:
         model = Customer
-        fields = ("user__email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale", "abos")
+        fields = ("email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale", "abos")
 
 
 class CustomerFilter(django_filters.FilterSet):

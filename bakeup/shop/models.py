@@ -223,12 +223,21 @@ class PointOfSaleOpeningHour(CommonBaseClass):
 class Customer(CommonBaseClass):
     user = models.OneToOneField('users.User', on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True)
+    street = models.CharField(max_length=100, blank=True, null=True)
+    street_number = models.CharField(max_length=10, blank=True, null=True)
+    postal_code = models.CharField(max_length=10, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    telephone_number = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         ordering = ('user__email', )
 
     def __str__(self):
         return "{}".format(self.user)
+    
+    @property
+    def total_ordered_positions(self):
+        return CustomerOrderPosition.objects.filter(order__customer=self).count()
     
 
 # Abo
@@ -252,7 +261,7 @@ class CustomerOrder(CommonBaseClass):
 
     class Meta:
         unique_together = ['production_day', 'customer']
-        ordering = ['-production_day', '-created']
+        ordering = ['production_day', '-created']
 
     def __str__(self):
         return "{} {}".format(self.production_day, self.customer)
@@ -274,8 +283,7 @@ class CustomerOrder(CommonBaseClass):
         Return an order number for a given basket
         """
         return 100000 + self.pk
-
-
+    
     @classmethod
     def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):
         # TODO order_nr, address, should point of sale really be saved in order?

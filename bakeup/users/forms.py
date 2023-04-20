@@ -3,6 +3,10 @@ from django.contrib.auth import forms as admin_forms
 from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.conf import settings
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Row, Column, HTML
 
 from allauth.utils import set_form_field_order
 from allauth.account.forms import SignupForm as _SignupForm
@@ -37,40 +41,71 @@ class TokenAuthenticationForm(forms.Form):
 
     def get_user(self):
         return self.user_cache
+    
 
-
-class SignupForm(_SignupForm):
-    first_name = forms.CharField(required=True, label='Vorname')
-    last_name = forms.CharField(required=True, label='Nachname')
-    field_order = ['first_name', 'last_name', 'point_of_sale', 'email', 'password']
-    # point_of_sale = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot")
-
-    def __init__(self, *args, **kwargs):
-        super(SignupForm, self).__init__(*args, **kwargs)
+class UserFormMixin():
+    
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in request.tenant.clientsetting.user_registration_fields:
+            field_settings = settings.USER_REGISTRATION_FORM_FIELDS.get(field)
+            self.fields[field] = forms.CharField(required=field_settings['required'], label=field_settings['label'])
         if PointOfSale.objects.count() > 1:
-            self.fields["point_of_sale"] = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)
+            self.fields["point_of_sale"] = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Abholstelle", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)
             if PointOfSale.objects.filter(is_primary=True).exists():
                 self.fields["point_of_sale"].initial = PointOfSale.objects.get(is_primary=True)
         if hasattr(self, "field_order"):
             set_form_field_order(self, self.field_order)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = False
+        self.helper.layout = Layout(
+            'email',
+            'password1',
+            'point_of_sale',
+            'first_name',
+            'last_name',
+            Row(
+                Column('street', css_class='form-group col-md-8 mb-0'),
+                Column('street_number', css_class='form-group col-md-4 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('postal_code', css_class='form-group col-md-4 mb-0'),
+                Column('city', css_class='form-group col-md-8 mb-0'),
+                css_class='form-row'
+            ),
+            'telephone_number',
+        )
 
-    def save(self, request):
-
-        # Ensure you call the parent class's save.
-        # .save() returns a User object.
-        user = super().save(request)
-
+    def update_customer(self, user):
         if 'point_of_sale' in self.cleaned_data:
             user.customer.point_of_sale = self.cleaned_data['point_of_sale']
-            user.first_name = self.cleaned_data['first_name']
-            user.last_name = self.cleaned_data['last_name']
-            user.save(update_fields=['first_name', 'last_name'])
-            user.customer.save(update_fields=['point_of_sale'])
-        # You must return the original result.
+        if 'street' in self.cleaned_data:
+            user.customer.street = self.cleaned_data['street']
+        if 'street_number' in self.cleaned_data:
+            user.customer.street_number = self.cleaned_data['street_number']
+        if 'postal_code' in self.cleaned_data:
+            user.customer.postal_code = self.cleaned_data['postal_code']
+        if 'city' in self.cleaned_data:
+            user.customer.city = self.cleaned_data['city']
+        if 'telephone_number' in self.cleaned_data:
+            user.customer.telephone_number = self.cleaned_data['telephone_number']
+        user.customer.save()
+
+    def save(self, request):
+        user = super().save(request)
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.save(update_fields=['first_name', 'last_name'])
+        self.update_customer(user)
         return user
+            
+
+class SignupForm(UserFormMixin, _SignupForm):
+    pass
 
 
-class UserProfileForm(forms.Form):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    point_of_sale = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Depot", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)
+class UserProfileForm(UserFormMixin, forms.Form):
+    pass
+
