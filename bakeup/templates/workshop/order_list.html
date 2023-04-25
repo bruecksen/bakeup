@@ -1,5 +1,6 @@
 {% extends "workshop/base.html" %}
 {% load django_bootstrap5 %}
+{% load export_url from django_tables2 %}
 {% load render_table from django_tables2 %}
 
 {% block title %}Orders{% endblock %}
@@ -9,15 +10,8 @@
 <form action="{% url 'workshop:order-add' %}" method="post">
   {% csrf_token %}
   <div class="row justify-content-end">
-    <div class="col-10">
-      <div class="input-group input-group-sm">
-        <select class="form-select form-select-sm" name="select_production_day">
-          {% for key, value in form_add_order.select_production_day.field.choices %}
-            <option value="{{ key }}">{{ value }}</option>
-          {% endfor %}
-        </select>
-        <button class="btn btn-primary" type="submit">Edit orders</button>
-      </div>
+    <div class="col-10 text-end">
+      <a href="{% export_url "csv" %}" class="btn btn-primary btn-sm"><i class="fas fa-file-download"></i> Export as CSV</a>
     </div>
   </div>
   </form>
