@@ -541,7 +541,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
-                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)),
+                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)).order_by('customer__user__last_name'),
                 'summary': order_summary,
                 'all_picked_up': not CustomerOrderPosition.objects.filter(order__production_day=self.object, order__point_of_sale=point_of_sale, is_picked_up=False).exists()
             })
