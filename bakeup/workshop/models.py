@@ -417,11 +417,3 @@ class ProductionPlan(CommonBaseClass):
                     defaults={'quantity': quantity_parent * child.quantity}
                 )
                 ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
-
-
-
-
-
-
-
-

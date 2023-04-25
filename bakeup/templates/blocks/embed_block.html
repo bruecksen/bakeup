@@ -1,0 +1,9 @@
+{% load static %}
+{% load wagtailembeds_tags %}
+{% if 'wistia' in value.url %}
+{% embed value.url %}
+{% else %}
+<div class="embed-responsive embed-responsive-16by9">
+    {% embed value.url %}
+</div>
+{% endif %}

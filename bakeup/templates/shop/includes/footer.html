@@ -1,0 +1,31 @@
+{% load menu_tags %}
+<footer class="footer mt-auto py-4 bg-dark text-light mt-5">
+    <div class="container">
+      <div class="row align-items-center justify-content-center">
+        <div class="col-12 col-lg-3">
+          <ul class="list-unstyled">
+            {% if request.tenant.clientinfo.contact_email %}
+            <li class="py-1"><i class="far fa-envelope fa-fw"></i> <a href="mailto:{{ request.tenant.clientinfo.contact_email }}" class="text-light">{{ request.tenant.clientinfo.contact_email }}</a></li>
+            {% endif %}
+            {% if request.tenant.clientinfo.contact_phone %}
+            <li class="py-1"><i class="fas fa-phone fa-fw"></i> <a href="tel:{{ request.tenant.clientinfo.contact_phone }}" class="text-light">{{ request.tenant.clientinfo.contact_phone }}</a></li>
+            {% endif %}
+            {% if request.tenant.clientinfo.contact_instagram %}
+            <li class="py-1"><i class="fab fa-instagram fa-fw"></i> <a href="https://www.instagram.com/{{ request.tenant.clientinfo.contact_instagram }}/" target="_blank" class="text-light">{{ request.tenant.clientinfo.contact_instagram }}</a></li>
+            {% endif %}
+          </ul>
+  
+        </div>
+        <div class="col-12 col-lg-3">
+          <p class="lead">
+            {{ request.tenant.clientinfo.contact_text }}
+          </p>
+        </div>
+      </div>
+      <div class="row align-items-end mt-4">
+        <div class="col-10 offset-1 col-md-12 offset-md-0">
+            <p class="text-end small mb-0">{% now "Y" %} &copy; bakeup.org | {% current_git_tag %} | {% flat_menu 'footer' template="shop/includes/flat_menu.html" %}</p>
+        </div>
+      </div>
+    </div>
+  </footer>
