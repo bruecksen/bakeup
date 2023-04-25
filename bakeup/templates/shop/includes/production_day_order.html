@@ -61,7 +61,7 @@
                     {% if point_of_sales.count > 1 %}
                     <form method="POST" action="{% url "shop:customer-order-update" pk=current_customer_order.pk %}">
                         {% csrf_token %}
-                    <p class="small">Bei deiner Bestellung ist die Abholstelle: <select class="form-select form-select-xs d-inline w-auto pe-3" name="point_of_sale" onchange="this.form.submit()">
+                    <p class="small">Bei deiner Bestellung ist die Abholstelle: <select class="form-select form-select-xs d-inline pos-select pe-3 me-1" name="point_of_sale" onchange="this.form.submit()">
                         {% for point_of_sale in point_of_sales %}
                         <option value="{{ point_of_sale.pk }}" {% if current_customer_order.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
                         {% endfor %}

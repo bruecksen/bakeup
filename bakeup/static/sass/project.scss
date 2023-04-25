@@ -140,6 +140,11 @@ nav {
   margin-left: -1rem;
 }
 
+.pos-select {
+  width: 100%;
+  max-width: 150px;
+}
+
 @media print {
   tbody {
     display: block;
