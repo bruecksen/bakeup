@@ -131,7 +131,7 @@
               {% csrf_token %}
               <input 
               {% if order.is_picked_up %}checked {% endif %}
-              class="form-check-input form-input-lg"
+              class="form-check-input form-input-lg border-dark rounded-0"
               type="checkbox"
               aria-label="is picked up"
               hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
