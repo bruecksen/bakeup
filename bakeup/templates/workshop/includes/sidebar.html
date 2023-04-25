@@ -41,9 +41,6 @@
               <a class="nav-link" href="{% url 'shop:shop' %}"><i class="fa-solid fa-shop"></i> Shop</a>
             </li>
             {% endif %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}"><i class="fa-solid fa-circle-question fa-fw"></i> Help</a>
-            </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>

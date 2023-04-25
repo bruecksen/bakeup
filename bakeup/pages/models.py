@@ -10,6 +10,7 @@ from bakeup.pages.blocks import AllBlocks
 class ContentPage(Page):
     content = StreamField(AllBlocks(), blank=True, null=True)
 
+    show_in_menus_default = True
     content_panels = Page.content_panels + [
         FieldPanel("content"),
     ]

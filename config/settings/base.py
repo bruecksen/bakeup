@@ -385,3 +385,16 @@ WAGTAILADMIN_NOTIFICATION_USE_HTML = True
 
 # Reverse the default case-sensitive handling of tags
 TAGGIT_CASE_INSENSITIVE = True
+
+WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (
+    ('footer', 'Footer'),
+)
+
+WAGTAILADMIN_RICH_TEXT_EDITORS = {
+    'default': {
+        'WIDGET': 'wagtail.admin.rich_text.DraftailRichTextArea',
+        'OPTIONS': {
+            'features': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'bold', 'italic', 'ol', 'ul', 'hr', 'link', 'document-link', 'image', 'embed', 'code', 'blockquote']
+        }
+    },
+}

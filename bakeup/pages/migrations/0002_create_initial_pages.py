@@ -47,6 +47,7 @@ class WagtailTreeMigrator:
         defaults = dict(
             content_type=self.content_type(cls),
             locale=self.default_locale(),
+            show_in_menus=True,
         )
         page = cls(**{**defaults, **kwargs})
 
