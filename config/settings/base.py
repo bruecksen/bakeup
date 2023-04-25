@@ -160,7 +160,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     # "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "persistent_filters.middleware.PersistentFiltersMiddleware",
+    "bakeup.core.middleware.PersistentFiltersMiddleware",
 ]
 
 # STATIC
@@ -316,6 +316,10 @@ PERSISTENT_FILTERS_URLS = [
     reverse_lazy("workshop:production-plan-list"),
     reverse_lazy("workshop:order-list"),
     reverse_lazy("workshop:customer-list"),
+]
+
+PERSISTENT_FILTERS_EXCLUDE_QUERY_STRINGS = [
+    '_export=csv'
 ]
 
 MESSAGE_TAGS = {
