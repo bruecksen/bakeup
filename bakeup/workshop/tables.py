@@ -70,7 +70,7 @@ class CustomerOrderFilter(django_filters.FilterSet):
 class CustomerOrderTable(tables.Table):
     order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
-    customer = tables.TemplateColumn("{{ record.customer }}")
+    customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
     picked_up = tables.TemplateColumn('{% if record.is_picked_up %}<i class="far fa-check-square fa-lg"></i>{% endif %}', verbose_name='Picked up', orderable=False)
