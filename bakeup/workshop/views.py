@@ -924,7 +924,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 if not any([v and v > 0 for v in products.values()]):
                     CustomerOrder.objects.filter(production_day=self.production_day, customer=customer).delete()
                     continue
-                customer_order, created = CustomerOrder.objects.update_or_create(
+                customer_order, created = CustomerOrder.objects.get_or_create(
                     production_day=self.production_day,
                     customer=customer,
                     defaults={'point_of_sale': customer.point_of_sale}
