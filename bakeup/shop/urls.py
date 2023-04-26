@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bakeup.shop.views import CustomerOrderUpdateView, CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderAddBatchView, CustomerOrderPositionUpdateView
+from bakeup.shop.views import redirect_to_production_day_view, CustomerOrderUpdateView, CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderAddBatchView, CustomerOrderPositionUpdateView
 
 from bakeup.users.views import LoginView, TokenLoginView, SignupView
 from bakeup.users.views import (
@@ -13,9 +13,11 @@ from bakeup.users.views import (
 
 app_name = "shop"
 urlpatterns = [
+   path("<int:production_day>/", view=ShopView.as_view(), name="shop-production-day"),
    path("", view=ShopView.as_view(), name="shop"),
-   path("weekly/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
-   path("weekly/<int:year>/<int:calendar_week>/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
+   path("redirect/", view=redirect_to_production_day_view, name='redirect-production-day'),
+#    path("weekly/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
+#    path("weekly/<int:year>/<int:calendar_week>/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
    path("products/", view=ProductListView.as_view(), name="product-list"),
    path("orders/add/<int:production_day>/", view=CustomerOrderAddBatchView.as_view(), name="order-add-batch"),
    path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),

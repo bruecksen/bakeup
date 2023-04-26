@@ -18,6 +18,10 @@
     </div>
     <div class="col-4">
         <h2 id="backtag" class="{% if not production_day.description %} mb-4{% endif %}">Nächster Backtag: <span class="fw-bold">{{ production_day.day_of_sale|naturalday:'d.m.Y' }} <i class="fas fa-calendar-alt"></i></span></h2>
+        <form method="POST" class="text-center" action="{% url 'shop:redirect-production-day' %}">
+            {% csrf_token %}
+            <input id="select-production-day-date" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
+        </form>
         {% if production_day.description %}
         <p class="mb-4 lead">{{ production_day.description|safe|linebreaksbr|urlize }}</p>
         {% endif %}
@@ -26,6 +30,7 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
 {% if production_day_products|length > 2 %}
 <div class="row gx-5">
     {% for production_day_product in production_day_products|slice:'2:' %}
@@ -35,4 +40,31 @@
     {% endfor %}
 </div>
 {% endif %}
-{% endif %}
+<script>
+     window.addEventListener('DOMContentLoaded', () => {
+        var datesEnabled = {{ all_production_days|safe }};
+         const elem = document.getElementById('select-production-day-date');
+     const datepicker = new Datepicker(elem, {
+        format: 'dd.mm.yyyy',
+        beforeShowDay: function(date) {
+            date_formatted = date.toLocaleDateString('de-de', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            if (datesEnabled.indexOf(date_formatted) != -1) {
+                return {
+                classes: 'date-enabled',
+                // tooltip: 'Vous pouvez choisir cette date'
+                }
+            } else {
+                return false;
+            }
+        },    
+        }); 
+        elem.addEventListener('changeDate', function(e) {
+            this.form.submit();
+        });
+    });
+
+</script>
