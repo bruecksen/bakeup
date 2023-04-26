@@ -9,7 +9,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.contrib import messages
 from django.db.models import Q, F
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
@@ -431,7 +431,7 @@ def production_plan_cancel_view(request, pk):
 def customer_order_toggle_picked_up_view(request, pk):
     customer_order = CustomerOrder.objects.get(pk=pk)
     customer_order.positions.all().update(is_picked_up=not customer_order.is_picked_up)
-    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': customer_order.production_day.pk})))
+    return HttpResponse()
 
 
 @staff_member_required(login_url='login')
