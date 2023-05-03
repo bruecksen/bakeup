@@ -2,6 +2,7 @@ import copy
 from itertools import product
 from typing import OrderedDict
 
+from django.utils.timezone import now
 from django.core.mail import send_mass_mail
 from django.utils.datastructures import MultiValueDict
 from django.contrib.admin.views.decorators import staff_member_required
@@ -24,6 +25,7 @@ from django.conf import settings
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
+from django_tables2.export.views import ExportMixin
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
@@ -798,11 +800,15 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
         return HttpResponseRedirect(self.get_success_url())
     
 
-class CustomerListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+class CustomerListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
     model = Customer
     table_class = CustomerTable
     filterset_class = CustomerFilter
     template_name = 'workshop/customer_list.html'
+
+    @property
+    def export_name(self):
+        return "customers-{}".format(now().strftime("%Y%m%d-%H%M%S"))
 
 
 class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
@@ -858,11 +864,15 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+class CustomerOrderListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
     model = CustomerOrder
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
     template_name = 'workshop/order_list.html'
+
+    @property
+    def export_name(self):
+        return "orders-{}".format(now().strftime("%Y%m%d-%H%M%S"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
