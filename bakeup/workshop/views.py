@@ -513,6 +513,8 @@ def production_day_redirect_view(request):
             production_day = ProductionDay.objects.all().first()
         if production_day:
             url = reverse('workshop:production-day-detail', kwargs={'pk': production_day.pk})
+        else:
+            url = reverse('workshop:production-day-add')
     return HttpResponseRedirect(url)
 
 
