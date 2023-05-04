@@ -17,6 +17,8 @@ class StaffPermissionsMixin(AccessMixin):
 
 
 class CustomerRequiredMixin(AccessMixin):
+    login_url = 'shop:login'
+    
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and hasattr(request.user, 'customer'):
             return super().dispatch(request, *args, **kwargs)

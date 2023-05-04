@@ -1,0 +1,8 @@
+<div class="row g-5">
+
+    {% for production_day in production_days %}
+    <div class="col-12 col-md-6">
+        {%  include 'shop/includes/production_day_card.html' %}
+    </div>
+    {% endfor %}
+</div>

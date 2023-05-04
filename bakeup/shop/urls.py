@@ -2,6 +2,7 @@ from django.urls import path
 
 from bakeup.shop.views import CustomerOrderUpdateView, CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderAddBatchView, CustomerOrderPositionUpdateView
 
+from bakeup.users.views import LoginView, TokenLoginView, SignupView
 from bakeup.users.views import (
     shop_user_profile_view,
     shop_user_update_view,
@@ -23,6 +24,8 @@ urlpatterns = [
    path("orders/positions/<int:pk>/update/", view=CustomerOrderPositionUpdateView.as_view(), name="customer-order-position-update"),
    path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
    path("profile/", view=shop_user_update_view, name="user-profile"),
+    path("login/", view=LoginView.as_view(), name="login"),
+    path("signup/", view=SignupView.as_view(), name="signup"),
 #    path("product/add/", view=ProductAddView.as_view(), name="product-add"),
 #    path("product/<int:pk>/", view=ProductDetailView.as_view(), name="product-detail"),
 #    path("product/", view=ProductListView.as_view(), name="product-list"),

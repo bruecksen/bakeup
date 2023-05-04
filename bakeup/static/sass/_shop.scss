@@ -1,0 +1,21 @@
+body.shop {
+    padding-top: 100px;
+    @media screen and (max-width: 768px) {
+        padding-top: 0px;
+    }
+    font-family: 'Quattrocento' serif;
+    background-color: var(--bs-light);
+    .jumbotron {
+        margin-top: -100px;
+        margin-bottom: 4rem;
+    }
+    .product-card {
+        h2 {
+            font-size: 1.6rem;
+        }
+    }
+}
+
+.nav-bg-dark {
+    background-color: var(--bs-dark);
+}

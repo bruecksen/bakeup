@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView, FormView
@@ -32,7 +32,12 @@ class LoginView(_LoginView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form_token'] = TokenAuthenticationForm()
+        app_names = resolve(self.request.path).app_names
+        if 'shop' in app_names:
+            context['base_template'] = 'shop/base_page.html'
+        else:
+            context['form_token'] = TokenAuthenticationForm()
+            context['base_template'] = 'workshop/base.html'
         return context
 
 class TokenLoginView(_LoginView):

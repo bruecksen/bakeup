@@ -1,14 +1,15 @@
-{% extends 'base.html' %}
+{% extends base_template %}
 {% load crispy_forms_tags %}
 {% load i18n %}
 
 {% block title %}Login{% endblock %}
 
-{% block content %}
+{% block page_content %}
 <div class="container h-100">
   <div class="row h-100 justify-content-center align-items-center">
-    <div class="col-12 col-md-4">
+    <div class="col-12 col-md-6">
       <div class="card">
+      {% if form_token %}
         <div class="card-header">
           <ul class="nav nav-tabs card-header-tabs" data-bs-tabs="tabs">
             <li class="nav-item">
@@ -19,12 +20,13 @@
             </li>
           </ul>
         </div>
+        {% endif %}
   
         <div class="card-body tab-content min-height-500">
           <div class="d-flex justify-content-center">
             {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' client_logo=request.tenant.logo %}
           </div>
-          <h2 class="text-center my-3">{% translate "Welcome to" %} {{ request.tenant.domain_url }}</h2>
+          <h2 class="my-3 fw-bold">Anmelden</h2>
           <div class="tab-pane{% if not form_token.errors %} active{% endif %} align-items-center" id="login">
             <p>Hast du noch kein Konto? Dann bitte zuerst <a href="{{ signup_url }}">ein Konto erstellen</a>.</p>
             <form method="post">

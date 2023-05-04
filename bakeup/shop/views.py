@@ -115,7 +115,7 @@ class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.filter(is_published=True).filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
+        kwargs['production_day_products'] = self.production_day.production_day_products.published().filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
         kwargs['customer'] = self.request.user.customer
         return kwargs
 
@@ -200,10 +200,10 @@ class ShopView(TemplateView):
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if production_day_next:
             context['production_day_next'] = production_day_next.production_day
-            context['production_day_products'] = production_day_next.production_day.production_day_products.filter(is_published=True)
+            context['production_day_products'] = production_day_next.production_day.production_day_products.published()
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=production_day_next.production_day).first()
             production_day_products = []
-            for production_day_product in production_day_next.production_day.production_day_products.filter(is_published=True):
+            for production_day_product in production_day_next.production_day.production_day_products.published():
                 form = production_day_product.get_order_form(customer)
                 production_day_products.append({
                     'production_day_product': production_day_product,
@@ -212,6 +212,7 @@ class ShopView(TemplateView):
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
+        context['production_days'] = ProductionDay.objects.upcoming()
         return context
 
 

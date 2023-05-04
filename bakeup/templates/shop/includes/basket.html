@@ -1,0 +1,57 @@
+{% load shop_tags %}
+    <div class="card bg-primary text-white" id="current-order">
+        <div class="card-body">
+            <h4 class="card-title hyphens-auto mb-4 fw-bold">Deine aktuelle Bestellung:</h4>
+            <div class="mt-4 mb-4">
+                {% for position in current_customer_order.positions.all %}
+                <div class="row g-0 fw-bold">
+                    <div class="col-2">
+                        {% if not position.production_plan or not position.production_plan.is_locked %}
+                        {% max_quantity production_day_next position.product as production_day_product_max_quantity %}
+                        <form method="POST" action="{% url "shop:customer-order-position-update" pk=position.pk %}" class="me-2">
+                            {% csrf_token %}
+                            <select class="form-select form-select-xs" name="quantity" onchange="this.form.submit()">
+                                {% for i in production_day_product_max_quantity|times %}
+                                <option value="{{i}}" {% if position.quantity == i %}selected{% endif %}>{{i}}x</option>
+                                {% endfor %}
+                              </select>
+                        </form>
+                        {% else %}
+                        {{ position.quantity}}&nbsp;x
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {{ position.product }}
+                    </div>
+                    {% if not position.production_plan or not position.production_plan.is_locked %}
+                    <div class="col-2 text-end">
+                        <form method="POST" action="{% url "shop:customer-order-position-delete" pk=position.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link btn-sm"><i class="fas fa-trash text-white"></i></button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="col text-end">
+                        {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan css_class='bg-light text-dark' %}
+                    </div>
+                    {% endif %}
+                </div>
+                <hr>
+                {% empty %}
+                <p>Bisher wurde noch kein Brot für den aktuellen Backtag bestellt.</p>
+                {% endfor %}
+                {% if point_of_sales.count > 1 %}
+                <form method="POST" action="{% url "shop:customer-order-update" pk=current_customer_order.pk %}">
+                    {% csrf_token %}
+                <p class="small">Bei deiner Bestellung ist die Abholstelle: <select class="form-select form-select-xs d-inline pos-select pe-3 me-1" name="point_of_sale" onchange="this.form.submit()">
+                    {% for point_of_sale in point_of_sales %}
+                    <option value="{{ point_of_sale.pk }}" {% if current_customer_order.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
+                    {% endfor %}
+                  </select> hinterlegt.</p>
+                </form>
+                {% else %}
+                  <p>Bei deiner Bestellung ist die Abholstelle: <strong>{{ current_customer_order.point_of_sale }}</strong> hinterlegt.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,19 @@
+{% load thumbnail %}
+{% load shop_tags %}
+<div class="card h-100 product-card">
+    <div class="position-relative">
+        {% thumbnail production_day.get_random_product_image "600x450" crop="center" as im %}
+        <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+        {% endthumbnail %}
+    </div>
+    <div class="card-body">
+        <h2 class="card-title hyphens-auto fw-bold">{{ production_day.day_of_sale }}</h2>
+        <p>{{ production_day.description|safe|linebreaksbr|urlize }}</p>
+        <div class="mb-3">
+            {% for product in production_day.production_day_products.all %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product }}</span>{% endfor %}
+        </div>
+        <div class="d-grid">
+            <a href="" class="btn btn-primary">Zum Backtag</a>
+        </div>
+    </div>
+</div>
