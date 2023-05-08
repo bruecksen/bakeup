@@ -1,4 +1,4 @@
-{% extends "shop/base.html" %}
+{% extends "shop/base_page.html" %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
@@ -6,5 +6,7 @@
 {% block page_heading %}Bestellungen{% endblock %}
 
 {% block page_content %}
-{% render_table table %}
+<div class="card px-3 py-2">
+    {% render_table table %}
+</div>
 {% endblock %}

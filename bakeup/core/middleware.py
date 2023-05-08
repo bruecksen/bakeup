@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import connection
 from django_tenants.utils import get_public_schema_name, get_tenant_model
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
+
 
 class TenantSettingsMiddleware:
     def __init__(self, get_response):
@@ -24,3 +27,38 @@ class TenantSettingsMiddleware:
             settings.EMAIL_PORT = client_settings.email_port
             settings.EMAIL_USE_TLS = client_settings.emaiL_use_tls
             settings.EMAIL_SUBJECT_PREFIX = client_settings.email_subject_prefix
+
+
+class PersistentFiltersMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        path = request.path_info
+        if path not in settings.PERSISTENT_FILTERS_URLS:
+            return response
+
+        query_string = request.META['QUERY_STRING']
+        
+        for exclude_query_string in settings.PERSISTENT_FILTERS_EXCLUDE_QUERY_STRINGS:
+            query_string = query_string.replace(exclude_query_string, '')
+
+        if 'reset-filters' in request.META['QUERY_STRING']:
+            response = redirect(path)
+            response.delete_cookie('filters{}'.format(path.replace('/', '_')))
+            return response
+
+        if len(query_string) > 0:
+            response.set_cookie(
+                key='filters{}'.format(path.replace('/', '_')),
+                value=query_string,
+                max_age=28800
+            )
+            return response
+
+        if len(query_string) == 0 and request.COOKIES.get('filters{}'.format(path.replace('/', '_'))):
+            redirect_to = request.path + '?' + request.COOKIES.get('filters{}'.format(path.replace('/', '_')))
+            return HttpResponseRedirect(redirect_to)
+
+        return response

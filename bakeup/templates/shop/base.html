@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% load utils%}
+{% block body_class %}shop{% endblock %}
+{% block theme %}shop{% endblock %}
 {% block content %}
+{% block header %}
 {% include "shop/includes/header.html" %}
+{% endblock header %}
+{% block jumbotron %}
+{% endblock jumbotron %}
 <div class="container mb-4">
   <div class="row mt-2">
     <div class="col">
@@ -29,17 +35,18 @@
     </div>
   </div>
   {% endblock page_header %}
-  <div class="row">
-    <div class="col">
+  {% block page_content_container %}
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
       {% block page_content %}
         <p>Use this document as a way to quick start any new project.</p>
       {% endblock page_content %}
-    </div>
+      </div>
   </div>
+  {% endblock page_content_container %}
 </div>
 {% endblock content %}
 
 {% block footer %}
-{% include "shop/includes/footer.html" %}
-
+{% include 'shop/includes/footer.html' %}
 {% endblock footer %}

@@ -4,18 +4,25 @@
 {% block title %}Shop{% endblock %}
 {% block page_header %}{% endblock %}
 
-{% block page_content %}
-<div class="row">
-  <div class="col">
-          <div class="page-heading pt-4 pb-4">
-          {% if user.is_authenticated %}
-          <h5 class="">Hallo <a href="{% url 'shop:user-profile' %}">{{ request.user }}</a>, willkommen bei {{ request.tenant.name }}!</h5>
-          {% else %}
-          <h5 class="">Hallo und willkommen im {{ request.tenant.name }} Shop! Um bestellen zu können musst du dich <a href="{% url 'account_login' %}">anmelden</a> oder <a href="{% url 'account_signup' %}">registrieren</a>.</h5>
-          {% endif %}
+{% block jumbotron %}
+<header class="jumbotron" style="background-image: url('/static/images/header-image.jpg');">
+  <div class="container h-100">
+    <div class="row h-100">
+      <div class="col-12 align-self-end text-center text-white mt-4">
+        <h1 class="fw-bold text-uppercase text-shadow">Hasenbrot</h1>
+        <h2 class="text-shadow">- Nachbarschaftliche Backstube in Berlin - Grünau -</h2>
       </div>
+      <div class="col-12 align-self-end text-center text-white">
+        <div class="mb-5">
+          <a href="#backtag" class="btn btn-primary btn-lg me-3 mb-3">Nächster Backtag</a>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</header>
+{% endblock jumbotron %}
+
+{% block page_content %}
 {% if not production_day_next %}
 <div class="row">
   <div class="col">
@@ -28,4 +35,18 @@
 {% else %}
   {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
 {% endif %}
+<div class="row">
+  <div class="col">
+    <div class="horizontal-ruler">
+      <hr class="border border-dark border-3 opacity-100 w-100 position-absolute start-0">
+    </div>
+  </div>
+</div>
+<div class="row mb-3">
+  <div class="col">
+    <h2 id="backtage">Die nächsten Backtage</h2>
+  </div>
+</div>
+{% include "shop/includes/production_days.html" with production_days=production_days show_all_link=True %}
+
 {% endblock %}

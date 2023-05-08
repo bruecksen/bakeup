@@ -3,6 +3,7 @@
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
+{% load export_url from django_tables2 %}
 
 {% block title %}Production day{% endblock %}
 {% block page_heading %}<span class="d-print-none">Production day <form class="d-inline-block" method="post" action="{% url 'workshop:production-day-next' %}"></span>
@@ -28,6 +29,7 @@
       <a href="{% url 'workshop:production-plan-production-day' pk=object.pk %}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
       <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-retweet"></i> Abos</a>
       <a href="{% url 'workshop:production-day-reminder' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-envelope"></i> Reminder</a>
+      <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}&_export=csv" class="btn btn-primary"><i class="fas fa-file-download"></i> Export as CSV</a>
     </div>
   </div>
 </div>
@@ -131,7 +133,7 @@
               {% csrf_token %}
               <input 
               {% if order.is_picked_up %}checked {% endif %}
-              class="form-check-input form-input-lg"
+              class="form-check-input form-input-lg border-dark rounded-0"
               type="checkbox"
               aria-label="is picked up"
               hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"

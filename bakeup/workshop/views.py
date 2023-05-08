@@ -2,6 +2,7 @@ import copy
 from itertools import product
 from typing import OrderedDict
 
+from django.utils.timezone import now
 from django.core.mail import send_mass_mail
 from django.utils.datastructures import MultiValueDict
 from django.contrib.admin.views.decorators import staff_member_required
@@ -9,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.contrib import messages
 from django.db.models import Q, F
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
@@ -24,6 +25,7 @@ from django.conf import settings
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
+from django_tables2.export.views import ExportMixin
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
@@ -242,6 +244,8 @@ def production_plan_redirect_view(request):
             production_day = ProductionDay.objects.all().first()
         if production_day:
             url = reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk})
+        else:
+            url = reverse('workshop:production-plan-list')
     return HttpResponseRedirect(url)
 
 
@@ -431,7 +435,7 @@ def production_plan_cancel_view(request, pk):
 def customer_order_toggle_picked_up_view(request, pk):
     customer_order = CustomerOrder.objects.get(pk=pk)
     customer_order.positions.all().update(is_picked_up=not customer_order.is_picked_up)
-    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': customer_order.production_day.pk})))
+    return HttpResponse()
 
 
 @staff_member_required(login_url='login')
@@ -513,6 +517,8 @@ def production_day_redirect_view(request):
             production_day = ProductionDay.objects.all().first()
         if production_day:
             url = reverse('workshop:production-day-detail', kwargs={'pk': production_day.pk})
+        else:
+            url = reverse('workshop:production-day-add')
     return HttpResponseRedirect(url)
 
 
@@ -541,7 +547,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
-                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)),
+                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)).order_by('customer__user__last_name'),
                 'summary': order_summary,
                 'all_picked_up': not CustomerOrderPosition.objects.filter(order__production_day=self.object, order__point_of_sale=point_of_sale, is_picked_up=False).exists()
             })
@@ -794,11 +800,15 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
         return HttpResponseRedirect(self.get_success_url())
     
 
-class CustomerListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+class CustomerListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
     model = Customer
     table_class = CustomerTable
     filterset_class = CustomerFilter
     template_name = 'workshop/customer_list.html'
+
+    @property
+    def export_name(self):
+        return "customers-{}".format(now().strftime("%Y%m%d-%H%M%S"))
 
 
 class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
@@ -854,11 +864,15 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class CustomerOrderListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
+class CustomerOrderListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
     model = CustomerOrder
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
     template_name = 'workshop/order_list.html'
+
+    @property
+    def export_name(self):
+        return "orders-{}".format(now().strftime("%Y%m%d-%H%M%S"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -924,7 +938,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 if not any([v and v > 0 for v in products.values()]):
                     CustomerOrder.objects.filter(production_day=self.production_day, customer=customer).delete()
                     continue
-                customer_order, created = CustomerOrder.objects.update_or_create(
+                customer_order, created = CustomerOrder.objects.get_or_create(
                     production_day=self.production_day,
                     customer=customer,
                     defaults={'point_of_sale': customer.point_of_sale}

@@ -102,8 +102,8 @@ TENANT_APPS = [
     'wagtail.admin',
     'wagtail',
     "django.contrib.admin",
-    "bakeup.shop.apps.ShopConfig",
-    "bakeup.workshop.apps.WorkshopConfig",
+    "bakeup.shop",
+    "bakeup.workshop",
     "bakeup.users",
     "bakeup.contrib",
     "bakeup.pages",
@@ -176,8 +176,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     # "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "persistent_filters.middleware.PersistentFiltersMiddleware",
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    "bakeup.core.middleware.PersistentFiltersMiddleware",
 ]
 
 # STATIC
@@ -336,6 +336,10 @@ PERSISTENT_FILTERS_URLS = [
     reverse_lazy("workshop:customer-list"),
 ]
 
+PERSISTENT_FILTERS_EXCLUDE_QUERY_STRINGS = [
+    '_export=csv'
+]
+
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
@@ -396,5 +400,11 @@ WAGTAILADMIN_RICH_TEXT_EDITORS = {
         'OPTIONS': {
             'features': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'bold', 'italic', 'ol', 'ul', 'hr', 'link', 'document-link', 'image', 'embed', 'code', 'blockquote']
         }
+    }
+}
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-hover',
+    'thead': {
+        'class': '',
     },
 }

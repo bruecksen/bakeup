@@ -70,16 +70,23 @@ class CustomerOrderFilter(django_filters.FilterSet):
 class CustomerOrderTable(tables.Table):
     order_nr = tables.Column(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
-    customer = tables.TemplateColumn("{{ record.customer }}")
+    customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
     picked_up = tables.TemplateColumn('{% if record.is_picked_up %}<i class="far fa-check-square fa-lg"></i>{% endif %}', verbose_name='Picked up', orderable=False)
-    actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='')
+    actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='', exclude_from_export=True)
 
     class Meta:
         model = CustomerOrder
         order_by = 'production_day'
         fields = ("order_nr", "production_day", "customer", "email", "point_of_sale")
+
+    
+    def value_positions(self, value):
+        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in value.all()])
+    
+    def value_picked_up(self, record):
+        return record.is_picked_up
 
 
 class CustomerTable(tables.Table):
@@ -88,12 +95,19 @@ class CustomerTable(tables.Table):
     # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     # customer = tables.TemplateColumn("{{ record.customer }}")
     email = tables.LinkColumn('workshop:customer-detail', args=[A('pk')], text=lambda record: record.user.email, verbose_name='E-Mail')
-    abos = tables.TemplateColumn(template_name='tables/customer_abos_column.html', verbose_name='Abos')
-    actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='')
+    abos = tables.TemplateColumn(template_name='tables/customer_abos_column.html', verbose_name='Abos', exclude_from_export=True)
+    actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='', exclude_from_export=True)
+    street = tables.Column(visible=False)
+    postal_code = tables.Column(visible=False)
+    city = tables.Column(visible=False)
+    telephone_number = tables.Column(visible=False)
 
     class Meta:
         model = Customer
         fields = ("email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale", "abos")
+
+    def value_street(self, record):
+        return "{} {}".format(record.street, record.street_number)
 
 
 class CustomerFilter(django_filters.FilterSet):

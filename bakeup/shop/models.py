@@ -55,6 +55,13 @@ class ProductionDay(CommonBaseClass):
 
     def has_products_open_for_order(self):
         return self.production_day_products.filter(production_plan__isnull=True).exists()
+    
+    def get_random_product_image(self):
+        product = self.production_day_products.published().exclude(
+            Q(product__image='')|
+            Q(product__image=None)).order_by('?').first()
+        if product:
+            return product.product.image
 
     @property
     def calendar_week(self):
@@ -142,6 +149,15 @@ class ProductionDay(CommonBaseClass):
         return collections.OrderedDict(sorted(ingredients.items(), key=lambda t: t[0].path))
 
 
+class ProductionDayProductQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(is_published=True)
+    
+    def upcoming(self):
+        today = datetime.now().date()
+        return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
+
+
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
@@ -149,6 +165,8 @@ class ProductionDayProduct(CommonBaseClass):
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     is_published = models.BooleanField(default=False, verbose_name="Published?")
     
+    objects = ProductionDayProductQuerySet.as_manager()
+
     class Meta:
         ordering = ('production_day', 'product')
         unique_together = ['production_day', 'product']
