@@ -22,7 +22,25 @@ def create_initial_menu(apps, schema_editor):
         menu=main_menu,
         sort_order=2,
         allow_subnav=False,
-        link_url='/shop/orders/',
+        link_url='/shop/backtage/',
+        link_text='Backtage',
+        handle='production-days',
+    )
+    main_menu_item.save()
+    main_menu_item = MainMenuItem(
+        menu=main_menu,
+        sort_order=3,
+        allow_subnav=False,
+        link_url='/shop/sortiment/',
+        link_text='Sortiment',
+        handle='product-list',
+    )
+    main_menu_item.save()
+    main_menu_item = MainMenuItem(
+        menu=main_menu,
+        sort_order=4,
+        allow_subnav=False,
+        link_url='/shop/bestellungen/',
         link_text='Bestellungen',
         handle='orders',
     )
