@@ -171,11 +171,19 @@ button[aria-expanded=false] .fa-chevron-down {
   display: none;
 }
 
+.navbar {
+  --bs-navbar-nav-link-padding-x: 0;
+  --bs-navbar-toggler-padding-y: 0;
+}
+
 nav {
   .nav-item {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    position: relative;
     &.active {
       .nav-link {
-        color: $white!important;
+        border-bottom: 2px solid $white;
       }
     }
   }
