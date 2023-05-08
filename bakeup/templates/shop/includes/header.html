@@ -1,10 +1,10 @@
 {% load i18n %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg fixed-top{% if background %} nav-bg-dark{% endif %}" id="navbar">
     <div class="container">
       {% include "includes/logo.html" with logo_size='small' home_url='shop:shop' client_logo=request.tenant.logo %}
-      <a href="{% url 'shop:shop' %}" class="navbar-brand ms-3">{{ request.tenant.name }}</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+      {% if not request.tenant.logo %}<a href="{% url 'shop:shop' %}" class="navbar-brand ms-3">{{ request.tenant.name }}</a>{% endif %}
+      <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars fs-2"></i>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -12,7 +12,10 @@
             <a class="nav-link" aria-current="page" href="{% url 'shop:shop' %}">Shop</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'shop:order-list' %}">Bestellungen</a>
+            <a class="nav-link" aria-current="page" href="{% url 'shop:product-list' %}">Sortiment</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'shop:order-list' %}">Meine Bestellungen</a>
           </li>
         </ul>
         <ul class="navbar-nav mb-2 mb-lg-0">
@@ -30,7 +33,7 @@
             </li>
             {% else %}
             <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
             </li>
             <li class="nav-item">
                 <a id="log-in-link" class="nav-link" href="{% url 'account_signup' %}"><i class="fa-solid fa-user-plus fa-fw"></i> Registrieren</a>

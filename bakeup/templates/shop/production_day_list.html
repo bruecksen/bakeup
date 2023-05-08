@@ -1,0 +1,14 @@
+{% extends "shop/base_page.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Backtage{% endblock %}
+{% block page_header %}{% endblock %}
+
+{% block page_content %}
+<div class="row mb-3">
+  <div class="col">
+    <h2 id="backtage">Die nächsten Backtage</h2>
+  </div>
+</div>
+{% include "shop/includes/production_days.html" with production_days=object_list %}
+{% endblock %}

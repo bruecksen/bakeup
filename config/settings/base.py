@@ -89,8 +89,8 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     "django.contrib.admin",
-    "bakeup.shop.apps.ShopConfig",
-    "bakeup.workshop.apps.WorkshopConfig",
+    "bakeup.shop",
+    "bakeup.workshop",
     "bakeup.users",
     "bakeup.contrib",
     'allauth',
@@ -357,5 +357,12 @@ USER_REGISTRATION_FORM_FIELDS = {
     'telephone_number': {
         'label': 'Telefonnummer',
         'required': False,
+    },
+}
+
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-hover',
+    'thead': {
+        'class': '',
     },
 }

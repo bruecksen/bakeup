@@ -27,6 +27,7 @@ class Category(CommonBaseClass, MP_Node):
 
     class Meta:
         verbose_name_plural = 'Categories'
+        ordering = ('name', )
 
     def __str__(self):
         return '{} {}'.format('-' * (self.depth - 1), self.name)
@@ -54,6 +55,7 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False)
 
 
     tags = TaggableManager(blank=True)
@@ -88,6 +90,10 @@ class Product(CommonBaseClass):
                 quantity=child.quantity
             )
         return product
+    
+    @property
+    def category_name(self):
+        return self.category and self.category.name or None
 
     @property
     def unit(self):

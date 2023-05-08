@@ -1,0 +1,18 @@
+{% extends "shop/base.html" %}
+
+{% block header %}
+{% include "shop/includes/header.html" with background=True %}
+{% endblock header %}
+
+{% block page_header %}
+{% endblock page_header %}
+
+{% block page_content_container %}
+<div class="row justify-content-center">
+  <div class="col-10 mt-10">
+    {% block page_content %}
+      <p>Use this document as a way to quick start any new project.</p>
+    {% endblock page_content %}
+    </div>
+</div>
+{% endblock page_content_container %}

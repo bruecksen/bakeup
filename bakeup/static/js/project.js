@@ -133,3 +133,16 @@ console.log(plus_btns, minus_btns, qty_inputs);
         }
     })
 
+
+
+var navbar = document.getElementById('navbar');
+if(!navbar.classList.contains('nav-bg-dark')) {
+    window.onscroll = function () { 
+        if (document.body.scrollTop >= 200 || document.documentElement.scrollTop >= 200 ) {
+            navbar.classList.add("nav-bg-dark");
+        }
+        else {
+            navbar.classList.remove("nav-bg-dark");
+        }
+    };
+}
