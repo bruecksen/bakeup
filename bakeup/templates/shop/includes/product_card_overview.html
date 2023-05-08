@@ -1,0 +1,38 @@
+{% load thumbnail %}
+{% load shop_tags %}
+<div class="card h-100 product-card">
+        <div class="position-relative">
+            {% if product.image %}
+            {% thumbnail product.image "600x450" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+            {% endthumbnail %}
+            {% endif %}
+            <div class="position-absolute bottom-20 start-20">
+                {% for tag in product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+            </div>
+        </div>
+        <div class="card-body">
+            <h2 class="card-title hyphens-auto fw-bold">{{ product.name }} 
+                <span class="small text-muted fw-normal">{{ product.weight|floatformat:"0" }}{{ product.unit}}</span>
+            </h2>
+            <p>{{ product.description|safe|linebreaksbr|urlize }}</p>
+            {% with ingredients=product.get_full_ingredient_list %}
+            {% if ingredients %}
+            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="card-footer">
+            {% if product.production_days.upcoming %}
+            <h4>Nächste Backtage:</h4>
+            <div class="d-grid gap-2">
+                {% for production_day in product.production_days.upcoming %}
+                <a href="{% url 'shop:shop-production-day' production_day=production_day.production_day.pk %}" class="btn btn-primary"><span class="fw-bold">{{ production_day.production_day.day_of_sale|date:'d.m.Y' }}</span> ({{ production_day.calculate_max_quantity }} verfügbar)</a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <h4>Keine Backtage geplant</h4>
+            {% endif %}
+        </div>
+</div>

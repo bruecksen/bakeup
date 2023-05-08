@@ -206,7 +206,7 @@ class ShopUserUpdateView(UserUpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['base_template'] = "shop/base.html"
+        context['base_template'] = "shop/base_page.html"
         return context
 
 user_update_view = UserUpdateView.as_view()

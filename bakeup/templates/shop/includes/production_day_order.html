@@ -5,25 +5,32 @@
 {% load humanize %}
 
 {% if production_day_products %}
-<div class="row gx-5">
-    <div class="col-8">
+<div class="row g-5">
+    <div class="col-12 col-md-6 col-lg-8">
         <form class="row gx-5" method="post" action="{% url 'shop:order-add-batch' production_day=production_day_next.pk %}">
             {% csrf_token %}
         {% for production_day_product in production_day_products|slice:'2' %}
-        <div class="col-12 col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             {% include "shop/includes/product_card.html" %}    
         </div>
         {% endfor %}
         </form>
     </div>
-    <div class="col-4">
-        <h2 id="backtag" class="{% if not production_day.description %} mb-4{% endif %}">Nächster Backtag: <span class="fw-bold">{{ production_day.day_of_sale|naturalday:'d.m.Y' }} <i class="fas fa-calendar-alt"></i></span></h2>
-        <form method="POST" class="text-center" action="{% url 'shop:redirect-production-day' %}">
-            {% csrf_token %}
-            <input id="select-production-day-date" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
+    <div class="col-12 col-md-6 col-lg-4 order-first order-md-last anchor">
+        <form method="POST" class="anchor" action="{% url 'shop:redirect-production-day' %}" id="backtag">
+            <div class="row">
+                <label for="select-production-day-date" class="col-4 col-form-label fs-3 fw-bold anchor">Backtag: </label>
+                {% csrf_token %}
+                <div class="col-8 position-relative">
+                    <div class="input-group mt-2">
+                        <input id="select-production-day-date" class="form-control fs-3 fw-bold border-0 lh-1" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
+                        <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white"><i class="fa-solid fa-calendar-days"></i></span>
+                    </div>
+                </div>
+            </div>
         </form>
         {% if production_day.description %}
-        <p class="mb-4 lead">{{ production_day.description|safe|linebreaksbr|urlize }}</p>
+        <p class="mb-4 mb-4 lead">{{ production_day.description|safe|linebreaksbr|urlize }}</p>
         {% endif %}
         {% if current_customer_order.positions.all %}
             {% include "shop/includes/basket.html" %}

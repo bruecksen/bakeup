@@ -9,40 +9,17 @@
   <div class="row h-100 justify-content-center align-items-center">
     <div class="col-12 col-md-6">
       <div class="card">
-      {% if form_token %}
-        <div class="card-header">
-          <ul class="nav nav-tabs card-header-tabs" data-bs-tabs="tabs">
-            <li class="nav-item">
-              <a class="nav-link{% if not form_token.errors %} active{% endif %}" data-bs-toggle="tab" href="#login">Login</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link{% if form_token.errors %} active{% endif %}" aria-current="true" data-bs-toggle="tab" href="#token">Token</a>
-            </li>
-          </ul>
-        </div>
-        {% endif %}
-  
-        <div class="card-body tab-content min-height-500">
+        <div class="card-body min-height-500">
           <div class="d-flex justify-content-center">
             {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' client_logo=request.tenant.logo %}
           </div>
           <h2 class="my-3 fw-bold">Anmelden</h2>
-          <div class="tab-pane{% if not form_token.errors %} active{% endif %} align-items-center" id="login">
             <p>Hast du noch kein Konto? Dann bitte zuerst <a href="{{ signup_url }}">ein Konto erstellen</a>.</p>
             <form method="post">
               {% csrf_token %}
               {{ form|crispy }}
               <button type="submit" class="btn btn-primary">Login</button> <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
             </form>
-          </div>
-          <div class="tab-pane{% if form_token.errors %} active{% endif %} pt-4 pb-4" id="token">
-            <form method="post" action="{% url 'users:login-token' %}">
-              {% csrf_token %}
-              {{ form_token|crispy }}
-              <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-          </div>
-  
         </div>
       </div>
       </div>

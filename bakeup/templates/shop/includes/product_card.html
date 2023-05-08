@@ -2,35 +2,39 @@
 {% load shop_tags %}
 <div class="card h-100 product-card">
     {% if production_day_product.production_day_product.production_plan.is_production %}
-    <span class="badge bg-dark top-right text-uppercase fs-6">In Produktion</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-5">In Produktion</span>
     {% elif production_day_product.production_day_product.production_plan.is_produced %}
-    <span class="badge bg-dark top-right text-uppercase fs-6">Produziert</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-5">Produziert</span>
     {% elif production_day_product.production_day_product.is_sold_out %}
-    <span class="badge bg-dark top-right text-uppercase fs-6">Ausverkauft</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-5 opacity-100 shadow">Ausverkauft</span>
     {% endif %}
-    <div class="position-relative">
-        {% if production_day_product.production_day_product.product.image %}
-        {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
-        <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
-        {% endthumbnail %}
-        {% endif %}
-        <div class="position-absolute bottom-20 start-20">
-            {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
-        </div>
-    </div>
-    <div class="card-body">
-        <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.production_day_product.product.name }} 
-            <span class="small text-muted fw-normal">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
-        </h2>
-        <p>{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
-        {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
-        {% if ingredients %}
-        <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
-        {% endif %}
-        {% endwith %}
-    </div>
+    {% customer_quantity production_day_product.production_day_product as customer_quantity %}
     
-    {% if user.is_authenticated %}
+    <div class="{% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}opacity-60{% endif %}">
+
+        <div class="position-relative">
+            {% if production_day_product.production_day_product.product.image %}
+            {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+            {% endthumbnail %}
+            {% endif %}
+            <div class="position-absolute bottom-20 start-20">
+                {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+            </div>
+        </div>
+        <div class="card-body">
+            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.production_day_product.product.name }} 
+                <span class="small text-muted fw-normal">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
+            </h2>
+            <p>{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
+            {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
+            {% if ingredients %}
+            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+        
+        {% if user.is_authenticated %}
         <div class="card-footer">
             {% if not production_day_product.production_day_product.is_sold_out and not production_day_product.production_day_product.is_locked %}
             {% if show_remaining_products %}
@@ -50,15 +54,14 @@
                 </div>
             </div>
             {% else %}
-                {% if production_day_product.production_day_product.is_locked %}
-                <p class="small mb-0">Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
-                {% elif production_day_product.production_day_product.is_sold_out %}
-                <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
-                {% endif %}
+            {% if production_day_product.production_day_product.is_locked %}
+            <p class="small mb-0">Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
+            {% elif production_day_product.production_day_product.is_sold_out %}
+            <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
             {% endif %}
-
+            {% endif %}
+            
         </div>
-        {% customer_quantity production_day_product.production_day_product as customer_quantity %}
         {% if not production_day_product.production_day_product.is_locked or customer_quantity %}
         <div class="card-footer">
             <p class="small text-center mb-0">
@@ -70,5 +73,6 @@
             </p>
         </div>
         {% endif %}
-    {% endif %}
+        {% endif %}
+    </div>
 </div>

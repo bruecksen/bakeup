@@ -5,6 +5,9 @@ class ProductManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(product_template__isnull=True)
     
+    def published(self):
+        return self.get_queryset().filter(is_published=True)
+    
 
 class ProductHierarchyManager(models.Manager):
     def with_weights(self):

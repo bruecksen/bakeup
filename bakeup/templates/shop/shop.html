@@ -7,15 +7,14 @@
 {% block jumbotron %}
 <header class="jumbotron" style="background-image: url('/static/images/header-image.jpg');">
   <div class="container h-100">
-    <div class="row h-100 align-items-end">
-      <div class="col-12  text-center text-white">
+    <div class="row h-100">
+      <div class="col-12 align-self-end text-center text-white mt-4">
         <h1 class="fw-bold text-uppercase text-shadow">Hasenbrot</h1>
         <h2 class="text-shadow">- Nachbarschaftliche Backstube in Berlin - Grünau -</h2>
       </div>
-      <div class="col-12 text-center text-white">
+      <div class="col-12 align-self-end text-center text-white">
         <div class="mb-5">
-          <a href="#backtag" class="btn btn-primary me-3">Aktueller Backtag</a>
-          <a href="#backtag" class="btn btn-primary">Die nächsten Backtage</a>
+          <a href="#backtag" class="btn btn-primary btn-lg me-3 mb-3">Nächster Backtag</a>
         </div>
       </div>
     </div>
@@ -48,6 +47,6 @@
     <h2 id="backtage">Die nächsten Backtage</h2>
   </div>
 </div>
-{% include "shop/includes/production_days.html" with production_days=production_days %}
+{% include "shop/includes/production_days.html" with production_days=production_days show_all_link=True %}
 
 {% endblock %}

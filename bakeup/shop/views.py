@@ -1,5 +1,7 @@
 from datetime import datetime
 from itertools import product
+from typing import Any, Dict, List
+from django.db.models.query import QuerySet
 from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
@@ -27,6 +29,18 @@ MAX_FUTURE_ORDER_YEARS = 2
 
 class ProductListView(CustomerRequiredMixin, ListView):
     model = Product
+    template_name = 'shop/product_list.html'
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return Product.objects.published().filter(is_sellable=True).order_by('category')
+
+
+class ProductionDayListView(CustomerRequiredMixin, ListView):
+    model = ProductionDay
+    template_name = 'shop/production_day_list.html'
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().upcoming()
 
 
 class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
@@ -196,6 +210,12 @@ class ShopView(TemplateView):
     template_name = 'shop/shop.html'
     production_day = None
 
+    def get_template_names(self) -> List[str]:
+        if self.kwargs.get('production_day', None):
+            return ['shop/production_day.html']
+        else:
+            return super().get_template_names()
+
     def setup(self, request, *args, **kwargs):
         self.production_day = self.get_production_day(*args, **kwargs)
         return super().setup(request, *args, **kwargs)
@@ -208,7 +228,9 @@ class ShopView(TemplateView):
             production_day_next = ProductionDayProduct.objects.filter(
                 is_published=True, 
                 production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale').first()
-            return production_day_next.production_day
+            if production_day_next:
+                return production_day_next.production_day
+        return None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -227,7 +249,7 @@ class ShopView(TemplateView):
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
-        context['production_days'] = ProductionDay.objects.upcoming()
+        context['production_days'] = ProductionDay.objects.upcoming().exclude(id=self.production_day.pk)
         context['all_production_days'] = list(ProductionDay.objects.annotate(
             formatted_date=Func(
                 F('day_of_sale'),

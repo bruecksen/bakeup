@@ -7,13 +7,13 @@
         {% endthumbnail %}
     </div>
     <div class="card-body">
-        <h2 class="card-title hyphens-auto fw-bold">{{ production_day.day_of_sale }}</h2>
+        <h2 class="card-title fw-bold">{{ production_day.day_of_sale|date:'d.m.Y' }}</h2>
         <p>{{ production_day.description|safe|linebreaksbr|urlize }}</p>
         <div class="mb-3">
             {% for product in production_day.production_day_products.all %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product }}</span>{% endfor %}
         </div>
         <div class="d-grid">
-            <a href="" class="btn btn-primary">Zum Backtag</a>
+            <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="btn btn-primary stretched-link">Zum Backtag</a>
         </div>
     </div>
 </div>

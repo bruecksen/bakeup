@@ -152,6 +152,10 @@ class ProductionDay(CommonBaseClass):
 class ProductionDayProductQuerySet(models.QuerySet):
     def published(self):
         return self.filter(is_published=True)
+    
+    def upcoming(self):
+        today = datetime.now().date()
+        return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
 
 
 class ProductionDayProduct(CommonBaseClass):

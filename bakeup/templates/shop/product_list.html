@@ -1,0 +1,29 @@
+{% extends "shop/base_page.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Sortiment{% endblock %}
+{% block page_header %}{% endblock %}
+
+{% block page_content %}
+<div class="row mb-3">
+  <div class="col">
+    <h2>Sortiment</h2>
+  </div>
+</div>
+{% regroup object_list by category_name as categories %}
+{% for category in categories %}
+    <div class="row {% if not forloop.first %}mt-10{% endif %} mb-2">
+        <div class="col">
+            <h3 class="text-uppercase">{{ category.grouper }}</h3>
+        </div>
+    </div>
+    <div class="row g-4">
+        {% for product in category.list %}
+        <div class="col-4">
+            {% include "shop/includes/product_card_overview.html" %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    
+{% endblock %}

@@ -359,3 +359,10 @@ USER_REGISTRATION_FORM_FIELDS = {
         'required': False,
     },
 }
+
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-hover',
+    'thead': {
+        'class': '',
+    },
+}
