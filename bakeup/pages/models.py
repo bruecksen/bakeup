@@ -16,6 +16,7 @@ from bakeup.pages.blocks import AllBlocks, ButtonBlock
 class ContentPage(Page):
     content = StreamField(AllBlocks(), blank=True, null=True)
 
+    parent_page_types = ['pages.ShopPage']
     show_in_menus_default = True
     content_panels = Page.content_panels + [
         FieldPanel("content"),
@@ -37,6 +38,7 @@ class ShopPage(Page):
     text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days'))
     content = StreamField(AllBlocks(), blank=True, null=True)
 
+    parent_page_types = []
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel('banner_image'),

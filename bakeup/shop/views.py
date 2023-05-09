@@ -27,7 +27,7 @@ from bakeup.shop.tables import CustomerOrderTable
 # Limit orders in the future
 MAX_FUTURE_ORDER_YEARS = 2
 
-class ProductListView(CustomerRequiredMixin, ListView):
+class ProductListView(ListView):
     model = Product
     template_name = 'shop/product_list.html'
 
@@ -35,7 +35,7 @@ class ProductListView(CustomerRequiredMixin, ListView):
         return Product.objects.filter(is_sellable=True, production_days__is_published=True).distinct().order_by('category')
 
 
-class ProductionDayListView(CustomerRequiredMixin, ListView):
+class ProductionDayListView(ListView):
     model = ProductionDay
     template_name = 'shop/production_day_list.html'
 

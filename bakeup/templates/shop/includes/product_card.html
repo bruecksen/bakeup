@@ -8,8 +8,9 @@
     {% elif production_day_product.production_day_product.is_sold_out %}
     <span class="badge bg-dark top-middle text-uppercase fs-5 opacity-100 shadow">Ausverkauft</span>
     {% endif %}
+    {% if user.is_authenticated %}
     {% customer_quantity production_day_product.production_day_product as customer_quantity %}
-    
+    {% endif %}
     {% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
 
         <div class="position-relative">
