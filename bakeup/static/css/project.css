@@ -12491,6 +12491,15 @@ textarea.form-control-lg {
   src: url("../fonts/quattrocento/quattrocento-v17-latin-700.eot"); /* IE9 Compat Modes */
   src: url("../fonts/quattrocento/quattrocento-v17-latin-700.eot?#iefix") format("embedded-opentype"), url("../fonts/quattrocento/quattrocento-v17-latin-700.woff2") format("woff2"), url("../fonts/quattrocento/quattrocento-v17-latin-700.woff") format("woff"), url("../fonts/quattrocento/quattrocento-v17-latin-700.ttf") format("truetype"), url("../fonts/quattrocento/quattrocento-v17-latin-700.svg#Quattrocento") format("svg"); /* Legacy iOS */
 }
+/* kaushan-script-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Kaushan Script";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/kaushan/kaushan-script-v14-latin-regular.eot"); /* IE9 Compat Modes */
+  src: url("../fonts/kaushan/kaushan-script-v14-latin-regular.eot?#iefix") format("embedded-opentype"), url("../fonts/kaushan/kaushan-script-v14-latin-regular.woff2") format("woff2"), url("../fonts/kaushan/kaushan-script-v14-latin-regular.woff") format("woff"), url("../fonts/kaushan/kaushan-script-v14-latin-regular.ttf") format("truetype"), url("../fonts/kaushan/kaushan-script-v14-latin-regular.svg#KaushanScript") format("svg"); /* Legacy iOS */
+}
 input[type=date] {
   position: relative;
 }
@@ -12565,6 +12574,10 @@ body.shop .product-card h2, body.shop .product-card .h2 {
 html,
 body {
   height: 100%;
+}
+
+.handwriting {
+  font-family: "Kaushan Script";
 }
 
 h1[id]::before, [id].h1::before,
