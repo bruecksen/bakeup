@@ -28,7 +28,7 @@ class LoginView(_LoginView):
         if self.request.user.is_staff:
             return reverse('workshop:workshop')
         else:
-            return reverse('shop:shop')
+            return '/shop/'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -57,7 +57,7 @@ class TokenLoginView(_LoginView):
         if self.request.user.is_staff:
             return reverse('workshop:workshop')
         else:
-            return reverse('shop:shop')
+            return '/shop/'
 
     def form_valid(self, form):
         """Security check complete. Log the user in."""
