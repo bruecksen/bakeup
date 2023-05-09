@@ -146,3 +146,14 @@ if(!navbar.classList.contains('nav-bg-dark')) {
         }
     };
 }
+const myCollapsible = document.getElementById('navbarSupportedContent')
+myCollapsible.addEventListener('show.bs.collapse', event => {
+    navbar.classList.add("nav-bg-dark");
+})
+myCollapsible.addEventListener('hidden.bs.collapse', event => {
+    if (document.body.scrollTop >= 200 || document.documentElement.scrollTop >= 200 ) {
+    } else {
+        navbar.classList.remove("nav-bg-dark");
+    }
+    
+})
