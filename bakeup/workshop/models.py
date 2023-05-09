@@ -55,7 +55,6 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
-    is_published = models.BooleanField(default=False)
 
 
     tags = TaggableManager(blank=True)

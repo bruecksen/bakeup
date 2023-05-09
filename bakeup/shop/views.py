@@ -32,7 +32,7 @@ class ProductListView(CustomerRequiredMixin, ListView):
     template_name = 'shop/product_list.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-        return Product.objects.published().filter(is_sellable=True).order_by('category')
+        return Product.objects.filter(is_sellable=True, production_days__is_published=True).distinct().order_by('category')
 
 
 class ProductionDayListView(CustomerRequiredMixin, ListView):
