@@ -1,0 +1,21 @@
+{# cf. https://docs.wagtail.org/en/stable/advanced_topics/customisation/streamfield_blocks.html#custom-editing-interfaces-for-structblock #}
+
+<div class="{{ classname }}">
+    {% if help_text %}
+      <div class="c-sf-help">
+        <div class="help">{{ help_text }}</div>
+      </span>
+    {% endif %}
+  
+    {% for child in children.values %}
+      <div class="w-field" data-contentpath="{{ child.block.name }}">
+        {% if child.block.label %}
+          <label class="w-field__label"{% if child.id_for_label %} for="{{ child.id_for_label }}"{% endif %}>
+            {{ child.block.label }}{% if child.block.required %}<span class="w-required-mark">*</span>{% endif %}
+          </label>
+        {% endif %}
+        {{ child.render_form }}
+      </div>
+    {% endfor %}
+  </div>
+  
