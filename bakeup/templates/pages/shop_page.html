@@ -1,0 +1,42 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+{% load wagtailimages_tags %}
+{% load wagtailcore_tags %}
+
+{% block title %}Shop{% endblock %}
+{% block page_header %}{% endblock %}
+
+{% block jumbotron %}
+{% image page.banner_image width-1800 as banner_image %}
+<header class="jumbotron" style="background-image: url('{{ banner_image.url }}');">
+  <div class="container h-100">
+    <div class="row h-100">
+      <div class="col-12 align-self-end text-center text-white mt-4">
+        <h1 class="fw-bold text-uppercase text-shadow">Hasenbrot</h1>
+        <h2 class="text-shadow">- Nachbarschaftliche Backstube in Berlin - Grünau -</h2>
+      </div>
+      <div class="col-12 align-self-end text-center text-white">
+        <div class="mb-5">
+          <a href="#backtag" class="btn btn-primary btn-lg me-3 mb-3">Nächster Backtag</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+{% endblock jumbotron %}
+
+{% block page_content %}
+{% if not production_day_next %}
+<div class="row mb-10">
+  <div class="col">
+    <div class="card p-4">
+      {{ page.text_no_production_day|richtext }}
+    </div>
+  </div>
+</div>
+{% else %}
+  {% slugurl 'shop' as next_url %}
+  {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products next_url=next_url %}
+{% endif %}
+{{ self.content }}
+{% endblock %}

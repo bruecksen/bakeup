@@ -12760,13 +12760,62 @@ button[aria-expanded=false] .fa-chevron-down {
   display: none;
 }
 
+.navbar {
+  --bs-navbar-nav-link-padding-x: 0;
+  --bs-navbar-toggler-padding-y: 0;
+}
+
+nav .nav-item {
+  margin-left: 11.2px;
+  margin-left: 0.7rem;
+  margin-right: 11.2px;
+  margin-right: 0.7rem;
+  position: relative;
+}
+nav .nav-item.active .nav-link {
+  border-bottom: 2px solid #fff;
+}
 nav .nav-link {
   color: #fff;
 }
-nav .nav-link:hover {
+nav .nav-link:hover, nav .nav-link:focus {
   color: #fff;
 }
 
+.spacer-1 {
+  margin-bottom: 16px;
+  margin-bottom: 1rem;
+}
+
+.spacer-2 {
+  margin-bottom: 32px;
+  margin-bottom: 2rem;
+}
+
+.spacer-3 {
+  margin-bottom: 48px;
+  margin-bottom: 3rem;
+}
+
+.spacer-4 {
+  margin-bottom: 64px;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 576px) {
+  .spacer-mobile-1 {
+    margin-bottom: 1rem;
+  }
+  .spacer-mobile-2 {
+    margin-bottom: 2rem;
+  }
+  .spacer-mobile-3 {
+    margin-bottom: 3rem;
+  }
+  .spacer-mobile-4 {
+    margin-bottom: 4rem;
+  }
+}
 .horizontal-ruler {
   min-height: 200px;
 }

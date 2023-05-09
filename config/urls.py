@@ -1,20 +1,24 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.contrib.auth import views as auth_views
 from django.views.generic import TemplateView
 from django.views.generic import RedirectView
+
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
 
 from bakeup.core.views import HomeView
 from bakeup.users.views import LoginView, TokenLoginView, SignupView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
-    path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
-    path("impressum/", TemplateView.as_view(template_name="pages/impressum.html"), name="impressum"),
-    path("datenschutz/", TemplateView.as_view(template_name="pages/datenschutz.html"), name="datenschutz"),
+    # path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+    # path("impressum/", TemplateView.as_view(template_name="pages/impressum.html"), name="impressum"),
+    # path("datenschutz/", TemplateView.as_view(template_name="pages/datenschutz.html"), name="datenschutz"),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
@@ -26,7 +30,10 @@ urlpatterns = [
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
     # path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name='logout'),
-    path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico'))
+    path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico')),
+    path('cms/', include(wagtailadmin_urls)),
+    path('documents/', include(wagtaildocs_urls)),
+    re_path(r'', include(wagtail_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

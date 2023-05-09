@@ -55,7 +55,6 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
-    is_published = models.BooleanField(default=False)
 
 
     tags = TaggableManager(blank=True)
@@ -423,11 +422,3 @@ class ProductionPlan(CommonBaseClass):
                     defaults={'quantity': quantity_parent * child.quantity}
                 )
                 ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
-
-
-
-
-
-
-
-

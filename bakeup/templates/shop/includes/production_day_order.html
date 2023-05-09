@@ -9,6 +9,9 @@
     <div class="col-12 col-md-6 col-lg-8">
         <form class="row gx-5" method="post" action="{% url 'shop:order-add-batch' production_day=production_day_next.pk %}">
             {% csrf_token %}
+            {% if next_url %}
+            <input type="hidden" name="next_url" value="{{ next_url }}">
+            {% endif %}
         {% for production_day_product in production_day_products|slice:'2' %}
         <div class="col-12 col-lg-6 mb-4">
             {% include "shop/includes/product_card.html" %}    

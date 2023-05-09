@@ -10,7 +10,7 @@
     {% endif %}
     {% customer_quantity production_day_product.production_day_product as customer_quantity %}
     
-    <div class="{% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}opacity-60{% endif %}">
+    {% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
 
         <div class="position-relative">
             {% if production_day_product.production_day_product.product.image %}
@@ -74,5 +74,5 @@
         </div>
         {% endif %}
         {% endif %}
-    </div>
+{% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}</div>{% endif %}
 </div>

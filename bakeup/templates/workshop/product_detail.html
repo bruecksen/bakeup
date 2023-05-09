@@ -23,7 +23,6 @@
     <ul class="list-unstyled list-inline mb-1">
       <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>
       <li class="list-inline-item">{% for tag in object.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}</li>
-      <li class="list-inline-item">{% if object.is_published %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Published" %}</li>
       <li class="list-inline-item">{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
       <li class="list-inline-item">{% if object.is_buyable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Buyable" %}</li>
       <li class="list-inline-item">{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>

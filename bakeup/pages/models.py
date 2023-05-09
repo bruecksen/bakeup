@@ -1,0 +1,86 @@
+from datetime import datetime
+
+from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
+
+from wagtail import blocks
+from wagtail.models import Page
+from wagtail.fields import RichTextField, StreamField
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+
+from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct
+from bakeup.pages.blocks import AllBlocks, ButtonBlock
+
+# Create your models here.
+class ContentPage(Page):
+    content = StreamField(AllBlocks(), blank=True, null=True)
+
+    show_in_menus_default = True
+    content_panels = Page.content_panels + [
+        FieldPanel("content"),
+    ]
+
+
+class ShopPage(Page):
+    banner_image = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        verbose_name='Image'
+    )
+    banner_text = RichTextField(blank=True, verbose_name='Text')
+    banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action')
+
+    text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days'))
+    content = StreamField(AllBlocks(), blank=True, null=True)
+
+    content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel('banner_image'),
+            FieldPanel('banner_text'),
+            FieldPanel('banner_cta'),
+        ], heading="Banner"),
+        FieldPanel('text_no_production_day'),
+        FieldPanel('content'),
+    ]
+
+    def get_production_day(self, *args, **kwargs):
+        today = datetime.now().date()
+        production_day_next = ProductionDayProduct.objects.filter(
+            is_published=True, 
+            production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale').first()
+        if production_day_next:
+            return production_day_next.production_day
+        return None
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        self.production_day = self.get_production_day(*args, **kwargs)
+        customer = None if request.user.is_anonymous else request.user.customer
+        if self.production_day:
+            context['production_day_next'] = self.production_day
+            context['production_day_products'] = self.production_day.production_day_products.filter(is_published=True)
+            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
+            production_day_products = []
+            for production_day_product in self.production_day.production_day_products.filter(is_published=True):
+                form = production_day_product.get_order_form(customer)
+                production_day_products.append({
+                    'production_day_product': production_day_product,
+                    'form': form
+                })
+            context['production_day_products'] = production_day_products
+        context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
+        context['point_of_sales'] = PointOfSale.objects.all()
+        context['production_days'] = ProductionDay.objects.upcoming().exclude(id=self.production_day.pk)
+        context['all_production_days'] = list(ProductionDay.objects.annotate(
+            formatted_date=Func(
+                F('day_of_sale'),
+                Value('dd.MM.yyyy'),
+                function='to_char',
+                output_field=CharField()
+            )
+        ).values_list('formatted_date', flat=True))
+        return context

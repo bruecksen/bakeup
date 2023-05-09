@@ -32,7 +32,7 @@ class ProductListView(CustomerRequiredMixin, ListView):
     template_name = 'shop/product_list.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-        return Product.objects.published().filter(is_sellable=True).order_by('category')
+        return Product.objects.filter(is_sellable=True, production_days__is_published=True).distinct().order_by('category')
 
 
 class ProductionDayListView(CustomerRequiredMixin, ListView):
@@ -154,7 +154,10 @@ class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return "{}#current-order".format(reverse('shop:shop'))
+        if 'next_url' in self.request.POST:
+            return "{}#current-order".format(self.request.POST.get('next_url'))
+        else:
+            return reverse('shop:shop-production-day', kwargs={'production_day': self.production_day.pk})
 
     def form_invalid(self, form):
         raise Exception(form)

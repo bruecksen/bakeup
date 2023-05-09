@@ -38,12 +38,9 @@
           <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
             {% if request.user.is_authenticated and request.user.is_customer %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'shop:shop' %}"><i class="fa-solid fa-shop"></i> Shop</a>
+              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop"></i> Shop</a>
             </li>
             {% endif %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}"><i class="fa-solid fa-circle-question fa-fw"></i> Help</a>
-            </li>
             {% if request.user.is_authenticated %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
