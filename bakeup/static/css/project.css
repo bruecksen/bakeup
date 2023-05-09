@@ -12562,9 +12562,18 @@ body.shop .product-card h2, body.shop .product-card .h2 {
   --bs-btn-hover-color: var(--bs-white);
 }
 
+.table-light {
+  --bs-table-bg: var(--bs-white);
+  --bs-table-hover-bg: var(--bs-gray-200);
+}
+
 html,
 body {
   height: 100%;
+}
+
+body {
+  background-color: #F3ECD2;
 }
 
 h1[id]::before, [id].h1::before,
