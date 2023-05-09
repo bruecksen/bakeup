@@ -8,7 +8,7 @@
 <div class="container h-100">
   <div class="row h-100 justify-content-center align-items-center">
     <div class="col-12 col-md-4 card p-4">
-      {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' %}
+      {% include "includes/logo.html" with logo_size='large' %}
       <h2 class="text-center my-3">{% translate "Welcome to" %} {{ request.tenant.domain_url }}</h2>
       <form method="post">
         {% csrf_token %}

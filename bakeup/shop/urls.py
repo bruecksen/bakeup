@@ -15,7 +15,7 @@ from bakeup.users.views import (
 app_name = "shop"
 urlpatterns = [
    path("<int:production_day>/", view=ShopView.as_view(), name="shop-production-day"),
-   path("", view=ShopView.as_view(), name="shop"),
+#    path("", view=ShopView.as_view(), name="shop"),
    path("redirect/", view=redirect_to_production_day_view, name='redirect-production-day'),
 #    path("weekly/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
 #    path("weekly/<int:year>/<int:calendar_week>/", view=ProductionDayWeeklyView.as_view(), name="weekly"),

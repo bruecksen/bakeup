@@ -1,4 +1,8 @@
 {% load wagtailcore_tags %}
-<div class="text-{{ self.alignment }}">
-    {{ self.text }}
+<div class="row mb-2">
+    <div class="col">
+        <div class="text-{{ self.alignment }}">
+            {{ self.text }}
+        </div>
+    </div>
 </div>

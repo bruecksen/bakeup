@@ -38,7 +38,7 @@
           <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
             {% if request.user.is_authenticated and request.user.is_customer %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'shop:shop' %}"><i class="fa-solid fa-shop"></i> Shop</a>
+              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop"></i> Shop</a>
             </li>
             {% endif %}
             {% if request.user.is_authenticated %}

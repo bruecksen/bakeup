@@ -2,7 +2,7 @@
 {% load menu_tags %}
 <nav class="navbar navbar-expand-lg fixed-top{% if background %} nav-bg-dark{% endif %}" id="navbar">
     <div class="container">
-      {% include "includes/logo.html" with logo_size='small' home_url='shop:shop' client_logo=request.tenant.logo %}
+      {% include "includes/logo.html" with logo_size='small' client_logo=request.tenant.logo %}
       {% if not request.tenant.logo %}<a href="{% url 'shop:shop' %}" class="navbar-brand ms-3">{{ request.tenant.name }}</a>{% endif %}
       <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <i class="fa-solid fa-bars fs-2"></i>

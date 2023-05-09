@@ -11,7 +11,7 @@
       <div class="card">
         <div class="card-body tab-content min-height-500">
           <div class="d-flex justify-content-center">
-            {% include "includes/logo.html" with logo_size='large' home_url='shop:shop' client_logo=request.tenant.logo %}
+            {% include "includes/logo.html" with logo_size='large' client_logo=request.tenant.logo %}
           </div>
           <h2 class="my-3 fw-bold">{% trans "Sign Up" %}</h2>
           <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>

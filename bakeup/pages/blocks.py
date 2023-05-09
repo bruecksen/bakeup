@@ -1,11 +1,19 @@
+from django.utils.translation import gettext_lazy as _
+from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
+
 from wagtail.blocks.field_block import (BooleanBlock, CharBlock, ChoiceBlock, PageChooserBlock,
-                                             RawHTMLBlock, RichTextBlock as _RichTextBlock, URLBlock)
+                                             RawHTMLBlock, RichTextBlock as _RichTextBlock, URLBlock, IntegerBlock, Block)
 from wagtail.blocks.list_block import ListBlock
 from wagtail.blocks.stream_block import StreamBlock
 from wagtail.blocks.struct_block import StructBlock
+from wagtail.blocks import StructValue
 from wagtail.embeds.blocks import EmbedBlock as EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
+from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.snippets.blocks import SnippetChooserBlock
+
+from bakeup.shop.models import ProductionDay
 
 
 class TextAlignmentChoiceBlock(ChoiceBlock):
@@ -97,6 +105,101 @@ class SimpleCard(StructBlock):
         label = "Simple Card (Text Only)"
         icon = 'form'
 
+class LinkTargetBlock(StreamBlock):
+    """
+    The target of a link, used by `LinkBlock`.
+    """
+
+    page = PageChooserBlock(
+        label=_("Page"), icon='doc-empty-inverse'
+    )
+    document = DocumentChooserBlock(label=_("Document"), icon='doc-full')
+    image = ImageChooserBlock(label=_("Image"))
+    url = URLBlock(label=_("External link"))
+    anchor = CharBlock(
+        label=_("Anchor link"),
+        help_text=mark_safe(
+            _(
+                "An anchor in the current page, for example: "
+                "<code>#target-id</code>."
+            )
+        ),
+    )
+
+    def set_name(self, name):
+        # Do not generate a label from the name as Block.set_name does
+        self.name = name
+
+    class Meta:
+        icon = 'link'
+        max_num = 1
+        form_classname = 'link-target-block'
+
+
+class LinkValue(StructValue):
+    @cached_property
+    def href(self):
+        """Return the URL of the chosen target or `None` if it is undefined."""
+        try:
+            child_value = self['target'][0].value
+        except (IndexError, KeyError):
+            return None
+        if hasattr(child_value, 'file') and hasattr(child_value.file, 'url'):
+            href = child_value.file.url
+        elif hasattr(child_value, 'url'):
+            href = child_value.url
+        else:
+            href = child_value
+        return href
+
+
+class LinkBlock(StructBlock):
+    """
+    A link with a target chosen from a range of types - i.e. a page, an URL.
+    """
+
+    class Meta:
+        icon = 'link'
+        label = _("Link")
+        value_class = LinkValue
+        form_classname = 'link-block'
+        form_template = 'pages/block_forms/link_block.html'
+
+    def __init__(self, *args, required=True, **kwargs):
+        super().__init__(*args, required=required, **kwargs)
+
+        target = LinkTargetBlock(required=required)
+        target.set_name('target')
+
+        self.child_blocks['target'] = target
+
+    @property
+    def required(self):
+        return self.meta.required
+
+
+class ButtonBlock(StructBlock):
+    """
+    A button which acts like a link.
+    """
+
+    text = CharBlock(label=_("Text"))
+    link = LinkBlock()
+
+    class Meta:
+        icon = 'link'
+        label = _("Button")
+        template = 'wagtail_cblocks/button_block.html'
+
+
+class HorizontalRuleBlock(StructBlock):
+    class Meta:
+        icon = 'horizontalrule'
+        label = _("Horizontal Rule")
+        template = 'blocks/hr_block.html'
+
+
+
 
 class CommonBlocks(StreamBlock):
     # heading = HeadingBlock(group="Common")
@@ -108,6 +211,7 @@ class CommonBlocks(StreamBlock):
     html = RawHTMLBlock(group="Common")
     space = SpacerBlock(group="Common")
     card = SimpleCard(group="Common")
+    hr = HorizontalRuleBlock(group="Common")
     # accordion = AccordionBlock(child_block=AccordionElement(), group="Common")
     # tile = TileBlock(group="Common")
 
@@ -158,6 +262,24 @@ class ColumnBlocks(StreamBlock):
     column21 = Column21(group="Columns")
 
 
+class ProductionDaysBlock(StructBlock):
+    production_day_limit = IntegerBlock(default=4)
 
-class AllBlocks(CommonBlocks, ColumnBlocks):
+    class Meta:
+        template = 'blocks/production_days_block.html'
+        label = _('Production Days')
+        icon = 'date'
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context['production_days'] = ProductionDay.objects.upcoming()
+        return context
+
+
+class BakeupBlocks(StreamBlock):
+    production_days = ProductionDaysBlock(group="Bakeup")
+
+
+
+class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks):
     pass
