@@ -83,6 +83,6 @@ class HomeView(RedirectView):
             if self.request.user.is_staff:
                 return reverse('workshop:workshop')
             else:
-                return reverse('shop:shop')
+                return '/shop/'
         else:
-            return reverse('shop:shop')
+            return '/shop/'
