@@ -189,7 +189,7 @@ class ButtonBlock(StructBlock):
     class Meta:
         icon = 'link'
         label = _("Button")
-        template = 'wagtail_cblocks/button_block.html'
+        template = 'blocks/button_block.html'
 
 
 class HorizontalRuleBlock(StructBlock):
