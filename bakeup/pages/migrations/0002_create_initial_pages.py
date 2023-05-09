@@ -82,11 +82,21 @@ def create_initial_pages(apps, schema_editor):
             slug="datenschutz",
         ),
     )
+    shop = m.create_page(
+        site.root_page,
+        "pages.ShopPage",
+        dict(
+            title="Shop",
+            slug="shop",
+        ),
+    )
 
 
 def remove_initial_pages(apps, schema_editor):
     ContentPage = apps.get_model("pages", "ContentPage")
+    ShopPage = apps.get_model("pages", "ShopPage")
     ContentPage.objects.filter(slug__in=('impressum', 'datenschutz')).delete()
+    ShopPage.objects.filter(slug__in=('shop')).delete()
 
 
 class Migration(migrations.Migration):

@@ -11,13 +11,13 @@ class AccountAdapter(DefaultAccountAdapter):
         if request.user.is_staff:
             return reverse('workshop:workshop')
         else:
-            return reverse('shop:shop')
+            return '/shop/'
     
     def get_email_confirmation_redirect_url(self, request):
         if request.user.is_staff:
             return reverse('workshop:workshop')
         else:
-            return reverse('shop:shop')
+            return '/shop/'
 
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         current_site = get_current_site(request)

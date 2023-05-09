@@ -12,12 +12,11 @@
   <div class="container h-100">
     <div class="row h-100">
       <div class="col-12 align-self-end text-center text-white mt-4">
-        <h1 class="fw-bold text-uppercase text-shadow">Hasenbrot</h1>
-        <h2 class="text-shadow">- Nachbarschaftliche Backstube in Berlin - Grünau -</h2>
+        {{ page.banner_text|richtext }}
       </div>
       <div class="col-12 align-self-end text-center text-white">
         <div class="mb-5">
-          <a href="#backtag" class="btn btn-primary btn-lg me-3 mb-3">Nächster Backtag</a>
+          {{ page.banner_cta }}
         </div>
       </div>
     </div>

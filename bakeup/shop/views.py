@@ -118,7 +118,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('shop:shop')
+        return '/shop/'
 
     def form_invalid(self, form):
         messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
@@ -179,7 +179,7 @@ class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
     model = CustomerOrderPosition
 
     def get_success_url(self):
-        return "{}#current-order".format(reverse('shop:shop'))
+        return "{}#current-order".format('/shop/')
 
 
 class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
@@ -187,7 +187,7 @@ class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
     fields = ['quantity']
 
     def get_success_url(self):
-        return "{}#current-order".format(reverse('shop:shop'))
+        return "{}#current-order".format('/shop/')
 
     def form_valid(self, form):
         self.object = form.save()
@@ -201,7 +201,7 @@ class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
     fields = ['point_of_sale']
 
     def get_success_url(self):
-        return "{}#current-order".format(reverse('shop:shop'))
+        return "/shop/#current-order"
 
     # def form_valid(self, form):
     #     self.object = form.save()
