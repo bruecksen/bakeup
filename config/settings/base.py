@@ -387,6 +387,8 @@ WAGTAIL_SITE_NAME = 'Bakeup'
 # Wagtail email notification format
 WAGTAILADMIN_NOTIFICATION_USE_HTML = True
 
+WAGTAIL_ENABLE_UPDATE_CHECK = 'lts'
+
 # Reverse the default case-sensitive handling of tags
 TAGGIT_CASE_INSENSITIVE = True
 
