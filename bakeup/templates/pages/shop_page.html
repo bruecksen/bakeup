@@ -16,7 +16,9 @@
       </div>
       <div class="col-12 align-self-end text-center text-white">
         <div class="mb-5">
-          {{ page.banner_cta }}
+          {% for cta in page.banner_cta %}
+            {{ cta }}
+          {% endfor %}
         </div>
       </div>
     </div>
