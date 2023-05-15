@@ -43,6 +43,9 @@
             {% endif %}
             {% if request.user.is_authenticated %}
               <li class="nav-item">
+                <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i> CMS</a>
+              </li>
+              <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
