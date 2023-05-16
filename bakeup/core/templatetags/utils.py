@@ -33,3 +33,13 @@ def current_git_tag():
 def current_git_commit():
     commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).strip().decode('utf-8')
     return commit_hash
+
+
+@register.filter(name='hex_to_rgb')
+def hex_to_rgb(hex, format_string='{r},{g},{b}'):
+    # Returns the RGB value of a hexadecimal color
+	hex = hex.replace('#','')
+	out = {	'r':int(hex[0:2], 16),
+		'g':int(hex[2:4], 16),
+		'b':int(hex[4:6], 16)}
+	return format_string.format(**out)

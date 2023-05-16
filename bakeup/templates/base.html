@@ -49,10 +49,12 @@
       <script defer src="{% static 'js/project.js' %}"></script>
 
     {% endblock javascript %}
+    {% block theme %}
+    {% endblock theme %}
 
   </head>
 
-  <body class="h-100 d-flex flex-column {% block body_class %}{% endblock %}" data-theme="{% block theme %}{% endblock %}">
+  <body class="h-100 d-flex flex-column {% block body_class%}{% endblock body_class%}">
 
     
     {% block content %}

@@ -8,9 +8,14 @@ from wagtail import blocks
 from wagtail.models import Page
 from wagtail.fields import RichTextField, StreamField
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from wagtail.contrib.settings.models import (
+    BaseGenericSetting,
+    BaseSiteSetting,
+    register_setting,
+)
 
 from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct
-from bakeup.pages.blocks import AllBlocks, ButtonBlock
+from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
 
 # Create your models here.
 class ContentPage(Page):
@@ -86,3 +91,27 @@ class ShopPage(Page):
             )
         ).values_list('formatted_date', flat=True))
         return context
+    
+
+@register_setting
+class FooterSettings(BaseGenericSetting):
+    footer = StreamField(ContentBlocks(), blank=True, null=True)
+
+
+@register_setting(icon='success')
+class BrandSettings(BaseGenericSetting):
+    logo = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        verbose_name='Image'
+    )
+    primary_color = models.CharField(max_length=8, verbose_name='Primary color', help_text="as a hex value", blank=True, null=True)
+    secondary_color = models.CharField(max_length=8, verbose_name='Secondary color', help_text="as a hex value", blank=True, null=True)
+    light_color = models.CharField(max_length=8, verbose_name='Light color', help_text="as a hex value", blank=True, null=True)
+    dark_color = models.CharField(max_length=8, verbose_name='Dark color', help_text="as a hex value", blank=True, null=True)
+    
+    class Meta:
+        verbose_name = "Brand settings"

@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
 {% load utils%}
+{% block theme %}
+{% include 'shop/includes/theme.html' %}
+{% endblock %}
 {% block body_class %}shop{% endblock %}
-{% block theme %}shop{% endblock %}
 {% block content %}
 {% block header %}
 {% include "shop/includes/header.html" %}

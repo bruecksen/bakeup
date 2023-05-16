@@ -280,6 +280,8 @@ class BakeupBlocks(StreamBlock):
     production_days = ProductionDaysBlock(group="Bakeup")
 
 
+class ContentBlocks(CommonBlocks, ColumnBlocks):
+    pass
 
 class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks):
     pass

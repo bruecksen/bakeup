@@ -1,0 +1,46 @@
+<style>
+    :root {
+        {% if settings.pages.BrandSettings.primary_color %}
+        --bs-primary: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-primary-rgb: {{ settings.pages.BrandSettings.primary_color|hex_to_rgb }};
+        --bs-link-color: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-link-hover-color: {{ settings.pages.BrandSettings.primary_color }};
+        .btn-primary {
+            --bs-btn-bg: {{ settings.pages.BrandSettings.primary_color }};
+            --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
+            --bs-btn-hover-bg: rgba(var(--bs-primary-rgb), 0.8);
+            --bs-btn-hover-border-color: rgba(var(--bs-primary-rgb), 0.8);
+            --bs-btn-active-bg: rgba(var(--bs-primary-rgb), 0.8);
+            --bs-btn-active-border-color: rgba(var(--bs-primary-rgb), 0.8);
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-hover-color: var(--bs-white);
+            
+        }
+        {% endif %}
+        {% if settings.pages.BrandSettings.secondary_color %}
+        --bs-secondary: {{ settings.pages.BrandSettings.secondary_color }};
+        --bs-secondary-rgb: {{ settings.pages.BrandSettings.secondary_color|hex_to_rgb }};
+        .btn-secondary {
+            --bs-btn-bg: {{ settings.pages.BrandSettings.secondary_color }};
+            --bs-btn-border-color: {{ settings.pages.BrandSettings.secondary_color }};
+            --bs-btn-hover-bg: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-hover-border-color: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-active-bg: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-active-border-color: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-hover-color: var(--bs-white);
+            
+        }
+        {% endif %}
+        {% if settings.pages.BrandSettings.light_color %}
+        --bs-light: {{ settings.pages.BrandSettings.light_color }};
+        --bs-light-rgb: {{ settings.pages.BrandSettings.light_color|hex_to_rgb }};
+        {% endif %}
+        {% if settings.pages.BrandSettings.dark_color %}
+        --bs-dark: {{ settings.pages.BrandSettings.dark_color }};
+        --bs-dark-rgb: {{ settings.pages.BrandSettings.dark_color|hex_to_rgb }};
+        {% endif %}
+
+    }
+
+</style>
