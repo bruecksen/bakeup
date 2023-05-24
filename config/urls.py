@@ -28,12 +28,12 @@ urlpatterns = [
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
+    re_path(r'shop/', include(wagtail_urls)),
     # path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name='logout'),
     path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico')),
     path('cms/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
-    re_path(r'', include(wagtail_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

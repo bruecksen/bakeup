@@ -1,8 +1,9 @@
-from django.urls import path
+from django.urls import path, re_path, include
 from django.utils.translation import gettext_lazy as _
 
-from bakeup.shop.views import ProductionDayListView, redirect_to_production_day_view, CustomerOrderUpdateView, CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderAddBatchView, CustomerOrderPositionUpdateView
+from wagtail import urls as wagtail_urls
 
+from bakeup.shop.views import ProductionDayListView, redirect_to_production_day_view, CustomerOrderUpdateView, CustomerOrderAddView, CustomerOrderListView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderAddBatchView, CustomerOrderPositionUpdateView
 from bakeup.users.views import LoginView, TokenLoginView, SignupView
 from bakeup.users.views import (
     shop_user_profile_view,

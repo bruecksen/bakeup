@@ -43,7 +43,7 @@ class ShopPage(Page):
     text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days'))
     content = StreamField(AllBlocks(), blank=True, null=True)
 
-    parent_page_types = []
+    parent_page_types = ['wagtailcore.Page']
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel('banner_image'),
