@@ -207,6 +207,7 @@ class CommonBlocks(StreamBlock):
     text = RichTextBlock(group="Common")
     # text_collapse = TextCollapse(group="Common")
     image = ImageChooserBlock(group="Common")
+    button = ButtonBlock(group="Common")
     # round_image = RoundImageChooserBlock(group="Common")
     video = EmbedBlock(group="Common")
     html = RawHTMLBlock(group="Common")
@@ -264,7 +265,7 @@ class ColumnBlocks(StreamBlock):
 
 
 class ProductionDaysBlock(StructBlock):
-    production_day_limit = IntegerBlock(default=4)
+    production_day_limit = IntegerBlock(default=4, required=False)
 
     class Meta:
         template = 'blocks/production_days_block.html'
@@ -273,11 +274,12 @@ class ProductionDaysBlock(StructBlock):
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
-        context['production_days'] = ProductionDay.objects.upcoming()
-        if 'production_day_next' in parent_context:
-            context['production_days'] = context['production_days'].exclude(id=parent_context['production_day_next'].pk)
-        context['production_days'] = context['production_days'][:value.get('production_day_limit')]
-        
+        production_days = ProductionDay.objects.upcoming()
+        if parent_context and 'production_day_next' in parent_context:
+            production_days = production_days.exclude(id=parent_context['production_day_next'].pk)
+        if value.get('production_day_limit'):
+            production_days = production_days[:value.get('production_day_limit')]
+        context['production_days'] = production_days
         return context
     
 

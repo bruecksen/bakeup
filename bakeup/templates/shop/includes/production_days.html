@@ -10,10 +10,3 @@
     </div>
     {% endfor %}
 </div>
-{% if show_all_link and production_days %}
-<div class="row mt-5 mb-4">
-    <div class="col text-center">
-      <a class="btn btn-primary" href="{% url 'shop:production-day-list' %}">Alle Backtage anzeigen</a>
-    </div>
-</div>
-{% endif %}
