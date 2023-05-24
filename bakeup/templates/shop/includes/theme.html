@@ -5,6 +5,11 @@
         --bs-primary-rgb: {{ settings.pages.BrandSettings.primary_color|hex_to_rgb }};
         --bs-link-color: {{ settings.pages.BrandSettings.primary_color }};
         --bs-link-hover-color: {{ settings.pages.BrandSettings.primary_color }};
+        .accordion {
+            --bs-accordion-active-color: {{ settings.pages.BrandSettings.primary_color }};
+            --bs-accordion-active-bg: rgba(var(--bs-primary-rgb), 0.2);
+            --bs-accordion-btn-focus-border-color: rgba(var(--bs-primary-rgb), 0.8);
+        }
         .btn-primary {
             --bs-btn-bg: {{ settings.pages.BrandSettings.primary_color }};
             --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};

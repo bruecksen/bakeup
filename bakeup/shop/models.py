@@ -62,7 +62,7 @@ class ProductionDay(CommonBaseClass):
             Q(product__image=None)).order_by('?').first()
         if product:
             return product.product.image
-
+        
     @property
     def calendar_week(self):
         return self.day_of_sale.isocalendar()[1]

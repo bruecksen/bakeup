@@ -410,6 +410,10 @@ textarea {
   }
 }
 
+.accordion-button:focus {
+  box-shadow: none;
+}
+
 
 @media (max-width: 768px) {
   .fs-xs-6 {

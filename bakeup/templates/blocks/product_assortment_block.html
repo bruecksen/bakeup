@@ -1,16 +1,5 @@
-{% extends "shop/base_page.html" %}
-{% load crispy_forms_tags %}
-
-{% block title %}Sortiment{% endblock %}
-{% block page_header %}{% endblock %}
-
-{% block page_content %}
-<div class="row mb-3">
-  <div class="col">
-    <h2>Sortiment</h2>
-  </div>
-</div>
-{% regroup object_list by category_name as categories %}
+{% load wagtailcore_tags %}
+{% regroup products by category_name as categories %}
 <div class="accordion accordion-flush">
     
     {% for category in categories %}
@@ -31,8 +20,6 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
     {% endfor %}
 </div>
-    
-{% endblock %}

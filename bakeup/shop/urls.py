@@ -19,7 +19,7 @@ urlpatterns = [
    path("redirect/", view=redirect_to_production_day_view, name='redirect-production-day'),
 #    path("weekly/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
 #    path("weekly/<int:year>/<int:calendar_week>/", view=ProductionDayWeeklyView.as_view(), name="weekly"),
-   path(_("products/"), view=ProductListView.as_view(), name="product-list"),
+#    path(_("products/"), view=ProductListView.as_view(), name="product-list"),
    path(_("production-days/"), view=ProductionDayListView.as_view(), name="production-day-list"),
    path("orders/add/<int:production_day>/", view=CustomerOrderAddBatchView.as_view(), name="order-add-batch"),
    path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),

@@ -32,7 +32,8 @@ class ProductListView(ListView):
     template_name = 'shop/product_list.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-        return Product.objects.filter(is_sellable=True, production_days__is_published=True).distinct().order_by('category')
+        today = datetime.now().date()
+        return Product.objects.filter(is_sellable=True, production_days__is_published=True, production_days__production_day__day_of_sale__gte=today).distinct().order_by('category')
 
 
 class ProductionDayListView(ListView):

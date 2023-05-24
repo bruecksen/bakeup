@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
@@ -13,7 +14,7 @@ from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.snippets.blocks import SnippetChooserBlock
 
-from bakeup.shop.models import ProductionDay
+from bakeup.shop.models import ProductionDay, Product
 
 
 class TextAlignmentChoiceBlock(ChoiceBlock):
@@ -278,10 +279,29 @@ class ProductionDaysBlock(StructBlock):
         context['production_days'] = context['production_days'][:value.get('production_day_limit')]
         
         return context
+    
+
+class ProductAssortmentBlock(StructBlock):
+    only_planned_products = BooleanBlock(default=True, required=False)
+
+    class Meta:
+        template = 'blocks/product_assortment_block.html'
+        label = _('Product Assortment')
+        icon = 'list-ul'
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        products = Product.objects.filter(is_sellable=True, production_days__is_published=True)
+        if value.get('only_planned_products'):
+            today = datetime.now().date()
+            products = products.filter(production_days__production_day__day_of_sale__gte=today)
+        context['products'] = products.distinct().order_by('category')
+        return context
 
 
 class BakeupBlocks(StreamBlock):
     production_days = ProductionDaysBlock(group="Bakeup")
+    product_assortment = ProductAssortmentBlock(group="Bakeup")
 
 
 class ContentBlocks(CommonBlocks, ColumnBlocks):
