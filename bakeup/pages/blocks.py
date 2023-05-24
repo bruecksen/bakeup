@@ -272,7 +272,11 @@ class ProductionDaysBlock(StructBlock):
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
-        context['production_days'] = ProductionDay.objects.upcoming()[:value.get('production_day_limit')]
+        context['production_days'] = ProductionDay.objects.upcoming()
+        if 'production_day_next' in parent_context:
+            context['production_days'] = context['production_days'].exclude(id=parent_context['production_day_next'].pk)
+        context['production_days'] = context['production_days'][:value.get('production_day_limit')]
+        
         return context
 
 

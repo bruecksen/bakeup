@@ -39,5 +39,7 @@
   {% slugurl 'shop' as next_url %}
   {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products next_url=next_url %}
 {% endif %}
-{{ self.content }}
+  {% for block in self.content %}
+    {% include_block block %}
+  {% endfor %}
 {% endblock %}
