@@ -40,7 +40,7 @@ class ShopPage(Page):
     banner_text = RichTextField(blank=True, verbose_name='Text')
     banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action')
 
-    text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days'))
+    text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days planned'), help_text="This text is displayed if no production day is planned.")
     content = StreamField(AllBlocks(), blank=True, null=True)
 
     parent_page_types = ['wagtailcore.Page']
@@ -50,7 +50,9 @@ class ShopPage(Page):
             FieldPanel('banner_text'),
             FieldPanel('banner_cta'),
         ], heading="Banner"),
-        FieldPanel('text_no_production_day'),
+        MultiFieldPanel([
+            FieldPanel('text_no_production_day'),
+        ], heading="Production Day"),
         FieldPanel('content'),
     ]
 
