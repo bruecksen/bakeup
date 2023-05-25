@@ -21,6 +21,12 @@
             --bs-btn-hover-color: var(--bs-white);
             
         }
+        .datepicker-cell.selected {
+            background-color: {{ settings.pages.BrandSettings.primary_color }}!important;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
+        }
         {% endif %}
         {% if settings.pages.BrandSettings.secondary_color %}
         --bs-secondary: {{ settings.pages.BrandSettings.secondary_color }};

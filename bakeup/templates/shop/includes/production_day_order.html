@@ -66,6 +66,8 @@
         elem.addEventListener('changeDate', function(e) {
             this.form.submit();
         });
+        var addon = document.getElementById('select-production-day-date').nextElementSibling.nextElementSibling;
+        addon.addEventListener('click', function(){ datepicker.show()}, false);
     });
 
 </script>
