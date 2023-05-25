@@ -12576,6 +12576,12 @@ body {
   height: 100%;
 }
 
+@media (max-width: 991px) {
+  body {
+    margin-top: 46px;
+  }
+}
+
 .handwriting {
   font-family: "Kaushan Script";
 }
@@ -12773,9 +12779,80 @@ button[aria-expanded=false] .fa-chevron-down {
   display: none;
 }
 
-.navbar {
+.navbar-toggler {
+  border: 0;
+}
+.navbar-toggler .fa-bars {
+  display: inline-block;
+}
+.navbar-toggler .fa-times {
+  display: none;
+}
+
+header.open .navbar-toggler .fa-times {
+  display: inline-block;
+}
+header.open .navbar-toggler .fa-bars {
+  display: none;
+}
+@media (max-width: 991px) {
+  header.open {
+    min-height: 100vh;
+    width: 100vw;
+    position: fixed;
+    background-color: var(--bs-dark);
+    z-index: 9999;
+    overflow: hidden;
+  }
+  header.open .nav-item {
+    text-align: center;
+  }
+  header.open .nav-item .nav-link {
+    font-size: 1.5rem;
+  }
+  header.open .main-menu {
+    top: 40%;
+    left: 50%;
+    -webkit-transform: translateY(-50%) translateX(-50%);
+            transform: translateY(-50%) translateX(-50%);
+    position: fixed;
+  }
+  header.open .main-menu-sub {
+    position: fixed;
+    top: 100%;
+    -webkit-transform: translateY(-100%);
+            transform: translateY(-100%);
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+  }
+  header.open .main-menu-sub .nav-link {
+    font-size: 1rem;
+  }
+}
+header .navbar {
   --bs-navbar-nav-link-padding-x: 0;
   --bs-navbar-toggler-padding-y: 0;
+}
+@media (max-width: 991px) {
+  header .navbar {
+    background-color: var(--bs-dark);
+  }
+}
+header .navbar .navbar-toggler:focus {
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+header .navbar .collapsing {
+  -webkit-transition: none !important;
+  transition: none !important;
+}
+
+@media (max-width: 991px) {
+  .position-fixed-mobile {
+    position: fixed;
+  }
 }
 
 nav .nav-item {
