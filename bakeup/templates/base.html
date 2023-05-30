@@ -1,4 +1,4 @@
-{% load static i18n %}{% load django_htmx %}<!DOCTYPE html>
+{% load static i18n wagtailimages_tags %}{% load django_htmx %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}" class="h-100">
   <head>
@@ -6,14 +6,18 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}bakeup{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Best baking app ever!">
-
+    
+    {% if settings.pages.BrandSettings.logo %}
+    {% image settings.pages.BrandSettings.logo fill-16x16 as favicon %}
+    <link rel="icon" type="image/png" href="{{ favicon.url }}">
+    {% else %}
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
-
+    {% endif %}
+    
     <meta property="og:title" content="{{ request.tenant.name }}" />
     {% if request.tenant.description %}
+    <meta name="description" content="{{ request.tenant.description }}">
     <meta property="og:description" content="{{ request.tenant.description }}" />
-    <meta property="og:author" content="" />
     {% endif %}
     {% if request.tenant.logo %}
     <meta property="og:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
