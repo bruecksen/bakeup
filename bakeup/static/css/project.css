@@ -12860,10 +12860,20 @@ nav .nav-item {
   margin-left: 0.7rem;
   margin-right: 11.2px;
   margin-right: 0.7rem;
-  position: relative;
+}
+nav .nav-item .nav-link {
+  display: inline-block;
 }
 nav .nav-item.active .nav-link {
+  position: relative;
+}
+nav .nav-item.active .nav-link:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 8px;
   border-bottom: 2px solid #fff;
+  width: 100%;
 }
 nav .nav-link {
   color: #fff;
