@@ -5,9 +5,9 @@
 {% load humanize %}
 
 {% if production_day_products %}
-<div class="row g-5">
+<div class="row gy-4">
     <div class="col-12 col-md-6 col-lg-8">
-        <form class="row gx-5" method="post" action="{% url 'shop:order-add-batch' production_day=production_day_next.pk %}">
+        <form class="row" method="post" action="{% url 'shop:order-add-batch' production_day=production_day_next.pk %}">
             {% csrf_token %}
             {% if next_url %}
             <input type="hidden" name="next_url" value="{{ next_url }}">
@@ -26,7 +26,7 @@
                 {% csrf_token %}
                 <div class="col-8 position-relative">
                     <div class="input-group mt-2">
-                        <input id="select-production-day-date" class="form-control fs-3 fw-bold border-0 lh-1" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
+                        <input id="select-production-day-date" inputmode="none" class="form-control fs-4 fw-bold border-0" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
                         <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white"><i class="fa-solid fa-calendar-days"></i></span>
                     </div>
                 </div>

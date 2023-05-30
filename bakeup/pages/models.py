@@ -103,6 +103,7 @@ class FooterSettings(BaseGenericSetting):
 
 @register_setting(icon='success')
 class BrandSettings(BaseGenericSetting):
+
     logo = models.ForeignKey(
         'wagtailimages.Image',
         null=True,
@@ -111,10 +112,21 @@ class BrandSettings(BaseGenericSetting):
         related_name='+',
         verbose_name='Image'
     )
+    is_brand_theme_activated = models.BooleanField(default=False, verbose_name='Theme activated?')
     primary_color = models.CharField(max_length=8, verbose_name='Primary color', help_text="as a hex value", blank=True, null=True)
     secondary_color = models.CharField(max_length=8, verbose_name='Secondary color', help_text="as a hex value", blank=True, null=True)
     light_color = models.CharField(max_length=8, verbose_name='Light color', help_text="as a hex value", blank=True, null=True)
     dark_color = models.CharField(max_length=8, verbose_name='Dark color', help_text="as a hex value", blank=True, null=True)
     
+    panels = [
+        FieldPanel('logo'),
+        MultiFieldPanel([
+            FieldPanel('is_brand_theme_activated'),
+            FieldPanel('primary_color'),
+            FieldPanel('secondary_color'),
+            FieldPanel('light_color'),
+            FieldPanel('dark_color'),
+        ], heading='Theme')
+    ]
     class Meta:
         verbose_name = "Brand settings"

@@ -2,7 +2,7 @@
 
 {% load utils%}
 {% block theme %}
-{% include 'shop/includes/theme.html' %}
+  {% include 'shop/includes/theme.html' %}
 {% endblock %}
 {% block body_class %}shop{% endblock %}
 {% block content %}
@@ -12,19 +12,19 @@
 {% block jumbotron %}
 {% endblock jumbotron %}
 <div class="container mb-4">
+  {% if messages %}
   <div class="row mt-2">
     <div class="col">
-        {% if messages %}
           {% for message in messages %}
             <div class="alert alert-dismissible alert-dark">
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
-        {% endif %}
-    
+          
+        </div>
       </div>
-  </div>
+  {% endif %}
   {% block page_header %}
   <div class="row mt-2">
     <div class="col-8">
