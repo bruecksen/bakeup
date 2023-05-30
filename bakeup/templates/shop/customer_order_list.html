@@ -6,7 +6,33 @@
 {% block page_heading %}Bestellungen{% endblock %}
 
 {% block page_content %}
-<div class="card px-3 py-2">
-    {% render_table table %}
+<h1>Bestellübersicht</h1>
+{% for order in object_list %}
+<div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
+    <h2 class="fs-3">Backtag: <strong>{{ order.production_day }}</strong></h2>
+    <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale }}</strong></h3>
+    <div class="row">
+        <div class="col-12 col-lg-6">
+            <table class="table table-light">
+                <thead>
+                  <tr>
+                    <th scope="col">Menge</th>
+                    <th scope="col">Gebäck</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    {% for position in order.positions.all %}
+                        <tr>
+                        <td>{{ position.quantity }}</td>
+                        <td>{{ position.product }}</td>
+                        <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+              </table>
+        </div>
+    </div>
 </div>
+{% endfor %}
 {% endblock %}

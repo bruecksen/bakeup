@@ -166,10 +166,9 @@ class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
         return redirect(self.get_success_url())
 
 
-class CustomerOrderListView(CustomerRequiredMixin, SingleTableView):
+class CustomerOrderListView(CustomerRequiredMixin, ListView):
     model = CustomerOrder
     template_name = 'shop/customer_order_list.html'
-    table_class = CustomerOrderTable
 
 
     def get_queryset(self):
