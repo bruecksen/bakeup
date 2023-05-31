@@ -12557,9 +12557,15 @@ body.shop .jumbotron {
   margin-bottom: 64px;
   margin-bottom: 4rem;
 }
-body.shop .product-card h2, body.shop .product-card .h2 {
+body.shop .product-card h2, body.shop .product-card .h2,
+body.shop .production-day-card h2,
+body.shop .production-day-card .h2 {
   font-size: 25.6px;
   font-size: 1.6rem;
+}
+body.shop .production-day-card .card-footer {
+  background-color: #fff;
+  border-top: none;
 }
 
 .nav-bg-dark {
@@ -12569,6 +12575,10 @@ body.shop .product-card h2, body.shop .product-card .h2 {
 .btn-primary {
   --bs-btn-color: var(--bs-white);
   --bs-btn-hover-color: var(--bs-white);
+}
+
+html {
+  scroll-padding-top: 80px; /* height of sticky header */
 }
 
 html,
@@ -12584,21 +12594,6 @@ body {
 
 .handwriting {
   font-family: "Kaushan Script";
-}
-
-h1[id]::before, [id].h1::before,
-h2[id]::before,
-[id].h2::before,
-h3[id]::before,
-[id].h3::before,
-h4[id]::before,
-[id].h4::before,
-.anchor::before {
-  content: "";
-  display: block;
-  height: 120px;
-  margin-top: -120px;
-  visibility: hidden;
 }
 
 .cart-badge {

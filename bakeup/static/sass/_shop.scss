@@ -9,9 +9,16 @@ body.shop {
         margin-top: -100px;
         margin-bottom: 4rem;
     }
-    .product-card {
+    .product-card,
+    .production-day-card {
         h2 {
             font-size: 1.6rem;
+        }
+    }
+    .production-day-card {
+        .card-footer {
+            background-color: $white;
+            border-top: none;
         }
     }
 }

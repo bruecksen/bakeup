@@ -3,6 +3,7 @@
 {% load thumbnail %}
 {% load shop_tags %}
 {% load humanize %}
+{% load wagtailcore_tags %}
 
 {% if production_day_products %}
 <div class="row gy-4">
@@ -37,6 +38,13 @@
         {% endif %}
         {% if current_customer_order.positions.all %}
             {% include "shop/includes/basket.html" %}
+        {% elif not user.is_authenticated %}
+        <div class="card bg-primary text-white" >
+            <div class="card-body">
+                <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
+                <p>Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
+            </div>
+        </div>
         {% endif %}
     </div>
 </div>
