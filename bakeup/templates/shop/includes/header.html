@@ -1,42 +1,42 @@
 {% load i18n %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      {% include "includes/logo.html" with logo_size='small' home_url='shop:shop' client_logo=request.tenant.logo %}
-      <a href="{% url 'shop:shop' %}" class="navbar-brand ms-3">{{ request.tenant.name }}</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'shop:shop' %}">Shop</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'shop:order-list' %}">Bestellungen</a>
-          </li>
-        </ul>
-        <ul class="navbar-nav mb-2 mb-lg-0">
-            {% if request.user.is_authenticated and request.user.is_staff %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-table-cells"></i> {% translate "Workshop" %}</a>
-            </li>
-            {% endif %}
-            {% if request.user.is_authenticated %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
-            </li>
-            {% else %}
-            <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
-            </li>
-            <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'account_signup' %}"><i class="fa-solid fa-user-plus fa-fw"></i> Registrieren</a>
-            </li>
-            {% endif %}
-        </ul>
+{% load menu_tags %}
+<header class="fixed-top">
+  <nav class="navbar navbar-expand-lg {% if background %} nav-bg-dark{% endif %}" id="navbar">
+      <div class="container">
+        {% if settings.pages.BrandSettings.logo %}
+        {% include "includes/logo.html" with logo_size='small' client_logo=settings.pages.BrandSettings.logo %}
+        <a href="/shop/" class="navbar-brand me-0 text-white handwriting fs-3 d-lg-none">{{ request.tenant.name }}</a>
+        {% else %}
+        <a href="/shop/" class="navbar-brand me-4 text-white handwriting fs-3">{{ request.tenant.name }}</a>{% endif %}
+        <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars fs-2 fa-fw"></i>
+          <i class="fa-solid fa-times fs-2 fa-fw"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          {% main_menu show_multiple_levels=False template="shop/includes/main_menu.html" %}
+          <ul class="navbar-nav mb-2 mb-lg-0 main-menu-sub">
+              {% if request.user.is_authenticated and request.user.is_staff %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-table-cells"></i> {% translate "Workshop" %}</a>
+              </li>
+              {% endif %}
+              {% if request.user.is_authenticated %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                  <a id="log-in-link" class="nav-link" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
+              </li>
+              <li class="nav-item">
+                  <a id="log-in-link" class="nav-link" href="{% url 'account_signup' %}"><i class="fa-solid fa-user-plus fa-fw"></i> Registrieren</a>
+              </li>
+              {% endif %}
+          </ul>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </header>

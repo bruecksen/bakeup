@@ -1,10 +1,11 @@
 {% load thumbnail %}
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
 {% if client_logo %}
-<a class="d-flex logo mt-3 mb-3 align-self-center" href="{% url home_url %}">
+<a class="d-flex logo me-3 align-self-center" href="{% if home_url %}{% url home_url %}{% else %}{% slugurl 'shop' %}{% endif %}">
     {% if logo_size == 'small' %}
-    {% thumbnail client_logo "75" format="PNG" as logo %}
-        <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
-    {% endthumbnail %}
+    {% image client_logo height-30 as logo %}
+    <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
     {% else %}
     {% thumbnail client_logo "150" format="PNG" as logo %}
         <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
@@ -12,7 +13,7 @@
     {% endif %}
 </a>
 {% else %}
-<a class="logo {{ logo_size }} rounded-circle d-flex align-self-center" href="{% url home_url %}">
+<a class="logo {{ logo_size }} rounded-circle d-flex align-self-center text-white" href="{% slugurl 'shop' %}">
     <i class="fa-solid fa-bread-slice"></i></i>
 </a>
 {% endif %}

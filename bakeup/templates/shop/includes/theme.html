@@ -1,0 +1,57 @@
+{% if settings.pages.BrandSettings.is_brand_theme_activated %}
+<style>
+    :root {
+        {% if settings.pages.BrandSettings.primary_color %}
+        --bs-primary: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-primary-rgb: {{ settings.pages.BrandSettings.primary_color|hex_to_rgb }};
+        --bs-link-color: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-link-hover-color: {{ settings.pages.BrandSettings.primary_color }};
+        {% endif %}
+        {% if settings.pages.BrandSettings.secondary_color %}
+        --bs-secondary: {{ settings.pages.BrandSettings.secondary_color }};
+        --bs-secondary-rgb: {{ settings.pages.BrandSettings.secondary_color|hex_to_rgb }};
+        {% endif %}
+        {% if settings.pages.BrandSettings.light_color %}
+        --bs-light: {{ settings.pages.BrandSettings.light_color }};
+        --bs-light-rgb: {{ settings.pages.BrandSettings.light_color|hex_to_rgb }};
+        {% endif %}
+        {% if settings.pages.BrandSettings.dark_color %}
+        --bs-dark: {{ settings.pages.BrandSettings.dark_color }};
+        --bs-dark-rgb: {{ settings.pages.BrandSettings.dark_color|hex_to_rgb }};
+        {% endif %}
+    }
+    .accordion {
+        --bs-accordion-active-color: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-accordion-active-bg: rgba(var(--bs-primary-rgb), 0.2);
+        --bs-accordion-btn-focus-border-color: rgba(var(--bs-primary-rgb), 0.8);
+    }
+    .btn-primary {
+        --bs-btn-bg: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-btn-hover-bg: rgba(var(--bs-primary-rgb), 0.8);
+        --bs-btn-hover-border-color: rgba(var(--bs-primary-rgb), 0.8);
+        --bs-btn-active-bg: rgba(var(--bs-primary-rgb), 0.8);
+        --bs-btn-active-border-color: rgba(var(--bs-primary-rgb), 0.8);
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-hover-color: var(--bs-white);
+    }
+    .btn-secondary {
+            --bs-btn-bg: {{ settings.pages.BrandSettings.secondary_color }};
+            --bs-btn-border-color: {{ settings.pages.BrandSettings.secondary_color }};
+            --bs-btn-hover-bg: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-hover-border-color: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-active-bg: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-active-border-color: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-hover-color: var(--bs-white);
+            
+    }
+    .datepicker-cell.selected {
+        background-color: {{ settings.pages.BrandSettings.primary_color }}!important;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
+    }
+
+</style>
+{% endif %}

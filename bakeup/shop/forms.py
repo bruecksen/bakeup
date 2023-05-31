@@ -48,6 +48,7 @@ class CustomerOrderBatchForm(forms.Form):
 
 class CustomerProductionDayOrderForm(forms.Form):
     product_quantity = None
+    next_url = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         self.production_day_products = kwargs.pop('production_day_products', None)

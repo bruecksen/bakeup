@@ -1,0 +1,11 @@
+{% load menu_tags %}
+<footer class="footer mt-auto py-4 bg-dark text-white mt-5">
+    <div class="container">
+      {{ settings.pages.FooterSettings.footer }}
+      <div class="row align-items-end mt-4">
+        <div class="col-10 offset-1 col-md-12 offset-md-0">
+            <p class="text-end small mb-0">{% now "Y" %} &copy; bakeup.org | {% current_git_tag %} | {% flat_menu 'footer' template="shop/includes/flat_menu.html" %}</p>
+        </div>
+      </div>
+    </div>
+</footer>

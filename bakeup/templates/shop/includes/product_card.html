@@ -1,0 +1,79 @@
+{% load thumbnail %}
+{% load shop_tags %}
+<div class="card h-100 product-card">
+    {% if production_day_product.production_day_product.production_plan.is_production %}
+    <span class="badge bg-dark top-middle text-uppercase fs-5">In Produktion</span>
+    {% elif production_day_product.production_day_product.production_plan.is_produced %}
+    <span class="badge bg-dark top-middle text-uppercase fs-5">Produziert</span>
+    {% elif production_day_product.production_day_product.is_sold_out %}
+    <span class="badge bg-dark top-middle text-uppercase fs-5 opacity-100 shadow">Ausverkauft</span>
+    {% endif %}
+    {% if user.is_authenticated %}
+    {% customer_quantity production_day_product.production_day_product as customer_quantity %}
+    {% endif %}
+    {% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
+
+        <div class="position-relative">
+            {% if production_day_product.production_day_product.product.image %}
+            {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+            {% endthumbnail %}
+            {% endif %}
+            <div class="position-absolute bottom-20 start-20">
+                {% for tag in production_day_product.production_day_product.product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
+            </div>
+        </div>
+        <div class="card-body">
+            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.production_day_product.product.name }} 
+                <span class="small text-muted fw-normal">{{ production_day_product.production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.production_day_product.product.unit}}</span>
+            </h2>
+            <p>{{ production_day_product.production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
+            {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
+            {% if ingredients %}
+            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
+            {% endif %}
+            {% endwith %}
+        </div>
+        
+        {% if user.is_authenticated %}
+        <div class="card-footer">
+            {% if not production_day_product.production_day_product.is_sold_out and not production_day_product.production_day_product.is_locked %}
+            {% if show_remaining_products %}
+            <p class="mb-1">Noch <span class="fw-bold">{{ production_day_product.production_day_product.calculate_max_quantity }} Stück</span> verfügbar</p>
+            {% endif %}
+            <div class="row mb-2">
+                <div class="col-7">
+                    {{ production_day_product.form.product }}
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary btn-minus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="minus" data-field="quantity"><i class="fa-solid fa-minus fa-fw"></i></button>
+                        <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="{{ production_day_product.form.quantity.field.widget.attrs.min }}" max="{{ production_day_product.form.quantity.field.widget.attrs.max }}" class="form-control" placeholder="Quantity" name="{{ production_day_product.form.quantity.html_name }}" id="{{ production_day_product.form.quantity.id_for_label }}">
+                        <button class="btn btn-outline-secondary btn-plus" {% if is_locked or production_day_product.production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="plus" data-field="quantity"><i class="fa-solid fa-plus fa-fw"></i></button>
+                    </div>
+                </div>
+                <div class="col-5">
+                    <button type="submit" class="btn btn-primary"{% if is_locked %} disabled{% endif %}>Bestellen</button>
+                </div>
+            </div>
+            {% else %}
+            {% if production_day_product.production_day_product.is_locked %}
+            <p class="small mb-0">Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
+            {% elif production_day_product.production_day_product.is_sold_out %}
+            <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
+            {% endif %}
+            {% endif %}
+            
+        </div>
+        {% if not production_day_product.production_day_product.is_locked or customer_quantity %}
+        <div class="card-footer">
+            <p class="small text-center mb-0">
+                {% if customer_quantity %}
+                Du hast dieses Produkt bereits <strong>{{ customer_quantity }} mal</strong> bestellt. <a href="#current-order">Zur Bestellung springen.</a>
+                {% else %}
+                Du hast dieses Produkt bisher noch nicht bestellt.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+        {% endif %}
+{% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}</div>{% endif %}
+</div>

@@ -27,6 +27,7 @@ class Category(CommonBaseClass, MP_Node):
 
     class Meta:
         verbose_name_plural = 'Categories'
+        ordering = ('name', )
 
     def __str__(self):
         return '{} {}'.format('-' * (self.depth - 1), self.name)
@@ -88,6 +89,10 @@ class Product(CommonBaseClass):
                 quantity=child.quantity
             )
         return product
+    
+    @property
+    def category_name(self):
+        return self.category and self.category.name or None
 
     @property
     def unit(self):
@@ -417,11 +422,3 @@ class ProductionPlan(CommonBaseClass):
                     defaults={'quantity': quantity_parent * child.quantity}
                 )
                 ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
-
-
-
-
-
-
-
-

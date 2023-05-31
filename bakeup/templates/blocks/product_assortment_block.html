@@ -1,0 +1,25 @@
+{% load wagtailcore_tags %}
+{% regroup products by category_name as categories %}
+<div class="accordion accordion-flush">
+    
+    {% for category in categories %}
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed fw-bold text-uppercase" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ category.grouper|slugify }}">
+            {{ category.grouper }} <span class="badge bg-secondary ms-2">{{ category.list|length }}</span>
+          </button>
+        </h2>
+        <div id="collapse-{{ category.grouper|slugify }}" class="accordion-collapse collapse">
+            <div class="accordion-body">
+                <div class="row g-4">
+                    {% for product in category.list %}
+                        <div class="col-12 col-md-6 col-lg-4">
+                            {% include "shop/includes/product_card_overview.html" %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div> 
+    {% endfor %}
+</div>

@@ -1,4 +1,4 @@
-{% load static i18n %}{% load django_htmx %}<!DOCTYPE html>
+{% load static i18n wagtailimages_tags %}{% load django_htmx %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}" class="h-100">
   <head>
@@ -6,14 +6,18 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}bakeup{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Best baking app ever!">
-
+    
+    {% if settings.pages.BrandSettings.logo %}
+    {% image settings.pages.BrandSettings.logo fill-16x16 as favicon %}
+    <link rel="icon" type="image/png" href="{{ favicon.url }}">
+    {% else %}
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
-
+    {% endif %}
+    
     <meta property="og:title" content="{{ request.tenant.name }}" />
     {% if request.tenant.description %}
+    <meta name="description" content="{{ request.tenant.description }}">
     <meta property="og:description" content="{{ request.tenant.description }}" />
-    <meta property="og:author" content="" />
     {% endif %}
     {% if request.tenant.logo %}
     <meta property="og:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
@@ -30,6 +34,8 @@
     <!-- This file stores project-specific CSS -->
     <link href="{% static 'css/project.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/fa/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/datepicker.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/datepicker-bs5.min.css' %}" rel="stylesheet">
     {% endblock %}
     <!-- Le javascript
     ================================================== -->
@@ -39,6 +45,7 @@
       <script defer src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
       <script defer src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
       <script defer src="{% static 'js/htmx.min.js' %}" ></script>
+      <script defer src="{% static 'js/datepicker.min.js' %}"></script>
       {% load django_htmx %}
       <!-- Your stuff: Third-party javascript libraries go here -->
 
@@ -46,10 +53,12 @@
       <script defer src="{% static 'js/project.js' %}"></script>
 
     {% endblock javascript %}
+    {% block theme %}
+    {% endblock theme %}
 
   </head>
 
-  <body class="h-100 d-flex flex-column">
+  <body class="h-100 d-flex flex-column {% block body_class%}{% endblock body_class%}">
 
     
     {% block content %}

@@ -1,0 +1,45 @@
+{% extends "shop/base.html" %}
+{% load crispy_forms_tags %}
+{% load wagtailimages_tags %}
+{% load wagtailcore_tags %}
+
+{% block title %}Shop{% endblock %}
+{% block page_header %}{% endblock %}
+
+{% block jumbotron %}
+{% image page.banner_image width-1800 as banner_image %}
+<div class="jumbotron" style="background-image: url('{{ banner_image.url }}');">
+  <div class="container h-100">
+    <div class="row h-100">
+      <div class="col-12 align-self-end text-center text-white mt-4 text-shadow">
+        {{ page.banner_text|richtext }}
+      </div>
+      <div class="col-12 align-self-end text-center text-white">
+        <div class="mb-0 mb-sm-5">
+          {% for cta in page.banner_cta %}
+            <a class="btn btn-primary mb-3 me-2" href="{{ cta.value.link.href }}">{{ cta.value.text }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock jumbotron %}
+
+{% block page_content %}
+{% if not production_day_next %}
+<div class="row mb-10">
+  <div class="col">
+    <div class="card p-4">
+      {{ page.text_no_production_day|richtext }}
+    </div>
+  </div>
+</div>
+{% else %}
+  {% slugurl 'shop' as next_url %}
+  {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products next_url=next_url %}
+{% endif %}
+  {% for block in self.content %}
+    {% include_block block %}
+  {% endfor %}
+{% endblock %}

@@ -1,0 +1,12 @@
+<div class="row gy-4">
+
+    {% for production_day in production_days %}
+    <div class="col-12 col-md-6">
+        {%  include 'shop/includes/production_day_card.html' %}
+    </div>
+    {% empty %}
+    <div class="col">
+        <p>Aktuell sind keine weiteren Backtage geplant.</p>
+    </div>
+    {% endfor %}
+</div>

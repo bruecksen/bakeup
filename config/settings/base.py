@@ -83,24 +83,41 @@ SHARED_APPS = [
     "sorl.thumbnail",
     "django_bootstrap5",
     'taggit',
+    'modelcluster',
     "django_htmx",
 
 ]
 
 TENANT_APPS = [
+    'wagtail.contrib.modeladmin',
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.contrib.settings',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail',
     "django.contrib.admin",
     "bakeup.shop",
     "bakeup.workshop",
     "bakeup.users",
     "bakeup.contrib",
+    "bakeup.pages",
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'wagtailmenus',
 ]
 
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -119,7 +136,7 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = "users:profile"
-LOGOUT_REDIRECT_URL = "shop:shop"
+LOGOUT_REDIRECT_URL = "/shop/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
@@ -160,6 +177,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     # "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
     "bakeup.core.middleware.PersistentFiltersMiddleware",
 ]
 
@@ -206,6 +224,8 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
+                "wagtailmenus.context_processors.wagtailmenus", 
+                'wagtail.contrib.settings.context_processors.settings',
             ],
         },
     }
@@ -357,5 +377,38 @@ USER_REGISTRATION_FORM_FIELDS = {
     'telephone_number': {
         'label': 'Telefonnummer',
         'required': False,
+    },
+}
+
+# WAGTAIL SETTINGS
+
+# This is the human-readable name of your Wagtail install
+# which welcomes users upon login to the Wagtail admin.
+WAGTAIL_SITE_NAME = 'Bakeup'
+
+# Wagtail email notification format
+WAGTAILADMIN_NOTIFICATION_USE_HTML = True
+
+WAGTAIL_ENABLE_UPDATE_CHECK = 'lts'
+
+# Reverse the default case-sensitive handling of tags
+TAGGIT_CASE_INSENSITIVE = True
+
+WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (
+    ('footer', 'Footer'),
+)
+
+WAGTAILADMIN_RICH_TEXT_EDITORS = {
+    'default': {
+        'WIDGET': 'wagtail.admin.rich_text.DraftailRichTextArea',
+        'OPTIONS': {
+            'features': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'bold', 'italic', 'ol', 'ul', 'hr', 'link', 'document-link', 'image', 'embed', 'code', 'blockquote']
+        }
+    }
+}
+DJANGO_TABLES2_TABLE_ATTRS = {
+    'class': 'table table-hover',
+    'thead': {
+        'class': '',
     },
 }
