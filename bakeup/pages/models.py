@@ -19,7 +19,7 @@ from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
 
 # Create your models here.
 class ContentPage(Page):
-    content = StreamField(AllBlocks(), blank=True, null=True)
+    content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
 
     parent_page_types = ['pages.ShopPage']
     show_in_menus_default = True
@@ -38,10 +38,10 @@ class ShopPage(Page):
         verbose_name='Image'
     )
     banner_text = RichTextField(blank=True, verbose_name='Text')
-    banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action', blank=True, null=True)
+    banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action', blank=True, null=True, use_json_field=True)
 
     text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days planned'), help_text="This text is displayed if no production day is planned.")
-    content = StreamField(AllBlocks(), blank=True, null=True)
+    content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
 
     parent_page_types = ['wagtailcore.Page']
     content_panels = Page.content_panels + [
