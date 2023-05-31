@@ -85,7 +85,7 @@ class ShopPage(Page):
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
-        context['all_production_days'] = list(ProductionDay.objects.annotate(
+        context['all_production_days'] = list(ProductionDay.objects.filter(production_day_products__is_published=True).annotate(
             formatted_date=Func(
                 F('day_of_sale'),
                 Value('dd.MM.yyyy'),
