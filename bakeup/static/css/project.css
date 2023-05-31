@@ -12557,9 +12557,15 @@ body.shop .jumbotron {
   margin-bottom: 64px;
   margin-bottom: 4rem;
 }
-body.shop .product-card h2, body.shop .product-card .h2 {
+body.shop .product-card h2, body.shop .product-card .h2,
+body.shop .production-day-card h2,
+body.shop .production-day-card .h2 {
   font-size: 25.6px;
   font-size: 1.6rem;
+}
+body.shop .production-day-card .card-footer {
+  background-color: #fff;
+  border-top: none;
 }
 
 .nav-bg-dark {
@@ -12596,8 +12602,8 @@ h4[id]::before,
 .anchor::before {
   content: "";
   display: block;
-  height: 120px;
-  margin-top: -120px;
+  height: 80px;
+  margin-top: -80px;
   visibility: hidden;
 }
 
