@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from bakeup.shop.models import ProductionDay, Customer
 
 from bakeup.shop.models import PointOfSale
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, ReminderMessage
 
 
 class ProductForm(ModelForm):
@@ -110,3 +110,29 @@ class ProductionDayReminderForm(forms.Form):
     point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label='Point of sale', help_text="Send emails to orders of specific point of sale, leave empty to send to all point of sales.")
     subject = forms.CharField(required=True)
     body = forms.CharField(required=True, widget=forms.Textarea)
+
+
+class ReminderMessageForm(ModelForm):
+    # messages = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, empty_label="Create new Message")
+    subject = forms.CharField(widget=forms.TextInput)
+    production_day = forms.HiddenInput()
+
+    class Meta:
+        model = ReminderMessage
+        fields = ['subject', 'body', 'point_of_sale', 'production_day']
+
+    # def __init__(self, *args, **kwargs):
+    #     production_day = kwargs.pop('production_day', None)
+    #     super().__init__(*args, **kwargs)
+    #     if production_day:
+    #         self.fields['messages'].queryset = ReminderMessage.objects.filter(production_day=production_day)
+
+
+class SelectReminderMessageForm(forms.Form):
+    message = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, empty_label="Create new Message")
+
+    def __init__(self, *args, **kwargs):
+        production_day = kwargs.pop('production_day', None)
+        super().__init__(*args, **kwargs)
+        if production_day:
+            self.fields['message'].queryset = ReminderMessage.objects.filter(production_day=production_day)

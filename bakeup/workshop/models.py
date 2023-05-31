@@ -2,9 +2,13 @@ from collections import defaultdict
 from decimal import Decimal
 from itertools import count
 from re import T
+
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models
 from django.db.models import Q, F
 from django.urls import reverse
+from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import datetime
 
@@ -422,3 +426,68 @@ class ProductionPlan(CommonBaseClass):
                     defaults={'quantity': quantity_parent * child.quantity}
                 )
                 ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
+
+
+class ReminderMessage(CommonBaseClass):
+    class State(models.IntegerChoices):
+        PLANNED = 0
+        SENT = 1
+    state = models.IntegerField(choices=State.choices, default=State.PLANNED)
+    subject = models.TextField()
+    body = models.TextField()
+    point_of_sale = models.ForeignKey('shop.PointOfSale', blank=True, null=True, on_delete=models.CASCADE)
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE)
+    send_log = models.JSONField(default=dict)
+    error_log = models.JSONField(default=dict)
+    sent_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        point_of_sale = self.point_of_sale or 'ALL'
+        email_count = self.get_orders().count()
+        if self.is_planned:
+            return f"#{self.pk} PLANNED to {point_of_sale} ({email_count})"
+        elif self.is_sent:
+            return f"#{self.pk} SENT to {point_of_sale} ({email_count})"
+
+    @property    
+    def is_planned(self):
+        return self.state == ReminderMessage.State.PLANNED
+    
+    @property    
+    def is_sent(self):
+        return self.state == ReminderMessage.State.SENT
+        
+    def get_orders(self):
+        if self.point_of_sale:
+            return self.production_day.customer_orders.filter(point_of_sale=self.point_of_sale)
+        else:
+            return self.production_day.customer_orders.all()
+
+    def send_messages(self):
+        emails_successfull = []
+        emails_error = {}
+        orders = self.get_orders()
+        for order in orders:
+            try:
+                user_email = order.customer.user.email
+                user_body = self.body
+                user_body = user_body.replace('{{ user }}', order.customer.user.first_name)
+                user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
+                send_mail(
+                    self.subject,
+                    user_body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user_email],
+                    fail_silently=False,
+                )
+                emails_successfull.append(user_email)
+            except Exception as e:
+                emails_error[user_email] = str(e)
+        
+        self.state = ReminderMessage.State.SENT
+        self.send_log = emails_successfull
+        self.error_log = emails_error
+        self.sent_date = timezone.now()
+        self.save(update_fields=['state', 'send_log', 'error_log', 'sent_date', 'send_log', 'error_log'])
+        
+        

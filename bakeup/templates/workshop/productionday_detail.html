@@ -28,7 +28,7 @@
       <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> Show orders</a>
       <a href="{% url 'workshop:production-plan-production-day' pk=object.pk %}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
       <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-retweet"></i> Abos</a>
-      <a href="{% url 'workshop:production-day-reminder' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-envelope"></i> Reminder</a>
+      <a href="{% url 'workshop:production-day-reminder' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-envelope"></i> Reminder</a>
       <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}&_export=csv" class="btn btn-primary"><i class="fas fa-file-download"></i> Export as CSV</a>
     </div>
   </div>

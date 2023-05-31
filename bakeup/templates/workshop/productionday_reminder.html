@@ -8,55 +8,86 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 {% endblock %}
 
 {% block page_content %}
+{{ form.errors }}
 <div class="row">
   <div class="col col-md-10">
-    <form class="form-horizontal" method="POST">
+    <div class="row">
+      <div class="col-6">
+        <form method="POST" id="select-message-form" action="{% url 'workshop:reminder-message-redirect' pk=production_day.pk %}">
+          {% csrf_token %}
+          {% bootstrap_field select_message_form.message %}
+        </form>
+      </div>
+    </div>
+    {% if object and object.is_sent %}
+    <div class="card p-3">
+      <div class="row">
+        <div class="col">
+          <p>
+            <strong>Sent date: </strong>{{ object.sent_date }} <br>
+            <strong>Point of sale: </strong>{{ object.point_of_sale|default_if_none:'All' }} <br>
+            <strong>Subject: </strong>{{object.subject }}<br>
+            <strong>Body: </strong>{{ object.body }}<br>
+            <strong>Successfully send: </strong> {{ object.send_log|length }}<br> {{ object.send_log|join:', ' }} <br>
+            <strong>Email error: </strong> {{ object.error_log|length }} <br> {% for email, error in object.error_log.items %} {{ email }}: {{ error }} {% endfor %}<br>
+
+          </p>
+        </div>
+      </div>
+    </div>
+    {% else %}
+      <form class="form-horizontal" method="POST">
       <input type="hidden" name="next" value="{{ next }}" />
+      {{ form.production_day.as_hidden }}
       {% csrf_token %}
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.point_of_sale %}
+      <div class="card p-3">
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.point_of_sale %}
+          </div>
+          <div class="col">
+          </div>
         </div>
-        <div class="col">
-          <label for="send-to-emails" class="form-label" id="send-to-emails-label">Send email to:</label>
-          <textarea class="form-control" id="send-to-emails" rows="2" readonly>{{ emails.all|join:', ' }}</textarea>
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.subject %}
+          </div>
+          <div class="col">
+            <label for="email-subject" class="form-label">Subject:</label>
+            <input class="form-control" id="email-subject" readonly>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.subject %}
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.body %}
+          </div>
+          <div class="col">
+            <label for="email-body" class="form-label">Send email to:</label>
+            <textarea class="form-control" id="email-body" rows="10" readonly></textarea>
+          </div>
         </div>
-        <div class="col">
-          <label for="email-subject" class="form-label">Subject:</label>
-          <input class="form-control" id="email-subject" readonly>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.body %}
-        </div>
-        <div class="col">
-          <label for="email-body" class="form-label">Send email to:</label>
-          <textarea class="form-control" id="email-body" rows="10" readonly></textarea>
-          <button type="submit" class="btn btn-primary" id="send-emails-button">Send emails</button>
+        <div class="row">
+          <div class="col text-end">
+            <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
+            <button type="submit" class="btn btn-outline-primary" id="send-emails-button" name="save"><i class="far fa-save"></i> Save Reminder</button>
+            <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send emails</button>
+          </div>
         </div>
       </div>
     </form>
+    {% endif %}
   </div>
 </div>
 {{ emails |json_script:"emails" }}
 <script type="text/javascript">
-  var emails = JSON.parse(document.getElementById('emails').textContent);
   var select = document.getElementById('id_point_of_sale')
   select.addEventListener('change', function() {
     if (this.value) {
-      document.getElementById('send-to-emails').value = emails[this.value];
-      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails[this.value].length + " users";
-      document.getElementById('send-emails-button').innerHTML = "Send " + emails[this.value].length + " emails";
+      // document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails[this.value].length + " users";
+      // document.getElementById('send-emails-button').innerHTML = "Send " + emails[this.value].length + " emails";
     } else {
-      document.getElementById('send-to-emails').value = emails['all'];
-      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails['all'].length + " users";
-      document.getElementById('send-emails-button').innerHTML = "Send " + emails['all'].length + " emails";
+      // document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails['all'].length + " users";
+      // document.getElementById('send-emails-button').innerHTML = "Send " + emails['all'].length + " emails";
 
     }
   });
