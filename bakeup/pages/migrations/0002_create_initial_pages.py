@@ -9,8 +9,8 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType as RealContentType
 from django.db import migrations, models
 from treebeard.mp_tree import MP_Node
-from wagtail.core import models as core_models
-from wagtail.core.utils import get_supported_content_language_variant
+from wagtail import models as core_models
+from wagtail.coreutils import get_supported_content_language_variant
 
 
 class WagtailTreeMigrator:

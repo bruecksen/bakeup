@@ -157,3 +157,5 @@ sentry_sdk.init(
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+WAGTAILADMIN_BASE_URL = 'bakeup.org'
