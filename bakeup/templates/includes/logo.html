@@ -7,9 +7,8 @@
     {% image client_logo height-30 as logo %}
     <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
     {% else %}
-    {% thumbnail client_logo "150" format="PNG" as logo %}
+        {% image client_logo height-150 as logo %}
         <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
-    {% endthumbnail %}
     {% endif %}
 </a>
 {% else %}

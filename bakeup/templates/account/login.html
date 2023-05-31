@@ -11,7 +11,9 @@
       <div class="card">
         <div class="card-body min-height-500">
           <div class="d-flex justify-content-center">
-            {% include "includes/logo.html" with logo_size='large' client_logo=request.tenant.logo %}
+            {% if settings.pages.BrandSettings.logo %}
+            {% include "includes/logo.html" with logo_size='large' client_logo=settings.pages.BrandSettings.logo %}
+            {% endif %}
           </div>
           <h2 class="my-3 fw-bold">Anmelden</h2>
             <p>Hast du noch kein Konto? Dann bitte zuerst <a href="{{ signup_url }}">ein Konto erstellen</a>.</p>

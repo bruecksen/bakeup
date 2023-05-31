@@ -12577,6 +12577,10 @@ body.shop .production-day-card .card-footer {
   --bs-btn-hover-color: var(--bs-white);
 }
 
+html {
+  scroll-padding-top: 80px; /* height of sticky header */
+}
+
 html,
 body {
   height: 100%;
@@ -12590,21 +12594,6 @@ body {
 
 .handwriting {
   font-family: "Kaushan Script";
-}
-
-h1[id]::before, [id].h1::before,
-h2[id]::before,
-[id].h2::before,
-h3[id]::before,
-[id].h3::before,
-h4[id]::before,
-[id].h4::before,
-.anchor::before {
-  content: "";
-  display: block;
-  height: 80px;
-  margin-top: -80px;
-  visibility: hidden;
 }
 
 .cart-badge {

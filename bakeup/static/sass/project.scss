@@ -8,6 +8,9 @@
 @import 'shop';
 @import 'colors';
 
+html {
+  scroll-padding-top: 80px; /* height of sticky header */
+}
 
 html,
 body {
@@ -25,18 +28,18 @@ body {
   font-family: 'Kaushan Script';
 }
 
-h1[id]::before,
-h2[id]::before,
-h3[id]::before,
-h4[id]::before,
-.anchor::before
- {
-  content: '';
-  display: block;
-  height:      80px;
-  margin-top: -80px;
-  visibility: hidden;
-}
+// h1[id]::before,
+// h2[id]::before,
+// h3[id]::before,
+// h4[id]::before,
+// .anchor::before
+//  {
+//   content: '';
+//   display: block;
+//   height:      80px;
+//   margin-top: -80px;
+//   visibility: hidden;
+// }
 .cart-badge {
   position: absolute;
   top: -15px;

@@ -1,7 +1,7 @@
 {% load shop_tags %}
     <div class="card bg-primary text-white" >
         <div class="card-body">
-            <h4 class="card-title hyphens-auto mb-4 fw-bold" id="current-order">Deine Bestellung:</h4>
+            <h4 class="card-title hyphens-auto mb-4 fw-bold" id="current-order">Brotkorb:</h4>
             <div class="mt-4 mb-4">
                 {% for position in current_customer_order.positions.all %}
                 <div class="row g-0 fw-bold">
