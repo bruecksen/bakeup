@@ -19,9 +19,9 @@
     <meta name="description" content="{{ request.tenant.description }}">
     <meta property="og:description" content="{{ request.tenant.description }}" />
     {% endif %}
-    {% if request.tenant.logo %}
-    <meta property="og:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
-    <meta name="twitter:image" content="https://bakeup.org{{ request.tenant.logo.url }}" />
+    {% if settings.pages.BrandSettings.logo %}
+    <meta property="og:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
+    <meta name="twitter:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
     {% endif %}
     <meta property="twitter:title" content="{{ request.tenant.name }}" />
     <meta name="twitter:card" content="summary_large_image" />
