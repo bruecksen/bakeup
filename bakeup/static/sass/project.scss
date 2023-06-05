@@ -75,7 +75,18 @@ body {
 
   }
 }
-
+input.form-control.product-quantity {
+  font-weight: bold;
+  line-height: 1;
+  font-size: 1.5rem;
+  text-align: center;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
+}
 
 
 .text-shadow {

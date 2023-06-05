@@ -12639,6 +12639,19 @@ body {
           justify-content: center;
 }
 
+input.form-control.product-quantity {
+  font-weight: bold;
+  line-height: 1;
+  font-size: 24px;
+  font-size: 1.5rem;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+input.form-control.product-quantity::-webkit-outer-spin-button, input.form-control.product-quantity::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .text-shadow {
   text-shadow: 2px 4px 3px rgba(0, 0, 0, 0.3);
 }
