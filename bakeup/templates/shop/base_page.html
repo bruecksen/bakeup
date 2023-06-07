@@ -7,10 +7,10 @@
 {% block page_header %}
 {% endblock page_header %}
 
-{% block title %}{{ request.tenant.name }} - {% if self.seo_title %}{{ self.seo_title }}{% else %}{{ self.title }}{% endif %}{% endblock title %}
-{% block og_title %}{{ request.tenant.name }} - {% if self.seo_title %}{{ self.seo_title }}{% else %}{{ self.title }}{% endif %}{% endblock og_title %}
-{% block description %}{{ self.search_description }}{% endblock description %}
-{% block og_description %}{{ self.search_description }}{% endblock og_description %}
+{% block title %}{{ request.tenant.name }} - {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock title %}
+{% block og_title %}{{ request.tenant.name }} - {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock og_title %}
+{% block description %}{{ page.search_description }}{% endblock description %}
+{% block og_description %}{{ page.search_description }}{% endblock og_description %}
 
 {% block page_content_container %}
 <div class="row justify-content-center">
