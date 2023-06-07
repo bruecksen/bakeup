@@ -11,12 +11,17 @@ from wagtail.blocks.list_block import ListBlock
 from wagtail.blocks.stream_block import StreamBlock
 from wagtail.blocks.struct_block import StructBlock
 from wagtail.blocks import StructValue
-from wagtail.embeds.blocks import EmbedBlock as EmbedBlock
+from wagtail.embeds.blocks import EmbedBlock as _EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.snippets.blocks import SnippetChooserBlock
 
 from bakeup.shop.models import ProductionDay, Product
+
+
+class EmbedBlock(_EmbedBlock):
+    class Meta:
+        template = 'blocks/embed_block.html'
 
 
 class TextAlignmentChoiceBlock(ChoiceBlock):
