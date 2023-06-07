@@ -14,11 +14,10 @@
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
     {% endif %}
     
-    <meta property="og:title" content="{{ request.tenant.name }}" />
-    {% if request.tenant.description %}
-    <meta name="description" content="{{ request.tenant.description }}">
-    <meta property="og:description" content="{{ request.tenant.description }}" />
-    {% endif %}
+    <meta property="og:title" content="{% block og_title %}{{ request.tenant.name }}{% endblock og_title %}" />
+    <meta name="description" content="{% block description %}{{ request.tenant.description }}{% endblock description %}">
+    <meta property="og:description" content="{% block og_description %}{{ request.tenant.description }}{% endblock og_description %}" />
+    
     {% if settings.pages.BrandSettings.logo %}
     <meta property="og:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
     <meta name="twitter:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
