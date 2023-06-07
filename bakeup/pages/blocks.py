@@ -1,3 +1,5 @@
+import uuid
+
 from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 from django.utils.functional import cached_property
@@ -200,6 +202,28 @@ class HorizontalRuleBlock(StructBlock):
         template = 'blocks/hr_block.html'
 
 
+class CarouselItemBlock(StructBlock):
+    image = _ImageChooserBlock()
+    caption = _RichTextBlock()
+
+
+class CarouselBlock(StructBlock):
+    items = ListBlock(CarouselItemBlock())
+
+    class Meta:
+        icon = 'image'
+        label = _('Image carousel')
+        template = 'blocks/carousel_block.html'
+
+    
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context['uuid'] = uuid.uuid4()
+        return context
+
+    
+
+
 
 
 class CommonBlocks(StreamBlock):
@@ -214,6 +238,7 @@ class CommonBlocks(StreamBlock):
     space = SpacerBlock(group="Common")
     card = SimpleCard(group="Common")
     hr = HorizontalRuleBlock(group="Common")
+    carousel = CarouselBlock(group="Common")
     # accordion = AccordionBlock(child_block=AccordionElement(), group="Common")
     # tile = TileBlock(group="Common")
 
