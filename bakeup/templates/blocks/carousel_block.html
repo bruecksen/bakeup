@@ -1,4 +1,4 @@
-#{% load wagtailimages_tags %}
+{% load wagtailimages_tags %}
 {% load wagtailcore_tags %}
 <div id="carousel-{{ uuid }}" class="carousel slide" data-bs-ride="false">
   <div class="carousel-indicators">
@@ -9,7 +9,7 @@
   <div class="carousel-inner">
     {% for item in self.items %}
       <div class="carousel-item{% if forloop.first %} active{% endif %}">
-        {% image item.image width-800 class="img-fluid" %}
+        {% image item.image width-1500 class="img-fluid" %}
         {% if item.caption %}
         <div class="carousel-caption d-none d-md-block">
           {{ item.caption|richtext }}
