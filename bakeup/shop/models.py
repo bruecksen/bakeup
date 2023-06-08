@@ -156,6 +156,11 @@ class ProductionDayProductQuerySet(models.QuerySet):
     def upcoming(self):
         today = datetime.now().date()
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
+    
+    def with_pictures(self):
+        return self.exclude(
+            Q(product__image='')|
+            Q(product__image=None))
 
 
 class ProductionDayProduct(CommonBaseClass):
