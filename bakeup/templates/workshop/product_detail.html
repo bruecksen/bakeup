@@ -18,7 +18,7 @@
 
 {% block page_content %}
 <div class="row mb-2">
-  <div class="col-12 col-sm-7">
+  <div class="col-12 col-sm-8">
     <small>
     <ul class="list-unstyled list-inline mb-1">
       <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>
@@ -37,13 +37,20 @@
     {% endif %}
     </small>
   </div>
-  <div class="col-5 mt-2">
-    {% if object.image %}
+  {% if object.image %}
+  <div class="col-2 mt-2">
       {% thumbnail object.image "150" crop="center" as im %}
       <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail float-end mt-2" alt="product image">
       {% endthumbnail %}
-    {% endif %}
   </div>
+  {% endif %}
+  {% if object.image_secondary %}
+  <div class="col-2 mt-2">
+      {% thumbnail object.image_secondary "150" crop="center" as im %}
+      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="img-thumbnail float-end mt-2" alt="product image">
+      {% endthumbnail %}
+  </div>
+  {% endif %}
 </div>
 <div class="row mb-4 justify-content-between">
   {% if key_figures_form %}

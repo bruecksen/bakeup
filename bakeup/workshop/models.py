@@ -48,6 +48,7 @@ class Product(CommonBaseClass):
     slug = models.SlugField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     image = models.FileField(null=True, blank=True, upload_to='product_images')
+    image_secondary = models.FileField(null=True, blank=True, upload_to='product_images')
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     # data in database normalized in grams
     weight = models.FloatField(help_text="weight in grams", default=1000)

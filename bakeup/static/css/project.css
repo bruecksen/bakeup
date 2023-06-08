@@ -12652,6 +12652,29 @@ input.form-control.product-quantity::-webkit-outer-spin-button, input.form-contr
   margin: 0;
 }
 
+.dummy-bread {
+  min-height: 450px;
+}
+
+.figure {
+  min-height: 50px;
+}
+.figure .img-hover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  -o-object-fit: contain;
+     object-fit: contain;
+  opacity: 0;
+  -webkit-transition: opacity 0.2s;
+  transition: opacity 0.2s;
+}
+.figure:hover .img-hover {
+  opacity: 1;
+}
+
 .text-shadow {
   text-shadow: 2px 4px 3px rgba(0, 0, 0, 0.3);
 }

@@ -88,6 +88,28 @@ input.form-control.product-quantity {
   -moz-appearance: textfield;
 }
 
+.dummy-bread {
+  min-height: 450px;
+}
+
+.figure {
+  min-height: 50px;
+  .img-hover {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  &:hover {
+    .img-hover{
+      opacity: 1;
+    }
+  }
+}
 
 .text-shadow {
   text-shadow: 2px 4px 3px rgba(0,0,0,0.3);

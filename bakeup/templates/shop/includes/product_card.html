@@ -13,10 +13,15 @@
     {% endif %}
     {% if production_day_product.production_day_product.is_locked or production_day_product.production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
 
-        <div class="position-relative">
+        <div class="position-relative figure">
             {% if production_day_product.production_day_product.product.image %}
             {% thumbnail production_day_product.production_day_product.product.image "600x450" crop="center" as im %}
             <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+            {% endthumbnail %}
+            {% endif %}
+            {% if production_day_product.production_day_product.product.image_secondary %}
+            {% thumbnail production_day_product.production_day_product.product.image_secondary "600x450" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid img-hover" alt="product image">
             {% endthumbnail %}
             {% endif %}
             <div class="position-absolute bottom-20 start-20">
