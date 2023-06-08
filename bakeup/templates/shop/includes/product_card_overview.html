@@ -1,10 +1,15 @@
 {% load thumbnail %}
 {% load shop_tags %}
 <div class="card h-100 product-card">
-        <div class="position-relative">
+        <div class="position-relative figure">
             {% if product.image %}
             {% thumbnail product.image "600x450" crop="center" as im %}
             <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+            {% endthumbnail %}
+            {% endif %}
+            {% if product.image_secondary %}
+            {% thumbnail product.image_secondary "600x450" crop="center" as im %}
+            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid img-hover" alt="product image">
             {% endthumbnail %}
             {% endif %}
             <div class="position-absolute bottom-20 start-20">
@@ -28,7 +33,6 @@
             <h4>Nächste Backtage:</h4>
             <div class="d-grid gap-2">
                 {% for production_day in product.production_days.upcoming %}
-                {{ production_day }}
                 <a href="{% url 'shop:shop-production-day' production_day=production_day.production_day.pk %}#product-{{production_day.pk}}" class="btn btn-primary"><span class="fw-bold">{{ production_day.production_day.day_of_sale|date:'d.m.Y' }}</span> ({{ production_day.calculate_max_quantity }} verfügbar)</a>
                 {% endfor %}
             </div>

@@ -12586,6 +12586,9 @@ body {
   height: 100%;
 }
 
+body {
+  background-color: #F3ECD2;
+}
 @media (max-width: 991px) {
   body {
     margin-top: 46px;
