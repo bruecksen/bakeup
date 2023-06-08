@@ -54,6 +54,8 @@ class UserFormMixin():
             self.fields["point_of_sale"] = forms.ModelChoiceField(queryset=PointOfSale.objects.all(), label="Abholstelle", help_text="Bitte wähle eine Abholstelle aus.", empty_label=None)
             if PointOfSale.objects.filter(is_primary=True).exists():
                 self.fields["point_of_sale"].initial = PointOfSale.objects.get(is_primary=True)
+        elif 'point_of_sale' in self.fields:
+            del self.fields['point_of_sale']
         if hasattr(self, "field_order"):
             set_form_field_order(self, self.field_order)
         self.helper = FormHelper()
