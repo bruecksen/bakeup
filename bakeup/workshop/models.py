@@ -422,15 +422,3 @@ class ProductionPlan(CommonBaseClass):
                     defaults={'quantity': quantity_parent * child.quantity}
                 )
                 ProductionPlan.create_all_child_plans(obj, child.child.parents.all(), quantity_parent * child.quantity)
-
-
-class Message(CommonBaseClass):
-    class State(models.IntegerChoices):
-        PLANNED = 0
-        SENT = 1
-    state = models.IntegerField(choices=State.choices, default=State.PLANNED)
-    subject = models.TextField()
-    body = models.TextField()
-    point_of_sale = models.ForeignKey('shop.PointOfSale', blank=True, null=True, on_delete=models.CASCADE)
-    send_log = models.JSONField(default=dict)
-    error_log = models.JSONField(default=dict)
