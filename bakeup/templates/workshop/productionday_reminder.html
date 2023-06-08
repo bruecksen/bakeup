@@ -69,8 +69,8 @@ Production day reminder <small class="text-muted">{{ object }}</small>
         <div class="row">
           <div class="col">
             <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
-            <button type="submit" class="btn btn-outline-primary" id="send-emails-button" name="save"><i class="far fa-save"></i> Save Reminder</button>
-            <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send emails</button>
+            <button type="submit" class="btn btn-outline-primary" name="save"><i class="far fa-save"></i> Save reminder</button>
+            <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send reminder emails</button>
           </div>
         </div>
       </div>
@@ -80,15 +80,13 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 </div>
 {{ emails |json_script:"emails" }}
 <script type="text/javascript">
+  var emails = JSON.parse(document.getElementById('emails').textContent);
   var select = document.getElementById('id_point_of_sale')
   select.addEventListener('change', function() {
     if (this.value) {
-      // document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails[this.value].length + " users";
-      // document.getElementById('send-emails-button').innerHTML = "Send " + emails[this.value].length + " emails";
+      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails[this.value].length + " reminder emails";
     } else {
-      // document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails['all'].length + " users";
-      // document.getElementById('send-emails-button').innerHTML = "Send " + emails['all'].length + " emails";
-
+      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails['all'].length + " reminder emails";
     }
   });
   select.dispatchEvent(new Event('change'));

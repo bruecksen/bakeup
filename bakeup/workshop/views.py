@@ -679,6 +679,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
         context = super().get_context_data(**kwargs)
         context['select_message_form'] = self.get_select_message_form()
         context['production_day'] = self.production_day
+        context['emails'] = {}
+        for point_of_sale in PointOfSale.objects.all():
+            context['emails'][point_of_sale.pk] = list(self.production_day.customer_orders.filter(point_of_sale=point_of_sale).values_list('customer__user__email', flat=True))
+            
+        context['emails']['all'] = list(self.production_day.customer_orders.all().values_list('customer__user__email', flat=True))
         return context
     
     def get_select_message_form(self):
