@@ -441,6 +441,9 @@ class ReminderMessage(CommonBaseClass):
     error_log = models.JSONField(default=dict)
     sent_date = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        ordering = ['-sent_date']
+
     def __str__(self):
         point_of_sale = self.point_of_sale or 'ALL'
         email_count = self.get_orders().count()

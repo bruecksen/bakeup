@@ -114,6 +114,7 @@ class ProductionDayReminderForm(forms.Form):
 
 class ReminderMessageForm(ModelForm):
     # messages = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, empty_label="Create new Message")
+    point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label='Point of sale')
     subject = forms.CharField(widget=forms.TextInput)
     production_day = forms.HiddenInput()
 
@@ -129,10 +130,10 @@ class ReminderMessageForm(ModelForm):
 
 
 class SelectReminderMessageForm(forms.Form):
-    message = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, empty_label="Create new Message")
+    message = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, label='Create a new message or select a saved one', empty_label="Create a new message")
 
     def __init__(self, *args, **kwargs):
         production_day = kwargs.pop('production_day', None)
         super().__init__(*args, **kwargs)
         if production_day:
-            self.fields['message'].queryset = ReminderMessage.objects.filter(production_day=production_day)
+            self.fields['message'].queryset = ReminderMessage.objects.filter(production_day=production_day, state=ReminderMessage.State.PLANNED)

@@ -19,23 +19,6 @@ Production day reminder <small class="text-muted">{{ object }}</small>
         </form>
       </div>
     </div>
-    {% if object and object.is_sent %}
-    <div class="card p-3">
-      <div class="row">
-        <div class="col">
-          <p>
-            <strong>Sent date: </strong>{{ object.sent_date }} <br>
-            <strong>Point of sale: </strong>{{ object.point_of_sale|default_if_none:'All' }} <br>
-            <strong>Subject: </strong>{{object.subject }}<br>
-            <strong>Body: </strong>{{ object.body }}<br>
-            <strong>Successfully send: </strong> {{ object.send_log|length }}<br> {{ object.send_log|join:', ' }} <br>
-            <strong>Email error: </strong> {{ object.error_log|length }} <br> {% for email, error in object.error_log.items %} {{ email }}: {{ error }} {% endfor %}<br>
-
-          </p>
-        </div>
-      </div>
-    </div>
-    {% else %}
       <form class="form-horizontal" method="POST">
       <input type="hidden" name="next" value="{{ next }}" />
       {{ form.production_day.as_hidden }}
@@ -75,7 +58,36 @@ Production day reminder <small class="text-muted">{{ object }}</small>
         </div>
       </div>
     </form>
-    {% endif %}
+  </div>
+</div>
+<div class="row mt-4">
+  <div class="col">
+    <h2>Message History</h2>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-8 col">
+    {% for message in messages_sent %}
+    <div class="card p-3 mt-3">
+      <div class="row">
+        <div class="col">
+          <h4>{{ message }}</h4>
+          <p class="mb-0">
+            <strong>Sent date: </strong>{{ message.sent_date }} <br>
+            <strong>Point of sale: </strong>{{ message.point_of_sale|default_if_none:'All' }} <br>
+            <strong>Subject: </strong>{{message.subject }}<br>
+            <strong>Body: </strong>{{ message.body }}<br>
+            <strong>Successfully send: </strong> {{ message.send_log|length }}<br> {{ message.send_log|join:', ' }} <br>
+            <strong>Email error: </strong> {{ message.error_log|length }}
+            {% if message.error_log %}
+            <br>
+            {% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}<br>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
   </div>
 </div>
 {{ emails |json_script:"emails" }}

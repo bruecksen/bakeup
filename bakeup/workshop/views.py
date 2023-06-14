@@ -684,6 +684,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
             context['emails'][point_of_sale.pk] = list(self.production_day.customer_orders.filter(point_of_sale=point_of_sale).values_list('customer__user__email', flat=True))
             
         context['emails']['all'] = list(self.production_day.customer_orders.all().values_list('customer__user__email', flat=True))
+        context['messages_sent'] = ReminderMessage.objects.filter(production_day=self.production_day, state=ReminderMessage.State.SENT)
         return context
     
     def get_select_message_form(self):
@@ -695,8 +696,9 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
     def get_object(self, queryset=None):
         self.production_day = ProductionDay.objects.get(pk=self.kwargs.get('production_day'))
         try:
-            return super().get_object(queryset)
-        except AttributeError:
+            pk = self.kwargs.get(self.pk_url_kwarg)
+            return ReminderMessage.objects.get(pk=pk, state=ReminderMessage.State.PLANNED)
+        except ReminderMessage.DoesNotExist:
             return None
     
     # def get_form_kwargs(self) -> Dict[str, Any]:
@@ -720,10 +722,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
     
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.add_message(self.request, messages.INFO, 'Reminder message saved')
         if 'send' in self.request.POST:
-            messages.add_message(self.request, messages.INFO, 'Reminder message send')
+            messages.add_message(self.request, messages.SUCCESS, 'Reminder message saved and send to selected orders.')
             self.object.send_messages()
+        else:
+            messages.add_message(self.request, messages.SUCCESS, 'Reminder message saved.')
         return HttpResponseRedirect(self.get_success_url())
     
     def get_success_url(self, *args, **kwargs):
