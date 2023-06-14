@@ -3,6 +3,7 @@ from decimal import Decimal
 from itertools import count
 from re import T
 
+from django.db import connection
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
@@ -470,12 +471,14 @@ class ReminderMessage(CommonBaseClass):
         emails_successfull = []
         emails_error = {}
         orders = self.get_orders()
+        client = connection.get_tenant()
         for order in orders:
             try:
                 user_email = order.customer.user.email
                 user_body = self.body
                 user_body = user_body.replace('{{ user }}', order.customer.user.first_name)
                 user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
+                user_body = user_body.replace('{{ client }}', client.name)
                 send_mail(
                     self.subject,
                     user_body,
