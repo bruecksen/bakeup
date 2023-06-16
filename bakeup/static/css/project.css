@@ -12872,6 +12872,9 @@ button[aria-expanded=false] .fa-chevron-down {
   display: none;
 }
 
+header {
+  min-height: 68px;
+}
 header.open .navbar-toggler .fa-times {
   display: inline-block;
 }
