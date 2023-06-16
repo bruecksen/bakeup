@@ -1,57 +1,23 @@
 {% load shop_tags %}
-    <div class="card bg-primary text-white" >
-        <div class="card-body">
-            <h4 class="card-title hyphens-auto mb-4 fw-bold" id="current-order">Brotkorb:</h4>
-            <div class="mt-4 mb-4">
-                {% for position in current_customer_order.positions.all %}
-                <div class="row g-0 fw-bold">
-                    <div class="col-2">
-                        {% if not position.production_plan or not position.production_plan.is_locked %}
-                        {% max_quantity production_day_next position.product as production_day_product_max_quantity %}
-                        <form method="POST" action="{% url "shop:customer-order-position-update" pk=position.pk %}" class="me-2">
-                            {% csrf_token %}
-                            <select class="form-select form-select-xs" name="quantity" onchange="this.form.submit()">
-                                {% for i in production_day_product_max_quantity|times %}
-                                <option value="{{i}}" {% if position.quantity == i %}selected{% endif %}>{{i}}x</option>
-                                {% endfor %}
-                              </select>
-                        </form>
-                        {% else %}
-                        {{ position.quantity}}&nbsp;x
-                        {% endif %}
-                    </div>
-                    <div class="col">
-                        {{ position.product }}
-                    </div>
-                    {% if not position.production_plan or not position.production_plan.is_locked %}
-                    <div class="col-2 text-end">
-                        <form method="POST" action="{% url "shop:customer-order-position-delete" pk=position.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link btn-sm"><i class="fas fa-trash text-white"></i></button>
-                        </form>
-                    </div>
-                    {% else %}
-                    <div class="col text-end">
-                        {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan css_class='bg-light text-dark' %}
-                    </div>
-                    {% endif %}
-                </div>
-                <hr>
-                {% empty %}
-                <p>Bisher wurde noch kein Brot für den aktuellen Backtag bestellt.</p>
-                {% endfor %}
-                {% if point_of_sales.count > 1 %}
-                <form method="POST" action="{% url "shop:customer-order-update" pk=current_customer_order.pk %}">
-                    {% csrf_token %}
-                <p class="small">Bei deiner Bestellung ist die Abholstelle: <select class="form-select form-select-xs d-inline pos-select pe-3 me-1" name="point_of_sale" onchange="this.form.submit()">
-                    {% for point_of_sale in point_of_sales %}
-                    <option value="{{ point_of_sale.pk }}" {% if current_customer_order.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
-                    {% endfor %}
-                  </select> hinterlegt.</p>
-                </form>
+<div id="basket" class="card bg-primary text-white">
+    <div class="card-body">
+        <div class="empty{% if current_customer_order %} d-none{% endif %}">
+            <h4 class="card-title hyphens-auto mb-0">Dein Brotkorb ist leer.</h4>
+        </div>
+        <div class="summary d-none">
+            <h4 class="card-title hyphens-auto plural"><span class="qty fw-bold"></span> Brote im Brotkorb</h4>
+            <h4 class="card-title hyphens-auto  single"><strong>1</strong> Brot im Brotkorb</h4>
+            <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target="#checkout">
+                {% if current_customer_order %}
+                Bestellung ändern
                 {% else %}
-                  <p>Bei deiner Bestellung ist die Abholstelle: <strong>{{ current_customer_order.point_of_sale }}</strong> hinterlegt.</p>
+                Bestellung prüfen
                 {% endif %}
-            </div>
+            </a>
+        </div>
+        <div class="current-order{% if not current_customer_order %} d-none{% endif %}">
+            <h4 class="">Du hast <strong>{{ current_customer_order.total_quantity }}</strong> Brot{{ current_customer_order.total_quantity|pluralize:'e' }} bestellt</h4>
+            <a class="btn btn-white fw-bold" href="{% url 'shop:order-list' %}#bestellung-{{current_customer_order.pk}}">Bestellung anzeigen</a>
         </div>
     </div>
+</div>

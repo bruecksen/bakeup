@@ -35,6 +35,25 @@
         --bs-btn-color: var(--bs-white);
         --bs-btn-hover-color: var(--bs-white);
     }
+    .table-primary {
+        --bs-table-color: #000;
+        --bs-table-bg: rgba(var(--bs-primary-rgb), 0.2);
+        /* --bs-table-border-color: #ddcac4;
+        --bs-table-striped-bg: #e9d5cf;
+        --bs-table-striped-color: #000;
+        --bs-table-active-bg: #ddcac4;
+        --bs-table-active-color: #000;
+        --bs-table-hover-bg: #e3cfca;
+        --bs-table-hover-color: #000; */
+    }
+    .form-check-input:checked {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+    }
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb),.25);
+        border-color: rgba(var(--bs-primary-rgb),.25);
+    }
     .btn-secondary {
             --bs-btn-bg: {{ settings.pages.BrandSettings.secondary_color }};
             --bs-btn-border-color: {{ settings.pages.BrandSettings.secondary_color }};

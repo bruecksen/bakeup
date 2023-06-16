@@ -10,7 +10,7 @@
 {% for order in object_list %}
 <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
     <h2 class="fs-3">Backtag: <strong>{{ order.production_day }}</strong></h2>
-    <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale }}</strong></h3>
+    <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h3>
     <div class="row">
         <div class="col-12 col-lg-6">
             <table class="table table-light">
@@ -24,7 +24,7 @@
                 <tbody>
                     {% for position in order.positions.all %}
                         <tr>
-                        <td>{{ position.quantity }}</td>
+                        <td>{{ position.quantity }}x</td>
                         <td>{{ position.product }}</td>
                         <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
                         </tr>

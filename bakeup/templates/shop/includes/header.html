@@ -27,6 +27,13 @@
               <li class="nav-item">
                   <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
               </li>
+              <li class="nav-item shopping-basket">
+                  <a class="nav-link btn btn-primary p-0 rounded-circle shadow position-relative">
+                    <i class="fas fa-shopping-cart fa-fw"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge text-bg-light rounded-circle color-primary order-quantity d-none">
+                      <span class="visually-hidden">unread messages</span>
+                  </a>
+              </li>
               {% else %}
               <li class="nav-item">
                   <a id="log-in-link" class="nav-link btn btn-primary px-2 py-1 mt-1" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>

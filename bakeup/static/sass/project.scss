@@ -135,6 +135,26 @@ input.form-control.product-quantity {
   font-size: .675rem;
   padding: 0.1rem 0.2rem;
 }
+.btn-white {
+  background-color: $white;
+  &:hover {
+    background-color: shade-color($white, $btn-hover-bg-shade-amount);
+    color: $black;
+  }
+}
+a.rounded-circle {
+  width: 40px;
+  height: 40px;
+  display: flex!important;
+  align-items: center;
+  justify-content: center;
+}
+.sticky {
+  z-index: 1020;
+}
+.sticky-offset {
+  top: 67px;
+}
 .card {
   border: none;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
@@ -198,6 +218,23 @@ input.form-control.product-quantity {
   min-width: 32px;
   min-width: 3rem;
   text-align: right;
+}
+
+#basket {
+
+  @media (max-width: 991px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1010;
+    width: 100%;
+    text-align: center;
+    border-radius: 0;
+    a.btn {
+      width: 80%;
+    }
+  }
+
 }
 
 .border-top-2 {

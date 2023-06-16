@@ -56,8 +56,8 @@ class CustomerProductionDayOrderForm(forms.Form):
         super().__init__(*args, **kwargs)
         for production_day_product in self.production_day_products:
             if not production_day_product.is_locked and not production_day_product.is_sold_out:
-                self.fields[f'production_day_{production_day_product.product.pk}-product'] = forms.IntegerField(widget=forms.HiddenInput)
-                self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label="Quantity")
+                self.fields[f'production_day_{production_day_product.product.pk}-product'] = forms.IntegerField(widget=forms.HiddenInput, required=False)
+                self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label="Quantity", required=False)
     
     def clean(self):
         cleaned_data = self.cleaned_data
