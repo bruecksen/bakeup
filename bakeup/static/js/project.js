@@ -134,12 +134,16 @@ function setTotalBasketQuantity(modal, basket) {
 
     if (totalBasketQuantity == 1) {
         basket.find('.single').show();
-        basket.find('.plural').hide()
+        basket.find('.plural').hide();
+        basket.find('.empty').hide();
+        basket.find('.current-order').hide();
         
     } else if (totalBasketQuantity > 1) {
         basket.find('.plural').show();
         basket.find('.single').hide();
+        basket.find('.empty').hide();
         basket.find('.plural .qty').html(totalBasketQuantity);
+        basket.find('.current-order').hide();
     }
     if (totalBasketQuantity == 0) {
         $('header .shopping-basket').hide();
