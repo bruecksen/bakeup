@@ -35,7 +35,7 @@
                     {% if user.is_authenticated %}
                     {% include "shop/includes/basket.html" %}
                     {% else %}
-                    <div class="card bg-primary text-white">
+                    <div class="card bg-primary text-white mb-3">
                         <div class="card-body">
                             <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
                             <p class="mb-0">Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
