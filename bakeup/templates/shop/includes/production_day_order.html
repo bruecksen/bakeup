@@ -32,12 +32,13 @@
                     </div>
                 </div>
                 <div class="col-4">
+                    {% if user.is_authenticated %}
                     {% include "shop/includes/basket.html" %}
-                    {% if not user.is_authenticated %}
-                    <div class="card bg-primary text-white" >
+                    {% else %}
+                    <div class="card bg-primary text-white">
                         <div class="card-body">
                             <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
-                            <p>Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
+                            <p class="mb-0">Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
                         </div>
                     </div>
                     {% endif %}
