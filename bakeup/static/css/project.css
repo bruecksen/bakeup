@@ -12737,6 +12737,10 @@ a.rounded-circle {
   top: 67px;
 }
 
+.sticky.sticked .production-day-description {
+  display: none;
+}
+
 .card {
   border: none;
   -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
@@ -12836,9 +12840,22 @@ a.rounded-circle {
     width: 100%;
     text-align: center;
     border-radius: 0;
+    margin-bottom: 0 !important;
   }
   #basket a.btn {
     width: 80%;
+  }
+}
+
+.shopping-basket.mobile {
+  display: none;
+}
+@media (max-width: 991px) {
+  .shopping-basket.mobile {
+    display: block;
+    position: fixed !important;
+    top: 0;
+    right: 0;
   }
 }
 
@@ -12905,9 +12922,10 @@ header.open .navbar-toggler .fa-bars {
   }
   header.open .main-menu-sub {
     position: fixed;
-    top: 100%;
-    -webkit-transform: translateY(-100%);
-            transform: translateY(-100%);
+    top: calc(100% - 1.5rem);
+    left: 50%;
+    -webkit-transform: translateY(-100%) translateX(-50%);
+            transform: translateY(-100%) translateX(-50%);
     -webkit-box-orient: horizontal;
     -webkit-box-direction: normal;
         -ms-flex-direction: row;
