@@ -317,15 +317,17 @@ myCollapsible.addEventListener('hidden.bs.collapse', event => {
 
 $(function() {
     var offset = 77;
-    if ($('.sticky').length) {
-        var boxInitialTop = $('.sticky').offset().top;
-        var width = $('.sticky').width();
-        console.log('width: ', width);
+    if ($('#basket').length) {
+        var boxInitialTop = $('#basket').offset().top;
+        // var width = $('.sticky').width();
+        // console.log('width: ', width);
         $(window).scroll(function () {
           if ($(window).scrollTop() > boxInitialTop - offset) {
-            $('.sticky').addClass('sticked').css({position: 'fixed', top: offset + 'px', width: width + 'px'})
-          } else {
-            $('.sticky').removeClass('sticked').css({position: 'static', width: 'auto'});
+            $('header .shopping-basket').removeClass('invisible');
+            // $('.sticky').addClass('sticked').css({position: 'fixed', top: offset + 'px', width: width + 'px'})
+        } else {
+              $('header .shopping-basket').addClass('invisible');
+            // $('.sticky').removeClass('sticked').css({position: 'static', width: 'auto'});
           }
         });
     }
