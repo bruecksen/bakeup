@@ -5,6 +5,7 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Sum
 from django.db.models import Q, F
+from django.db.models import OuterRef, Subquery
 from django.utils import formats
 from django import forms
 
@@ -304,6 +305,10 @@ class CustomerOrder(CommonBaseClass):
     @property
     def is_planned(self):
         return self.positions.filter(production_plan__isnull=False).exists()
+    
+    @property
+    def is_locked(self):
+        return self.positions.filter(production_plan__isnull=False, production_plan__state__gt=0)
 
     @property
     def order_nr(self):
@@ -367,6 +372,13 @@ class CustomerOrder(CommonBaseClass):
             customer_order.delete()
             return None
         return customer_order
+    
+    def get_production_day_products_ordered_list(self):
+        production_day_products = self.production_day.production_day_products.published()
+        production_day_products = production_day_products.annotate(
+            ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+        )
+        return production_day_products
 
 
 class CustomerOrderPositionQuerySet(models.QuerySet):

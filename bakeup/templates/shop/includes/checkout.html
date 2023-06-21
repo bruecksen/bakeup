@@ -1,0 +1,86 @@
+{% load shop_tags %}
+{% load wagtailcore_tags %}
+<div class="modal fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-4 fw-bold" id="checkoutModalLabel">
+                {% if  customer_order %}
+                Bestellung<span class="d-none"> ändern</span>
+                {% else %}
+                Bestellung prüfen
+                {% endif %}
+            </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">Backtag: <strong>{{ production_day }}</strong></p>
+                <form id="customer-order-form" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
+                    {% csrf_token %}
+                    {% if next_url %}
+                    <input type="hidden" name="next_url" value="{{ next_url }}">
+                    {% endif %}
+                <p class="">Abholort: <select class="form-select form-select-xs d-inline pos-select pe-3 me-1" name="point_of_sale">
+                    {% for point_of_sale in point_of_sales %}
+                    <option value="{{ point_of_sale.pk }}" {% if  customer_order.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
+                    {% endfor %}
+                    </select></p>
+                <table class="table table-light mt-4 mb-4">
+                    <thead>
+                        <tr>
+                        <th scope="col">Menge</th>
+                        <th scope="col">Brot</th>
+                        <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %}" data-product="{{ product.product.pk }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0">
+                            <th scope="row">
+                                {% max_quantity production_day product.product as production_day_product_max_quantity %}
+                                <select class="form-select form-select-xs order-quantity" name="product-{{ product.product.pk }}"{% if product.is_locked %} disabled{% endif %}>
+                                    {% for i in production_day_product_max_quantity|times %}
+                                    <option value="{{i}}" {% if product.ordered_quantity == i %}selected{% endif %}>{{i}}x</option>
+                                    {% endfor %}
+                                </select>
+                            </th>
+                            <td>
+                                {{ product.product }}
+                            </td>
+                            <td>
+                                {% if not position.production_plan or not position.production_plan.is_locked %}
+                                <div class="col-2 text-end">
+                                    {% if not product.is_locked %}
+                                        <button type="button" class="btn btn-link btn-sm btn-delete"><i class="fas fa-trash text-black"></i></button>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <div class="col text-end">
+                                    {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan css_class='bg-light text-dark' %}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
+                <div class="form-check{% if  customer_order %} d-none{% endif %}">
+                    <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" value="" required>
+                    {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}
+                    </label>
+                </div>
+                {% endif %}
+                {% if not  customer_order %}
+                <button type="submit" class="btn btn-primary mt-3 mb-3">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
+                {% else %}
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">{{ settings.pages.CheckoutSettings.order_button_change }}</button>
+                <input type="reset" class="btn btn-outline-primary mt-3 mb-3 d-none" value="Änderungen verwerfen">
+                <button class="btn btn-primary mt-3 mb-3" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
+                {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

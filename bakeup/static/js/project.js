@@ -175,7 +175,7 @@ function updateProduct(product, qty) {
     console.log('qty', qty);
     qty = parseInt(qty);
     var basket = $('#basket');
-    var modal = $('.checkout-modal');
+    var modal = $('.modal-checkout');
     basket.find('.summary').removeClass('d-none');
     basket.find('.current-order').hide();
     var row = $("tr[data-product='" + product + "']");
@@ -224,13 +224,13 @@ minus_btns.forEach(btn=>{
         }
     })
 
-$('#checkout .btn-delete').click(function(){
+$('.modal-checkout .btn-delete').click(function(){
     console.log('click');
     var tr = $(this).parents('tr');
     tr.fadeOut();
     tr.find('.order-quantity').val(0).change();
 })
-$('.checkout-modal form input[type="reset"]').click(function(){
+$('.modal-checkout form input[type="reset"]').click(function(){
     var form = $(this).parents('form');
     form.find('.form-check').removeClass('d-none').hide();
     form.find('button[type="submit"]').removeClass('d-none').hide();
@@ -245,15 +245,15 @@ $('.checkout-modal form input[type="reset"]').click(function(){
 })
 
 $(function(){
-    if ($('.checkout-modal').length) {
+    if ($('.modal-checkout').length == 1) {
         console.log('checkout exists');
         $('header .shopping-basket').addClass('d-lg-block');
     } else {
         console.log('checkout not');
         $('header .shopping-basket').removeClass('d-lg-block');
     }
-    var initdata = $('.checkout-modal form').serialize();
-    $('.checkout-modal form input, .checkout-modal form select').change(function() { 
+    var initdata = $('.modal-checkout form').serialize();
+    $('.modal-checkout form input, .modal-checkout form select').change(function() { 
         console.log('detect form change');
         var form = $(this).parents('form');
         console.log(form);
@@ -264,23 +264,23 @@ $(function(){
             form.find('button[type="submit"]').removeClass('d-none').hide();
             form.find('input[type="reset"]').removeClass('d-none').hide();
             form.find('button[data-bs-dismiss="modal"]').show();
-            $(this).parents('.checkout-modal').find('.modal-title span').removeClass('d-none').hide();
+            $(this).parents('.modal-checkout').find('.modal-title span').removeClass('d-none').hide();
         } else {
             console.log('changed');
             form.find('.form-check').removeClass('d-none').show();
             form.find('input[type="reset"]').removeClass('d-none').show();
             form.find('button[type="submit"]').removeClass('d-none').show();
             form.find('button[data-bs-dismiss="modal"]').hide();
-            $(this).parents('.checkout-modal').find('.modal-title span').removeClass('d-none').show();
+            $(this).parents('.modal-checkout').find('.modal-title span').removeClass('d-none').show();
         }
     });
-    $('.checkout-modal form select').change(function(){
+    $('.modal-checkout form select').change(function(){
         console.log('detect qty select change to set total basket qty');
         var basketQty = this.value;
         var orderedQty = $(this).parents('tr').data('ordered-quantity');
         $(this).parents('tr').data('basket-quantity', basketQty - orderedQty);
         var basket = $('#basket');
-        var modal = $(this).parents('.checkout-modal');
+        var modal = $(this).parents('.modal-checkout');
         setTotalBasketQuantity(modal, basket);
     })
 });

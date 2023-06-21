@@ -7,7 +7,7 @@
         <div class="summary d-none">
             <h4 class="card-title hyphens-auto plural"><span class="qty fw-bold"></span> Brote im Brotkorb</h4>
             <h4 class="card-title hyphens-auto single"><strong>1</strong> Brot im Brotkorb</h4>
-            <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target="#checkout">
+            <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target=".modal-checkout">
                 {% if current_customer_order %}
                 Bestellung ändern
                 {% else %}
@@ -17,7 +17,7 @@
         </div>
         <div class="current-order{% if not current_customer_order %} d-none{% endif %}">
             <h4 class="">Du hast <strong>{{ current_customer_order.total_quantity }}</strong> Brot{{ current_customer_order.total_quantity|pluralize:'e' }} bestellt</h4>
-            <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target="#checkout">Bestellung anzeigen</a>
+            <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target=".modal-checkout">Bestellung anzeigen</a>
         </div>
     </div>
 </div>

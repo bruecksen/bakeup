@@ -127,3 +127,23 @@ class BrandSettings(BaseGenericSetting):
     ]
     class Meta:
         verbose_name = "Brand settings"
+
+
+@register_setting(icon='user')
+class CheckoutSettings(BaseGenericSetting):
+    order_button_place = models.CharField(max_length=1024, default='Jetzt kostenpflichtig bestellen', verbose_name='Button bestellen')
+    order_button_change = models.CharField(max_length=1024, default='Jetzt kostenpflichtig ändern', verbose_name='Button Bestellung ändern')
+    terms_and_conditions_show = models.BooleanField(default=False, verbose_name='Checkbox AGB anzeigen?')
+    terms_and_conditions_text = RichTextField(blank=True, null=True, verbose_name='AGB Text')
+    
+    panels = [
+        FieldPanel('order_button_place'),
+        FieldPanel('order_button_change'),
+        MultiFieldPanel([
+            FieldPanel('terms_and_conditions_show'),
+            FieldPanel('terms_and_conditions_text'),
+        ], heading='AGB')
+    ]
+    class Meta:
+        verbose_name = "Checkout settings"
+

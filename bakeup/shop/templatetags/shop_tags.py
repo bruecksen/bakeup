@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import floatformat
 
-from bakeup.shop.models import CustomerOrderPosition, ProductionDayProduct
+from bakeup.shop.models import CustomerOrderPosition, ProductionDayProduct, PointOfSale
 
 register = template.Library()
 
@@ -19,4 +19,3 @@ def max_quantity(context, production_day, product):
 @register.filter(name='times') 
 def times(number):
     return range(number + 1)
-
