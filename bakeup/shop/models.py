@@ -30,6 +30,9 @@ class ProductionDayTemplate(CommonBaseClass):
     quantity = models.PositiveSmallIntegerField()
 
 class ProductionDayQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(production_day_products__is_published=True).distinct()
+
     def upcoming(self):
         today = datetime.now().date()
         return self.filter(day_of_sale__gte=today).order_by('day_of_sale')
