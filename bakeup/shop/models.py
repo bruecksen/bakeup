@@ -311,7 +311,7 @@ class CustomerOrder(CommonBaseClass):
     
     @property
     def is_locked(self):
-        return self.positions.filter(production_plan__isnull=False, production_plan__state__gt=0)
+        return not self.positions.filter(production_plan__state=0).exists()
 
     @property
     def order_nr(self):
