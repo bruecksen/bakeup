@@ -5,7 +5,10 @@ from django.db.models.query import QuerySet
 from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.db.models import OuterRef, Subquery
 
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Cast
@@ -126,50 +129,34 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return redirect(self.get_success_url())
 
 
-class CustomerOrderAddBatchView(CustomerRequiredMixin, FormView):
-    form_class = CustomerProductionDayOrderForm
-    http_method_names = ['post']
+   
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['production_day_products'] = self.production_day.production_day_products.published().filter(Q(production_plan__isnull=True) | Q(production_plan__state=0))
-        kwargs['customer'] = self.request.user.customer
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        self.production_day = get_object_or_404(ProductionDay, pk=kwargs['production_day'])
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        created_order = CustomerOrder.create_or_update_customer_order(
-            self.production_day,
-            self.request.user.customer,
-            form.product_quantity,
+@login_required
+def customer_order_add_or_update(request, production_day):
+    if request.method == 'POST':
+        production_day = get_object_or_404(ProductionDay, pk=production_day)
+        products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
+        order = CustomerOrder.create_or_update_customer_order(
+            production_day,
+            request.user.customer,
+            products,
+            request.POST.get('point_of_sale', None)
         )
-        if created_order is None:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
-        elif created_order:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
+        if order:
+            return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
-            messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
-        return super().form_valid(form)
+            return HttpResponseRedirect('/shop/')
 
-    def get_success_url(self):
-        if 'next_url' in self.request.POST:
-            return "{}#current-order".format(self.request.POST.get('next_url'))
-        else:
-            return reverse('shop:shop-production-day', kwargs={'production_day': self.production_day.pk})
-
-    def form_invalid(self, form):
-        raise Exception(form)
-        messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
-        return redirect(self.get_success_url())
 
 
 class CustomerOrderListView(CustomerRequiredMixin, ListView):
     model = CustomerOrder
     template_name = 'shop/customer_order_list.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['point_of_sales'] = PointOfSale.objects.all()
+        return context
 
     def get_queryset(self):
         return super().get_queryset().filter(customer=self.request.user.customer)
@@ -240,16 +227,13 @@ class ShopView(TemplateView):
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if self.production_day:
             context['production_day_next'] = self.production_day
-            context['production_day_products'] = self.production_day.production_day_products.filter(is_published=True)
-            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
-            production_day_products = []
-            for production_day_product in self.production_day.production_day_products.filter(is_published=True):
-                form = production_day_product.get_order_form(customer)
-                production_day_products.append({
-                    'production_day_product': production_day_product,
-                    'form': form
-                })
+            context['production_day_products'] = self.production_day.production_day_products.published()
+            production_day_products = self.production_day.production_day_products.published()
+            production_day_products = production_day_products.annotate(
+                ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+            )
             context['production_day_products'] = production_day_products
+            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
         context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
         context['production_days'] = ProductionDay.objects.upcoming().exclude(id=self.production_day.pk)

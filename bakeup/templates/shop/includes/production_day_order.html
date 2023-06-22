@@ -6,47 +6,56 @@
 {% load wagtailcore_tags %}
 
 {% if production_day_products %}
-<div class="row gy-4">
-    <div class="col-12 col-md-6 col-lg-8">
-        <form class="row" method="post" action="{% url 'shop:order-add-batch' production_day=production_day_next.pk %}">
-            {% csrf_token %}
-            {% if next_url %}
-            <input type="hidden" name="next_url" value="{{ next_url }}">
-            {% endif %}
-        {% for production_day_product in production_day_products %}
-        <div class="col-12 col-lg-6 mb-4">
-            {% include "shop/includes/product_card.html" %}    
-        </div>
-        {% endfor %}
-        </form>
-    </div>
-    <div class="col-12 col-md-6 col-lg-4 order-first order-md-last anchor">
+<div class="row">
+    <div class="col">
         <form method="POST" class="anchor" action="{% url 'shop:redirect-production-day' %}" id="backtag">
-            <div class="row">
-                <label for="select-production-day-date" class="col-4 col-form-label fs-3 fw-bold anchor">Backtag: </label>
-                {% csrf_token %}
-                <div class="col-8 position-relative">
-                    <div class="input-group mt-2">
-                        <input id="select-production-day-date" inputmode="none" class="form-control fs-4 fw-bold border-0" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
-                        <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white"><i class="fa-solid fa-calendar-days"></i></span>
+            <div class="row align-items-start">
+                <div class="col-12 col-lg-8">
+                    <div class="row">
+                        <div class="col-6 col-md-auto">
+                            <label for="select-production-day-date" class="fs-3 fw-bold anchor">Backtag: </label>
+                        </div>
+                        <div class="col-6 col-md-auto">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input id="select-production-day-date" inputmode="none" class="form-control fs-4 fw-bold border-0" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
+                                <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white"><i class="fa-solid fa-calendar-days"></i></span>
+                            </div>
+                        </div>
                     </div>
+                    <div class="row mt-2 production-day-description">
+                        <div class="col">
+                            {% if production_day.description %}
+                            <p class="mb-4 mb-4 lead">{{ production_day.description|safe|linebreaksbr|urlize }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    {% if user.is_authenticated %}
+                    {% include "shop/includes/basket.html" %}
+                    {% else %}
+                    <div class="card bg-primary text-white mb-3">
+                        <div class="card-body">
+                            <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
+                            <p class="mb-0">Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </form>
-        {% if production_day.description %}
-        <p class="mb-4 mb-4 lead">{{ production_day.description|safe|linebreaksbr|urlize }}</p>
-        {% endif %}
-        {% if current_customer_order.positions.all %}
-            {% include "shop/includes/basket.html" %}
-        {% elif not user.is_authenticated %}
-        <div class="card bg-primary text-white" >
-            <div class="card-body">
-                <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
-                <p>Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
-            </div>
-        </div>
-        {% endif %}
     </div>
+</div>
+{% if user.is_authenticated %}
+    {% include "shop/includes/checkout.html" with name='checkout' customer_order=current_customer_order production_day=production_day products=production_day_products %}
+{% endif %}
+<div class="row gy-4">
+    {% for production_day_product in production_day_products %}
+    <div class="col-12 col-md-6 col-lg-4">
+        {% include "shop/includes/product_card.html" %}
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
 <script>

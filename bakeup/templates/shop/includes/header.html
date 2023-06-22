@@ -7,7 +7,7 @@
         {% include "includes/logo.html" with logo_size='small' client_logo=settings.pages.BrandSettings.logo %}
         <a href="/shop/" class="navbar-brand me-0 text-white handwriting fs-3 d-lg-none">{{ request.tenant.name }}</a>
         {% else %}
-        <a href="/shop/" class="navbar-brand me-4 text-white handwriting fs-3">{{ request.tenant.name }}</a>{% endif %}
+        <a href="/shop/" class="navbar-brand me-lg-4 text-white handwriting fs-3 me-auto">{{ request.tenant.name }}</a>{% endif %}
         <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <i class="fa-solid fa-bars fs-2 fa-fw"></i>
           <i class="fa-solid fa-times fs-2 fa-fw"></i>
@@ -26,6 +26,13 @@
               </li>
               <li class="nav-item">
                   <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
+              </li>
+              <li class="nav-item shopping-basket d-none invisible">
+                  <a class="nav-link btn btn-primary p-0 rounded-circle shadow position-relative">
+                    <i class="fas fa-shopping-cart fa-fw"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge text-bg-light rounded-circle color-primary order-quantity d-none">
+                      <span class="visually-hidden">bestellte brote</span>
+                  </a>
               </li>
               {% else %}
               <li class="nav-item">

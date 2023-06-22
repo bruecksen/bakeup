@@ -5,7 +5,9 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Sum
 from django.db.models import Q, F
+from django.db.models import OuterRef, Subquery
 from django.utils import formats
+from django import forms
 
 from recurrence.fields import RecurrenceField
 
@@ -294,6 +296,10 @@ class CustomerOrder(CommonBaseClass):
     
     def get_order_positions_string(self):
         return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
+    
+    @property
+    def total_quantity(self):
+        return self.positions.aggregate(total_quantity=Sum('quantity'))['total_quantity']
 
     @property
     def is_picked_up(self):
@@ -302,6 +308,10 @@ class CustomerOrder(CommonBaseClass):
     @property
     def is_planned(self):
         return self.positions.filter(production_plan__isnull=False).exists()
+    
+    @property
+    def is_locked(self):
+        return self.positions.filter(production_plan__isnull=False, production_plan__state__gt=0)
 
     @property
     def order_nr(self):
@@ -333,32 +343,45 @@ class CustomerOrder(CommonBaseClass):
 
 
     @classmethod
-    def create_or_update_customer_order(cls, production_day, customer, products):
+    def create_or_update_customer_order(cls, production_day, customer, products, point_of_sale=None):
         # TODO order_nr, address, should point of sale really be saved in order?
-        customer_order, created_order = CustomerOrder.objects.update_or_create(
+        point_of_sale = point_of_sale and PointOfSale.objects.get(pk=point_of_sale) or customer.point_of_sale
+        customer_order, created = CustomerOrder.objects.update_or_create(
             production_day=production_day,
             customer=customer,
             defaults={
-                'point_of_sale': customer.point_of_sale,
+                'point_of_sale': point_of_sale,
             }
         )
         for product, quantity in products.items():
+            production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
+            if production_day_product.is_locked:
+                raise forms.ValidationError("Product is locked.")
             if quantity > 0:
-                position, created = CustomerOrderPosition.objects.get_or_create(
+                position, created = CustomerOrderPosition.objects.update_or_create(
                     order=customer_order,
                     product=product,
                     defaults={
                         'quantity': quantity
                     }
                 )
-                if not created:
-                    position.quantity = (position.quantity or 0) + quantity
-                    position.save(update_fields=['quantity'])
+            elif quantity == 0:
+                CustomerOrderPosition.objects.filter(
+                    order=customer_order,
+                    product=product
+                ).delete()
             
         if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
             customer_order.delete()
             return None
-        return created_order
+        return customer_order
+    
+    def get_production_day_products_ordered_list(self):
+        production_day_products = self.production_day.production_day_products.published()
+        production_day_products = production_day_products.annotate(
+            ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+        )
+        return production_day_products
 
 
 class CustomerOrderPositionQuerySet(models.QuerySet):
