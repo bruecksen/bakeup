@@ -737,6 +737,12 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
     
 
 
+class ProductionDayReminderDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ReminderMessage
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse_lazy('workshop:production-day-reminder', kwargs={'production_day': self.kwargs.get('production_day')})
+
 
 class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateView):
     model = CustomerOrder

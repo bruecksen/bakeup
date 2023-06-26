@@ -53,6 +53,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
           <div class="col">
             <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
             <button type="submit" class="btn btn-outline-primary" name="save"><i class="far fa-save"></i> Save reminder</button>
+            {% if object and object.is_planned %}<a class="btn btn-outline-primary" href="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}"><i class="fas fa-trash-alt"></i> Delete reminder</a>{% endif %}
             <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send reminder emails</button>
           </div>
         </div>
@@ -60,6 +61,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
     </form>
   </div>
 </div>
+{% if messages_sent %}
 <div class="row mt-4">
   <div class="col">
     <h2>Message History</h2>
@@ -68,29 +70,29 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 <div class="row">
   <div class="col-sm-8 col">
     {% for message in messages_sent %}
-    <div class="card p-3 mt-3">
+    <div class="card p-3 mt-3 {% if message.error_log %} card-warning{% endif %}">
       <div class="row">
         <div class="col">
-          <h4>{{ message }}</h4>
-          <p class="mb-0">
-            <strong>Sent date: </strong>{{ message.sent_date }} <br>
-            <strong>Point of sale: </strong>{{ message.point_of_sale|default_if_none:'All' }} <br>
-            <strong>Subject: </strong>{{message.subject }}<br>
-            <strong>Body: </strong>{{ message.body }}<br>
-            <strong>Successfully send: </strong> {{ message.send_log|length }}<br> {{ message.send_log|join:', ' }} <br>
-            <strong>Email error: </strong> {{ message.error_log|length }}
-
-            {% if message.error_log %}
-            <br>
-            {% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}<br>
-            {% endif %}
+          <p class="small mb-0">{{ message.sent_date }}</p>
+          <h4>{% if message.error_log %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ message }} </h4>
+          <hr>
+          <p>{{ message.body|linebreaksbr }}</p>
+          <hr>
+          <p><small>
+            <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a> 
+            <span class="collapse email-log-{{ message.pk }}">{{ message.send_log|join:', ' }}</span><br>
+            <a class="" data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail errors: {{ message.error_log|length }}</a>
+            <span class="collapse email-log-{{ message.pk }}">{% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}</span>
+          </small>  
           </p>
+
         </div>
       </div>
     </div>
   {% endfor %}
   </div>
 </div>
+{% endif %}
 {{ emails |json_script:"emails" }}
 <script type="text/javascript">
   var emails = JSON.parse(document.getElementById('emails').textContent);
