@@ -51,6 +51,7 @@ class Product(CommonBaseClass):
     product_template = models.ForeignKey('workshop.Product', blank=True, null=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=255, unique=True, blank=True, null=True, verbose_name='SKU')
+    display_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='Anzeige name')
     slug = models.SlugField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     image = models.FileField(null=True, blank=True, upload_to='product_images')
@@ -107,6 +108,9 @@ class Product(CommonBaseClass):
     
     def get_short_name(self):
         return self.sku or self.name
+    
+    def get_display_name(self):
+        return self.display_name or self.name
 
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
