@@ -55,13 +55,7 @@
             {% if show_remaining_products %}
             <p class="mb-1 text-center">Noch <span class="fw-bold">{{ production_day_product.calculate_max_quantity }} Stück</span> verfügbar</p>
             {% endif %}
-            {% else %}
-                {% if production_day_product.is_locked %}
-                <p class="small mb-0">Dieses Produkt wird aktuell schon produziert und kann nicht mehr bestellt werden.</p>
-                {% elif production_day_product.is_sold_out %}
-                <p class="small mb-0">Dieses Produkt ist leider bereits ausverkauft und kann nicht mehr bestellt werden.</p>
-                {% endif %}
-            {% endif %}
+        {% endif %}
         </div>
     {% elif not production_day_product.is_sold_out %}
         <div class="card-footer">
