@@ -14,7 +14,7 @@ from bakeup.workshop.models import Category, Product, ProductHierarchy, Producti
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable']
+        fields = ['name','sku', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable']
 
 
 class AddProductForm(Form):
@@ -87,7 +87,7 @@ class CustomerForm(ModelForm):
 
     class Meta:
         model = Customer
-        fields = ['point_of_sale', ]
+        fields = ['first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number']
 
 
 class ProductionDayMetaProductForm(forms.Form):

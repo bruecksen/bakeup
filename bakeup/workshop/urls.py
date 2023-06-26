@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from bakeup.workshop.views import CustomerDetailView, pos_order_all_picked_up_view, customer_order_all_picked_up_view, customer_order_toggle_picked_up_view, production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
+from bakeup.workshop.views import CustomerReady2OrderExportView, CustomerOrderListView, ProductionDayExportView, CustomerDetailView, pos_order_all_picked_up_view, customer_order_all_picked_up_view, customer_order_toggle_picked_up_view, production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
 
 
 app_name = "workshop"
@@ -35,6 +35,7 @@ urlpatterns = [
     path("production-days/list/", view=ProductionDayListView.as_view(), name="production-day-list"),
     path("production-days/add/", view=ProductionDayAddView.as_view(), name="production-day-add"),
     path("production-days/<int:pk>/", view=ProductionDayDetailView.as_view(), name="production-day-detail"),
+    path("production-days/<int:pk>/export/", view=ProductionDayExportView.as_view(), name="production-day-export"),
     path("production-days/<int:pk>/update/", view=ProductionDayUpdateView.as_view(), name="production-day-update"),
     path("production-days/<int:pk>/delete/", view=ProductionDayDeleteView.as_view(), name="production-day-delete"),
     path("production-days/<int:pk>/abo/", view=ProductionDayMetaProductView.as_view(), name="production-day-meta-product"),
@@ -48,6 +49,7 @@ urlpatterns = [
     path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="order-update"),
     path("orders/<int:pk>/is-picked-up/", view=customer_order_toggle_picked_up_view, name="order-is-picked-up"),
     path("customers/", view=CustomerListView.as_view(), name="customer-list"),
+    path("customers/export/ready2order/", view=CustomerReady2OrderExportView.as_view(), name="customer-export-ready-2-order"),
     path("customers/<int:pk>/", view=CustomerDetailView.as_view(), name="customer-detail"),
     path("customers/abo/", view=BatchCustomerTemplateView.as_view(), name="customer-abo"),
     path("customers/<int:pk>/delete/", view=CustomerDeleteView.as_view(), name="customer-delete"),

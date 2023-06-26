@@ -72,8 +72,7 @@ class CustomerOrderTable(tables.Table):
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
-    positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
-    picked_up = tables.TemplateColumn('{% if record.is_picked_up %}<i class="far fa-check-square fa-lg"></i>{% endif %}', verbose_name='Picked up', orderable=False)
+    collected = tables.TemplateColumn('{% if record.is_picked_up %}x{% endif %}', verbose_name='Collected', orderable=False)
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='', exclude_from_export=True)
 
     class Meta:
@@ -81,12 +80,17 @@ class CustomerOrderTable(tables.Table):
         order_by = 'production_day'
         fields = ("order_nr", "production_day", "customer", "email", "point_of_sale")
 
-    
-    def value_positions(self, value):
-        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in value.all()])
-    
-    def value_picked_up(self, record):
-        return record.is_picked_up
+
+
+class ProductionDayExportTable(tables.Table):
+    last_name = tables.TemplateColumn('{{ record.customer.user.last_name }}', verbose_name='Nachname')
+    first_name = tables.TemplateColumn('{{ record.customer.user.first_name }}', verbose_name='Vorname')
+    email = tables.TemplateColumn("{{ record.customer.user.email }}", verbose_name='E-Mail')
+    phone = tables.TemplateColumn("{{ record.customer.telephone_number|default:'' }}", verbose_name='Telefonnummer')
+
+    class Meta:
+        model = CustomerOrder
+        fields = ()
 
 
 class CustomerTable(tables.Table):
