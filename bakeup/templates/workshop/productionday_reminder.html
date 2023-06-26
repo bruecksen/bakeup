@@ -110,6 +110,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   source.addEventListener('input', function() {
     var sourceValue = source.value;
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
     target.value = sourceValue;
@@ -119,7 +120,12 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   var target2 = document.getElementById('email-subject');
   
   source2.addEventListener('input', function() {
-    target2.value = source2.value;
+    var sourceValue = source2.value;
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    target2.value = sourceValue;
   });
   source2.dispatchEvent(new Event('input'));
 </script>

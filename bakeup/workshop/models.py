@@ -467,6 +467,14 @@ class ReminderMessage(CommonBaseClass):
             return self.production_day.customer_orders.filter(point_of_sale=self.point_of_sale)
         else:
             return self.production_day.customer_orders.all()
+        
+    def replace_message_tags(self, message, order, client, production_day):
+        message = message.replace('{{ user }}', order.customer.user.first_name)
+        message = message.replace('{{ order }}', order.get_order_positions_string())
+        message = message.replace('{{ client }}', client.name)
+        message = message.replace('{{ production_day }}', production_day.day_of_sale.strftime('%d.%m.%Y'))
+        return message
+
 
     def send_messages(self):
         user_successfull = []
@@ -476,12 +484,10 @@ class ReminderMessage(CommonBaseClass):
         for order in orders:
             try:
                 user_email = order.customer.user.email
-                user_body = self.body
-                user_body = user_body.replace('{{ user }}', order.customer.user.first_name)
-                user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
-                user_body = user_body.replace('{{ client }}', client.name)
+                user_body = self.replace_message_tags(self.body, order, client, self.production_day)
+                subject = self.replace_message_tags(self.subject, order, client, self.production_day)
                 send_mail(
-                    self.subject,
+                    subject,
                     user_body,
                     settings.DEFAULT_FROM_EMAIL,
                     [user_email],
