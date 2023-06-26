@@ -138,3 +138,14 @@ class ProductionPlanFilter(django_filters.FilterSet):
     class Meta:
         model = ProductionPlan
         fields = ('production_day', )
+
+
+class PointOfSaleTable(tables.Table):
+    id = tables.Column(verbose_name='#', order_by='pk')
+    customers = tables.TemplateColumn('{{ record.get_customer_count }}', verbose_name='Customers')
+    actions = tables.TemplateColumn(template_name='tables/point_of_sale_actions_column.html', verbose_name='', exclude_from_export=True)
+
+    class Meta:
+        model = PointOfSale
+        order_by = 'production_day'
+        fields = ("id", "name", "short_name", "is_primary", "customers", "actions")
