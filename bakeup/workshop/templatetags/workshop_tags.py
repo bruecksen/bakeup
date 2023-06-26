@@ -21,3 +21,8 @@ def clever_rounding(value):
     else:
         return floatformat(round(value), 0)
 
+
+@register.simple_tag
+def ordered_quantity(order, product):
+    position = order.positions.filter(product=product).first()
+    return position and position.quantity or 0

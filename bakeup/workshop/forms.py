@@ -87,7 +87,7 @@ class CustomerForm(ModelForm):
 
     class Meta:
         model = Customer
-        fields = ['point_of_sale', ]
+        fields = ['first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number']
 
 
 class ProductionDayMetaProductForm(forms.Form):

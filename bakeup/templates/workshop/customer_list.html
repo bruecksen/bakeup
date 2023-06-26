@@ -9,7 +9,15 @@
 {% block page_heading_action %}
 <div class="btn-group float-end" role="group" aria-label="Basic example">
   <a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm">Manage customer abos</a>
-  <a href="{% export_url "csv" %}" class="btn btn-primary btn-sm"><i class="fas fa-file-download"></i> Export as CSV</a>
+  <div class="btn-group">
+    <a class="btn btn-sm btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="fas fa-file-download"></i> Export as CSV
+    </a>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" href="{% export_url "csv" %}">Export</a></li>
+      <li><a class="dropdown-item" href="{% url 'workshop:customer-export-ready-2-order' %}?{{ request.GET.urlencode }}">Export Ready2Order</a></li>
+    </ul>
+  </div>
 </div>
 {% endblock %}
 
