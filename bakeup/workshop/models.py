@@ -447,12 +447,10 @@ class ReminderMessage(CommonBaseClass):
         ordering = ['-sent_date']
 
     def __str__(self):
-        point_of_sale = self.point_of_sale or 'ALL'
-        email_count = self.get_orders().count()
-        if self.is_planned:
-            return f"#{self.pk} PLANNED to {point_of_sale} ({email_count})"
-        elif self.is_sent:
-            return f"#{self.pk} SENT to {point_of_sale} ({email_count})"
+        if self.point_of_sale:
+            return f"{ self.point_of_sale }: { self.subject }"
+        else:
+            return self.subject
 
     @property    
     def is_planned(self):
