@@ -13,7 +13,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 from django.contrib import messages
 from django.db.models import Q, F
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.views import View
@@ -24,6 +24,8 @@ from django.views.generic.edit import FormMixin
 from django.db.models import Sum
 from django.utils.timezone import make_aware
 from django.conf import settings
+from django.views.generic.detail import SingleObjectTemplateResponseMixin
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
@@ -36,9 +38,9 @@ from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
 from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
-from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping
-from bakeup.workshop.tables import ProductionDayExportTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
+from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm, ReminderMessageForm, SelectReminderMessageForm
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
+from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
 
@@ -657,66 +659,93 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
             'workshop:production-day-next',
         )
     
-
-class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, FormMixin, DetailView):
-    form_class = ProductionDayReminderForm
-    model = ProductionDay
-    template_name = 'workshop/productionday_reminder.html'
-    success_url = reverse_lazy('workshop:production-day-list')
-
-    def get_initial(self):
-        if hasattr(self.request.tenant, 'clientemailtemplate'):
-            email_template = self.request.tenant.clientemailtemplate
-            initial = {
-                'subject': email_template.production_day_reminder_subject,
-                'body': email_template.production_day_reminder_body,
-            }
-            return initial
-        return super().get_initial()
+@staff_member_required(login_url='login')
+def reminder_message_redirect_view(request, pk):
+    production_day = ProductionDay.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = SelectReminderMessageForm(request.POST, production_day=production_day)
+        if form.is_valid():
+            message = form.cleaned_data['message']
+            if message:
+                url = reverse('workshop:production-day-reminder', kwargs={'production_day': pk, 'pk': form.cleaned_data['message'].pk})
+            else:
+                url = reverse('workshop:production-day-reminder', kwargs={'production_day': pk})
+            return HttpResponseRedirect(url)
+    return HttpResponseRedirect(reverse('workshop:'))
     
+
+class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView):
+    form_class = ReminderMessageForm
+    model = ReminderMessage
+    template_name = 'workshop/productionday_reminder.html'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['select_message_form'] = self.get_select_message_form()
+        context['production_day'] = self.production_day
         context['emails'] = {}
         for point_of_sale in PointOfSale.objects.all():
-            context['emails'][point_of_sale.pk] = list(self.object.customer_orders.filter(point_of_sale=point_of_sale).values_list('customer__user__email', flat=True))
+            context['emails'][point_of_sale.pk] = list(self.production_day.customer_orders.filter(point_of_sale=point_of_sale).values_list('customer__user__email', flat=True))
             
-        context['emails']['all'] = list(self.object.customer_orders.all().values_list('customer__user__email', flat=True))
+        context['emails']['all'] = list(self.production_day.customer_orders.all().values_list('customer__user__email', flat=True))
+        context['messages_sent'] = ReminderMessage.objects.filter(production_day=self.production_day, state=ReminderMessage.State.SENT)
         return context
     
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+    def get_select_message_form(self):
+        initial = {}
+        if self.object:
+            initial['message'] = self.object.pk
+        return SelectReminderMessageForm(production_day=self.production_day, initial=initial)
 
+    def get_object(self, queryset=None):
+        self.production_day = ProductionDay.objects.get(pk=self.kwargs.get('production_day'))
+        try:
+            pk = self.kwargs.get(self.pk_url_kwarg)
+            return ReminderMessage.objects.get(pk=pk, state=ReminderMessage.State.PLANNED)
+        except ReminderMessage.DoesNotExist:
+            return None
+    
+    # def get_form_kwargs(self) -> Dict[str, Any]:
+    #     kwargs = super().get_form_kwargs()
+    #     kwargs['production_day'] = self.production_day
+    #     return kwargs
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if not self.object and hasattr(self.request.tenant, 'clientemailtemplate'):
+            email_template = self.request.tenant.clientemailtemplate
+            initial.update({
+                'subject': email_template.production_day_reminder_subject,
+                'body': email_template.production_day_reminder_body,
+            })
+        initial['production_day'] = self.production_day
+        return initial
+    
+    def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
+        return super().post(request, *args, **kwargs)
+    
     def form_valid(self, form):
-        subject = form.cleaned_data['subject']
-        body = form.cleaned_data['body']
-        point_of_sale = form.cleaned_data['point_of_sale']
-        user_emails = None
-        if point_of_sale:
-            user_emails = self.object.customer_orders.filter(point_of_sale=point_of_sale)
+        response = super().form_valid(form)
+        if 'send' in self.request.POST:
+            messages.add_message(self.request, messages.SUCCESS, 'Reminder message saved and send to selected orders.')
+            self.object.send_messages()
         else:
-            user_emails = self.object.customer_orders.all()
-        emails = []
-        for order in user_emails:
-            user_body = body
-            user_body = user_body.replace('{{ user }}', order.customer.user.first_name)
-            user_body = user_body.replace('{{ client }}', self.request.tenant.name)
-            user_body = user_body.replace('{{ order }}', order.get_order_positions_string())
-            emails.append((
-                subject,
-                user_body,
-                settings.DEFAULT_FROM_EMAIL,
-                [order.customer.user.email]
-            ))
-        send_mass_mail(emails, fail_silently=False)
-        messages.info(self.request, '{} reminder emails succsessfully sent.'.format(len(emails)))
-        return super().form_valid(form)
+            messages.add_message(self.request, messages.SUCCESS, 'Reminder message saved.')
+        return HttpResponseRedirect(self.get_success_url())
+    
+    def get_success_url(self, *args, **kwargs):
+        # if 'save' in self.request.POST:
+        #     return reverse_lazy('workshop:production-day-detail', kwargs={'pk': self.production_day.pk})
+        # else:
+        return reverse_lazy('workshop:production-day-reminder', kwargs={'production_day': self.production_day.pk, 'pk': self.object.pk})
+    
 
+
+class ProductionDayReminderDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ReminderMessage
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse_lazy('workshop:production-day-reminder', kwargs={'production_day': self.kwargs.get('production_day')})
 
 
 class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateView):

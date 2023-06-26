@@ -299,7 +299,7 @@ $(function(){
 
 
 var navbar = document.getElementById('navbar');
-if(!navbar.classList.contains('nav-bg-dark')) {
+if(navbar && !navbar.classList.contains('nav-bg-dark')) {
     window.onscroll = function () {
         if (document.body.scrollTop >= 200 || document.documentElement.scrollTop >= 200 ) {
             navbar.classList.add("nav-bg-dark");
@@ -311,22 +311,26 @@ if(!navbar.classList.contains('nav-bg-dark')) {
 }
 const myCollapsible = document.getElementById('navbarSupportedContent')
 const header = document.querySelector('header');
-myCollapsible.addEventListener('show.bs.collapse', event => {
-    navbar.classList.add("nav-bg-dark");
-    header.classList.add("open");
-    document.body.classList.add("position-fixed-mobile");
-})
-myCollapsible.addEventListener('hidden.bs.collapse', event => {
-    header.classList.remove("open");
-    document.body.classList.remove("position-fixed-mobile");
-    if (document.body.scrollTop >= 200 || document.documentElement.scrollTop >= 200 ) {
-    } else {
-        navbar.classList.remove("nav-bg-dark");
-    }
-    
-})
-
+if (myCollapsible) {
+    myCollapsible.addEventListener('show.bs.collapse', event => {
+        navbar.classList.add("nav-bg-dark");
+        header.classList.add("open");
+        document.body.classList.add("position-fixed-mobile");
+    })
+    myCollapsible.addEventListener('hidden.bs.collapse', event => {
+        header.classList.remove("open");
+        document.body.classList.remove("position-fixed-mobile");
+        if (document.body.scrollTop >= 200 || document.documentElement.scrollTop >= 200 ) {
+        } else {
+            navbar.classList.remove("nav-bg-dark");
+        }
+        
+    })
+}
 $(function() {
+    $('#id_message').change(function(){
+        this.closest('form').submit();
+    });
     var offset = 77;
     if ($('#basket').length) {
         var boxInitialTop = $('#basket').offset().top;

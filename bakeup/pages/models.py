@@ -95,7 +95,7 @@ class ShopPage(Page):
 
 @register_setting
 class FooterSettings(BaseGenericSetting):
-    footer = StreamField(ContentBlocks(), blank=True, null=True)
+    footer = StreamField(ContentBlocks(), blank=True, null=True, use_json_field=True)
 
 
 @register_setting(icon='success')

@@ -8,56 +8,100 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 {% endblock %}
 
 {% block page_content %}
+{{ form.errors }}
 <div class="row">
   <div class="col col-md-10">
-    <form class="form-horizontal" method="POST">
+    <div class="row">
+      <div class="col-6">
+        <form method="POST" id="select-message-form" action="{% url 'workshop:reminder-message-redirect' pk=production_day.pk %}">
+          {% csrf_token %}
+          {% bootstrap_field select_message_form.message %}
+        </form>
+      </div>
+    </div>
+      <form class="form-horizontal" method="POST">
       <input type="hidden" name="next" value="{{ next }}" />
+      {{ form.production_day.as_hidden }}
       {% csrf_token %}
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.point_of_sale %}
+      <div class="card p-3">
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.point_of_sale %}
+          </div>
+          <div class="col">
+          </div>
         </div>
-        <div class="col">
-          <label for="send-to-emails" class="form-label" id="send-to-emails-label">Send email to:</label>
-          <textarea class="form-control" id="send-to-emails" rows="2" readonly>{{ emails.all|join:', ' }}</textarea>
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.subject %}
+          </div>
+          <div class="col">
+            <label for="email-subject" class="form-label">Subject:</label>
+            <input class="form-control" id="email-subject" readonly disabled>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.subject %}
+        <div class="row">
+          <div class="col">
+            {% bootstrap_field form.body %}
+          </div>
+          <div class="col">
+            <label for="email-body" class="form-label">Send email to:</label>
+            <textarea class="form-control" id="email-body" rows="10" readonly disabled></textarea>
+          </div>
         </div>
-        <div class="col">
-          <label for="email-subject" class="form-label">Subject:</label>
-          <input class="form-control" id="email-subject" readonly>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          {% bootstrap_field form.body %}
-        </div>
-        <div class="col">
-          <label for="email-body" class="form-label">Send email to:</label>
-          <textarea class="form-control" id="email-body" rows="10" readonly></textarea>
-          <button type="submit" class="btn btn-primary" id="send-emails-button">Send emails</button>
+        <div class="row">
+          <div class="col">
+            <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
+            <button type="submit" class="btn btn-outline-primary" name="save"><i class="far fa-save"></i> Save reminder</button>
+            {% if object and object.is_planned %}<a class="btn btn-outline-primary" href="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}"><i class="fas fa-trash-alt"></i> Delete reminder</a>{% endif %}
+            <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send reminder emails</button>
+          </div>
         </div>
       </div>
     </form>
   </div>
 </div>
+{% if messages_sent %}
+<div class="row mt-4">
+  <div class="col">
+    <h2>Message History</h2>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-8 col">
+    {% for message in messages_sent %}
+    <div class="card p-3 mt-3 {% if message.error_log %} card-warning{% endif %}">
+      <div class="row">
+        <div class="col">
+          <p class="small mb-0">{{ message.sent_date }}</p>
+          <h4>{% if message.error_log %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ message }} </h4>
+          <hr>
+          <p>{{ message.body|linebreaksbr }}</p>
+          <hr>
+          <p><small>
+            <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a> 
+            <span class="collapse email-log-{{ message.pk }}">{{ message.send_log|join:', ' }}</span><br>
+            <a class="" data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail errors: {{ message.error_log|length }}</a>
+            <span class="collapse email-log-{{ message.pk }}">{% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}</span>
+          </small>  
+          </p>
+
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
 {{ emails |json_script:"emails" }}
 <script type="text/javascript">
   var emails = JSON.parse(document.getElementById('emails').textContent);
   var select = document.getElementById('id_point_of_sale')
   select.addEventListener('change', function() {
     if (this.value) {
-      document.getElementById('send-to-emails').value = emails[this.value];
-      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails[this.value].length + " users";
-      document.getElementById('send-emails-button').innerHTML = "Send " + emails[this.value].length + " emails";
+      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails[this.value].length + " reminder emails";
     } else {
-      document.getElementById('send-to-emails').value = emails['all'];
-      document.getElementById('send-to-emails-label').innerHTML = "Send email to " + emails['all'].length + " users";
-      document.getElementById('send-emails-button').innerHTML = "Send " + emails['all'].length + " emails";
-
+      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails['all'].length + " reminder emails";
     }
   });
   select.dispatchEvent(new Event('change'));
@@ -68,6 +112,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   source.addEventListener('input', function() {
     var sourceValue = source.value;
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
     target.value = sourceValue;
@@ -77,7 +122,12 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   var target2 = document.getElementById('email-subject');
   
   source2.addEventListener('input', function() {
-    target2.value = source2.value;
+    var sourceValue = source2.value;
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    target2.value = sourceValue;
   });
   source2.dispatchEvent(new Event('input'));
 </script>
