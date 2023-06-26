@@ -1,6 +1,9 @@
 import copy
+from itertools import repeat
 from itertools import product
-from typing import OrderedDict
+from typing import Any, OrderedDict
+from django import http
+from django.db.models.query import QuerySet
 
 from django.utils.timezone import now
 from django.core.mail import send_mass_mail
@@ -25,7 +28,8 @@ from django.conf import settings
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
-from django_tables2.export.views import ExportMixin
+from django_tables2.export import ExportMixin as TableExportMixin
+import django_tables2 as tables
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
@@ -34,8 +38,8 @@ from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTempl
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping
-from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
-
+from bakeup.workshop.tables import ProductionDayExportTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable,CustomerFilter,  ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
+from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
 
 
@@ -800,7 +804,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
         return HttpResponseRedirect(self.get_success_url())
     
 
-class CustomerListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
+class CustomerListView(StaffPermissionsMixin, TableExportMixin, SingleTableMixin, FilterView):
     model = Customer
     table_class = CustomerTable
     filterset_class = CustomerFilter
@@ -864,7 +868,7 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class CustomerOrderListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin, FilterView):
+class CustomerOrderListView(StaffPermissionsMixin, TableExportMixin, SingleTableMixin, FilterView):
     model = CustomerOrder
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
@@ -878,6 +882,106 @@ class CustomerOrderListView(StaffPermissionsMixin, ExportMixin, SingleTableMixin
         context = super().get_context_data(**kwargs)
         context['form_add_order'] = SelectProductionDayForm()
         return context
+    
+
+class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterView):
+    filterset_class = CustomerOrderFilter
+    model = Customer
+
+    def get_headers(self):
+        headers = ['kundennummer', 'kunde', 'kundengruppe', 'email', 'notizen', 'rechnung_vorname', 'rechnung_nachname', 'rechnung_straße', 'rechnung_plz', 'rechnung_stadt', 'rechnung_telefon']
+        return headers
+
+    def get_data(self):
+        customers = self.object_list.order_by('pk')
+        rows = []
+        for customer in customers:
+            rows.append([
+                customer.id,
+                customer.user.get_full_name(),
+                'Kunden',
+                customer.user.email,
+                '',
+                customer.user.first_name,
+                customer.user.last_name,
+                customer.address_line,
+                customer.postal_code,
+                customer.city,
+                customer.telephone_number
+            ])
+        return rows
+
+    @property
+    def export_name(self):
+        return "ready2order-{}".format(now().strftime("%d-%m-%Y"));
+
+
+class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
+    model = CustomerOrder
+    template_name = 'workshop/order_list.html'
+
+
+    def setup(self, request, *args, **kwargs):
+        self.production_day = ProductionDay.objects.get(pk=kwargs.get('pk'))
+        return super().setup(request, *args, **kwargs)
+    
+    def get_data(self):
+        column_count = 5 + self.production_day.production_day_products.published().count()
+        rows = []
+        top_header = [''] * column_count
+        top_header[0] = 'Produktionstag'
+        top_header[1] = self.production_day.day_of_sale
+        rows.append(top_header)
+        rows.append([''] * column_count)
+        headers = [
+            'Nachname',
+            'Vorname',
+            'E-Mail',
+            'Telefonnummer'
+        ]
+        production_day_products = self.production_day.production_day_products.published()
+        for product in production_day_products:
+            headers.append(product.product.get_short_name())
+        headers.append('Abholstelle')
+        rows.append(headers)
+        for order in self.object_list.all():
+            row = []
+            row.extend([
+                order.customer.user.last_name,
+                order.customer.user.first_name,
+                order.customer.user.email,
+                order.customer.telephone_number
+            ])
+            for product in production_day_products:
+                order_position = order.positions.filter(product=product.product).first()
+                row.append(order_position and order_position.quantity or 0)
+            pos = order.point_of_sale and order.point_of_sale.get_short_name() or ''
+            row.append(pos)
+            rows.append(row)
+        # add footer
+
+        rows.append([''] * column_count)
+        footer = ['', '', '', '', ]
+        footer2 = ['', '', '', '', ]
+        for product in production_day_products:
+            footer.append(product.get_order_quantity())
+            footer2.append(product.max_quantity)
+        footer.append('')
+        footer2.append('')
+        rows.append(footer)
+        rows.append(footer2)
+        return rows
+
+    def get_headers(self):
+        return []
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(production_day=self.production_day)
+
+    @property
+    def export_name(self):
+        return "produktionstag-{}".format(self.production_day.day_of_sale.strftime("%d-%m-%Y"));
 
 
 class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):

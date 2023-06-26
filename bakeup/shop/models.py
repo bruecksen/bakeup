@@ -31,6 +31,7 @@ class ProductionDayTemplate(CommonBaseClass):
     product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_day_templates', limit_choices_to={'is_sellable': True})
     quantity = models.PositiveSmallIntegerField()
 
+
 class ProductionDayQuerySet(models.QuerySet):
     def published(self):
         return self.filter(production_day_products__is_published=True).distinct()
@@ -227,11 +228,15 @@ class ProductionDayProduct(CommonBaseClass):
 
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255)
+    short_name = models.CharField(max_length=255, blank=True, null=True)
     address = models.OneToOneField('contrib.Address', on_delete=models.PROTECT)
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+    
+    def get_short_name(self):
+        return self.short_name or self.name
     
 
 # TODO how to handle public holidays, exceptional closing days, etc.
@@ -266,6 +271,12 @@ class Customer(CommonBaseClass):
     @property
     def total_ordered_positions(self):
         return CustomerOrderPosition.objects.filter(order__customer=self).count()
+    
+    @property
+    def address_line(self):
+        if not self.street and not self.street_number:
+            return ''
+        return f"{self.street or ''} {self.street_number or ''}"
     
 
 # Abo
