@@ -441,7 +441,7 @@ class ReminderMessage(CommonBaseClass):
     send_log = models.JSONField(default=dict)
     error_log = models.JSONField(default=dict)
     sent_date = models.DateTimeField(blank=True, null=True)
-    users = models.ManyToManyField('users.User', blank=True, null=True)
+    users = models.ManyToManyField('users.User', blank=True)
 
     class Meta:
         ordering = ['-sent_date']
