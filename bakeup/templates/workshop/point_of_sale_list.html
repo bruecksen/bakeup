@@ -1,0 +1,19 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+{% load export_url from django_tables2 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Points of sale{% endblock %}
+{% block page_heading %}Points of sale{% endblock %}
+
+{% block page_heading_action %}
+<div class="btn-group float-end" role="group">
+  <a href="{% url 'workshop:point-of-sale-add' %}" class="btn btn-primary btn-sm">Add point of sale</a>
+</div>
+{% endblock %}
+
+{% block page_content %}
+  {% render_table table %}
+ 
+  
+{% endblock %}

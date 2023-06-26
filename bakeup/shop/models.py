@@ -229,7 +229,7 @@ class ProductionDayProduct(CommonBaseClass):
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255)
     short_name = models.CharField(max_length=255, blank=True, null=True)
-    address = models.OneToOneField('contrib.Address', on_delete=models.PROTECT)
+    address = models.OneToOneField('contrib.Address', on_delete=models.PROTECT, blank=True, null=True)
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):
@@ -237,6 +237,9 @@ class PointOfSale(CommonBaseClass):
     
     def get_short_name(self):
         return self.short_name or self.name
+    
+    def get_customer_count(self):
+        return self.customers.count()
     
 
 # TODO how to handle public holidays, exceptional closing days, etc.
@@ -255,7 +258,7 @@ class PointOfSaleOpeningHour(CommonBaseClass):
 
 class Customer(CommonBaseClass):
     user = models.OneToOneField('users.User', on_delete=models.CASCADE)
-    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True)
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True, related_name='customers')
     street = models.CharField(max_length=100, blank=True, null=True)
     street_number = models.CharField(max_length=10, blank=True, null=True)
     postal_code = models.CharField(max_length=10, blank=True, null=True)

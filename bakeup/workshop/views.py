@@ -40,7 +40,7 @@ from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTempl
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm, ReminderMessageForm, SelectReminderMessageForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
-from bakeup.workshop.tables import CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
+from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
 
@@ -1187,3 +1187,43 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
 
     def form_invalid(self, formset):
         return self.render_to_response(self.get_context_data())
+    
+
+class PointOfSaleCreateView(StaffPermissionsMixin, CreateView):
+    model = PointOfSale
+    fields = ('name', 'short_name', 'is_primary')
+    template_name = 'workshop/point_of_sale_form.html'
+
+    def get_success_url(self):
+        return reverse('workshop:point-of-sale-list')
+
+
+class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
+    model = PointOfSale
+    table_class = PointOfSaleTable
+    template_name = 'workshop/point_of_sale_list.html'
+
+
+class PointOfSaleUpdateView(StaffPermissionsMixin, UpdateView):
+    model = PointOfSale
+    fields = ('name', 'short_name', 'is_primary')
+    template_name = 'workshop/point_of_sale_form.html'
+
+    def get_success_url(self):
+        return reverse('workshop:point-of-sale-list')
+
+
+class PointOfSaleDeleteView(StaffPermissionsMixin, DeleteView):
+    model = PointOfSale
+    template_name = 'workshop/point_of_sale_confirm_delete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
+    def get_success_url(self):
+        return reverse('workshop:point-of-sale-list')
