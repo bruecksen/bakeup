@@ -3,6 +3,7 @@ from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
+from django.db.models import OuterRef, Subquery
 
 from wagtail import blocks
 from wagtail.models import Page
@@ -14,7 +15,7 @@ from wagtail.contrib.settings.models import (
     register_setting,
 )
 
-from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct
+from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct, CustomerOrderPosition
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
 
 # Create your models here.
@@ -73,19 +74,15 @@ class ShopPage(Page):
         if self.production_day:
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
-            context['production_day_products'] = self.production_day.production_day_products.filter(is_published=True)
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
-            production_day_products = []
-            for production_day_product in self.production_day.production_day_products.filter(is_published=True):
-                form = production_day_product.get_order_form(customer)
-                production_day_products.append({
-                    'production_day_product': production_day_product,
-                    'form': form
-                })
+            production_day_products = self.production_day.production_day_products.published()
+            production_day_products = production_day_products.annotate(
+                ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+            )
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
-        context['all_production_days'] = list(ProductionDay.objects.filter(production_day_products__is_published=True).annotate(
+        context['all_production_days'] = list(ProductionDay.objects.published().annotate(
             formatted_date=Func(
                 F('day_of_sale'),
                 Value('dd.MM.yyyy'),
@@ -130,3 +127,23 @@ class BrandSettings(BaseGenericSetting):
     ]
     class Meta:
         verbose_name = "Brand settings"
+
+
+@register_setting(icon='user')
+class CheckoutSettings(BaseGenericSetting):
+    order_button_place = models.CharField(max_length=1024, default='Jetzt kostenpflichtig bestellen', verbose_name='Button bestellen')
+    order_button_change = models.CharField(max_length=1024, default='Jetzt kostenpflichtig ändern', verbose_name='Button Bestellung ändern')
+    terms_and_conditions_show = models.BooleanField(default=False, verbose_name='Checkbox AGB anzeigen?')
+    terms_and_conditions_text = RichTextField(blank=True, null=True, verbose_name='AGB Text')
+    
+    panels = [
+        FieldPanel('order_button_place'),
+        FieldPanel('order_button_change'),
+        MultiFieldPanel([
+            FieldPanel('terms_and_conditions_show'),
+            FieldPanel('terms_and_conditions_text'),
+        ], heading='AGB')
+    ]
+    class Meta:
+        verbose_name = "Checkout settings"
+

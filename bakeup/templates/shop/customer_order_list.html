@@ -7,32 +7,43 @@
 
 {% block page_content %}
 <h1>Bestellübersicht</h1>
-{% for order in object_list %}
-<div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
-    <h2 class="fs-3">Backtag: <strong>{{ order.production_day }}</strong></h2>
-    <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale }}</strong></h3>
-    <div class="row">
-        <div class="col-12 col-lg-6">
-            <table class="table table-light">
-                <thead>
-                  <tr>
-                    <th scope="col">Menge</th>
-                    <th scope="col">Gebäck</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    {% for position in order.positions.all %}
-                        <tr>
-                        <td>{{ position.quantity }}</td>
-                        <td>{{ position.product }}</td>
-                        <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-              </table>
+<div class="row">
+  <div class="col-12 col-lg-10">
+    {% for order in object_list %}
+    <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
+        <h2 class="fs-3">Backtag: <strong>{{ order.production_day }}</strong></h2>
+        <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h3>
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <table class="table table-light">
+                    <thead>
+                      <tr>
+                        <th scope="col">Menge</th>
+                        <th scope="col">Gebäck</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for position in order.positions.all %}
+                            <tr>
+                            <td>{{ position.quantity }}x</td>
+                            <td>{{ position.product }}</td>
+                            <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                  {% if not order.is_locked %}
+                  <a class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal-order-{{ order.id }}">Bestellung ändern</a>
+                  {% endif %}
+            </div>
         </div>
     </div>
+    
+    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list %}
+    {% empty %}
+    <p class="mt-4">Bisher liegen noch keine Bestellungen vor.</p>
+    {% endfor %}
+  </div>
 </div>
-{% endfor %}
 {% endblock %}

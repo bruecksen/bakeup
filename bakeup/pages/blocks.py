@@ -304,7 +304,7 @@ class ProductionDaysBlock(StructBlock):
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
-        production_days = ProductionDay.objects.upcoming()
+        production_days = ProductionDay.objects.published().upcoming()
         if parent_context and 'production_day_next' in parent_context:
             production_days = production_days.exclude(id=parent_context['production_day_next'].pk)
         if value.get('production_day_limit'):

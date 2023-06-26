@@ -28,7 +28,7 @@ class LoginView(_LoginView):
         if self.request.user.is_staff:
             return reverse('workshop:workshop')
         else:
-            return '/shop/'
+            return '/shop/#backtag'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

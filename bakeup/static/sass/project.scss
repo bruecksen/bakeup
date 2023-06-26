@@ -18,7 +18,7 @@ body {
 }
 
 body {
-  // background-color: $light;
+  background-color: $light;
   @media (max-width: 991px) {
     margin-top: 46px;
   }
@@ -89,6 +89,28 @@ input.form-control.product-quantity {
   -moz-appearance: textfield;
 }
 
+.dummy-bread {
+  min-height: 450px;
+}
+
+.figure {
+  min-height: 50px;
+  .img-hover {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  &:hover {
+    .img-hover{
+      opacity: 1;
+    }
+  }
+}
 
 .text-shadow {
   text-shadow: 2px 4px 3px rgba(0,0,0,0.3);
@@ -113,6 +135,39 @@ input.form-control.product-quantity {
   border-radius: 0.2rem;
   font-size: .675rem;
   padding: 0.1rem 0.2rem;
+}
+.btn-white {
+  background-color: $white;
+  &:hover {
+    background-color: shade-color($white, $btn-hover-bg-shade-amount);
+    color: $black;
+  }
+}
+a.rounded-circle {
+  width: 40px;
+  height: 40px;
+  display: flex!important;
+  align-items: center;
+  justify-content: center;
+}
+.sticky {
+  z-index: 1020;
+}
+.sticky-offset {
+  top: 67px;
+}
+.top-67 {
+  top: 67px;
+}
+.sticky.sticked {
+  .production-day-description {
+    display: none;
+  }
+  // background-color: $light;
+  // width: 100vw;
+  // left: 0;
+  // border-bottom: 2px solid $dark;
+
 }
 .card {
   border: none;
@@ -179,6 +234,33 @@ input.form-control.product-quantity {
   text-align: right;
 }
 
+#basket {
+
+  @media (max-width: 991px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1010;
+    width: 100%;
+    text-align: center;
+    border-radius: 0;
+    margin-bottom: 0!important;
+    a.btn {
+      width: 80%;
+    }
+  }
+
+}
+.shopping-basket.mobile {
+  display: none;
+  @media (max-width: 991px) {
+    display: block;
+    position: fixed!important;
+    top: 0;
+    right: 0;
+  }
+}
+
 .border-top-2 {
   border-top-width: 3px!important;
 }
@@ -207,6 +289,7 @@ button[aria-expanded=false] .fa-chevron-down {
   }
 }
 header {
+  min-height: 68px;
   &.open {
     .navbar-toggler {
       .fa-times {
@@ -242,8 +325,9 @@ header {
         }
         .main-menu-sub {
           position: fixed;
-          top: 100%;
-          transform: translateY(-100%);
+          top: calc(100% - 1.5rem);
+          left: 50%;
+          transform: translateY(-100%) translateX(-50%);
           flex-direction: row;
           .nav-link {
             font-size: 1rem;
