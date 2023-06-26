@@ -79,6 +79,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
             <strong>Body: </strong>{{ message.body }}<br>
             <strong>Successfully send: </strong> {{ message.send_log|length }}<br> {{ message.send_log|join:', ' }} <br>
             <strong>Email error: </strong> {{ message.error_log|length }}
+
             {% if message.error_log %}
             <br>
             {% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}<br>

@@ -441,6 +441,7 @@ class ReminderMessage(CommonBaseClass):
     send_log = models.JSONField(default=dict)
     error_log = models.JSONField(default=dict)
     sent_date = models.DateTimeField(blank=True, null=True)
+    users = models.ManyToManyField('users.User', blank=True, null=True)
 
     class Meta:
         ordering = ['-sent_date']
@@ -468,7 +469,7 @@ class ReminderMessage(CommonBaseClass):
             return self.production_day.customer_orders.all()
 
     def send_messages(self):
-        emails_successfull = []
+        user_successfull = []
         emails_error = {}
         orders = self.get_orders()
         client = connection.get_tenant()
@@ -486,12 +487,13 @@ class ReminderMessage(CommonBaseClass):
                     [user_email],
                     fail_silently=False,
                 )
-                emails_successfull.append(user_email)
+                user_successfull.append(order.customer.user)
             except Exception as e:
                 emails_error[user_email] = str(e)
         
         self.state = ReminderMessage.State.SENT
-        self.send_log = emails_successfull
+        self.send_log = [user.email for user in user_successfull]
+        self.users.add(*user_successfull)
         self.error_log = emails_error
         self.sent_date = timezone.now()
         self.save(update_fields=['state', 'send_log', 'error_log', 'sent_date', 'send_log', 'error_log'])
