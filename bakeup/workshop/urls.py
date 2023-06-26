@@ -57,8 +57,8 @@ urlpatterns = [
     path("customers/abo/", view=BatchCustomerTemplateView.as_view(), name="customer-abo"),
     path("customers/<int:pk>/delete/", view=CustomerDeleteView.as_view(), name="customer-delete"),
     path("customers/<int:pk>/update/", view=CustomerUpdateView.as_view(), name="customer-update"),
-    path("points_of_sale/", view=PointOfSaleListView.as_view(), name="point-of-sale-list"),
-    path("points_of_sale/add/", view=PointOfSaleCreateView.as_view(), name="point-of-sale-add"),
-    path("points_of_sale/<int:pk>/update/", view=PointOfSaleUpdateView.as_view(), name="point-of-sale-update"),
-    path("points_of_sale/<int:pk>/delete/", view=PointOfSaleDeleteView.as_view(), name="point-of-sale-delete"),
+    path("points-of-sale/", view=PointOfSaleListView.as_view(), name="point-of-sale-list"),
+    path("points-of-sale/add/", view=PointOfSaleCreateView.as_view(), name="point-of-sale-add"),
+    path("points-of-sale/<int:pk>/update/", view=PointOfSaleUpdateView.as_view(), name="point-of-sale-update"),
+    path("points-of-sale/<int:pk>/delete/", view=PointOfSaleDeleteView.as_view(), name="point-of-sale-delete"),
 ]
