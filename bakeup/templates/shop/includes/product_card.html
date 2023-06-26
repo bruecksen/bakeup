@@ -33,9 +33,9 @@
                 <span class="small text-muted fw-normal">{{ production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.product.unit}}</span>
             </h2>
             <p>{{ production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
-            {% with ingredients=production_day_product.production_day_product.product.get_full_ingredient_list %}
+            {% with ingredients=production_day_product.product.get_full_ingredient_list %}
             {% if ingredients %}
-            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
+            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0.get_display_name }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
             {% endif %}
             {% endwith %}
         </div>
