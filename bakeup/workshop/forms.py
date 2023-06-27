@@ -19,8 +19,12 @@ class ProductForm(ModelForm):
 
     def clean_sku(self):
         sku = self.cleaned_data['sku']
-        if Product.objects.filter(sku=sku).exists():
-            raise ValidationError('A product with the SKU already exists')
+        if sku:
+            products = Product.objects.filter(sku=sku)
+            if self.instance:
+                products = products.exclude(pk=self.instance.pk)
+            if products.exists():
+                raise ValidationError('A product with the SKU already exists')
         return sku
 
 
