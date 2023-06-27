@@ -424,6 +424,46 @@ class CustomerOrderTemplate(CommonBaseClass):
     end_date = models.DateField(blank=True, null=True)
     orders = models.ManyToManyField('shop.CustomerOrder')
     is_locked = models.BooleanField(default=False)
+
+    def prepare_update(self):
+        if self.is_locked:
+            order_template = CustomerOrderTemplate.objects.create(
+                customer=self.customer,
+                start_date=datetime.now().date(),
+                is_locked=False
+            )
+            for position in self.positions.all():
+                CustomerOrderPosition.objects.create(
+                    order_template=order_template,
+                    product=position.product,
+                    quantity=position.quantity,
+                )
+            self.end_date = datetime.now().date()
+            parent = order_template
+            self.save()
+            return order_template
+        else:
+            return self
+
+
+    def create_customer_order_template(customer, products):
+        order_template, created = CustomerOrderTemplate.objects.get_or_create(
+            parent=None,
+            customer=customer,
+            defaults={
+                'start_date': datetime.now().date(),
+            }
+        )
+        if products:
+            order_template = order_template.prepare_update()
+        for product, quantity in products.items():
+            CustomerOrderTemplatePosition.objects.create(
+                order_template=order_template,
+                product=product,
+                quantity=quantity,
+            )
+
+        
     
 
 

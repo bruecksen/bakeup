@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from bakeup.core.admin import ExcludeAdminMixin
-from .models import Customer, CustomerOrder, CustomerOrderPosition, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
+from .models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderTemplatePosition, CustomerOrderPosition, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
 
 
 class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
@@ -52,3 +52,14 @@ class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.TabularInline):
 class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
     list_display = ('order_nr', 'production_day', 'customer', 'point_of_sale', 'address')
     inlines = (CustomerOrderPositionAdmin,)
+
+
+class CustomerOrderTemplatePositionAdmin(ExcludeAdminMixin, admin.TabularInline):
+    model = CustomerOrderTemplatePosition
+    extra = 0
+
+
+@admin.register(CustomerOrderTemplate)
+class CustomerOrderTemplateAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ('customer', 'start_date', 'end_date', 'is_locked')
+    inlines = (CustomerOrderTemplatePositionAdmin,)

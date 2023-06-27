@@ -21,7 +21,7 @@ from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
 
 
 from bakeup.workshop.models import Product
@@ -142,6 +142,11 @@ def customer_order_add_or_update(request, production_day):
             products,
             request.POST.get('point_of_sale', None)
         )
+        products_recurring = {Product.objects.get(pk=k.replace('productabo-', '')): int(request.POST.get('product-{}'.format(k.replace('productabo-', '')))) for k, v in request.POST.items() if k.startswith('productabo-')}
+        order_template = CustomerOrderTemplate.create_customer_order_template(
+            request.user.customer,
+            products_recurring,
+        )
         if order:
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
@@ -152,6 +157,19 @@ def customer_order_add_or_update(request, production_day):
 class CustomerOrderListView(CustomerRequiredMixin, ListView):
     model = CustomerOrder
     template_name = 'shop/customer_order_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['point_of_sales'] = PointOfSale.objects.all()
+        return context
+
+    def get_queryset(self):
+        return super().get_queryset().filter(customer=self.request.user.customer)
+
+
+class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
+    model = CustomerOrderTemplate
+    template_name = 'shop/customer_order_template_list.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

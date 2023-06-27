@@ -63,6 +63,8 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
+    is_recurring = models.BooleanField(default=False)
+    max_recurring_order_qty = models.PositiveSmallIntegerField(blank=True, null=True)
 
 
     tags = TaggableManager(blank=True, ordering=['name'])
