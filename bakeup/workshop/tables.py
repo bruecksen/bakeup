@@ -73,6 +73,7 @@ class CustomerOrderTable(tables.Table):
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
+    positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
     collected = tables.TemplateColumn('{% if record.is_picked_up %}x{% endif %}', verbose_name='Collected', orderable=False)
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='', exclude_from_export=True)
 
@@ -80,6 +81,9 @@ class CustomerOrderTable(tables.Table):
         model = CustomerOrder
         order_by = 'production_day'
         fields = ("order_nr", "production_day", "customer", "email", "point_of_sale")
+
+    def value_positions(self, value):
+        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in value.all()])
 
 
 
