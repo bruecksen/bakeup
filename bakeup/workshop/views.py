@@ -54,6 +54,7 @@ class WorkshopView(StaffPermissionsMixin, TemplateView):
         context['products_count'] = Product.objects.all().count()
         context['categories_count'] = Category.objects.all().count()
         context['productionplans_count'] = ProductionPlan.objects.all().count()
+        context['productiondays_count'] = ProductionDay.objects.all().count()
         return context
 
 

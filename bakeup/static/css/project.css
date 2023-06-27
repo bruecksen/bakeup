@@ -12591,7 +12591,7 @@ body {
   background-color: #F3ECD2;
 }
 @media (max-width: 991px) {
-  body {
+  body.shop {
     margin-top: 46px;
   }
 }

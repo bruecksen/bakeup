@@ -20,7 +20,9 @@ body {
 body {
   background-color: $light;
   @media (max-width: 991px) {
-    margin-top: 46px;
+    &.shop {
+      margin-top: 46px;
+    }
   }
   background-color: $light;
 }

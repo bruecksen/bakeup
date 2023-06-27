@@ -28,10 +28,19 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-12 col-sm-3 offset-sm-1">
+    <div class="col-12 col-sm-3  offset-sm-1">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Production Plans <small class="text-muted">{{ productionplans_count }}</small></h4>
+              <h4 class="card-title">Production days <small class="text-muted">{{ productiondays_count }}</small></h4>
+              <p class="card-text"></p>
+              <a href="{% url 'workshop:production-day-next' %}" class="btn btn-sm btn-outline-primary">Go to production days</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-3">
+        <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">Production plans <small class="text-muted">{{ productionplans_count }}</small></h4>
               <p class="card-text"></p>
               <a href="{% url 'workshop:production-plan-next' %}" class="btn btn-sm btn-outline-primary">Go to production plans</a>
             </div>
