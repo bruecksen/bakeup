@@ -1,18 +1,18 @@
 <script>
-    let formsetContainer = document.querySelector('.formset-container');
-    let formset = document.querySelectorAll(".formset");
-    let addButton = document.querySelector("#add-form");
-    let totalForms = document.querySelector("#id_form-TOTAL_FORMS");
-    let formsetBeforeElement = document.querySelector("#formset-before-element");
+    var formsetContainer = document.querySelector('.formset-container');
+    var formset = document.querySelectorAll(".formset");
+    var addButton = document.querySelector("#add-form");
+    var totalForms = document.querySelector("#id_form-TOTAL_FORMS");
+    var formsetBeforeElement = document.querySelector("#formset-before-element");
   
-    let formNum = formset.length-1;
+    var formNum = formset.length-1;
     addButton.addEventListener('click', addForm);
   
     function addForm(e){
         e.preventDefault();
   
-        let newForm = formset[0].cloneNode(true);
-        let formRegex = RegExp(`form-(\\d){1}-`,'g');
+        var newForm = formset[0].cloneNode(true);
+        var formRegex = RegExp(`form-(\\d){1}-`,'g');
   
         formNum++;
         newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`);

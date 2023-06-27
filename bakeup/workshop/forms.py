@@ -17,6 +17,14 @@ class ProductForm(ModelForm):
         fields = ['name', 'display_name', 'sku', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable']
 
 
+    def clean_sku(self):
+        sku = self.cleaned_data['sku']
+        if Product.objects.filter(sku=sku).exists():
+            raise ValidationError('A product with the SKU already exists')
+        return sku
+
+
+
 class AddProductForm(Form):
     weight = FloatField(required=False)
     product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
