@@ -280,18 +280,6 @@ class Customer(CommonBaseClass):
         if not self.street and not self.street_number:
             return ''
         return f"{self.street or ''} {self.street_number or ''}"
-    
-
-# Abo
-# TODO install django-recurrence
-class CustomerOrderTemplate(CommonBaseClass):
-    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
-    from_date = models.DateField(blank=True, null=True)
-    to_date = models.DateField(blank=True, null=True)
-    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK, blank=True, null=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_templates')
-    quantity = models.PositiveSmallIntegerField()
-    recurrences = RecurrenceField(blank=True, null=True)
 
 
 class CustomerOrder(CommonBaseClass):
@@ -403,13 +391,18 @@ class CustomerOrderPositionQuerySet(models.QuerySet):
         return self.filter(production_plan__state=ProductionPlan.State.PRODUCED)
 
 
-
-class CustomerOrderPosition(CommonBaseClass):
-    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
-    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+class BasePositionClass(CommonBaseClass):
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions')
     quantity = models.PositiveSmallIntegerField()
     comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class CustomerOrderPosition(BasePositionClass):
+    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     is_paid = models.BooleanField(default=False)
     is_picked_up = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
@@ -419,8 +412,18 @@ class CustomerOrderPosition(CommonBaseClass):
     class Meta:
         ordering = ['product']
 
-    
 
+class CustomerOrderTemplatePosition(BasePositionClass):
+    order_template = models.ForeignKey('shop.CustomerOrderTemplate', on_delete=models.CASCADE, related_name='positions')
+
+    
+class CustomerOrderTemplate(CommonBaseClass):
+    parent = models.OneToOneField('self', blank=True, null=True, related_name='child', on_delete=models.SET_NULL)
+    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
+    orders = models.ManyToManyField('shop.CustomerOrder')
+    is_locked = models.BooleanField(default=False)
     
 
 
