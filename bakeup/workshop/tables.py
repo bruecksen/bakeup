@@ -68,7 +68,8 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 
 class CustomerOrderTable(tables.Table):
-    order_nr = tables.Column(verbose_name='#', order_by='pk')
+    order_nr = tables.LinkColumn('workshop:order-update', args=[A('pk')], verbose_name='#', order_by='pk')
+    # order_nr = tables.LinkColumn(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
@@ -141,6 +142,7 @@ class ProductionPlanFilter(django_filters.FilterSet):
 
 
 class PointOfSaleTable(tables.Table):
+    name = tables.LinkColumn('workshop:point-of-sale-update', args=[A('pk')])
     customers = tables.TemplateColumn('{{ record.get_customer_count }}', verbose_name='Customers')
     actions = tables.TemplateColumn(template_name='tables/point_of_sale_actions_column.html', verbose_name='', exclude_from_export=True)
 
