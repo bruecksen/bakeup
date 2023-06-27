@@ -153,7 +153,8 @@ function setTotalBasketQuantity(modal, basket) {
         basket.find('.current-order').hide();
     }
     if (totalBasketQuantity == 0) {
-        $('header .shopping-basket').hide();
+        // $('header .shopping-basket').hide();
+        $('header .shopping-basket .order-quantity').show().html(totalBasketQuantity);
         basket.find('.summary').hide();
         basket.find('.empty').show();
         basket.find('.current-order').show();
