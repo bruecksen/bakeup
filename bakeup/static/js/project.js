@@ -125,7 +125,7 @@ if (expandAll) {
 }
 
 $('header .shopping-basket a').click(function(e) {
-    var modalEl = document.getElementById('checkout');
+    var modalEl = document.querySelector('.modal-checkout');
     var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 })
