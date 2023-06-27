@@ -289,7 +289,9 @@ button[aria-expanded=false] .fa-chevron-down {
   }
 }
 header {
-  min-height: 68px;
+  .navbar {
+    min-height: 65px;
+  }
   &.open {
     .navbar-toggler {
       .fa-times {
