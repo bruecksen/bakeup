@@ -23,6 +23,7 @@ class ContentPage(Page):
     content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
 
     parent_page_types = ['pages.ShopPage']
+    preview_modes = []
     show_in_menus_default = True
     content_panels = Page.content_panels + [
         FieldPanel("content"),
@@ -45,6 +46,7 @@ class ShopPage(Page):
     content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
 
     parent_page_types = ['wagtailcore.Page']
+    preview_modes = []
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel('banner_image'),
