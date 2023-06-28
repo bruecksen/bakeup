@@ -1,5 +1,6 @@
 import collections
 
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from datetime import datetime
 from django.db import models
@@ -128,6 +129,12 @@ class ProductionDay(CommonBaseClass):
             # production_day_product.product = product
             production_day_product.save()
 
+    def create_template_orders(self):
+        with transaction.atomic():
+            for product in self.production_day_products.published():
+                if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
+                    for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
+                        order_template_position.create_order(self)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -413,8 +420,36 @@ class CustomerOrderPosition(BasePositionClass):
         ordering = ['product']
 
 
+class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
+    def active(self):
+        today = datetime.now().date()
+        qs = self.filter(
+            order_template__parent__isnull=True, 
+            order_template__start_date__lte=today)
+        qs = qs.filter(Q(order_template__end_date__gte=today) | Q(order_template__end_date__isnull=True))
+        return qs
+
+
 class CustomerOrderTemplatePosition(BasePositionClass):
     order_template = models.ForeignKey('shop.CustomerOrderTemplate', on_delete=models.CASCADE, related_name='positions')
+
+    objects = CustomerOrderTemplatePositionQuerySet.as_manager()
+
+    def create_order(self, production_day):
+        customer_order, created = CustomerOrder.objects.update_or_create(
+            production_day=production_day,
+            customer=self.order_template.customer,
+            defaults={
+                'point_of_sale': self.order_template.customer.point_of_sale
+            }
+        )
+        CustomerOrderPosition.objects.create(
+            order=customer_order,
+            product=self.product,
+            quantity=self.quantity,
+        )
+        self.order_template.orders.add(customer_order)
+        self.order_template.set_locked()
 
     
 class CustomerOrderTemplate(CommonBaseClass):
@@ -424,6 +459,11 @@ class CustomerOrderTemplate(CommonBaseClass):
     end_date = models.DateField(blank=True, null=True)
     orders = models.ManyToManyField('shop.CustomerOrder')
     is_locked = models.BooleanField(default=False)
+
+    def set_locked(self):
+        if not self.is_locked:
+            self.is_locked = True
+            self.save(update_fields=['is_locked', 'updated'])
 
     def prepare_update(self):
         if self.is_locked:

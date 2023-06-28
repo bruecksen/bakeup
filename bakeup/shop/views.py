@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Exists
 
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Cast
@@ -21,7 +21,7 @@ from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderPosition, CustomerOrderTemplatePosition, ProductionDay, ProductionDayProduct, PointOfSale
 
 
 from bakeup.workshop.models import Product
@@ -213,6 +213,20 @@ class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
     #     return HttpResponseRedirect(self.get_success_url())
 
 
+class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Call the delete() method on the fetched object and then redirect to the
+        success URL.
+        """
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        return HttpResponseRedirect(success_url)
+
+
+
 
 class ShopView(TemplateView):
     template_name = 'shop/shop.html'
@@ -249,6 +263,8 @@ class ShopView(TemplateView):
             production_day_products = self.production_day.production_day_products.published()
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+            ).annotate(
+               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
             context['production_day_products'] = production_day_products
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
