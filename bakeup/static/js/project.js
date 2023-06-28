@@ -307,14 +307,14 @@ $(function(){
 
         if (form.dirty('isClean')) {
             console.log('unchanged');
-            form.find('.form-check').removeClass('d-none').hide();
+            form.find('.form-check.terms-conditions').removeClass('d-none').hide();
             form.find('button[type="submit"]').removeClass('d-none').hide();
             form.find('input[type="reset"]').removeClass('d-none').hide();
             form.find('button[data-bs-dismiss="modal"]').show();
             $(this).parents('.modal-checkout').find('.modal-title span').removeClass('d-none').hide();
         } else {
             console.log('changed');
-            form.find('.form-check').removeClass('d-none').show();
+            form.find('.form-check.terms-conditions').removeClass('d-none').show();
             form.find('input[type="reset"]').removeClass('d-none').show();
             form.find('button[type="submit"]').removeClass('d-none').show();
             form.find('button[data-bs-dismiss="modal"]').hide();
