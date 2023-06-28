@@ -10,8 +10,8 @@
   <div class="col-12 col-lg-10">
     {% for order in object_list %}
     <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
-        <h2>Abo</h2>
-        <p>Die folgenden Produkte sind abonniert:</p>
+        <h2>Abo <span class="badge rounded-pill text-bg-secondary fs-6">{{ order.get_state }}</span></h2>
+        <p>Das Abo umfasst die folgenden Produkte:</p>
         <div class="row">
             <div class="col-12 col-lg-8">
                 <table class="table table-light">
@@ -27,7 +27,7 @@
                             <tr>
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
-                            <td><a href="" class="btn btn-primary btn-sm">Abo beenden</a></td>
+                            <td>{% if position.order_template.is_running %}<a href="{% url 'shop:customer-order-template-delete' pk=position.pk %}" class="btn btn-primary btn-sm">Abo beenden</a>{% endif %}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

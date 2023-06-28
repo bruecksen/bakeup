@@ -1,8 +1,9 @@
 import collections
 
+from django.utils.translation import gettext as _
 from django.db import IntegrityError, transaction
 from django.urls import reverse
-from datetime import datetime
+from django.utils import timezone
 from django.db import models
 from django.db.models import Sum
 from django.db.models import Q, F
@@ -38,7 +39,7 @@ class ProductionDayQuerySet(models.QuerySet):
         return self.filter(production_day_products__is_published=True).distinct()
 
     def upcoming(self):
-        today = datetime.now().date()
+        today = timezone.now().date()
         return self.filter(day_of_sale__gte=today).order_by('day_of_sale')
 
 
@@ -167,7 +168,7 @@ class ProductionDayProductQuerySet(models.QuerySet):
         return self.filter(is_published=True)
     
     def upcoming(self):
-        today = datetime.now().date()
+        today = timezone.now().date()
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
     
     def with_pictures(self):
@@ -422,11 +423,11 @@ class CustomerOrderPosition(BasePositionClass):
 
 class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
     def active(self):
-        today = datetime.now().date()
+        now = timezone.now()
         qs = self.filter(
             order_template__parent__isnull=True, 
-            order_template__start_date__lte=today)
-        qs = qs.filter(Q(order_template__end_date__gte=today) | Q(order_template__end_date__isnull=True))
+            order_template__start_date__lte=now)
+        qs = qs.filter(Q(order_template__end_date__gte=now) | Q(order_template__end_date__isnull=True))
         return qs
 
 
@@ -451,35 +452,60 @@ class CustomerOrderTemplatePosition(BasePositionClass):
         self.order_template.orders.add(customer_order)
         self.order_template.set_locked()
 
+    def cancel(self):
+        with transaction.atomic():
+            template_order = self.order_template.prepare_update()
+            template_order.positions.filter(product=self.product).delete()
+            if not template_order.positions.exists():
+                template_order.cancel()
+            return template_order
+    
     
 class CustomerOrderTemplate(CommonBaseClass):
     parent = models.OneToOneField('self', blank=True, null=True, related_name='child', on_delete=models.SET_NULL)
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
     orders = models.ManyToManyField('shop.CustomerOrder')
     is_locked = models.BooleanField(default=False)
+
+    @property
+    def is_running(self):
+        if self.start_date <= timezone.now():
+            if not self.end_date or self.end_date >= timezone.now():
+                return True
+        return False
+
+
+    def get_state(self):
+        if self.is_running:
+            return _('running')
+        return _('finished')
 
     def set_locked(self):
         if not self.is_locked:
             self.is_locked = True
             self.save(update_fields=['is_locked', 'updated'])
 
+    def cancel(self):
+        self.end_date = timezone.now()
+        self.save(update_fields=['end_date', 'updated'])
+
     def prepare_update(self):
-        if self.is_locked:
+        if self.is_locked or not self.is_running:
+            self.end_date = timezone.now()
             order_template = CustomerOrderTemplate.objects.create(
                 customer=self.customer,
-                start_date=datetime.now().date(),
+                start_date=timezone.now(),
                 is_locked=False
             )
             for position in self.positions.all():
-                CustomerOrderPosition.objects.create(
+                CustomerOrderTemplatePosition.objects.create(
                     order_template=order_template,
                     product=position.product,
                     quantity=position.quantity,
                 )
-            self.end_date = datetime.now().date()
-            parent = order_template
+            self.parent = order_template
             self.save()
             return order_template
         else:
@@ -491,7 +517,7 @@ class CustomerOrderTemplate(CommonBaseClass):
             parent=None,
             customer=customer,
             defaults={
-                'start_date': datetime.now().date(),
+                'start_date': timezone.now(),
             }
         )
         if products:

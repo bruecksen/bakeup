@@ -1,4 +1,3 @@
-from datetime import datetime
 from itertools import product
 from typing import Any, Dict, List
 from django.db.models.query import QuerySet
@@ -9,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.db.models import OuterRef, Subquery, Exists
+from django.utils import timezone
 
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Cast
@@ -35,7 +35,7 @@ class ProductListView(ListView):
     template_name = 'shop/product_list.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-        today = datetime.now().date()
+        today = timezone.now().date()
         return Product.objects.filter(is_sellable=True, production_days__is_published=True, production_days__production_day__day_of_sale__gte=today).distinct().order_by('category')
 
 
@@ -63,7 +63,7 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
         if "calendar_week" in self.kwargs and "year" in self.kwargs:
             input_week = self.kwargs.get('calendar_week')
             input_year = self.kwargs.get('year')
-            if 0 < input_week <= 53 and 2000 < input_year <= datetime.now().date().year + MAX_FUTURE_ORDER_YEARS:
+            if 0 < input_week <= 53 and 2000 < input_year <= timezone.now().date().year + MAX_FUTURE_ORDER_YEARS:
                 return CalendarWeek(input_week, input_year)
 
 
@@ -177,7 +177,7 @@ class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
         return context
 
     def get_queryset(self):
-        return super().get_queryset().filter(customer=self.request.user.customer)
+        return super().get_queryset().filter(customer=self.request.user.customer, parent__isnull=True)
 
 
 class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
@@ -214,6 +214,8 @@ class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
 
 
 class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
+    model = CustomerOrderTemplatePosition
+    template_name = 'shop/customer_order_template_position_delete.html'
 
     def delete(self, request, *args, **kwargs):
         """
@@ -222,8 +224,12 @@ class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
         """
         self.object = self.get_object()
         success_url = self.get_success_url()
-        self.object.delete()
+        self.object.cancel()
         return HttpResponseRedirect(success_url)
+    
+
+    def get_success_url(self):
+        return reverse_lazy('shop:order-template-list')
 
 
 
@@ -246,7 +252,7 @@ class ShopView(TemplateView):
         if kwargs.get('production_day', None):
             return ProductionDay.objects.get(pk=kwargs.get('production_day'))
         else:
-            today = datetime.now().date()
+            today = timezone.now().date()
             production_day_next = ProductionDayProduct.objects.filter(
                 is_published=True, 
                 production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale').first()
@@ -287,6 +293,6 @@ class ShopView(TemplateView):
 #     table_class = CustomerOrderTable
 
 def redirect_to_production_day_view(request):
-    production_day_date = datetime.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y").date()
+    production_day_date = timezone.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y").date()
     production_day = ProductionDay.objects.get(day_of_sale=production_day_date)
     return HttpResponseRedirect(reverse('shop:shop-production-day', kwargs={'production_day': production_day.pk}))
