@@ -68,7 +68,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 SHARED_APPS = [
     'django_tenants',
     "bakeup.core",
-    "django.contrib.contenttypes",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize", # Handy template tags
@@ -77,9 +76,7 @@ SHARED_APPS = [
     "crispy_bootstrap5",
     "django_tables2",
     "treebeard",
-    "sorl.thumbnail",
     "django_bootstrap5",
-    'taggit',
     'modelcluster',
     "django_htmx",
     "django.contrib.sites",
@@ -87,6 +84,9 @@ SHARED_APPS = [
 ]
 
 TENANT_APPS = [
+    "django.contrib.contenttypes",
+    'taggit',
+    "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.sites",
