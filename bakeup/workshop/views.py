@@ -32,6 +32,7 @@ from django_filters.views import FilterView
 from django_tables2 import SingleTableMixin, SingleTableView
 from django_tables2.export import ExportMixin as TableExportMixin
 import django_tables2 as tables
+from treebeard.forms import movenodeform_factory
 
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding 
 from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
@@ -472,6 +473,23 @@ class CategoryListView(StaffPermissionsMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.get_root_nodes()
         return context
+    
+
+class CategoryAddView(StaffPermissionsMixin, CreateView):
+    model = Category
+    form_class = movenodeform_factory(model, exclude=['slug', 'image', 'description', 'is_archived'])
+    success_url = reverse_lazy('workshop:category-list')
+
+
+class CategoryUpdateView(StaffPermissionsMixin, UpdateView):
+    model = Category
+    form_class = movenodeform_factory(model, exclude=['slug', 'image', 'description', 'is_archived'])
+    success_url = reverse_lazy('workshop:category-list')
+
+
+class CategoryDeleteView(StaffPermissionsMixin, DeleteView):
+    model = Category
+    success_url = reverse_lazy('workshop:category-list')
 
 
 class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):

@@ -1,0 +1,21 @@
+{% extends "workshop/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block page_heading %}Delete category:  {{ object }}{% endblock page_heading %}
+
+{% block page_content %}
+<div id="content-container" class="container p-none">
+    <div class="side-p">
+        <h3>Are you sure?</h3>
+        <p>You're about to delete the following category: {{ object }}. Please confirm.</p>
+        <form action="" method="post">
+            {% csrf_token %}
+            <input class="btn btn-link" 
+                   type="button" value="Cancel" 
+                   onclick="window.history.go(-1);"/>
+            <input class="btn btn-primary" type="submit" value="Confirm"/>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

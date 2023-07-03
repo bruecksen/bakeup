@@ -5,6 +5,10 @@
 {% block title %}Categories{% endblock %}
 {% block page_heading %}Categories{% endblock %}
 
+{% block page_heading_action %}
+<a href="{% url 'workshop:category-add' %}" class="btn btn-primary btn-sm float-end">Add new category</a>
+{% endblock page_heading_action %}
+
 {% block page_content %}
   <div class="row">
     <div class="col">
