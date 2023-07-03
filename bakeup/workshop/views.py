@@ -491,6 +491,14 @@ class CategoryDeleteView(StaffPermissionsMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('workshop:category-list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['protected'] = protected
+        return context
+
 
 class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
     model = CustomerOrder
