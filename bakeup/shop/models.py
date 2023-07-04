@@ -425,7 +425,7 @@ class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
     def active(self):
         now = timezone.now()
         qs = self.filter(
-            order_template__parent__isnull=True, 
+            order_template__parent__isnull=True,
             order_template__start_date__lte=now)
         qs = qs.filter(Q(order_template__end_date__gte=now) | Q(order_template__end_date__isnull=True))
         return qs

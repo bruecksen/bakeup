@@ -270,7 +270,7 @@ class ShopView(TemplateView):
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
             ).annotate(
-               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.filter(order_template__customer=customer, product=OuterRef('product__pk'))))
+               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
             context['production_day_products'] = production_day_products
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
