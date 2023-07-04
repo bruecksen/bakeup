@@ -21,6 +21,9 @@
                         <th scope="col">Menge</th>
                         <th scope="col">Gebäck</th>
                         <th scope="col">Status</th>
+                        {% if product_abos %}
+                        <th scope="col">Abo</th>
+                        {% endif %}
                       </tr>
                     </thead>
                     <tbody>
@@ -29,6 +32,11 @@
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
                             <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
+                            <td>
+                            {% if position.product.pk in product_abos %}
+                              <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt abonniert."><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                            {% endif %}
+                            </td>
                             </tr>
                         {% endfor %}
                     </tbody>
