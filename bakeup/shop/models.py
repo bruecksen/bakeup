@@ -1,5 +1,6 @@
 import collections
 
+from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.db import IntegrityError, transaction
 from django.urls import reverse
@@ -512,7 +513,7 @@ class CustomerOrderTemplate(CommonBaseClass):
             return self
 
 
-    def create_customer_order_template(customer, products):
+    def create_customer_order_template(request, customer, products):
         order_template, created = CustomerOrderTemplate.objects.get_or_create(
             parent=None,
             customer=customer,
@@ -523,11 +524,15 @@ class CustomerOrderTemplate(CommonBaseClass):
         if products:
             order_template = order_template.prepare_update()
         for product, quantity in products.items():
-            CustomerOrderTemplatePosition.objects.create(
-                order_template=order_template,
-                product=product,
-                quantity=quantity,
-            )
+            if product.is_open_for_abo:
+                if quantity > product.available_abo_quantity:
+                    quantity = product.available_abo_quantity
+                    messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
+                CustomerOrderTemplatePosition.objects.create(
+                    order_template=order_template,
+                    product=product,
+                    quantity=quantity,
+                )
 
         
     

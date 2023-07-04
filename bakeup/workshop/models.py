@@ -7,7 +7,7 @@ from django.db import connection
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, F, Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -107,6 +107,23 @@ class Product(CommonBaseClass):
     @property
     def unit(self):
         return "g"
+    
+    @property
+    def is_open_for_abo(self):
+        if self.is_recurring:
+            if self.max_recurring_order_qty:
+                if self.available_abo_quantity <= 0:
+                    return False
+            return True
+        return False
+    
+    @property
+    def abo_sum(self):
+        return self.customerordertemplateposition_positions.active().aggregate(Sum('quantity'))['quantity__sum']
+    
+    @property
+    def available_abo_quantity(self):
+        return self.max_recurring_order_qty - self.abo_sum
     
     def get_short_name(self):
         return self.sku or self.name

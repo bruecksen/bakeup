@@ -143,10 +143,12 @@ def customer_order_add_or_update(request, production_day):
             request.POST.get('point_of_sale', None)
         )
         products_recurring = {Product.objects.get(pk=k.replace('productabo-', '')): int(request.POST.get('product-{}'.format(k.replace('productabo-', '')))) for k, v in request.POST.items() if k.startswith('productabo-')}
-        order_template = CustomerOrderTemplate.create_customer_order_template(
-            request.user.customer,
-            products_recurring,
-        )
+        if products_recurring:
+            order_template = CustomerOrderTemplate.create_customer_order_template(
+                request,
+                request.user.customer,
+                products_recurring,
+            )
         if order:
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
