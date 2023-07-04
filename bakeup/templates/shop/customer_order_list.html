@@ -1,4 +1,5 @@
 {% extends "shop/base_page.html" %}
+{% load utils %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
@@ -35,7 +36,7 @@
                             {% if product_abos %}
                             <td>
                             {% if position.product.pk in product_abos %}
-                              <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt abonniert."><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                              <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ product_abos|get_item:position.product.pk }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product_abos|get_item:position.product.pk }}x abonniert</span></a>
                             {% endif %}
                             </td>
                             {% endif %}
