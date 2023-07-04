@@ -140,13 +140,13 @@ function setTotalBasketQuantity(modal, basket) {
     console.log('ttbasket:', totalBasketQuantity);
 
     if (totalBasketQuantity == 1) {
-        basket.find('.single').show();
+        basket.find('.single').removeClass('d-none').show();
         basket.find('.plural').hide();
         basket.find('.empty').hide();
         basket.find('.current-order').hide();
         
     } else if (totalBasketQuantity > 1) {
-        basket.find('.plural').show();
+        basket.find('.plural').removeClass('d-none').show();
         basket.find('.single').hide();
         basket.find('.empty').hide();
         basket.find('.plural .qty').html(totalBasketQuantity);
@@ -156,7 +156,7 @@ function setTotalBasketQuantity(modal, basket) {
         // $('header .shopping-basket').hide();
         $('header .shopping-basket .order-quantity').show().html(totalBasketQuantity);
         basket.find('.summary').hide();
-        basket.find('.empty').show();
+        basket.find('.empty').removeClass('d-none').show();
         basket.find('.current-order').show();
         // modal.find("form").dirty("setAsClean");
         modal.find('form .form-check').removeClass('d-none').hide();

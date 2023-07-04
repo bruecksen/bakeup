@@ -461,7 +461,17 @@ class CustomerOrderTemplatePosition(BasePositionClass):
                 template_order.cancel()
             return template_order
     
-    
+
+class CustomerOrderTemplateQuerySet(models.QuerySet):
+    def active(self):
+        now = timezone.now()
+        qs = self.filter(
+            parent__isnull=True,
+            start_date__lte=now)
+        qs = qs.filter(Q(end_date__gte=now) | Q(end_date__isnull=True))
+        return qs    
+
+
 class CustomerOrderTemplate(CommonBaseClass):
     parent = models.OneToOneField('self', blank=True, null=True, related_name='child', on_delete=models.SET_NULL)
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
@@ -469,6 +479,8 @@ class CustomerOrderTemplate(CommonBaseClass):
     end_date = models.DateTimeField(blank=True, null=True)
     orders = models.ManyToManyField('shop.CustomerOrder')
     is_locked = models.BooleanField(default=False)
+
+    objects = CustomerOrderTemplateQuerySet.as_manager()
 
     @property
     def is_running(self):

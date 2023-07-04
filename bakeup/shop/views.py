@@ -180,7 +180,7 @@ class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
         return context
 
     def get_queryset(self):
-        return super().get_queryset().filter(customer=self.request.user.customer, parent__isnull=True)
+        return super().get_queryset().active().filter(customer=self.request.user.customer)
 
 
 class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):

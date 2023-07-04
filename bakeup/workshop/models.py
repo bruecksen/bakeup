@@ -119,7 +119,7 @@ class Product(CommonBaseClass):
     
     @property
     def abo_sum(self):
-        return self.customerordertemplateposition_positions.active().aggregate(Sum('quantity'))['quantity__sum']
+        return self.customerordertemplateposition_positions.active().aggregate(Sum('quantity'))['quantity__sum'] or 0
     
     @property
     def available_abo_quantity(self):

@@ -20,7 +20,7 @@ def hide_snippets_menu_item(request, menu_items):
 
 @hooks.register('menus_modify_primed_menu_items')
 def add_abo_menu_item(menu_items, request, menu_instance, **kwargs):
-    if request.user.is_authenticated and isinstance(menu_instance, MainMenu) and request.user.customer.order_templates.exists():
+    if request.user.is_authenticated and isinstance(menu_instance, MainMenu) and request.user.customer.order_templates.active().exists():
         menu_items.extend([
             {"text": _("Abo"),  "href": reverse("shop:order-template-list")},
         ])
