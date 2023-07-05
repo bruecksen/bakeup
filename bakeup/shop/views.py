@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from itertools import product
 from typing import Any, Dict, List
 from django.db.models.query import QuerySet
@@ -9,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.db.models import OuterRef, Subquery, Exists
 from django.utils import timezone
+from django.utils.timezone import make_aware
 
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Cast
@@ -296,6 +299,6 @@ class ShopView(TemplateView):
 #     table_class = CustomerOrderTable
 
 def redirect_to_production_day_view(request):
-    production_day_date = timezone.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y").date()
+    production_day_date = make_aware(datetime.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y")).date()
     production_day = ProductionDay.objects.get(day_of_sale=production_day_date)
     return HttpResponseRedirect(reverse('shop:shop-production-day', kwargs={'production_day': production_day.pk}))
