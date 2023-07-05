@@ -266,12 +266,14 @@ $('.modal-checkout .btn-delete').click(function(){
 
 })
 $('.modal-checkout form input[type="reset"]').click(function(){
+    console.log('reset');
     var form = $(this).parents('form');
     form.find('tbody tr').show();
     form.find('.form-check').removeClass('d-none').hide();
     form.find('button[type="submit"]').removeClass('d-none').hide();
     form.find('input[type="reset"]').removeClass('d-none').hide();
     form.find('button[data-bs-dismiss="modal"]').show();
+    form.dirty("setAsClean");
 
     var basket = $('#basket');
     $('header .shopping-basket .order-quantity').hide();
@@ -285,6 +287,7 @@ $(function(){
     $('.link-new-tab a').attr('rel', 'nofollow noopener');
     if ($('.modal-checkout').length == 1) {
         $('.modal-checkout').on('hide.bs.modal', event => {
+            console.log('hide', $('.modal-checkout form input[type="reset"]'));
             $('.modal-checkout form input[type="reset"]').click();
           })
         console.log('checkout exists');
