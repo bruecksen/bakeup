@@ -536,14 +536,29 @@ class CustomerOrderTemplate(CommonBaseClass):
         if products:
             order_template = order_template.prepare_update()
         for product, quantity in products.items():
-            if product.is_open_for_abo:
-                if quantity > product.available_abo_quantity:
-                    quantity = product.available_abo_quantity
-                    messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
-                CustomerOrderTemplatePosition.objects.create(
+            exisitng_position = CustomerOrderTemplatePosition.objects.filter(
+                order_template=order_template,
+                product=product,
+            )
+            if quantity == 0 and exisitng_position.exists():
+                CustomerOrderTemplatePosition.objects.filter(
                     order_template=order_template,
                     product=product,
-                    quantity=quantity,
+                ).first().cancel()
+                continue
+            if product.is_open_for_abo:
+                existing_abo_qty = 0
+                if exisitng_position.exists():
+                    existing_abo_qty = exisitng_position.first().quantity
+                if quantity > (product.available_abo_quantity + existing_abo_qty):
+                    quantity = product.available_abo_quantity
+                    messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
+                CustomerOrderTemplatePosition.objects.update_or_create(
+                    order_template=order_template,
+                    product=product,
+                    defaults={
+                        'quantity': quantity,
+                    }
                 )
 
         

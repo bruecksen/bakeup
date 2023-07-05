@@ -236,6 +236,21 @@ class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('shop:order-template-list')
+    
+
+
+@login_required
+def customer_order_template_update(request, pk):
+    if request.method == 'POST':
+        customer_order_template = get_object_or_404(CustomerOrderTemplate, pk=pk)
+        products_recurring = {Product.objects.get(pk=k.replace('productabo-', '')): int(request.POST.get('productabo-{}'.format(k.replace('productabo-', '')))) for k, v in request.POST.items() if k.startswith('productabo-')}
+        if products_recurring:
+            order_template = CustomerOrderTemplate.create_customer_order_template(
+                request,
+                request.user.customer,
+                products_recurring,
+            )
+        return HttpResponseRedirect(reverse_lazy('shop:order-template-list'))
 
 
 
