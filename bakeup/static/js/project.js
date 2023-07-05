@@ -156,9 +156,11 @@ function setTotalBasketQuantity(modal, basket) {
         // $('header .shopping-basket').hide();
         $('header .shopping-basket .order-quantity').show().html(totalBasketQuantity);
         basket.find('.summary').hide();
-        basket.find('.empty').removeClass('d-none').show();
-        basket.find('.current-order').show();
-        // modal.find("form").dirty("setAsClean");
+        if (basket.hasClass('has-order')) {
+            basket.find('.current-order').show();
+        } else {
+            basket.find('.empty').removeClass('d-none').show();
+        }
         modal.find('form .form-check').removeClass('d-none').hide();
         modal.find('form button[type="submit"]').removeClass('d-none').hide();
         modal.find('form button[data-bs-dismiss="modal"]').show();
@@ -273,15 +275,18 @@ $('.modal-checkout form input[type="reset"]').click(function(){
 
     var basket = $('#basket');
     $('header .shopping-basket .order-quantity').hide();
-    basket.find('.summary').hide();
-    basket.find('.empty').show();
-    basket.find('.current-order').show();
+    // basket.find('.summary').hide();
+    // basket.find('.empty').show();
+    // basket.find('.current-order').show();
 })
 
 $(function(){
     $('.link-new-tab a').attr('target', '_blank');
     $('.link-new-tab a').attr('rel', 'nofollow noopener');
     if ($('.modal-checkout').length == 1) {
+        $('.modal-checkout').on('hide.bs.modal', event => {
+            $('.modal-checkout form input[type="reset"]').click();
+          })
         console.log('checkout exists');
         $('header .shopping-basket').addClass('d-lg-block');
     } else {

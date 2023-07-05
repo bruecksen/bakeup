@@ -1,5 +1,5 @@
 {% load shop_tags %}
-<div id="basket" class="card bg-primary text-white mb-4">
+<div id="basket" class="card bg-primary text-white mb-4{% if current_customer_order %} has-order{% endif %}">
     <div class="card-body">
         <div class="empty{% if current_customer_order %} d-none{% endif %}">
             <h4 class="card-title hyphens-auto mb-0">Dein Brotkorb ist leer.</h4>
