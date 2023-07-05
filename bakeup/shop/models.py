@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db import models
 from django.db.models import Sum
-from django.db.models import Q, F
+from django.db.models import Q, F, Exists
 from django.db.models import OuterRef, Subquery
 from django.utils import formats
 from django import forms
@@ -391,6 +391,8 @@ class CustomerOrder(CommonBaseClass):
         production_day_products = self.production_day.production_day_products.published()
         production_day_products = production_day_products.annotate(
             ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+        ).annotate(
+            has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
         )
         return production_day_products
 

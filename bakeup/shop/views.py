@@ -219,9 +219,28 @@ class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
     #     return HttpResponseRedirect(self.get_success_url())
 
 
-class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
+class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView):
     model = CustomerOrderTemplatePosition
     template_name = 'shop/customer_order_template_position_delete.html'
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Call the delete() method on the fetched object and then redirect to the
+        success URL.
+        """
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.cancel()
+        return HttpResponseRedirect(success_url)
+    
+
+    def get_success_url(self):
+        return reverse_lazy('shop:order-template-list')
+
+
+class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
+    model = CustomerOrderTemplate
+    template_name = 'shop/customer_order_template_delete.html'
 
     def delete(self, request, *args, **kwargs):
         """
