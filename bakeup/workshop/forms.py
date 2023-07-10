@@ -41,7 +41,7 @@ class AddProductForm(Form):
     def __init__(self, product=None, parent_products=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         products = Product.objects.filter(
-            Q(category__path__startswith=Category.objects.get(slug='dough').path) | 
+            Q(category__path__startswith=Category.objects.get(slug='dough').path) |
             Q(category__path__startswith=Category.objects.get(slug='preparations').path) |
             Q(category__path__startswith=Category.objects.get(slug='ingredients').path)
         )

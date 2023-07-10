@@ -211,6 +211,20 @@ function updateProduct(product, qty) {
     
 }
 
+$(document).on('keyup', 'input.product-quantity', function() {
+    var _this = $(this);
+    var min = parseInt(_this.attr('min')) || 1; // if min attribute is not defined, 1 is default
+    var max = parseInt(_this.attr('max')) || 100; // if max attribute is not defined, 100 is default
+    var val = parseInt(_this.val()) || (min - 1); // if input char is not a number the value will be (min - 1) so first condition will be true
+    if (val < min)
+        val = min
+    if (val > max)
+        val = max
+    _this.val(val);
+    var product = _this.data('product');
+    updateProduct(product, val);
+});
+
 let plus_btns = document.querySelectorAll('.input-group .btn-plus');
 let minus_btns = document.querySelectorAll('.input-group .btn-minus');
 let qty_inputs = document.querySelectorAll('.input-group input[type=number]');
@@ -257,6 +271,8 @@ $('.modal-checkout form input[type="reset"]').click(function(){
 })
 
 $(function(){
+    $('.link-new-tab a').attr('target', '_blank');
+    $('.link-new-tab a').attr('rel', 'nofollow noopener');
     if ($('.modal-checkout').length == 1) {
         console.log('checkout exists');
         $('header .shopping-basket').addClass('d-lg-block');

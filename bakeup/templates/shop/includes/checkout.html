@@ -67,7 +67,7 @@
                     </tbody>
                 </table>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
-                <div class="form-check{% if  customer_order %} d-none{% endif %}">
+                <div class="form-check{% if  customer_order %} d-none{% endif %} link-new-tab">
                     <label class="form-check-label">
                     <input class="form-check-input" type="checkbox" value="" required>
                     {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}
