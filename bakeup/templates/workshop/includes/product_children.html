@@ -64,7 +64,9 @@
       <div class="add-product-form">
         <div class="row gx-1 gx-sm-4">
           <div class="col-12 col-sm-2">
+            {% if formset.empty_form.weight %}
             {% bootstrap_field formset.empty_form.weight show_label=False size="sm" addon_after='g' required=True %}
+            {% endif %}
           </div>
           <div class="col-12 col-sm-8">
             <div class="row">
