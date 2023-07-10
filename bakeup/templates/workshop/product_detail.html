@@ -72,11 +72,11 @@
           </div>
         </div>
       </form>
-      {% bootstrap_field key_figures_form.dough_yield size='sm' addon_before='TA' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
-      {% bootstrap_field key_figures_form.salt size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
-      {% bootstrap_field key_figures_form.total_dough_weight size='sm' addon_after='g' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
-      {% bootstrap_field key_figures_form.wheat size='sm' wrapper_class='resize-none' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-6' %}
-      {% bootstrap_field key_figures_form.pre_ferment size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}
+      {% if key_figures_form.dough_yield %}{% bootstrap_field key_figures_form.dough_yield size='sm' addon_before='TA' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}{% endif %}
+      {% if key_figures_form.salt %}{% bootstrap_field key_figures_form.salt size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}{% endif %}
+      {% if key_figures_form.total_dough_weight %}{% bootstrap_field key_figures_form.total_dough_weight size='sm' addon_after='g' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}{% endif %}
+      {% if key_figures_form.wheat %}{% bootstrap_field key_figures_form.wheat size='sm' wrapper_class='resize-none' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-6' %}{% endif %}
+      {% if key_figures_form.pre_ferment %}{% bootstrap_field key_figures_form.pre_ferment size='sm' addon_after='%' wrapper_class='' layout='horizontal' horizontal_label_class='col-6' horizontal_field_class='col-4' %}{% endif %}
     </div>
   </div>
   {% endif %}
