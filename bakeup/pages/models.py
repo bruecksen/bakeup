@@ -134,7 +134,8 @@ class BrandSettings(BaseGenericSetting):
 @register_setting(icon='user')
 class CheckoutSettings(BaseGenericSetting):
     order_button_place = models.CharField(max_length=1024, default='Jetzt kostenpflichtig bestellen', verbose_name='Button bestellen')
-    order_button_change = models.CharField(max_length=1024, default='Jetzt kostenpflichtig ändern', verbose_name='Button Bestellung ändern')
+    order_button_change = models.CharField(max_length=1024, default='Jetzt verbindlich ändern', verbose_name='Button Bestellung ändern')
+    order_button_cancel = models.CharField(max_length=1024, default='Bestellung komplett stornieren', verbose_name='Button Bestellung stornieren')
     terms_and_conditions_show = models.BooleanField(default=False, verbose_name='Checkbox AGB anzeigen?')
     terms_and_conditions_text = RichTextField(blank=True, null=True, verbose_name='AGB Text')
     

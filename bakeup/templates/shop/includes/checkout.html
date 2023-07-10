@@ -77,7 +77,10 @@
                 {% if not  customer_order %}
                 <button type="submit" class="btn btn-primary mt-3 mb-3">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
                 {% else %}
-                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">{{ settings.pages.CheckoutSettings.order_button_change }}</button>
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">
+                    <span class="text-change">{{ settings.pages.CheckoutSettings.order_button_change }}</span>
+                    <span class="d-none text-cancel">{{ settings.pages.CheckoutSettings.order_button_cancel }}</span>
+                </button>
                 <input type="reset" class="btn btn-outline-primary mt-3 mb-3 d-none" value="Änderungen verwerfen">
                 <button class="btn btn-primary mt-3 mb-3" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
                 {% endif %}

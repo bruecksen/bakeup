@@ -158,14 +158,14 @@ function setTotalBasketQuantity(modal, basket) {
         basket.find('.summary').hide();
         basket.find('.empty').show();
         basket.find('.current-order').show();
-        modal.find("form").dirty("setAsClean");
+        // modal.find("form").dirty("setAsClean");
         modal.find('form .form-check').removeClass('d-none').hide();
         modal.find('form button[type="submit"]').removeClass('d-none').hide();
         modal.find('form button[data-bs-dismiss="modal"]').show();
         modal.find('.modal-title span').removeClass('d-none').hide();
         modal.find('form input[type="reset"]').removeClass('d-none').hide();
     } else {
-        basket.find('.summary').show();
+        basket.find('.summary').removeClass('d-none').show();
         basket.find('.empty').hide();
         if (totalBasketQuantity > 0) {
             $('header .shopping-basket .order-quantity').removeClass('d-none');
@@ -173,12 +173,14 @@ function setTotalBasketQuantity(modal, basket) {
         } else {
             $('header .shopping-basket .order-quantity').hide();
         }
-        modal.find("form").dirty("setAsDirty");
+        // modal.find("form").dirty("setAsDirty");
         modal.find("form .form-check").removeClass('d-none').show();
         modal.find('form button[type="submit"]').removeClass('d-none').show();
         modal.find('form button[data-bs-dismiss="modal"]').hide();
         modal.find('.modal-title span').removeClass('d-none').show();
         modal.find('form input[type="reset"]').removeClass('d-none').show();
+        modal.find('.text-cancel').hide();
+        modal.find('.text-change').show();
         
     }
 }
@@ -251,13 +253,19 @@ minus_btns.forEach(btn=>{
     })
 
 $('.modal-checkout .btn-delete').click(function(){
-    console.log('click');
     var tr = $(this).parents('tr');
-    tr.fadeOut();
+    tr.fadeOut(function() {
+        if ($(this).parents('tbody').children(':visible').length === 0) {
+            $(this).parents('.modal-checkout').find('.text-cancel').removeClass('d-none').show();
+            $(this).parents('.modal-checkout').find('.text-change').hide();
+        }
+    });
     tr.find('.order-quantity').val(0).change();
+
 })
 $('.modal-checkout form input[type="reset"]').click(function(){
     var form = $(this).parents('form');
+    form.find('tbody tr').show();
     form.find('.form-check').removeClass('d-none').hide();
     form.find('button[type="submit"]').removeClass('d-none').hide();
     form.find('input[type="reset"]').removeClass('d-none').hide();
@@ -281,12 +289,23 @@ $(function(){
         $('header .shopping-basket').removeClass('d-lg-block');
     }
     var initdata = $('.modal-checkout form').serialize();
+    $('.modal-checkout form select').change(function(){
+        var basketQty = this.value;
+        var orderedQty = $(this).parents('tr').data('ordered-quantity');
+        if (orderedQty) {
+            console.log('detect qty select change to set total basket qty');
+            $(this).parents('tr').data('basket-quantity', Math.max(basketQty - orderedQty, 0));
+            var basket = $('#basket');
+            var modal = $(this).parents('.modal-checkout');
+            setTotalBasketQuantity(modal, basket);
+        }
+    })
     $('.modal-checkout form input, .modal-checkout form select').change(function() { 
         console.log('detect form change');
         var form = $(this).parents('form');
-        console.log(form);
         var nowdata = form.serialize();
-        if (initdata == nowdata) {
+
+        if (form.dirty('isClean')) {
             console.log('unchanged');
             form.find('.form-check').removeClass('d-none').hide();
             form.find('button[type="submit"]').removeClass('d-none').hide();
@@ -302,15 +321,6 @@ $(function(){
             $(this).parents('.modal-checkout').find('.modal-title span').removeClass('d-none').show();
         }
     });
-    $('.modal-checkout form select').change(function(){
-        console.log('detect qty select change to set total basket qty');
-        var basketQty = this.value;
-        var orderedQty = $(this).parents('tr').data('ordered-quantity');
-        $(this).parents('tr').data('basket-quantity', basketQty - orderedQty);
-        var basket = $('#basket');
-        var modal = $(this).parents('.modal-checkout');
-        setTotalBasketQuantity(modal, basket);
-    })
 });
 
 
