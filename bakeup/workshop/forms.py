@@ -84,7 +84,7 @@ class ProductKeyFiguresForm(Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'initial' in kwargs and 'wheat' in kwargs['initial']:
+        if 'initial' in kwargs and 'wheat' in kwargs['initial'] and kwargs['initial']['wheat']:
             line_count = kwargs['initial']['wheat'].count('\n')
             self.fields['wheat'].widget.attrs['rows'] = line_count + 1
 
