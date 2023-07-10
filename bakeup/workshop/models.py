@@ -205,15 +205,21 @@ class Product(CommonBaseClass):
 
     def get_dough_yield(self):
         # Netto-Teigausbeute 100 x (Wasser + Mehl) / Mehl
-        total_weight_water = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='liquids'))
+        category = Category.objects.filter(slug='liquids').first()
+        if not category:
+            return None
+        total_weight_water = Product.calculate_total_weight_by_category(self, category)
         total_weight_flour = self.total_weight_flour
         if total_weight_flour and total_weight_water:
             dough_yield = 100 * (total_weight_water + total_weight_flour) / total_weight_flour
             return round(dough_yield)
  
     def get_salt_ratio(self):
+        category = Category.objects.filter(slug='salt').first()
+        if not category:
+            return None
         total_weight_flour = self.total_weight_flour
-        total_salt = Product.calculate_total_weight_by_category(self, Category.objects.get(slug='salt'))
+        total_salt = Product.calculate_total_weight_by_category(self, category)
         if total_weight_flour and total_salt:
             return round(total_salt / total_weight_flour * 100, 2)
     
@@ -221,24 +227,34 @@ class Product(CommonBaseClass):
         return 10
     
     def get_pre_ferment_ratio(self):
+        category = Category.objects.filter(slug='flour').first()
+        category_parent = Category.objects.filter(slug='pre-dough').first()
+        if not category or not category_parent:
+            return None
         total_weight = self.total_weight_flour
-        total_pre_dough = Product.calculate_total_weight_by_category_and_parent(self, Category.objects.get(slug='flour'), 1, Category.objects.get(slug='pre-dough'))
+        total_pre_dough = Product.calculate_total_weight_by_category_and_parent(self, category, 1, category_parent)
         # raise Exception(total_pre_dough)
         if total_weight and total_pre_dough:
             return round(total_pre_dough / total_weight * 100, 2)
 
     @property
     def total_weight_flour(self):
-        return Product.calculate_total_weight_by_category(self, Category.objects.get(slug='flour'))
+        category = Category.objects.filter(slug='flour').first()
+        if not category:
+            return None
+        return Product.calculate_total_weight_by_category(self, category)
 
     @property
     def is_normalized(self):
         return round(self.total_weight) == 1000
 
     def get_wheats(self):
+        category = Category.objects.filter(slug='flour').first()
+        if not category:
+            return None
         wheats = ""
         total_weight_flour = self.total_weight_flour
-        for category in Category.objects.filter(path__startswith="{}{}".format(Category.objects.get(slug='flour').path, '0')):
+        for category in Category.objects.filter(path__startswith="{}{}".format(category.path, '0')):
             weight = Product.calculate_total_weight_by_category(self, category)
             if weight:
                 if wheats:
