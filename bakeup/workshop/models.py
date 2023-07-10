@@ -65,7 +65,7 @@ class Product(CommonBaseClass):
     is_composable = models.BooleanField(default=False)
 
 
-    tags = TaggableManager(blank=True)
+    tags = TaggableManager(blank=True, ordering=['name'])
     objects = ProductManager()
     production = ProductionDayProductManager()
 
