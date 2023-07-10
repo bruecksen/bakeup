@@ -142,6 +142,7 @@ class CheckoutSettings(BaseGenericSetting):
     panels = [
         FieldPanel('order_button_place'),
         FieldPanel('order_button_change'),
+        FieldPanel('order_button_cancel'),
         MultiFieldPanel([
             FieldPanel('terms_and_conditions_show'),
             FieldPanel('terms_and_conditions_text'),
