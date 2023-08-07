@@ -164,7 +164,7 @@ class Product(CommonBaseClass):
     def calculate_total_weight_by_category(cls, product, category, quantity=1):
         weight = 0
         for child in product.parents.all():
-            if child.child.category.is_descendant_of(category) or child.child.category == category:
+            if child.child.category and (child.child.category.is_descendant_of(category) or child.child.category == category):
                 product_weight = quantity * child.weight
                 weight += product_weight
             else:
