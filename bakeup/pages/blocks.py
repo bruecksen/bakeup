@@ -323,7 +323,7 @@ class ProductAssortmentBlock(StructBlock):
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
-        products = Product.objects.filter(is_sellable=True, production_days__is_published=True)
+        products = Product.objects.filter(is_sellable=True)
         if value.get('only_planned_products'):
             today = datetime.now().date()
             products = products.filter(production_days__production_day__day_of_sale__gte=today)
