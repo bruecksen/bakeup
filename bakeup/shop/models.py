@@ -82,7 +82,7 @@ class ProductionDay(CommonBaseClass):
         return self.customer_orders.exists()
 
     def update_production_plan(self, filter_product, create_max_quantity):
-        ProductionPlan.objects.get(product__product_template=filter_product, production_day=self).delete()
+        ProductionPlan.objects.filter(product__product_template=filter_product, production_day=self).delete()
         self.create_production_plans(filter_product, create_max_quantity)
 
     @property
