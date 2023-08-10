@@ -123,7 +123,8 @@ class Product(CommonBaseClass):
     
     @property
     def available_abo_quantity(self):
-        return self.max_recurring_order_qty - self.abo_sum
+        if self.max_recurring_order_qty:
+            return self.max_recurring_order_qty - self.abo_sum
     
     def get_short_name(self):
         return self.sku or self.name

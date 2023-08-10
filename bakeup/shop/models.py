@@ -479,7 +479,7 @@ class CustomerOrderTemplate(CommonBaseClass):
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    orders = models.ManyToManyField('shop.CustomerOrder')
+    orders = models.ManyToManyField('shop.CustomerOrder', related_name='customer_order_template')
     is_locked = models.BooleanField(default=False)
 
     objects = CustomerOrderTemplateQuerySet.as_manager()
@@ -552,7 +552,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                 existing_abo_qty = 0
                 if exisitng_position.exists():
                     existing_abo_qty = exisitng_position.first().quantity
-                if quantity > (product.available_abo_quantity + existing_abo_qty):
+                if product.available_abo_quantity and quantity > (product.available_abo_quantity + existing_abo_qty):
                     quantity = product.available_abo_quantity
                     messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
                 CustomerOrderTemplatePosition.objects.update_or_create(

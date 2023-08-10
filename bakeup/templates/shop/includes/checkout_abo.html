@@ -28,7 +28,7 @@
                         <tr>
                             <th scope="row">
                                 <select class="form-select form-select-xs order-quantity" name="productabo-{{ product.product.pk }}">
-                                    {% for i in product.product.available_abo_quantity|add:product.quantity|times %}
+                                    {% for i in product.product.available_abo_quantity|default:20|add:product.quantity|times %}
                                     <option value="{{i}}" {% if product.quantity == i %}selected{% endif %}>{{i}}x</option>
                                     {% endfor %}
                                 </select>
@@ -37,6 +37,7 @@
                                 {{ product.product }}
                             </td>
                             <td>
+                                <button type="button" class="btn btn-link btn-sm btn-delete"><i class="fas fa-trash text-black"></i></button>
                             </td>
                         </tr>
                         {% endfor %}

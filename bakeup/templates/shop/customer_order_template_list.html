@@ -19,7 +19,6 @@
                       <tr>
                         <th scope="col">Menge</th>
                         <th scope="col">Gebäck</th>
-                        <th scope="col"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -27,7 +26,6 @@
                             <tr>
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
-                            <td><a href="{% url 'shop:customer-order-template-position-delete' pk=position.pk %}" class="btn btn-link btn-sm"><i class="fas fa-trash text-black"></i></a></td>
                             </tr>
                         {% endfor %}
                     </tbody>
