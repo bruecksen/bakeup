@@ -146,7 +146,7 @@ class ProductionDay(CommonBaseClass):
                 Q(parent_plan__parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan__parent_plan=production_plan) |
                 Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
-                print(child.product.name)
+                # print(child.product.name)
                 for ingredient in child.product.get_ingredient_list():
                     product = ingredient['product']
                     quantity = ingredient['quantity']
@@ -156,8 +156,8 @@ class ProductionDay(CommonBaseClass):
                     product_quantity = category.setdefault(product.product_template, 0)
                     category_sum = category.setdefault('sum', 0)
                     product_quantity = product_quantity + (product.weight * child.quantity * quantity)
-                    if product.name == 'Salz':
-                        print(product.name, product.weight, child.quantity, quantity, product_quantity)
+                    # if product.name == 'Salz':
+                        # print(product.name, product.weight, child.quantity, quantity, product_quantity)
                     category[product.product_template] = product_quantity
                     category_sum = category_sum + (product.weight * child.quantity * quantity)
                     category['sum'] = category_sum
