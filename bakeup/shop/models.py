@@ -330,6 +330,10 @@ class CustomerOrder(CommonBaseClass):
         Return an order number for a given basket
         """
         return 100000 + self.pk
+
+    @property
+    def has_abo(self):
+        return self.positions.filter(customer_order_template_positions__isnull=False).exists()
     
     @classmethod
     def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):

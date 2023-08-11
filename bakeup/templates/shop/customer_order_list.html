@@ -22,7 +22,7 @@
                         <th scope="col"></th>
                         <th scope="col">Gebäck</th>
                         <th scope="col">Status</th>
-                        {% if product_abos %}
+                        {% if order.has_abo %}
                         <th scope="col">Abo</th>
                         {% endif %}
                       </tr>
@@ -33,13 +33,11 @@
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
                             <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
-                            {% if product_abos %}
+                            {% if order.has_abo %}
                             <td>
                               {% if position.customer_order_template_positions.exists %}
-                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ product_abos|get_item:position.product.pk }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product_abos|get_item:position.product.pk }}x</span></a>
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ position.customer_order_template_positions.first.quantity }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ position.customer_order_template_positions.first.quantity }}x</span></a>
                               {% endif %}
-                            {% if position.product.pk in product_abos %}
-                            {% endif %}
                             </td>
                             {% endif %}
                             </tr>
