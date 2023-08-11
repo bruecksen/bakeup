@@ -35,8 +35,10 @@
                             <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
                             {% if product_abos %}
                             <td>
+                              {% if position.customer_order_template_positions.exists %}
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ product_abos|get_item:position.product.pk }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product_abos|get_item:position.product.pk }}x</span></a>
+                              {% endif %}
                             {% if position.product.pk in product_abos %}
-                              <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ product_abos|get_item:position.product.pk }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product_abos|get_item:position.product.pk }}x abonniert</span></a>
                             {% endif %}
                             </td>
                             {% endif %}

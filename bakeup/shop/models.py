@@ -423,7 +423,7 @@ class CustomerOrderPosition(BasePositionClass):
     class Meta:
         ordering = ['product']
 
-
+    
 class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
     def active(self):
         now = timezone.now()
@@ -436,24 +436,26 @@ class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
 
 class CustomerOrderTemplatePosition(BasePositionClass):
     order_template = models.ForeignKey('shop.CustomerOrderTemplate', on_delete=models.CASCADE, related_name='positions')
+    orders = models.ManyToManyField('shop.CustomerOrderPosition', related_name='customer_order_template_positions')
 
     objects = CustomerOrderTemplatePositionQuerySet.as_manager()
 
     def create_order(self, production_day):
-        customer_order, created = CustomerOrder.objects.update_or_create(
-            production_day=production_day,
-            customer=self.order_template.customer,
-            defaults={
-                'point_of_sale': self.order_template.customer.point_of_sale
-            }
-        )
-        CustomerOrderPosition.objects.create(
-            order=customer_order,
-            product=self.product,
-            quantity=self.quantity,
-        )
-        self.order_template.orders.add(customer_order)
-        self.order_template.set_locked()
+        with transaction.atomic():
+            customer_order, created = CustomerOrder.objects.update_or_create(
+                production_day=production_day,
+                customer=self.order_template.customer,
+                defaults={
+                    'point_of_sale': self.order_template.customer.point_of_sale
+                }
+            )
+            position = CustomerOrderPosition.objects.create(
+                order=customer_order,
+                product=self.product,
+                quantity=self.quantity,
+            )
+            self.orders.add(position)
+            self.order_template.set_locked()
 
     def cancel(self):
         with transaction.atomic():
@@ -479,7 +481,6 @@ class CustomerOrderTemplate(CommonBaseClass):
     customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-    orders = models.ManyToManyField('shop.CustomerOrder', related_name='customer_order_template')
     is_locked = models.BooleanField(default=False)
 
     objects = CustomerOrderTemplateQuerySet.as_manager()
