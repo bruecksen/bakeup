@@ -7,7 +7,7 @@ from django.db import connection
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q, F, Sum
 from django.urls import reverse
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -63,6 +63,8 @@ class Product(CommonBaseClass):
     is_sellable = models.BooleanField(default=False)
     is_buyable = models.BooleanField(default=False)
     is_composable = models.BooleanField(default=False)
+    is_recurring = models.BooleanField(default=False)
+    max_recurring_order_qty = models.PositiveSmallIntegerField(blank=True, null=True)
 
 
     tags = TaggableManager(blank=True, ordering=['name'])
@@ -105,6 +107,24 @@ class Product(CommonBaseClass):
     @property
     def unit(self):
         return "g"
+    
+    @property
+    def is_open_for_abo(self):
+        if self.is_recurring:
+            if self.max_recurring_order_qty:
+                if self.available_abo_quantity <= 0:
+                    return False
+            return True
+        return False
+    
+    @property
+    def abo_sum(self):
+        return self.customerordertemplateposition_positions.active().aggregate(Sum('quantity'))['quantity__sum'] or 0
+    
+    @property
+    def available_abo_quantity(self):
+        if self.max_recurring_order_qty:
+            return self.max_recurring_order_qty - self.abo_sum
     
     def get_short_name(self):
         return self.sku or self.name

@@ -32,6 +32,7 @@
                         <tr>
                         <th scope="col">Menge</th>
                         <th scope="col">Brot</th>
+                        <th scope="col">Abo</th>
                         <th scope="col"></th>
                         </tr>
                     </thead>
@@ -48,6 +49,16 @@
                             </th>
                             <td>
                                 {{ product.product }}
+                            </td>
+                            <td>
+                                {% if product.has_abo %}
+                                
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt bereits abonniert."><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                {% elif product.product.is_open_for_abo %}
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
+                                  </div>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if not position.production_plan or not position.production_plan.is_locked %}
@@ -67,7 +78,7 @@
                     </tbody>
                 </table>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
-                <div class="form-check{% if  customer_order %} d-none{% endif %} link-new-tab">
+                <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">
                     <input class="form-check-input" type="checkbox" value="" required>
                     {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}

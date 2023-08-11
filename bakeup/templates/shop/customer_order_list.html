@@ -1,4 +1,5 @@
 {% extends "shop/base_page.html" %}
+{% load utils %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
@@ -18,9 +19,12 @@
                 <table class="table table-light">
                     <thead>
                       <tr>
-                        <th scope="col">Menge</th>
+                        <th scope="col"></th>
                         <th scope="col">Gebäck</th>
                         <th scope="col">Status</th>
+                        {% if product_abos %}
+                        <th scope="col">Abo</th>
+                        {% endif %}
                       </tr>
                     </thead>
                     <tbody>
@@ -29,6 +33,15 @@
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
                             <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
+                            {% if product_abos %}
+                            <td>
+                              {% if position.customer_order_template_positions.exists %}
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ product_abos|get_item:position.product.pk }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product_abos|get_item:position.product.pk }}x</span></a>
+                              {% endif %}
+                            {% if position.product.pk in product_abos %}
+                            {% endif %}
+                            </td>
+                            {% endif %}
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -40,7 +53,7 @@
         </div>
     </div>
     
-    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list %}
+    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list next_url=next_url %}
     {% empty %}
     <p class="mt-4">Bisher liegen noch keine Bestellungen vor.</p>
     {% endfor %}

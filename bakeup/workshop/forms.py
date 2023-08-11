@@ -14,7 +14,7 @@ from bakeup.workshop.models import Category, Product, ProductHierarchy, Producti
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'display_name', 'sku', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable']
+        fields = ['name', 'display_name', 'sku', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable', 'is_recurring', 'max_recurring_order_qty']
 
 
     def clean_sku(self):

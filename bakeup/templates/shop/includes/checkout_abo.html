@@ -1,0 +1,61 @@
+{% load shop_tags %}
+{% load wagtailcore_tags %}
+<div class="modal fade modal-{{ name }}" {% if id %}id="modal-order-template-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-4 fw-bold" id="checkoutModalLabel">
+                Abo ändern
+            </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="customer-order-form" method="POST" action="{% url 'shop:customer-order-template-update' pk=customer_order.pk %}">
+                    {% csrf_token %}
+                    {% if next_url %}
+                    <input type="hidden" name="next_url" value="{{ next_url }}">
+                    {% endif %}
+                <table class="table table-light mt-4 mb-4">
+                    <thead>
+                        <tr>
+                        <th scope="col">Menge</th>
+                        <th scope="col">Brot</th>
+                        <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <th scope="row">
+                                <select class="form-select form-select-xs order-quantity" name="productabo-{{ product.product.pk }}">
+                                    {% for i in product.product.available_abo_quantity|default:20|add:product.quantity|times %}
+                                    <option value="{{i}}" {% if product.quantity == i %}selected{% endif %}>{{i}}x</option>
+                                    {% endfor %}
+                                </select>
+                            </th>
+                            <td>
+                                {{ product.product }}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-link btn-sm btn-delete"><i class="fas fa-trash text-black"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
+                <div class="form-check terms-conditions{% if  customer_order %} d-none{% endif %}">
+                    <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" value="" required>
+                    {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}
+                    </label>
+                </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">{{ settings.pages.CheckoutSettings.order_button_change }}</button>
+                <input type="reset" class="btn btn-outline-primary mt-3 mb-3 d-none" value="Änderungen verwerfen">
+                <button class="btn btn-primary mt-3 mb-3" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

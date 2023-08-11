@@ -408,7 +408,7 @@ WAGTAILADMIN_RICH_TEXT_EDITORS = {
     }
 }
 DJANGO_TABLES2_TABLE_ATTRS = {
-    'class': 'table table-hover',
+    'class': 'table table-light table-hover shadow',
     'thead': {
         'class': '',
     },

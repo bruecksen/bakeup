@@ -1,10 +1,13 @@
 import collections
 
+from django.contrib import messages
+from django.utils.translation import gettext as _
+from django.db import IntegrityError, transaction
 from django.urls import reverse
-from datetime import datetime
+from django.utils import timezone
 from django.db import models
 from django.db.models import Sum
-from django.db.models import Q, F
+from django.db.models import Q, F, Exists
 from django.db.models import OuterRef, Subquery
 from django.utils import formats
 from django import forms
@@ -37,7 +40,7 @@ class ProductionDayQuerySet(models.QuerySet):
         return self.filter(production_day_products__is_published=True).distinct()
 
     def upcoming(self):
-        today = datetime.now().date()
+        today = timezone.now().date()
         return self.filter(day_of_sale__gte=today).order_by('day_of_sale')
 
 
@@ -128,6 +131,12 @@ class ProductionDay(CommonBaseClass):
             # production_day_product.product = product
             production_day_product.save()
 
+    def create_template_orders(self):
+        with transaction.atomic():
+            for product in self.production_day_products.published():
+                if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
+                    for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
+                        order_template_position.create_order(self)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -137,7 +146,7 @@ class ProductionDay(CommonBaseClass):
                 Q(parent_plan__parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan__parent_plan=production_plan) |
                 Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)):
-                print(child.product.name)
+                # print(child.product.name)
                 for ingredient in child.product.get_ingredient_list():
                     product = ingredient['product']
                     quantity = ingredient['quantity']
@@ -147,8 +156,8 @@ class ProductionDay(CommonBaseClass):
                     product_quantity = category.setdefault(product.product_template, 0)
                     category_sum = category.setdefault('sum', 0)
                     product_quantity = product_quantity + (product.weight * child.quantity * quantity)
-                    if product.name == 'Salz':
-                        print(product.name, product.weight, child.quantity, quantity, product_quantity)
+                    # if product.name == 'Salz':
+                        # print(product.name, product.weight, child.quantity, quantity, product_quantity)
                     category[product.product_template] = product_quantity
                     category_sum = category_sum + (product.weight * child.quantity * quantity)
                     category['sum'] = category_sum
@@ -160,7 +169,7 @@ class ProductionDayProductQuerySet(models.QuerySet):
         return self.filter(is_published=True)
     
     def upcoming(self):
-        today = datetime.now().date()
+        today = timezone.now().date()
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
     
     def with_pictures(self):
@@ -280,18 +289,6 @@ class Customer(CommonBaseClass):
         if not self.street and not self.street_number:
             return ''
         return f"{self.street or ''} {self.street_number or ''}"
-    
-
-# Abo
-# TODO install django-recurrence
-class CustomerOrderTemplate(CommonBaseClass):
-    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
-    from_date = models.DateField(blank=True, null=True)
-    to_date = models.DateField(blank=True, null=True)
-    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK, blank=True, null=True)
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_templates')
-    quantity = models.PositiveSmallIntegerField()
-    recurrences = RecurrenceField(blank=True, null=True)
 
 
 class CustomerOrder(CommonBaseClass):
@@ -394,6 +391,8 @@ class CustomerOrder(CommonBaseClass):
         production_day_products = self.production_day.production_day_products.published()
         production_day_products = production_day_products.annotate(
             ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+        ).annotate(
+            has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
         )
         return production_day_products
 
@@ -403,13 +402,18 @@ class CustomerOrderPositionQuerySet(models.QuerySet):
         return self.filter(production_plan__state=ProductionPlan.State.PRODUCED)
 
 
-
-class CustomerOrderPosition(CommonBaseClass):
-    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='order_positions')
-    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+class BasePositionClass(CommonBaseClass):
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions')
     quantity = models.PositiveSmallIntegerField()
     comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class CustomerOrderPosition(BasePositionClass):
+    order = models.ForeignKey('shop.CustomerOrder', on_delete=models.CASCADE, related_name='positions')
+    production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     is_paid = models.BooleanField(default=False)
     is_picked_up = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
@@ -420,7 +424,147 @@ class CustomerOrderPosition(CommonBaseClass):
         ordering = ['product']
 
     
+class CustomerOrderTemplatePositionQuerySet(models.QuerySet):
+    def active(self):
+        now = timezone.now()
+        qs = self.filter(
+            order_template__parent__isnull=True,
+            order_template__start_date__lte=now)
+        qs = qs.filter(Q(order_template__end_date__gte=now) | Q(order_template__end_date__isnull=True))
+        return qs
 
+
+class CustomerOrderTemplatePosition(BasePositionClass):
+    order_template = models.ForeignKey('shop.CustomerOrderTemplate', on_delete=models.CASCADE, related_name='positions')
+    orders = models.ManyToManyField('shop.CustomerOrderPosition', related_name='customer_order_template_positions')
+
+    objects = CustomerOrderTemplatePositionQuerySet.as_manager()
+
+    def create_order(self, production_day):
+        with transaction.atomic():
+            customer_order, created = CustomerOrder.objects.update_or_create(
+                production_day=production_day,
+                customer=self.order_template.customer,
+                defaults={
+                    'point_of_sale': self.order_template.customer.point_of_sale
+                }
+            )
+            position = CustomerOrderPosition.objects.create(
+                order=customer_order,
+                product=self.product,
+                quantity=self.quantity,
+            )
+            self.orders.add(position)
+            self.order_template.set_locked()
+
+    def cancel(self):
+        with transaction.atomic():
+            template_order = self.order_template.prepare_update()
+            template_order.positions.filter(product=self.product).delete()
+            if not template_order.positions.exists():
+                template_order.cancel()
+            return template_order
+    
+
+class CustomerOrderTemplateQuerySet(models.QuerySet):
+    def active(self):
+        now = timezone.now()
+        qs = self.filter(
+            parent__isnull=True,
+            start_date__lte=now)
+        qs = qs.filter(Q(end_date__gte=now) | Q(end_date__isnull=True))
+        return qs    
+
+
+class CustomerOrderTemplate(CommonBaseClass):
+    parent = models.OneToOneField('self', blank=True, null=True, related_name='child', on_delete=models.SET_NULL)
+    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, related_name='order_templates')
+    start_date = models.DateTimeField(blank=True, null=True)
+    end_date = models.DateTimeField(blank=True, null=True)
+    is_locked = models.BooleanField(default=False)
+
+    objects = CustomerOrderTemplateQuerySet.as_manager()
+
+    @property
+    def is_running(self):
+        if self.start_date <= timezone.now():
+            if not self.end_date or self.end_date >= timezone.now():
+                return True
+        return False
+
+
+    def get_state(self):
+        if self.is_running:
+            return _('running')
+        return _('finished')
+
+    def set_locked(self):
+        if not self.is_locked:
+            self.is_locked = True
+            self.save(update_fields=['is_locked', 'updated'])
+
+    def cancel(self):
+        self.end_date = timezone.now()
+        self.save(update_fields=['end_date', 'updated'])
+
+    def prepare_update(self):
+        if self.is_locked or not self.is_running:
+            self.end_date = timezone.now()
+            order_template = CustomerOrderTemplate.objects.create(
+                customer=self.customer,
+                start_date=timezone.now(),
+                is_locked=False
+            )
+            for position in self.positions.all():
+                CustomerOrderTemplatePosition.objects.create(
+                    order_template=order_template,
+                    product=position.product,
+                    quantity=position.quantity,
+                )
+            self.parent = order_template
+            self.save()
+            return order_template
+        else:
+            return self
+
+
+    def create_customer_order_template(request, customer, products):
+        order_template, created = CustomerOrderTemplate.objects.get_or_create(
+            parent=None,
+            customer=customer,
+            defaults={
+                'start_date': timezone.now(),
+            }
+        )
+        if products:
+            order_template = order_template.prepare_update()
+        for product, quantity in products.items():
+            exisitng_position = CustomerOrderTemplatePosition.objects.filter(
+                order_template=order_template,
+                product=product,
+            )
+            if quantity == 0 and exisitng_position.exists():
+                CustomerOrderTemplatePosition.objects.filter(
+                    order_template=order_template,
+                    product=product,
+                ).first().cancel()
+                continue
+            if product.is_open_for_abo:
+                existing_abo_qty = 0
+                if exisitng_position.exists():
+                    existing_abo_qty = exisitng_position.first().quantity
+                if product.available_abo_quantity and quantity > (product.available_abo_quantity + existing_abo_qty):
+                    quantity = product.available_abo_quantity
+                    messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
+                CustomerOrderTemplatePosition.objects.update_or_create(
+                    order_template=order_template,
+                    product=product,
+                    defaults={
+                        'quantity': quantity,
+                    }
+                )
+
+        
     
 
 

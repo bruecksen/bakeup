@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
 from django.db.models import OuterRef, Subquery
+from django.db.models import Case, When, Value, IntegerField, Exists
 
 from wagtail import blocks
 from wagtail.models import Page
@@ -15,7 +16,7 @@ from wagtail.contrib.settings.models import (
     register_setting,
 )
 
-from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct, CustomerOrderPosition
+from bakeup.shop.models import CustomerOrder,  ProductionDay,  PointOfSale, ProductionDayProduct, CustomerOrderPosition, CustomerOrderTemplatePosition
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
 
 # Create your models here.
@@ -80,6 +81,8 @@ class ShopPage(Page):
             production_day_products = self.production_day.production_day_products.published()
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+            ).annotate(
+               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products

@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from itertools import product
 from typing import Any, Dict, List
 from django.db.models.query import QuerySet
@@ -8,7 +9,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Exists
+from django.utils import timezone
+from django.utils.timezone import make_aware
 
 from django.db.models import F, Func, Value, CharField
 from django.db.models.functions import Cast
@@ -21,7 +24,7 @@ from django_tables2 import SingleTableView
 from bakeup.contrib.calenderweek import CalendarWeek
 from bakeup.core.views import CustomerRequiredMixin, StaffPermissionsMixin
 from bakeup.shop.forms import CustomerOrderForm, CustomerProductionDayOrderForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderPosition, CustomerOrderTemplatePosition, ProductionDay, ProductionDayProduct, PointOfSale
 
 
 from bakeup.workshop.models import Product
@@ -35,7 +38,7 @@ class ProductListView(ListView):
     template_name = 'shop/product_list.html'
 
     def get_queryset(self) -> QuerySet[Any]:
-        today = datetime.now().date()
+        today = timezone.now().date()
         return Product.objects.filter(is_sellable=True, production_days__is_published=True, production_days__production_day__day_of_sale__gte=today).distinct().order_by('category')
 
 
@@ -63,7 +66,7 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
         if "calendar_week" in self.kwargs and "year" in self.kwargs:
             input_week = self.kwargs.get('calendar_week')
             input_year = self.kwargs.get('year')
-            if 0 < input_week <= 53 and 2000 < input_year <= datetime.now().date().year + MAX_FUTURE_ORDER_YEARS:
+            if 0 < input_week <= 53 and 2000 < input_year <= timezone.now().date().year + MAX_FUTURE_ORDER_YEARS:
                 return CalendarWeek(input_week, input_year)
 
 
@@ -142,6 +145,13 @@ def customer_order_add_or_update(request, production_day):
             products,
             request.POST.get('point_of_sale', None)
         )
+        products_recurring = {Product.objects.get(pk=k.replace('productabo-', '')): int(request.POST.get('product-{}'.format(k.replace('productabo-', '')))) for k, v in request.POST.items() if k.startswith('productabo-')}
+        if products_recurring:
+            order_template = CustomerOrderTemplate.create_customer_order_template(
+                request,
+                request.user.customer,
+                products_recurring,
+            )
         if order:
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
@@ -156,10 +166,25 @@ class CustomerOrderListView(CustomerRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['point_of_sales'] = PointOfSale.objects.all()
+        context['product_abos'] = {abo['product']: abo['quantity'] for abo in CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.request.user.customer).values('product', 'quantity')}
+        context['next_url'] = reverse_lazy('shop:order-list')
         return context
 
     def get_queryset(self):
         return super().get_queryset().filter(customer=self.request.user.customer)
+
+
+class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
+    model = CustomerOrderTemplate
+    template_name = 'shop/customer_order_template_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['point_of_sales'] = PointOfSale.objects.all()
+        return context
+
+    def get_queryset(self):
+        return super().get_queryset().active().filter(customer=self.request.user.customer)
 
 
 class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
@@ -195,6 +220,60 @@ class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
     #     return HttpResponseRedirect(self.get_success_url())
 
 
+class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView):
+    model = CustomerOrderTemplatePosition
+    template_name = 'shop/customer_order_template_position_delete.html'
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Call the delete() method on the fetched object and then redirect to the
+        success URL.
+        """
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.cancel()
+        return HttpResponseRedirect(success_url)
+    
+
+    def get_success_url(self):
+        return reverse_lazy('shop:order-template-list')
+
+
+class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
+    model = CustomerOrderTemplate
+    template_name = 'shop/customer_order_template_delete.html'
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Call the delete() method on the fetched object and then redirect to the
+        success URL.
+        """
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.cancel()
+        return HttpResponseRedirect(success_url)
+    
+
+    def get_success_url(self):
+        return reverse_lazy('shop:order-template-list')
+    
+
+
+@login_required
+def customer_order_template_update(request, pk):
+    if request.method == 'POST':
+        customer_order_template = get_object_or_404(CustomerOrderTemplate, pk=pk)
+        products_recurring = {Product.objects.get(pk=k.replace('productabo-', '')): int(request.POST.get('productabo-{}'.format(k.replace('productabo-', '')))) for k, v in request.POST.items() if k.startswith('productabo-')}
+        if products_recurring:
+            order_template = CustomerOrderTemplate.create_customer_order_template(
+                request,
+                request.user.customer,
+                products_recurring,
+            )
+        return HttpResponseRedirect(reverse_lazy('shop:order-template-list'))
+
+
+
 
 class ShopView(TemplateView):
     template_name = 'shop/shop.html'
@@ -214,7 +293,7 @@ class ShopView(TemplateView):
         if kwargs.get('production_day', None):
             return ProductionDay.objects.get(pk=kwargs.get('production_day'))
         else:
-            today = datetime.now().date()
+            today = timezone.now().date()
             production_day_next = ProductionDayProduct.objects.filter(
                 is_published=True, 
                 production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale').first()
@@ -231,6 +310,8 @@ class ShopView(TemplateView):
             production_day_products = self.production_day.production_day_products.published()
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+            ).annotate(
+               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
             context['production_day_products'] = production_day_products
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
@@ -253,6 +334,6 @@ class ShopView(TemplateView):
 #     table_class = CustomerOrderTable
 
 def redirect_to_production_day_view(request):
-    production_day_date = datetime.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y").date()
+    production_day_date = make_aware(datetime.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y")).date()
     production_day = ProductionDay.objects.get(day_of_sale=production_day_date)
     return HttpResponseRedirect(reverse('shop:shop-production-day', kwargs={'production_day': production_day.pk}))
