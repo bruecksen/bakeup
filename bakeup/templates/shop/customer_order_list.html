@@ -53,7 +53,7 @@
         </div>
     </div>
     
-    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list %}
+    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list next_url=next_url %}
     {% empty %}
     <p class="mt-4">Bisher liegen noch keine Bestellungen vor.</p>
     {% endfor %}
