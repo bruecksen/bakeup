@@ -80,11 +80,11 @@ SHARED_APPS = [
     'modelcluster',
     "django_htmx",
     "django.contrib.sites",
-    "django.contrib.contenttypes",
 
 ]
 
 TENANT_APPS = [
+    "django.contrib.contenttypes",
     'taggit',
     "sorl.thumbnail",
     "django.contrib.auth",
