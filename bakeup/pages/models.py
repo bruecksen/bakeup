@@ -134,6 +134,21 @@ class BrandSettings(BaseGenericSetting):
         verbose_name = "Brand settings"
 
 
+@register_setting(icon='key')
+class GeneralSettings(BaseGenericSetting):
+    class Visibility(models.TextChoices):
+        NEVER = "never", "Never"
+        ALWAYS = "always", "Always"
+        AUTOMATICALLY = "automatically", "Automatically"
+    abo_menu_item = models.CharField(max_length=13, default=Visibility.AUTOMATICALLY, choices=Visibility.choices, help_text="Soll der Abo Menüpunkt angezeigt werden?")
+    
+    panels = [
+        FieldPanel('abo_menu_item'),
+    ]
+    class Meta:
+        verbose_name = "General settings"
+
+
 @register_setting(icon='user')
 class CheckoutSettings(BaseGenericSetting):
     order_button_place = models.CharField(max_length=1024, default='Jetzt kostenpflichtig bestellen', verbose_name='Button bestellen')

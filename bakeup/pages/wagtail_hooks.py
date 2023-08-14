@@ -2,8 +2,9 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from wagtailmenus.models import MainMenu
-
 from wagtail import hooks
+
+from bakeup.pages.models import GeneralSettings
 
 
 @hooks.register("construct_settings_menu")
@@ -20,8 +21,16 @@ def hide_snippets_menu_item(request, menu_items):
 
 @hooks.register('menus_modify_primed_menu_items')
 def add_abo_menu_item(menu_items, request, menu_instance, **kwargs):
-    if request.user.is_authenticated and isinstance(menu_instance, MainMenu) and request.user.customer.order_templates.active().exists():
-        menu_items.extend([
-            {"text": _("Abo"),  "href": reverse("shop:order-template-list")},
-        ])
+    general_settings = GeneralSettings.load(request_or_site=request)
+    if request.user.is_authenticated and isinstance(menu_instance, MainMenu):
+        if general_settings.abo_menu_item == GeneralSettings.Visibility.NEVER:
+            return menu_items
+        elif general_settings.abo_menu_item == GeneralSettings.Visibility.ALWAYS:
+            menu_items.extend([
+                {"text": _("Abo"),  "href": reverse("shop:order-template-list")},
+            ])
+        elif general_settings.abo_menu_item == GeneralSettings.Visibility.AUTOMATICALLY and request.user.customer.order_templates.active().exists():
+            menu_items.extend([
+                {"text": _("Abo"),  "href": reverse("shop:order-template-list")},
+            ])
     return menu_items
