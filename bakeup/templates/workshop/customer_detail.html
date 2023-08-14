@@ -88,8 +88,12 @@ Customer {{ object }}
     <div class="card p-3">
       <h3>Abo:</h3>
       <ul class="list-unstyled">
-        {% for position in object.order_templates.all %}
-        <li>{{ position.quantity}} x {{ position.product }}</li>    
+        {% for order_template in object.order_templates.active.all %}
+          {% for position in order_template.positions.all %}
+              <li>{{ position.quantity}} x {{ position.product }}</li>
+          {% endfor %}
+        {% empty %}
+        <p>Noch keine Abos abgeschlossen.</p>
         {% endfor %}
     </ul>
     </div>

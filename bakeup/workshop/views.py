@@ -38,7 +38,7 @@ from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 from bakeup.core.views import StaffPermissionsMixin, NextUrlMixin
 from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
-from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate
+from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate, CustomerOrderTemplatePosition
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm, ReminderMessageForm, SelectReminderMessageForm
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
 from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
@@ -1170,11 +1170,14 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
         initial = []
         for customer in Customer.objects.all():
             initial_customer = {
-                'customer': customer.pk,
+                'customer': str(customer.pk),
                 'customer_name': "{} ({})".format(customer, customer.user.email)
             }
-            for order_template in customer.order_templates.all():
-                initial_customer['product_{}'.format(order_template.product.pk)] = order_template.quantity
+            for product in Product.objects.filter(is_recurring=True):
+                quantity = None
+                if CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=product).exists():
+                    quantity = CustomerOrderTemplatePosition.objects.active().get(order_template__customer=customer, product=product).quantity
+                initial_customer['product_{}'.format(product.pk)] = quantity
             initial.append(initial_customer)
         return initial
 
@@ -1187,30 +1190,25 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        formset = BatchCustomerOrderTemplateFormSet(request.POST)
+        formset = BatchCustomerOrderTemplateFormSet(request.POST, initial=self.get_formset_initial())
         if formset.is_valid():
             return self.form_valid(formset)
         else:
-            raise Exception(formset.errors)
             return self.form_invalid(formset)
 
     def form_valid(self, formset):
         with transaction.atomic():
             for form in formset:
-                customer = form.cleaned_data['customer']
-                customer = Customer.objects.get(pk=customer)
-                for product in Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME):
-                    quantity = form.cleaned_data['product_%s' % (product.pk,)]
-                    if not quantity or quantity == 0:
-                        CustomerOrderTemplate.objects.filter(customer=customer, product=product).delete()
-                    else:
-                        position, created = CustomerOrderTemplate.objects.update_or_create(
-                            customer=customer,
-                            product=product,
-                            defaults={
-                                'quantity': quantity
-                            }
-                        )
+                if form.has_changed():
+                    customer = form.cleaned_data['customer']
+                    customer = Customer.objects.get(pk=customer)
+                    # raise Exception(form.changed_data, self.request.POST, self.get_formset_initial())
+                    products_recurring = {Product.objects.get(pk=k.replace('product_', '')): int(form.cleaned_data.get('product_{}'.format(k.replace('product_', '')))) for k, v in form.cleaned_data.items() if k.startswith('product_') and v}
+                    order_template = CustomerOrderTemplate.create_customer_order_template(
+                        self.request,
+                        customer,
+                        products_recurring,
+                    )
         return HttpResponseRedirect(reverse('workshop:customer-list'))
 
     def form_invalid(self, formset):

@@ -531,8 +531,8 @@ class CustomerOrderTemplate(CommonBaseClass):
         else:
             return self
 
-
-    def create_customer_order_template(request, customer, products):
+    @classmethod
+    def create_customer_order_template(cls, request, customer, products):
         order_template, created = CustomerOrderTemplate.objects.get_or_create(
             parent=None,
             customer=customer,
@@ -540,6 +540,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                 'start_date': timezone.now(),
             }
         )
+        # raise Exception('here')
         if products:
             order_template = order_template.prepare_update()
         for product, quantity in products.items():
@@ -567,6 +568,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                         'quantity': quantity,
                     }
                 )
+        return order_template
 
         
     

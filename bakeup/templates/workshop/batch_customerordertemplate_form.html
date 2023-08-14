@@ -21,6 +21,7 @@ Manage customer abos
               <label class="form-label fw-bold">Customer</label>
               {% endif %}
               {% bootstrap_field form.customer_name show_label='skip' %}
+              <input type="hidden" name="{{ form.customer_name.html_name }}" value="{{ form.customer_name.value }}">
               {% bootstrap_field form.customer show_label='skip' %}
             </div>
             {% for field in form.get_product_fields %}

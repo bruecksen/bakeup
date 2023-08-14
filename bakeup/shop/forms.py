@@ -186,7 +186,7 @@ class BatchCustomerOrderTemplateForm(forms.Form):
     customer_name = forms.CharField(disabled=True, required=False)
 
     def __init__(self, *args, **kwargs):
-        self.products = Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME)
+        self.products = Product.objects.filter(is_recurring=True)
         super().__init__(*args, **kwargs)
         # self.fields['customer'].widget.attrs['disabled'] = True
         # self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
