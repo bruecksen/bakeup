@@ -30,7 +30,7 @@ class ProductTable(tables.Table):
 
     class Meta:
         model = Product
-        fields = ("pk", "name", "description", "category", "is_sellable", "is_buyable", "is_composable")
+        fields = ("pk", "name", "description", "category", "is_recurring")
 
 
 class ProductionPlanTable(tables.Table):

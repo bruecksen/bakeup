@@ -12,6 +12,7 @@ from django.db.models import OuterRef, Subquery
 from django.utils import formats
 from django import forms
 
+from djmoney.models.fields import MoneyField
 from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
@@ -64,6 +65,9 @@ class ProductionDay(CommonBaseClass):
 
     def has_products_open_for_order(self):
         return self.production_day_products.filter(production_plan__isnull=True).exists()
+
+    def has_products_with_price(self):
+        return self.production_day_products.filter(product__sale_prices__isnull=False).exists()
     
     def get_random_product_image(self):
         product = self.production_day_products.published().exclude(
@@ -309,6 +313,10 @@ class CustomerOrder(CommonBaseClass):
         return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
     
     @property
+    def price_total(self):
+        return self.positions.aggregate(price_total=Sum('price_total'))['price_total']
+
+    @property
     def total_quantity(self):
         return self.positions.aggregate(total_quantity=Sum('quantity'))['total_quantity']
 
@@ -348,7 +356,9 @@ class CustomerOrder(CommonBaseClass):
         position, created = CustomerOrderPosition.objects.get_or_create(
             order=customer_order,
             product=product,
-            defaults={'quantity': quantity}
+            defaults={
+                'quantity': quantity,
+            }
         )
         if not created:
             position.quantity = (position.quantity or 0) + quantity
@@ -373,11 +383,18 @@ class CustomerOrder(CommonBaseClass):
             if production_day_product.is_locked:
                 raise forms.ValidationError("Product is locked.")
             if quantity > 0:
+                price = None
+                price_total = None
+                if product.sale_price:
+                    price = product.sale_price.price.amount
+                    price_total = price * quantity
                 position, created = CustomerOrderPosition.objects.update_or_create(
                     order=customer_order,
                     product=product,
                     defaults={
-                        'quantity': quantity
+                        'quantity': quantity,
+                        'price': price,
+                        'price_total': price_total,
                     }
                 )
             elif quantity == 0:
@@ -421,6 +438,8 @@ class CustomerOrderPosition(BasePositionClass):
     is_paid = models.BooleanField(default=False)
     is_picked_up = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
+    price = MoneyField(blank=True, null=True, max_digits=14, decimal_places=2, default_currency='EUR')
+    price_total = MoneyField(blank=True, null=True, max_digits=14, decimal_places=2, default_currency='EUR')
 
     objects = CustomerOrderPositionQuerySet.as_manager()
 
