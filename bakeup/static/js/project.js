@@ -12,9 +12,13 @@ $(document).ready(function() {
     $(document.body).on("click", "button[data-bs-toggle='tab']", function(event) {
         location.hash = this.getAttribute("data-bs-target");
     });
-    $('#customer-order-form').dirty({
-        preventLeaving: true,
-        leavingMessage: 'Du hast deinen Brotkorb noch nicht abgeschickt. Willst du wirklich die Seite verlassen?', 
+    // $("#customer-order-form-130").dirty();
+    $(".customer-order-form").each(function(){
+        console.log("preventLeaving", !$(this).hasClass('existing-order'));
+        $(this).dirty({
+            preventLeaving: $(this).hasClass('prevent-leaving'),
+            leavingMessage: 'Du hast deinen Brotkorb noch nicht abgeschickt. Willst du wirklich die Seite verlassen?', 
+        });
     });
 });
 $(window).on("popstate", function() {
@@ -312,6 +316,7 @@ $(function(){
         console.log('detect form change');
         var form = $(this).parents('form');
         var nowdata = form.serialize();
+        console.log(form, form.dirty('isClean'), form.dirty('isDirty'), form.dirty('showDirtyFields'));
 
         if (form.dirty('isClean')) {
             console.log('unchanged');

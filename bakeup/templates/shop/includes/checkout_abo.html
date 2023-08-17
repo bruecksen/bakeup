@@ -10,7 +10,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="customer-order-form" method="POST" action="{% url 'shop:customer-order-template-update' pk=customer_order.pk %}">
+                <form id="customer-abo-form-{{ id }}" class="customer-order-form" method="POST" action="{% url 'shop:customer-order-template-update' pk=customer_order.pk %}">
                     {% csrf_token %}
                     {% if next_url %}
                     <input type="hidden" name="next_url" value="{{ next_url }}">
@@ -46,7 +46,7 @@
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" value="" required>
+                    <input class="form-check-input" name="toc" type="checkbox" value="" required>
                     {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}
                     </label>
                 </div>

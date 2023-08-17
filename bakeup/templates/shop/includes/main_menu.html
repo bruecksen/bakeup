@@ -1,4 +1,4 @@
-{% load menu_tags %}
+{% load menu_tags i18n %}
 <ul class="navbar-nav me-lg-auto mb-2 mb-lg-0 main-menu">
 {% for item in menu_items %}
     <li class="nav-item {{ item.active_class }} {% if item.has_children_in_menu %} dropdown{% endif %}">
@@ -7,5 +7,10 @@
             {% sub_menu item template="menus/bootstrap4/sub_menu.html" %}
         {% endif %}
     </li>
-    {% endfor %}
+{% endfor %}
+    {% if request.user.is_authenticated and request.user.is_staff %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-table-cells"></i> {% translate "Workshop" %}</a>
+        </li>
+    {% endif %}
 </ul>

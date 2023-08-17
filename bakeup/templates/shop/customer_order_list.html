@@ -7,13 +7,54 @@
 {% block page_heading %}Bestellungen{% endblock %}
 
 {% block page_content %}
-<h1>Bestellübersicht</h1>
+{% if abos %}
+<div class="row">
+  <div class="col-12 col-lg-10">
+    {% for order in abos %}
+    <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
+      <h2>Abo <span class="badge rounded-pill text-bg-secondary fs-6">{{ order.get_state }}</span></h2>
+        <p>Das Abo umfasst die folgenden Produkte:</p>
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <table class="table table-light">
+                    <thead>
+                      <tr>
+                        <th scope="col">Menge</th>
+                        <th scope="col">Gebäck</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for position in order.positions.all %}
+                            <tr>
+                            <td>{{ position.quantity }}x</td>
+                            <td>{{ position.product }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                  {% if order.is_running %}
+                  <a class="btn btn-outline-primary fw-bold" href="{% url 'shop:customer-order-template-delete' pk=order.pk %}">Abo beenden</a>
+                  <a class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modal-order-template-{{ order.id }}">Abo ändern</a>
+                  {% endif %}
+            </div>
+        </div>
+    </div>
+    {% include "shop/includes/checkout_abo.html" with name='checkout' display_all=True id=order.id customer_order=order products=order.positions.all %}
+    
+    {% empty %}
+    <p class="mt-4">Bisher liegen noch keine Abos vor.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<h2 class="mb-3">Bestellübersicht</h2>
 <div class="row">
   <div class="col-12 col-lg-10">
     {% for order in object_list %}
     <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
-        <h2 class="fs-3">Backtag: <strong>{{ order.production_day }}</strong></h2>
-        <h3 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h3>
+        <h4 class="fs-5">Backtag: <strong>{{ order.production_day }}</strong></h4>
+        <h4 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h4>
         <div class="row">
             <div class="col-12 col-lg-8">
                 <table class="table table-light">

@@ -15,7 +15,7 @@
             </div>
             <div class="modal-body">
                 <p class="mb-1">Backtag: <strong>{{ production_day }}</strong></p>
-                <form id="customer-order-form" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
+                <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
                     {% csrf_token %}
                     {% if next_url %}
                     <input type="hidden" name="next_url" value="{{ next_url }}">
@@ -80,7 +80,7 @@
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" value="" required>
+                    <input class="form-check-input" name="tos" type="checkbox" value="" required>
                     {{ settings.pages.CheckoutSettings.terms_and_conditions_text|richtext }}
                     </label>
                 </div>

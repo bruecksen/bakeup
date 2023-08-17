@@ -22,12 +22,10 @@
                       <span class="visually-hidden">bestellte brote</span>
                   </a>
               </li>
-              {% if request.user.is_authenticated and request.user.is_staff %}
-              <li class="nav-item">
-                  <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-table-cells"></i> {% translate "Workshop" %}</a>
-              </li>
-              {% endif %}
               {% if request.user.is_authenticated %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'shop:order-list' %}"><i class="fa-solid fa-receipt fa-fw"></i> Bestellungen</a>
+              </li>
               <li class="nav-item">
                   <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
               </li>

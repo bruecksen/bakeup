@@ -167,6 +167,7 @@ class CustomerOrderListView(CustomerRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['point_of_sales'] = PointOfSale.objects.all()
         context['next_url'] = reverse_lazy('shop:order-list')
+        context['abos'] = CustomerOrderTemplate.objects.active().filter(customer=self.request.user.customer)
         return context
 
     def get_queryset(self):
@@ -235,7 +236,7 @@ class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView)
     
 
     def get_success_url(self):
-        return reverse_lazy('shop:order-template-list')
+        return reverse_lazy('shop:order-list')
 
 
 class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
@@ -250,11 +251,12 @@ class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
         self.object = self.get_object()
         success_url = self.get_success_url()
         self.object.cancel()
+        messages.add_message(self.request, messages.INFO, "Abo erfolgreich beendet!")
         return HttpResponseRedirect(success_url)
     
 
     def get_success_url(self):
-        return reverse_lazy('shop:order-template-list')
+        return reverse_lazy('shop:order-list')
     
 
 
@@ -269,7 +271,7 @@ def customer_order_template_update(request, pk):
                 request.user.customer,
                 products_recurring,
             )
-        return HttpResponseRedirect(reverse_lazy('shop:order-template-list'))
+        return HttpResponseRedirect(reverse_lazy('shop:order-list'))
 
 
 
