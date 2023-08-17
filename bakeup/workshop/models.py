@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import datetime
 
+from djmoney.models.fields import MoneyField
 from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
 
@@ -295,6 +296,15 @@ class Product(CommonBaseClass):
             for child in self.parents.all():
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=['quantity'])
+
+
+class ProductPrice(CommonBaseClass):
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE, related_name='sale_price')
+    price = MoneyField(max_digits=14, decimal_places=2, default_currency='EUR')
+
+
+
+
 
 # Assembly
 class Instruction(CommonBaseClass):
