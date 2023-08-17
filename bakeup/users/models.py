@@ -28,7 +28,7 @@ class User(AbstractUser):
             str: URL for user detail.
 
         """
-        return reverse("users:profile")
+        return reverse("shop:user-profile")
 
     @property
     def is_customer(self):
