@@ -86,7 +86,7 @@ SHARED_APPS = [
     'modelcluster',
     "django_htmx",
     "django.contrib.sites",
-
+    'djmoney',
 ]
 
 TENANT_APPS = [
@@ -420,3 +420,5 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': '',
     },
 }
+
+CURRENCIES = ('EUR',)
