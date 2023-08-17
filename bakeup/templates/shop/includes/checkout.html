@@ -1,3 +1,4 @@
+{% load l10n %}
 {% load shop_tags %}
 {% load wagtailcore_tags %}
 {% load i18n %}
@@ -28,18 +29,19 @@
                     {% endfor %}
                     </select></p>
                 {% endif %}
-                <table class="table table-light mt-4 mb-4">
+                <table class="table table-light mt-4 mb-4 border-white">
                     <thead>
                         <tr>
                         <th scope="col">Menge</th>
                         <th scope="col">Brot</th>
                         <th scope="col">Abo</th>
+                        {% if show_price %}<th class="price-column" scope="col">Preis</th>{% endif %}
                         <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %}" data-product="{{ product.product.pk }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0">
+                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
                             <th scope="row">
                                 {% max_quantity production_day product.product as production_day_product_max_quantity %}
                                 <select class="form-select form-select-xs order-quantity" name="product-{{ product.product.pk }}"{% if product.is_locked %} disabled{% endif %}>
@@ -61,10 +63,19 @@
                                   </div>
                                 {% endif %}
                             </td>
+                            {% if show_price %}
+                            <td>
+                                {% if product.product.sale_price %}
+                                <nobr><span class="sale-price">{{ product.price }}</span> €</nobr>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            {% endif %}
                             <td>
                                 {% if not position.production_plan or not position.production_plan.is_locked %}
                                 <div class="col-2 text-end">
-                                    {% if not product.is_locked %}
+                                    {% if product.ordered_quantity and not product.is_locked %}
                                         <button type="button" class="btn btn-link btn-sm btn-delete"><i class="fas fa-trash text-black"></i></button>
                                     {% endif %}
                                 </div>
@@ -76,6 +87,11 @@
                             </td>
                         </tr>
                         {% endfor %}
+                        {% if show_price %}
+                        <tr class="border-top border-3 price border-white">
+                            <td colspan="3"></td><td><strong><nobr><span class="price-total">{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}

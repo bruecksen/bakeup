@@ -100,6 +100,10 @@ class Product(CommonBaseClass):
                 quantity=child.quantity
             )
         return product
+
+    @property
+    def sale_price(self):
+        return self.sale_prices.first()
     
     @property
     def category_name(self):
@@ -299,7 +303,7 @@ class Product(CommonBaseClass):
 
 
 class ProductPrice(CommonBaseClass):
-    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE, related_name='sale_price')
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE, related_name='sale_prices')
     price = MoneyField(max_digits=14, decimal_places=2, default_currency='EUR')
 
 
