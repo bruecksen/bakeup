@@ -410,6 +410,9 @@ class ProductionPlan(CommonBaseClass):
                 name='production_plan_not_equal_parent'
             )
         ]
+
+    def __str__(self):
+        return "ProductionPlan {} {} {}".format(self.production_day, self.product, self.state)
     
     @property
     def is_locked(self):
@@ -473,6 +476,9 @@ class ProductionPlan(CommonBaseClass):
     def set_next_state(self):
         self.set_state(self.get_next_state())
 
+    def set_production(self):
+        self.set_state(self.State.IN_PRODUCTION)
+    
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):
         for child in children:

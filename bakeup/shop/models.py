@@ -90,7 +90,7 @@ class ProductionDay(CommonBaseClass):
 
     def update_production_plan(self, filter_product, create_max_quantity):
         ProductionPlan.objects.filter(product__product_template=filter_product, production_day=self).delete()
-        self.create_production_plans(filter_product, create_max_quantity)
+        return self.create_production_plans(filter_product, create_max_quantity)
 
     @property
     def total_ordered_quantity(self):
@@ -134,6 +134,7 @@ class ProductionDay(CommonBaseClass):
             production_day_product.production_plan = obj
             # production_day_product.product = product
             production_day_product.save()
+            return obj
 
     def create_template_orders(self):
         with transaction.atomic():
@@ -167,6 +168,13 @@ class ProductionDay(CommonBaseClass):
                     category['sum'] = category_sum
         return collections.OrderedDict(sorted(ingredients.items(), key=lambda t: t[0].path))
 
+    def update_order_positions_product(self, production_plan_product):
+
+        positions = CustomerOrderPosition.objects.filter(
+            order__production_day=self, 
+            product=production_plan_product.product_template
+        )
+        positions.update(product=production_plan_product)
 
 class ProductionDayProductQuerySet(models.QuerySet):
     def published(self):
