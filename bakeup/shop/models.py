@@ -413,6 +413,8 @@ class CustomerOrder(CommonBaseClass):
         production_day_products = production_day_products.annotate(
             ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
         ).annotate(
+                price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
+        ).annotate(
             has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
         )
         return production_day_products

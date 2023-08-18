@@ -68,22 +68,23 @@ class CustomerOrderFilter(django_filters.FilterSet):
 
 
 class CustomerOrderTable(tables.Table):
-    order_nr = tables.LinkColumn('workshop:order-update', args=[A('pk')], verbose_name='#', order_by='pk')
+    # order_nr = tables.LinkColumn('workshop:order-update', args=[A('pk')], verbose_name='#', order_by='pk')
     # order_nr = tables.LinkColumn(verbose_name='#', order_by='pk')
     production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
     email = tables.TemplateColumn("{{ record.customer.user.email }}")
     positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
+    price_total = tables.TemplateColumn("{% if record.price_total %}<nobr>{{ record.price_total }} €</nobr>{% endif %}", verbose_name='Betrag')
     collected = tables.TemplateColumn('{% if record.is_picked_up %}x{% endif %}', verbose_name='Collected', orderable=False)
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='', exclude_from_export=True)
 
     class Meta:
         model = CustomerOrder
         order_by = 'production_day'
-        fields = ("order_nr", "production_day", "customer", "email", "point_of_sale")
+        fields = ("production_day", "customer", "email", "point_of_sale", "positions", "price_total")
 
     def value_positions(self, value):
-        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in value.all()])
+        return "\n".join(["{}x {}{}".format(position.quantity, position.product, " {}".format(position.price_total) or '') for position in value.all()])
 
 
 
