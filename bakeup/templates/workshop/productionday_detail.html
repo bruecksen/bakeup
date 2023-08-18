@@ -100,21 +100,15 @@
         </ul>
     <table class="table" style="table-layout: fixed;">
       <tr>
-          <th width="">Benutzer</th>
-          <th width="70%">Produkte</th>
-          <th width="10%" class="text-center">
-            Abgeholt
+          <th width="" class="align-middle">Benutzer</th>
+          <th width="60%" class="align-middle">Produkte</th>
+          {% if object.has_products_with_price %}<th width="10%">Preis</th>{% endif %}
+          <th width="15%" class="text-center align-middle">
+            <nobr>Abgeholt <button class="btn btn-link d-print-none btn-sm py-0"
+            hx-get="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
+            hx-trigger="click"
+            ><i class="far fa-square-check fa-xl"></i></button></nobr>
           </th>
-      </tr>
-      <tr class="d-print-none">
-        <td></td>
-        <td></td>
-        <td class="text-center">
-          <button class="btn btn-link"
-          hx-get="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
-          hx-trigger="click"
-          ><i class="far fa-square-check fa-xl"></i></button>
-        </td>
       </tr>
       {% for order in point_of_sale.orders %}
       <tr>
@@ -128,6 +122,7 @@
           <td>
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </td>
+          {% if object.has_products_with_price %}<td>{% if order.price_total %}{{ order.price_total }} €{% endif %}</td>{% endif %}
           <td class="text-center">
             <form method="POST">
               {% csrf_token %}

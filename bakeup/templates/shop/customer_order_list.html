@@ -52,6 +52,7 @@
 <div class="row">
   <div class="col-12 col-lg-10">
     {% for order in object_list %}
+    {% with has_price=order.price_total %}
     <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
         <h4 class="fs-5">Backtag: <strong>{{ order.production_day }}</strong></h4>
         <h4 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h4>
@@ -62,6 +63,7 @@
                       <tr>
                         <th scope="col"></th>
                         <th scope="col">Gebäck</th>
+                        {% if has_price %}<th class="price-column" scope="col">Preis</th>{% endif %}
                         <th scope="col">Status</th>
                         {% if order.has_abo %}
                         <th scope="col">Abo</th>
@@ -73,6 +75,15 @@
                             <tr>
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product }}</td>
+                            {% if has_price %}
+                            <td>
+                                {% if position.price_total %}
+                                <nobr><span class="sale-price">{{ position.price_total.amount }}</span> €</nobr>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            {% endif %}
                             <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
                             {% if order.has_abo %}
                             <td>
@@ -83,6 +94,11 @@
                             {% endif %}
                             </tr>
                         {% endfor %}
+                        {% if has_price %}
+                        <tr class="border-top border-3 price border-white">
+                            <td colspan="2"></td><td><strong><nobr class="price-total"><span>{{ order.price_total }}</span> €</nobr></strong></td><td></td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                   </table>
                   {% if not order.is_locked %}
@@ -92,7 +108,8 @@
         </div>
     </div>
     
-    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list next_url=next_url %}
+    {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list next_url=next_url show_price=has_price %}
+    {% endwith %}
     {% empty %}
     <p class="mt-4">Bisher liegen noch keine Bestellungen vor.</p>
     {% endfor %}
