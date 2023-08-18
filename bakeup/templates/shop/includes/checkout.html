@@ -17,7 +17,7 @@
             </div>
             <div class="modal-body">
                 <p class="mb-1">Backtag: <strong>{{ production_day }}</strong></p>
-                <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
+                <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{%if customer_order%} has_order{% endif %}{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
                     {% csrf_token %}
                     {% if next_url %}
                     <input type="hidden" name="next_url" value="{{ next_url }}">
@@ -41,7 +41,7 @@
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
+                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-quantity="{{ product.ordered_quantity|default:'0' }}f" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
                             <th scope="row">
                                 {% max_quantity production_day product.product as production_day_product_max_quantity %}
                                 <select class="form-select form-select-xs order-quantity" name="product-{{ product.product.pk }}"{% if product.is_locked %} disabled{% endif %}>
@@ -89,7 +89,7 @@
                         {% endfor %}
                         {% if show_price %}
                         <tr class="border-top border-3 price border-white">
-                            <td colspan="3"></td><td><strong><nobr><span class="price-total">{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
+                            <td colspan="3"></td><td><strong><nobr class="price-total"><span>{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
                         </tr>
                         {% endif %}
                     </tbody>
