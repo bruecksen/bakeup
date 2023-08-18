@@ -23,7 +23,7 @@ urlpatterns = [
 #    path(_("products/"), view=ProductListView.as_view(), name="product-list"),
 #    path(_("production-days/"), view=ProductionDayListView.as_view(), name="production-day-list"),
    path("orders/add/<int:production_day>/", view=customer_order_add_or_update, name="customer-order-add"),
-   path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),
+#    path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),
    path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="customer-order-update"),
    path("orders/positions/<int:pk>/delete/", view=CustomerOrderPositionDeleteView.as_view(), name="customer-order-position-delete"),
    path("orders/positions/<int:pk>/update/", view=CustomerOrderPositionUpdateView.as_view(), name="customer-order-position-update"),
