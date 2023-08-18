@@ -1,8 +1,7 @@
 {% load l10n %}
 {% load shop_tags %}
 {% load wagtailcore_tags %}
-{% load i18n %}
-<div class="modal fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -35,7 +34,7 @@
                         <th scope="col">Menge</th>
                         <th scope="col">Brot</th>
                         <th scope="col">Abo</th>
-                        {% if show_price %}<th class="price-column" scope="col">Preis</th>{% endif %}
+                        {% if show_price %}<th class="price-column text-center" scope="col">Preis</th>{% endif %}
                         <th scope="col"></th>
                         </tr>
                     </thead>
@@ -51,7 +50,7 @@
                                 </select>
                             </th>
                             <td>
-                                {{ product.product }}
+                                <p class="mb-0">{{ product.product }}{% if show_price and product.product.sale_price %} <small class="text-muted">{{ product.product.sale_price.price }}</small>{% endif %}</p>
                             </td>
                             <td>
                                 {% if product.has_abo %}
@@ -64,18 +63,22 @@
                                 {% endif %}
                             </td>
                             {% if show_price %}
-                            <td>
-                                {% if product.product.sale_price %}
-                                <nobr><span class="sale-price">{{ product.price }}</span> €</nobr>
-                                {% else %}
-                                -
-                                {% endif %}
+                            <td class="text-end">
+                                <span class="sale-price{% if not product.product.sale_price or not product.price %} d-none{% endif %}">
+                                    <nobr>
+                                        <span class="price">
+                                            {% if product.product.sale_price and product.price %}
+                                            {{ product.price }}
+                                            {% endif %}
+                                        </span> €
+                                    </nobr>
+                                </span>
                             </td>
                             {% endif %}
                             <td>
                                 {% if not position.production_plan or not position.production_plan.is_locked %}
                                 <div class="col-2 text-end">
-                                    {% if product.ordered_quantity and not product.is_locked %}
+                                    {% if not product.is_locked %}
                                         <button type="button" class="btn btn-link btn-sm btn-delete"><i class="fas fa-trash text-black"></i></button>
                                     {% endif %}
                                 </div>
@@ -89,7 +92,7 @@
                         {% endfor %}
                         {% if show_price %}
                         <tr class="border-top border-3 price border-white">
-                            <td colspan="3"></td><td><strong><nobr class="price-total"><span>{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
+                            <td colspan="3"></td><td class="text-end"><strong><nobr class="price-total"><span>{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
                         </tr>
                         {% endif %}
                     </tbody>

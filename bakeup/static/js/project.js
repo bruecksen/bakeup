@@ -240,7 +240,7 @@ function updateProduct(product, qty, maintainOrderedQty) {
         productPrice = parseFloat(productPrice);
         productPrice = qty * productPrice;
         // productPrice = parseFloat((+productPrice).toFixed(2));
-        row.find('.sale-price').html(productPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
+        row.find('.sale-price').removeClass('d-none').find('.price').html(productPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
     }
     // basket.removeClass('d-none');
 }
