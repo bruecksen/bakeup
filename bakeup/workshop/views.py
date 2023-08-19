@@ -837,8 +837,12 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
             for customer in Customer.objects.exclude(order_templates__isnull=True):
                 if CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).exists():
                     continue
-                for customer_order_template in customer.order_templates.filter(quantity__gt=0):
-                    if meta_product_mapping.get(customer_order_template.product, None):
+                positions = CustomerOrderTemplatePosition.objects.active().filter(
+                    order_template__customer=customer,
+                    quantity__gt=0
+                )
+                for customer_order_template_position in positions:
+                    if meta_product_mapping.get(customer_order_template_position.product, None):
                         customer_order, created = CustomerOrder.objects.get_or_create(
                             production_day=self.production_day,
                             customer=customer,
@@ -846,15 +850,15 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                         )
                         position, created = CustomerOrderPosition.objects.get_or_create(
                             order=customer_order,
-                            product=meta_product_mapping[customer_order_template.product]['target_product'],
+                            product=meta_product_mapping[customer_order_template_position.product]['target_product'],
                             defaults={
-                                'quantity': customer_order_template.quantity
+                                'quantity': customer_order_template_position.quantity
                             }
                         )
                         if not created:
-                            position.quantity = position.quantity + customer_order_template.quantity
+                            position.quantity = position.quantity + customer_order_template_position.quantity
                             position.save(update_fields=['quantity'])
-                        product_mapping = meta_product_mapping[customer_order_template.product]['product_mapping']
+                        product_mapping = meta_product_mapping[customer_order_template_position.product]['product_mapping']
                         product_mapping.matched_count = (product_mapping.matched_count or 0) + 1
                         product_mapping.save(update_fields=['matched_count'])
                         
