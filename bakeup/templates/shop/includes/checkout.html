@@ -40,7 +40,7 @@
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-quantity="{{ product.ordered_quantity|default:'0' }}f" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
+                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-quantity="{{ product.ordered_quantity|default:'0' }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
                             <th scope="row">
                                 {% max_quantity production_day product.product as production_day_product_max_quantity %}
                                 <select class="form-select form-select-xs order-quantity" name="product-{{ product.product.pk }}"{% if product.is_locked %} disabled{% endif %}>
