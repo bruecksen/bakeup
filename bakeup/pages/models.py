@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
+from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField, Q
 from django.db.models import OuterRef, Subquery
 from django.db.models import Case, When, Value, IntegerField, Exists
 
@@ -80,9 +80,21 @@ class ShopPage(Page):
             context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
             production_day_products = self.production_day.production_day_products.published()
             production_day_products = production_day_products.annotate(
-                ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+                ordered_quantity=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("quantity")
+                )
             ).annotate(
-                price=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
+                price=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("price_total")
+                )
             ).annotate(
                has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
