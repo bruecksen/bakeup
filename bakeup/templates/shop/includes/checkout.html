@@ -50,7 +50,9 @@
                                 </select>
                             </th>
                             <td>
-                                <p class="mb-0">{{ product.product }}{% if show_price and product.product.sale_price %} <small class="text-muted">{{ product.product.sale_price.price }}</small>{% endif %}</p>
+                                <p class="mb-0">{{ product.product }}
+                                    {% if show_price and product.product.sale_price %} <small class="text-muted">{{ product.product.sale_price.price }}</small>{% endif %}
+                                </p>
                             </td>
                             <td>
                                 {% if product.has_abo %}

@@ -102,24 +102,27 @@ class ProductionDay(CommonBaseClass):
 
     def create_production_plans(self, filter_product=None, create_max_quantity=False):
         if filter_product:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product, product__product_template__isnull=True)
         else:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self)
-        product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product__product_template__isnull=True)
+        product_quantities = positions.values('product', 'product__product_template').order_by('product').annotate(total_quantity=Sum('quantity'))
         if not product_quantities and create_max_quantity:
             # fallback to max product quantities of production day
             if filter_product:
                 product_quantities = self.production_day_products.filter(product=filter_product).values('product', total_quantity=F('max_quantity'))
             else:
                 product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
+        # raise Exception(product_quantities)
         for product_quantity in product_quantities:
             product_template = Product.objects.get(pk=product_quantity.get('product'))
             if product_quantity.get('total_quantity') == 0:
                 continue
             if ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template).exists():
+                print('plan exists: {}'.format(product_template))
                 if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
                     self.update_production_plan(product_template, create_max_quantity)
                 continue
+            print('plan create: {}'.format(product_template))
             product = Product.duplicate(product_template)
             obj = ProductionPlan.objects.create(
                 parent_plan=None,
