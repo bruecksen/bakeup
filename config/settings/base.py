@@ -377,7 +377,7 @@ USER_REGISTRATION_FORM_FIELDS = {
     },
     'telephone_number': {
         'label': 'Telefonnummer',
-        'required': False,
+        'required': True,
     },
 }
 
