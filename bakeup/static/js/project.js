@@ -144,7 +144,7 @@ function setTotalPrice(modal) {
     });
     if (totalBasketPrice > 0) {
         modal.find('.price-total').show();
-        modal.find('.price-total span').html(totalBasketPrice.toLocaleString());
+        modal.find('.price-total span').html(totalBasketPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
     } else {
         modal.find('.price-total').hide();
         modal.find('.price-total span').html();
