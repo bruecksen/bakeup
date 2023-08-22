@@ -6,7 +6,7 @@
 
 {% block page_content %}
   <h1>Hallo {{ user }}</h1>
-  <p>Hier kannst du deine persönlichen Daten, E-Mail Adresse und dein Passwort aktualisieren.</p>
+  <p>{% trans 'Here you can update your personal data, e-mail address and password.' %}</p>
   <div class="row g-4">
     <div class="col-12">
       <div class="card px-3 py-3">
@@ -25,7 +25,9 @@
     <div class="col-12">
       <div class="card px-3 py-3">
         <h4 class="">E-Mail:</h4>
-        <p>Aktuell ist <strong>{{ user.email }}</strong> in deinem Account hinterlegt. Du kannst eine neue E-Mail adresse hinzufügen in dem du in dem folgenden Formular die neue E-Mail adresse eingibst und anschließend bestätigst.</p>
+        <p>
+        {% blocktranslate with email=user.email %}Currently <strong>{{ email }}</strong> is stored in your account. You can add a new email address by entering the new email address in the following form and confirming it afterwards.{% endblocktranslate %}
+        </p>
         <form class="form-horizontal w-50" method="post" id="add_email">
           {% csrf_token %}
           {{ forms.add_email|crispy }}

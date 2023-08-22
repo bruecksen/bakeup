@@ -16,7 +16,10 @@
             {% endif %}
           </div>
           <h2 class="my-3 fw-bold">Anmelden</h2>
-            <p>Hast du noch kein Konto? Dann bitte zuerst <a href="{{ signup_url }}">ein Konto erstellen</a>.</p>
+            <p>{% blocktrans trimmed %}
+              No account yet? <a href="{{ signup_url }}">Signup for an account</a>.
+              {% endblocktrans %}
+            </p>
             <form method="post">
               {% csrf_token %}
               {{ form|crispy }}

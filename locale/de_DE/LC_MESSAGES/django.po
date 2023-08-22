@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 13:17+0200\n"
+"POT-Creation-Date: 2023-08-21 15:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: bakeup/pages/blocks.py:122
 msgid "Page"
@@ -64,7 +63,7 @@ msgstr ""
 
 #: bakeup/pages/blocks.py:302
 msgid "Production Days"
-msgstr "Backtage"
+msgstr ""
 
 #: bakeup/pages/blocks.py:321
 msgid "Product Assortment"
@@ -72,7 +71,7 @@ msgstr ""
 
 #: bakeup/pages/models.py:46
 msgid "No production days planned"
-msgstr "Keine Backtage geplant"
+msgstr ""
 
 #: bakeup/pages/wagtail_hooks.py:30 bakeup/pages/wagtail_hooks.py:34
 msgid "Abo"
@@ -80,25 +79,23 @@ msgstr ""
 
 #: bakeup/shop/models.py:502
 msgid "running"
-msgstr "aktiv"
+msgstr ""
 
 #: bakeup/shop/models.py:503
 msgid "finished"
-msgstr "beendet"
+msgstr ""
 
 #: bakeup/shop/urls.py:30
 msgid "orders/"
-msgstr "bestellungen/"
+msgstr ""
 
 #: bakeup/shop/urls.py:31
 msgid "order-templates/positions/<int:pk>/delete/"
 msgstr ""
 
 #: bakeup/shop/urls.py:32
-#, fuzzy
-#| msgid "order-templates/"
 msgid "order-templates/<int:pk>/delete/"
-msgstr "abos/"
+msgstr ""
 
 #: bakeup/shop/urls.py:33
 msgid "order-templates/positions/<int:pk>/update/"
@@ -106,19 +103,19 @@ msgstr ""
 
 #: bakeup/shop/urls.py:34
 msgid "order-templates/"
-msgstr "abos/"
+msgstr ""
 
 #: bakeup/shop/urls.py:36
 msgid "login/"
-msgstr "anmelden/"
+msgstr ""
 
 #: bakeup/shop/urls.py:37
 msgid "signup/"
-msgstr "registrieren/"
+msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:19
 msgid "Confirm E-mail Address"
-msgstr ""
+msgstr "E-Mail-Adresse bestätigen"
 
 #: bakeup/templates/account/email_confirm.html:25
 #, python-format
@@ -138,9 +135,14 @@ msgid ""
 "\"%(email_url)s\">issue a new e-mail confirmation request</a>."
 msgstr ""
 
-#: bakeup/templates/account/login.html:23
+#: bakeup/templates/account/login.html:19
+#, python-format
+msgid "No account yet? <a href=\"%(signup_url)s\">Signup for an account</a>."
+msgstr "Hast du noch kein Konto? Dann bitte zuerst <a href=\"%(signup_url)s\">ein Konto erstellen</a>."
+
+#: bakeup/templates/account/login.html:26
 #: bakeup/templates/account/password_change.html:25
-#: bakeup/templates/users/user_profile.html:48
+#: bakeup/templates/users/user_profile.html:50
 msgid "Forgot Password?"
 msgstr ""
 
@@ -150,8 +152,8 @@ msgstr ""
 #: bakeup/templates/account/password_reset_from_key.html:6
 #: bakeup/templates/account/password_reset_from_key.html:19
 #: bakeup/templates/account/password_reset_from_key_done.html:6
-#: bakeup/templates/users/user_profile.html:42
-#: bakeup/templates/users/user_profile.html:47
+#: bakeup/templates/users/user_profile.html:44
+#: bakeup/templates/users/user_profile.html:49
 msgid "Change Password"
 msgstr ""
 
@@ -211,20 +213,51 @@ msgstr ""
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr ""
+msgstr "Du hast bereits ein Konto bei uns? Dann bitte <a href=\"%(login_url)s\">hier entlang</a>."
 
 #: bakeup/templates/account/verification_sent.html:6
 #: bakeup/templates/account/verification_sent.html:19
 msgid "Verify Your E-mail Address"
-msgstr ""
+msgstr "E-Mail-Adresse verfifizieren"
 
 #: bakeup/templates/registration/token.html:12
 msgid "Welcome to"
 msgstr ""
 
+#: bakeup/templates/shop/customer_order_template_delete.html:11
+#: bakeup/templates/shop/customer_order_template_position_delete.html:11
+msgid "Do you really want to cancel the subscription?"
+msgstr "Willst du das folgende Abo kündigen?"
+
+#: bakeup/templates/shop/includes/basket.html:5
+msgid "The basket is empty"
+msgstr "Dein Brotkorb ist leer."
+
+#: bakeup/templates/shop/includes/basket.html:20
+#, python-format
+msgid "You ordered <strong>%(total_quantity)s</strong> product."
+msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
+msgstr[0] "Du hast <strong>%(total_quantity)s</strong> Brot bestellt."
+msgstr[1] "Du hast <strong>%(total_quantity)s</strong> Brote bestellt."
+
+#: bakeup/templates/shop/includes/checkout.html:57
+msgid "You already have a subscription for this product."
+msgstr "Du hast dieses Produkt bereits abonniert."
+
 #: bakeup/templates/shop/includes/main_menu.html:13
 msgid "Workshop"
 msgstr ""
+
+#: bakeup/templates/shop/includes/production_day_order.html:43
+#, python-format
+msgid ""
+"You need to be <a href=\"%(login_url)s\" class=\"text-white fw-bold\">logged "
+"in</a> or <a href=\"%(signup_url)s\" class=\"text-white fw-bold\">signup</a> "
+"for an account before you can order something."
+msgstr ""
+"Um bestellen zu können musst du dich zuerst <a href=\"%(login_url)s\" class="
+"\"text-white fw-bold\">anmelden</a> oder <a href=\"%(signup_url)s\" class="
+"\"text-white fw-bold\">registrieren</a>."
 
 #: bakeup/templates/shop/weekly.html:9
 msgid "Shop"
@@ -248,7 +281,19 @@ msgstr ""
 
 #: bakeup/templates/users/user_profile.html:9
 msgid "Here you can update your personal data, e-mail address and password."
-msgstr "Hier kannst du deine persönlichen Daten, E-Mail Adresse und dein Passwort aktualisieren."
+msgstr "Hier kannst du deine persönlichen Daten, E-Mail-Adresse und dein Passwort "
+"aktualisieren."
+
+#: bakeup/templates/users/user_profile.html:29
+#, python-format
+msgid ""
+"Currently <strong>%(email)s</strong> is stored in your account. You can add "
+"a new email address by entering the new email address in the following form "
+"and confirming it afterwards."
+msgstr ""
+"Aktuell ist <strong>%(email)s</strong> in deinem Account hinterlegt. Du "
+"kannst eine neue E-Mail-Adresse hinzufügen in dem du in dem folgenden "
+"Formular die neue E-Mail-Adresse eingibst und anschließend bestätigst."
 
 #: bakeup/templates/workshop/includes/production_plan_item.html:13
 #: bakeup/templates/workshop/includes/production_plan_item.html:14
@@ -302,6 +347,3 @@ msgstr ""
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
 msgstr ""
-
-#~ msgid "products/"
-#~ msgstr "sortiment/"

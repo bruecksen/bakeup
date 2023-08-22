@@ -1,8 +1,8 @@
-{% load shop_tags %}
+{% load shop_tags i18n %}
 <div id="basket" class="card bg-primary text-white mb-4{% if current_customer_order %} has-order{% endif %}">
     <div class="card-body">
         <div class="empty{% if current_customer_order %} d-none{% endif %}">
-            <h4 class="card-title hyphens-auto mb-0">Dein Brotkorb ist leer.</h4>
+            <h4 class="card-title hyphens-auto mb-0">{% trans 'The basket is empty' %}</h4>
         </div>
         <div class="summary d-none">
             <h4 class="card-title hyphens-auto plural"><span class="qty fw-bold"></span> Brote im Brotkorb</h4>
@@ -16,7 +16,12 @@
             </a>
         </div>
         <div class="current-order{% if not current_customer_order %} d-none{% endif %}">
-            <h4 class="">Du hast <strong>{{ current_customer_order.total_quantity }}</strong> Brot{{ current_customer_order.total_quantity|pluralize:'e' }} bestellt</h4>
+            <h4 class="">
+                {% blocktrans trimmed count total_quantity=current_customer_order.total_quantity|default:0 %}
+                You ordered <strong>{{ total_quantity }}</strong> product.
+                {% plural %}
+                You ordered <strong>{{ total_quantity }}</strong> products.
+                {% endblocktrans %}</h4>
             <a class="btn btn-white fw-bold" data-bs-toggle="modal" data-bs-target=".modal-checkout">Bestellung anzeigen</a>
         </div>
     </div>
