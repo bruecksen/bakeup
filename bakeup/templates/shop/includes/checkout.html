@@ -55,8 +55,11 @@
                             </td>
                             <td>
                                 {% if product.has_abo %}
-                                
-                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                    {% if product.abo_qty %}
+                                        <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ position.customer_order_template_positions.first.quantity }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product.abo_qty }}x</span></a>
+                                    {% else %}
+                                        <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                    {% endif %}
                                 {% elif product.product.is_open_for_abo %}
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
@@ -98,6 +101,9 @@
                         {% endif %}
                     </tbody>
                 </table>
+                <div class="alert alert-warning message-empty-checkout d-none" role="alert">
+                    {% trans 'Currently no products selected.' %}
+                  </div>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">

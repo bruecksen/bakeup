@@ -30,6 +30,7 @@ class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 @admin.register(ProductionPlan)
 class ProductionPlanAdmin(ExcludeAdminMixin, admin.ModelAdmin):
     list_display = ('parent_plan', 'product', 'start_date', 'quantity')
+    list_filter = ('state', 'production_day')
 
 @admin.register(ProductMapping)
 class ProductionPlanAdmin(ExcludeAdminMixin, admin.ModelAdmin):
