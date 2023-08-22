@@ -38,7 +38,12 @@
                     <div class="card bg-primary text-white mb-3">
                         <div class="card-body">
                             <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>
-                            <p class="mb-0">Um bestellen zu können musst du dich zuerst <a href="{% url 'shop:login' %}" class="text-white fw-bold">anmelden</a> oder <a href="{% url 'shop:signup' %}" class="text-white fw-bold">registrieren</a>.</p>
+                            {% url 'shop:login' as login_url %}
+                            {% url 'shop:signup' as signup_url %}
+                            <p class="mb-0">{% blocktrans trimmed %}
+                                You need to be <a href="{{login_url}}" class="text-white fw-bold">logged in</a> or <a href="{{signup_url}}" class="text-white fw-bold">signup</a> for an account before you can order something.
+                                {% endblocktrans %}
+                            </p>
                         </div>
                     </div>
                     {% endif %}

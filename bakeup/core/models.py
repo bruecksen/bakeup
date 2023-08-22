@@ -3,6 +3,7 @@ from django.db import models
 from django.urls import reverse
 from django.db.models.enums import TextChoices
 from django.template.loader import render_to_string
+from django.conf import settings
 
 from django_tenants.models import TenantMixin, DomainMixin
 
@@ -78,6 +79,7 @@ class ClientSetting(models.Model):
     show_full_name_delivery_bill = models.BooleanField(default=True)
     show_remaining_products = models.BooleanField(default=False)
     user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)
+    language_default = models.CharField(max_length=12, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE)
     
 
 class ClientInfo(models.Model):

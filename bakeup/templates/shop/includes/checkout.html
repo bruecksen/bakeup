@@ -57,7 +57,7 @@
                             <td>
                                 {% if product.has_abo %}
                                 
-                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt bereits abonniert."><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
                                 {% elif product.product.is_open_for_abo %}
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
