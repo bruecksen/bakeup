@@ -12600,8 +12600,16 @@ body {
   z-index: 1000;
 }
 
-.handwriting {
+.font-handwriting {
   font-family: "Kaushan Script";
+}
+
+.font-quattrocento {
+  font-family: "Quattrocento";
+}
+
+.font-sans-serif {
+  font-family: sans-serif;
 }
 
 .cart-badge {
