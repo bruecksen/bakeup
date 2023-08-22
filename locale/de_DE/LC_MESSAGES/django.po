@@ -115,7 +115,7 @@ msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:19
 msgid "Confirm E-mail Address"
-msgstr ""
+msgstr "E-Mail-Adresse bestätigen"
 
 #: bakeup/templates/account/email_confirm.html:25
 #, python-format
@@ -218,7 +218,7 @@ msgstr "Du hast bereits ein Konto bei uns? Dann bitte <a href=\"%(login_url)s\">
 #: bakeup/templates/account/verification_sent.html:6
 #: bakeup/templates/account/verification_sent.html:19
 msgid "Verify Your E-mail Address"
-msgstr ""
+msgstr "E-Mail-Adresse verfifizieren"
 
 #: bakeup/templates/registration/token.html:12
 msgid "Welcome to"
@@ -237,8 +237,8 @@ msgstr "Dein Brotkorb ist leer."
 #, python-format
 msgid "You ordered <strong>%(total_quantity)s</strong> product."
 msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
-msgstr[0] "Du hast <strong>%(total_quantity)s</strong> Gebäck bestellt."
-msgstr[1] "Du hast <strong>%(total_quantity)s</strong> Gebäcke bestellt."
+msgstr[0] "Du hast <strong>%(total_quantity)s</strong> Brot bestellt."
+msgstr[1] "Du hast <strong>%(total_quantity)s</strong> Brote bestellt."
 
 #: bakeup/templates/shop/includes/checkout.html:57
 msgid "You already have a subscription for this product."
@@ -281,7 +281,8 @@ msgstr ""
 
 #: bakeup/templates/users/user_profile.html:9
 msgid "Here you can update your personal data, e-mail address and password."
-msgstr ""
+msgstr "Hier kannst du deine persönlichen Daten, E-Mail-Adresse und dein Passwort "
+"aktualisieren."
 
 #: bakeup/templates/users/user_profile.html:29
 #, python-format
@@ -291,8 +292,8 @@ msgid ""
 "and confirming it afterwards."
 msgstr ""
 "Aktuell ist <strong>%(email)s</strong> in deinem Account hinterlegt. Du "
-"kannst eine neue E-Mail Adresse hinzufügen in dem du in dem folgenden "
-"Formular die neue E-Mail Adresse eingibst und anschließend bestätigst."
+"kannst eine neue E-Mail-Adresse hinzufügen in dem du in dem folgenden "
+"Formular die neue E-Mail-Adresse eingibst und anschließend bestätigst."
 
 #: bakeup/templates/workshop/includes/production_plan_item.html:13
 #: bakeup/templates/workshop/includes/production_plan_item.html:14
