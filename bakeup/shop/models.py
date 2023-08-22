@@ -306,7 +306,7 @@ class CustomerOrder(CommonBaseClass):
         return "{} {}".format(self.production_day, self.customer)
     
     def get_order_positions_string(self):
-        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
+        return "\n".join(["{}x {}".format(position.quantity, position.product.get_display_name()) for position in self.positions.all()])
     
     @property
     def total_quantity(self):

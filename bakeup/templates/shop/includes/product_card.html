@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="card-body">
-            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.name }} 
+            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.get_display_name }} 
                 <span class="small text-muted fw-normal">{{ production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.product.unit}}</span>
             </h2>
             <p>{{ production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
