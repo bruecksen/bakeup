@@ -146,10 +146,14 @@ class GeneralSettings(BaseGenericSetting):
         SANS_SERIF = "font-sans-serif", "Sans Serif"
     abo_menu_item = models.CharField(max_length=13, default=Visibility.AUTOMATICALLY, choices=Visibility.choices, help_text="Soll der Abo Menüpunkt angezeigt werden?")
     brand_font = models.CharField(max_length=17, default=FontStyle.HANDWRITING, choices=FontStyle.choices, help_text="Welche Schriftart soll der brand name in der Mobilen ansicht haben?")
+    brand_uppercase = models.BooleanField(default=False, help_text="Brand name in Großbuchstaben")
 
     panels = [
         FieldPanel('abo_menu_item'),
-        FieldPanel('brand_font'),
+        MultiFieldPanel([
+            FieldPanel('brand_font'),
+            FieldPanel('brand_uppercase'),
+        ], heading='Brand name')
     ]
     class Meta:
         verbose_name = "General settings"
