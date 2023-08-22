@@ -140,10 +140,16 @@ class GeneralSettings(BaseGenericSetting):
         NEVER = "never", "Never"
         ALWAYS = "always", "Always"
         AUTOMATICALLY = "automatically", "Automatically"
+    class FontStyle(models.TextChoices):
+        HANDWRITING = "font-handwriting", "Handwriting"
+        SERIF = "font-quattrocento", "Serif (quattrocento)"
+        SANS_SERIF = "font-sans-serif", "Sans Serif"
     abo_menu_item = models.CharField(max_length=13, default=Visibility.AUTOMATICALLY, choices=Visibility.choices, help_text="Soll der Abo Menüpunkt angezeigt werden?")
-    
+    brand_font = models.CharField(max_length=17, default=FontStyle.HANDWRITING, choices=FontStyle.choices, help_text="Welche Schriftart soll der brand name in der Mobilen ansicht haben?")
+
     panels = [
         FieldPanel('abo_menu_item'),
+        FieldPanel('brand_font'),
     ]
     class Meta:
         verbose_name = "General settings"
