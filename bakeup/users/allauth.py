@@ -65,8 +65,7 @@ class AccountAdapter(DefaultAccountAdapter):
                     context,
                     self.request,
                 ).strip()
-                if email_settings.email_footer:
-                    bodies[ext] = bodies[ext] + "\n\n" + email_settings.email_footer
+                bodies[ext] = email_settings.get_body_with_footer(bodies[ext])
             except TemplateDoesNotExist:
                 if ext == "txt" and not bodies:
                     # We need at least one body
@@ -87,8 +86,7 @@ class AccountAdapter(DefaultAccountAdapter):
         email_settings = EmailSettings.load(request_or_site=self.request)
         prefix = ''
         if email_settings.email_subject_prefix:
-            prefix = email_settings.email_subject_prefix
-
+            prefix = email_settings.get_subject_with_prefix(subject)
             t = Template(prefix)
             prefix = t.render(Context({'site_name': self.request.tenant.name}))
             return prefix + ' ' + force_str(subject)

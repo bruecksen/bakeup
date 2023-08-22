@@ -111,10 +111,11 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   
   source.addEventListener('input', function() {
     var sourceValue = source.value;
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*production_day\\s*\\}\\}","g"), '16.03.2023');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*site_name\\s*\\}\\}","g"), '{{ request.tenant.name|safe }}');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order\\s*\\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order_count\\s*\\}\\}","g"), '4');
     target.value = sourceValue;
   });
   source.dispatchEvent(new Event('input'));
@@ -123,10 +124,11 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   
   source2.addEventListener('input', function() {
     var sourceValue = source2.value;
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ user \\}\\}","g"), 'Manu Musteruser');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ production_day \\}\\}","g"), '16.03.2023');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ client \\}\\}","g"), '{{ request.tenant.name|safe }}');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{ order \\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*production_day\\s*\\}\\}","g"), '16.03.2023');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*site_name\\s*\\}\\}","g"), '{{ request.tenant.name|safe }}');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order\\s*\\}\\}","g"), '1 x Hasenbrot \n2 x Baguette \n1 x Roggenmisch');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order_count\\s*\\}\\}","g"), '4');
     target2.value = sourceValue;
   });
   source2.dispatchEvent(new Event('input'));

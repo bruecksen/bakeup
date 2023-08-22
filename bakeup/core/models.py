@@ -92,6 +92,8 @@ class ClientInfo(models.Model):
 def get_production_day_reminder_body():
     return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}'})
 
+
+# TODO delete model after deployment, deprecated
 class ClientEmailTemplate(models.Model):
     client = models.OneToOneField('Client', on_delete=models.CASCADE)
     production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024)

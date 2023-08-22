@@ -189,6 +189,8 @@ def get_production_day_reminder_body():
 class EmailSettings(BaseGenericSetting):
     email_subject_prefix = models.CharField(max_length=1024, default="[{{site_name}}]", help_text="E-Mail-Betreff Präfix, kann {{site_name}} enthalten.")
     email_footer = models.TextField(blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt.")
+    send_email_order_confirm = models.BooleanField(default=False, help_text='Soll eine Bestellbestätigungsmail versendet werden?', verbose_name='Bestellbestätigung versenden?')
+    email_order_confirm_subject = models.CharField(default='Vielen Dank für Deine Bestellung', max_length=1024, help_text="Betreff kann {{production_day}}, {{order_count}} enthalten.")
     email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{asdf}}")
     production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024, help_text="Betreff kann {{production_day}}, {{order_count}} enthalten.")
     production_day_reminder_body = models.TextField(default=get_production_day_reminder_body)
@@ -197,11 +199,27 @@ class EmailSettings(BaseGenericSetting):
     panels = [
         FieldPanel('email_subject_prefix'),
         FieldPanel('email_footer'),
-        FieldPanel('email_order_confirm'),
+        MultiFieldPanel([
+            FieldPanel('send_email_order_confirm'),
+            FieldPanel('email_order_confirm_subject'),
+            FieldPanel('email_order_confirm'),
+        ], heading='Bestellbestätigung'),
         MultiFieldPanel([
             FieldPanel('production_day_reminder_subject'),
             FieldPanel('production_day_reminder_body'),
-        ], heading='Produktionstag Erinnerungs-E-Mail')
+        ], heading='Bestellerinnerung')
     ]
     class Meta:
         verbose_name = "E-Mail settings"
+
+    def get_subject_with_prefix(self, subject):
+        if self.email_subject_prefix:
+            return "{} {}".format(self.email_subject_prefix, subject)
+        else:
+            return subject
+
+    def get_body_with_footer(self, body):
+        if self.email_footer:
+            return "{}\n\n{}".format(body, self.email_footer)
+        else:
+            return body

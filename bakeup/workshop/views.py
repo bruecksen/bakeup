@@ -44,6 +44,7 @@ from bakeup.workshop.models import Category, Product, ProductHierarchy, Producti
 from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
+from bakeup.pages.models import EmailSettings
 
 
 class WorkshopView(StaffPermissionsMixin, TemplateView):
@@ -740,11 +741,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
 
     def get_initial(self):
         initial = super().get_initial()
-        if not self.object and hasattr(self.request.tenant, 'clientemailtemplate'):
-            email_template = self.request.tenant.clientemailtemplate
+        email_settings = EmailSettings.load(request_or_site=self.request)
+        if not self.object:
             initial.update({
-                'subject': email_template.production_day_reminder_subject,
-                'body': email_template.production_day_reminder_body,
+                'subject': email_settings.get_subject_with_prefix(email_settings.production_day_reminder_subject),
+                'body': email_settings.get_body_with_footer(email_settings.production_day_reminder_body),
             })
         initial['production_day'] = self.production_day
         return initial
