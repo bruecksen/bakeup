@@ -73,11 +73,7 @@ class PersistentFiltersMiddleware:
 
 class LocaleMiddleware(MiddlewareMixin):
     """
-    This is a very simple middleware that parses a request
-    and decides what translation object to install in the current
-    thread context. This allows pages to be dynamically
-    translated to the language the user desires (if the language
-    is available, of course).
+    This is a very simple middleware that sets the language to the language that is defined in the client settings.
     """
 
     def process_request(self, request):
