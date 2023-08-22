@@ -321,7 +321,7 @@ class CustomerOrder(CommonBaseClass):
         return "{} {}".format(self.production_day, self.customer)
     
     def get_order_positions_string(self):
-        return "\n".join(["{}x {}".format(position.quantity, position.product) for position in self.positions.all()])
+        return "\n".join(["{}x {}".format(position.quantity, position.product.get_display_name()) for position in self.positions.all()])
     
     @property
     def price_total(self):
@@ -341,7 +341,7 @@ class CustomerOrder(CommonBaseClass):
     
     @property
     def is_locked(self):
-        return not self.positions.filter(production_plan__state=0).exists()
+        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
 
     @property
     def order_nr(self):
@@ -422,11 +422,20 @@ class CustomerOrder(CommonBaseClass):
     def get_production_day_products_ordered_list(self):
         production_day_products = self.production_day.production_day_products.published()
         production_day_products = production_day_products.annotate(
-            ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+            ordered_quantity=Subquery(self.positions.filter(Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),).values("quantity"))
+        ).annotate(
+                price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
         ).annotate(
                 price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
         ).annotate(
             has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
+        ).annotate(
+            abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                orders__order__pk=self.pk,
+                orders__order__customer=self.customer,
+                ).values("quantity")
+            )
         )
         return production_day_products
 

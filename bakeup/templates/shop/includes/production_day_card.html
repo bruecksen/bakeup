@@ -39,7 +39,7 @@
     <div class="card-body pb-0">
         <h2 class="card-title fw-bold">{{ production_day.day_of_sale|date:'d.m.Y' }}</h2>
         <p>{{ production_day.description|safe|linebreaksbr|urlize }}</p>
-        {% for product in production_day.production_day_products.published.all %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product }}</span>{% endfor %}
+        {% for product in production_day.production_day_products.published.all %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product.get_display_name }}</span>{% endfor %}
     </div>
     <div class="card-footer">
         <div class="d-grid">

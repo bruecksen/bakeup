@@ -25,7 +25,7 @@
                         {% for position in order.positions.all %}
                             <tr>
                             <td>{{ position.quantity }}x</td>
-                            <td>{{ position.product }}</td>
+                            <td>{{ position.product.get_display_name }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

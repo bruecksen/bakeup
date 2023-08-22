@@ -39,23 +39,9 @@ LOCALE_PATHS = [str(ROOT_DIR / "locale")]
 
 LANGUAGES = [
     ('de', 'Deutsch'),
-    ('de-FL', 'Deutsch formal'),
+    ('de-DE@formal', 'Deutsch formal'),
     ('en', 'Englisch'),
 ]
-
-EXTRA_LANG_INFO = {
-    'de_FL': {
-        'bidi': False,
-        'code': 'de',
-        'name': 'German',
-        'name_local': 'Deutsch',
-    },
-}
-
-# Add custom languages not provided by Django
-import django.conf.locale
-LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
-django.conf.locale.LANG_INFO = LANG_INFO
 
 # DATABASES
 # ------------------------------------------------------------------------------
