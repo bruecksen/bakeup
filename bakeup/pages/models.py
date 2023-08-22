@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
 from django.db.models import OuterRef, Subquery
 from django.db.models import Case, When, Value, IntegerField, Exists
+from django.template.loader import render_to_string
 
 from wagtail import blocks
 from wagtail.models import Page
@@ -180,15 +181,27 @@ class CheckoutSettings(BaseGenericSetting):
         verbose_name = "Checkout settings"
 
 
+def get_production_day_reminder_body():
+    return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}'})
+
+
 @register_setting(icon='mail')
 class EmailSettings(BaseGenericSetting):
+    email_subject_prefix = models.CharField(max_length=1024, default="[{{site_name}}]", help_text="E-Mail-Betreff Präfix, kann {{site_name}} enthalten.")
     email_footer = models.TextField(blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt.")
     email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{asdf}}")
+    production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024, help_text="Betreff kann {{production_day}}, {{order_count}} enthalten.")
+    production_day_reminder_body = models.TextField(default=get_production_day_reminder_body)
 
 
     panels = [
+        FieldPanel('email_subject_prefix'),
         FieldPanel('email_footer'),
         FieldPanel('email_order_confirm'),
+        MultiFieldPanel([
+            FieldPanel('production_day_reminder_subject'),
+            FieldPanel('production_day_reminder_body'),
+        ], heading='Produktionstag Erinnerungs-E-Mail')
     ]
     class Meta:
         verbose_name = "E-Mail settings"

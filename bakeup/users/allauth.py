@@ -1,6 +1,7 @@
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
+from django.template import Template, Context
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives
@@ -83,8 +84,12 @@ class AccountAdapter(DefaultAccountAdapter):
     
 
     def format_email_subject(self, subject):
-        prefix = self.request.tenant.clientsetting.email_subject_prefix
-        if prefix is None:
-            site = get_current_site(self.request)
-            prefix = "[{name}] ".format(name=site.name)
-        return prefix + force_str(subject)
+        email_settings = EmailSettings.load(request_or_site=self.request)
+        prefix = ''
+        if email_settings.email_subject_prefix:
+            prefix = email_settings.email_subject_prefix
+
+            t = Template(prefix)
+            prefix = t.render(Context({'site_name': self.request.tenant.name}))
+            return prefix + ' ' + force_str(subject)
+        return force_str(subject)
