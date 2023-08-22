@@ -1,8 +1,12 @@
+from django.utils import translation
 from django.conf import settings
 from django.db import connection
 from django_tenants.utils import get_public_schema_name, get_tenant_model
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
+from django.utils.deprecation import MiddlewareMixin
+
+from django.middleware.locale import LocaleMiddleware as _LocaleMiddleware
 
 
 class TenantSettingsMiddleware:
@@ -62,4 +66,26 @@ class PersistentFiltersMiddleware:
             redirect_to = request.path + '?' + request.COOKIES.get('filters{}'.format(path.replace('/', '_')))
             return HttpResponseRedirect(redirect_to)
 
+        return response
+
+
+
+
+class LocaleMiddleware(MiddlewareMixin):
+    """
+    This is a very simple middleware that parses a request
+    and decides what translation object to install in the current
+    thread context. This allows pages to be dynamically
+    translated to the language the user desires (if the language
+    is available, of course).
+    """
+
+    def process_request(self, request):
+        current_schema_obj = get_tenant_model().objects.get(schema_name=connection.schema_name)
+        if hasattr(current_schema_obj, 'clientsetting'):
+            translation.activate(current_schema_obj.clientsetting.language_default)
+            request.LANGUAGE_CODE = translation.get_language()
+
+    def process_response(self, request, response):
+        translation.deactivate()
         return response
