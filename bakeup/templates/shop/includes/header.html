@@ -5,9 +5,9 @@
       <div class="container">
         {% if settings.pages.BrandSettings.logo %}
         {% include "includes/logo.html" with logo_size='small' client_logo=settings.pages.BrandSettings.logo %}
-        <a href="/shop/" class="navbar-brand me-0 text-white {{ settings.pages.GeneralSettings.brand_font }} fs-3 d-lg-none">{{ request.tenant.name }}</a>
+        <a href="/shop/" class="navbar-brand me-0 text-white {{ settings.pages.GeneralSettings.brand_font }}{% if settings.pages.GeneralSettings.brand_uppercase %} text-uppercase{% endif %}  fs-3 d-lg-none">{{ request.tenant.name }}</a>
         {% else %}
-        <a href="/shop/" class="navbar-brand me-lg-4 text-white {{ settings.pages.GeneralSettings.brand_font }} fs-3 me-auto">{{ request.tenant.name }}</a>{% endif %}
+        <a href="/shop/" class="navbar-brand me-lg-4 text-white {{ settings.pages.GeneralSettings.brand_font }}{% if settings.pages.GeneralSettings.brand_uppercase %} text-uppercase{% endif %} fs-3 me-auto">{{ request.tenant.name }}</a>{% endif %}
         <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <i class="fa-solid fa-bars fs-2 fa-fw"></i>
           <i class="fa-solid fa-times fs-2 fa-fw"></i>
