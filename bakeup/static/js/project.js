@@ -143,19 +143,12 @@ function setTotalPrice(modal) {
         }
     });
     if (totalBasketPrice > 0) {
-<<<<<<< HEAD
-        modal.find('.price-total').show();
-        modal.find('.price-total span').html(totalBasketPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
-    } else {
-        modal.find('.price-total').hide();
-=======
         modal.find('.price').removeClass('d-none');
         modal.find('.price').addClass('table-row');
         modal.find('.price-total span').html(totalBasketPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
     } else {
         modal.find('.price').addClass('d-none');
         modal.find('.price').removeClass('table-row');
->>>>>>> feature-262-add-prices
         modal.find('.price-total span').html();
     }
     console.log('TOTAL BASKET PRICE: ', totalBasketPrice);
@@ -220,10 +213,6 @@ function setTotalBasketQuantity(modal) {
 }
 
 function updateProduct(product, qty, maintainOrderedQty) {
-<<<<<<< HEAD
-    console.log('qty', qty);
-=======
->>>>>>> feature-262-add-prices
     qty = parseInt(qty);
     console.log('qty', qty);
     var basket = $('#basket');
@@ -233,11 +222,7 @@ function updateProduct(product, qty, maintainOrderedQty) {
     var row = $("tr[data-product='" + product + "']");
     var orderedQuantity = row.data('ordered-quantity');
     // set current product basket qty
-<<<<<<< HEAD
-    row.data('basket-quantity', qty);
-=======
     row.data('basket-quantity', Math.max(0, qty));
->>>>>>> feature-262-add-prices
     if (maintainOrderedQty) {
         qty = orderedQuantity + qty;
     }
@@ -247,32 +232,21 @@ function updateProduct(product, qty, maintainOrderedQty) {
         row.css('display', '');
         row.removeClass('d-none');
         row.addClass('table-row');
-<<<<<<< HEAD
-    } else if (qty == 0) {
-        row.addClass('d-none');
-        row.removeClass('table-row');
-    }
-=======
     }
     //  else if (qty == 0) {
     //     row.addClass('d-none');
     //     row.removeClass('table-row');
     // }
->>>>>>> feature-262-add-prices
     var productPrice = row.data('product-price');
     if (productPrice) {
         productPrice = parseFloat(productPrice);
         productPrice = qty * productPrice;
         // productPrice = parseFloat((+productPrice).toFixed(2));
-<<<<<<< HEAD
-        row.find('.sale-price').removeClass('d-none').find('.price').html(productPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
-=======
         if (productPrice > 0 ) {
             row.find('.sale-price').removeClass('d-none').find('.price').html(productPrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }));
         } else {
             row.find('.sale-price').addClass('d-none');
         }
->>>>>>> feature-262-add-prices
     }
     // basket.removeClass('d-none');
 }
@@ -362,11 +336,7 @@ $(function(){
     if ($('.modal-checkout').length == 1) {
         $('.modal-checkout').on('hide.bs.modal', event => {
             // console.log('hide', $('.modal-checkout form input[type="reset"]'));
-<<<<<<< HEAD
-            // $('.modal-checkout form input[type="reset"]').click();
-=======
             $('.modal-checkout form input[type="reset"]').click();
->>>>>>> feature-262-add-prices
           })
         console.log('checkout exists');
         $('header .shopping-basket').addClass('d-lg-block');
