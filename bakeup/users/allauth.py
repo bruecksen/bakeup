@@ -1,8 +1,13 @@
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
+from django.template import TemplateDoesNotExist
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 from allauth.account.adapter import DefaultAccountAdapter
+
+from bakeup.pages.models import EmailSettings
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -35,6 +40,47 @@ class AccountAdapter(DefaultAccountAdapter):
         else:
             email_template = "account/email/email_confirmation"
         self.send_mail(email_template, emailconfirmation.email_address.email, ctx)
+
+    def render_mail(self, template_prefix, email, context, headers=None):
+        """
+        Renders an email to `email`.  `template_prefix` identifies the
+        email that is to be sent, e.g. "account/email/email_confirmation"
+        """
+        to = [email] if isinstance(email, str) else email
+        subject = render_to_string("{0}_subject.txt".format(template_prefix), context)
+        # remove superfluous line breaks
+        subject = " ".join(subject.splitlines()).strip()
+        subject = self.format_email_subject(subject)
+
+        from_email = self.get_from_email()
+        email_settings = EmailSettings.load(request_or_site=self.request)
+
+        bodies = {}
+        for ext in ["html", "txt"]:
+            try:
+                template_name = "{0}_message.{1}".format(template_prefix, ext)
+                bodies[ext] = render_to_string(
+                    template_name,
+                    context,
+                    self.request,
+                ).strip()
+                if email_settings.email_footer:
+                    bodies[ext] = bodies[ext] + "\n\n" + email_settings.email_footer
+            except TemplateDoesNotExist:
+                if ext == "txt" and not bodies:
+                    # We need at least one body
+                    raise
+        if "txt" in bodies:
+            msg = EmailMultiAlternatives(
+                subject, bodies["txt"], from_email, to, headers=headers
+            )
+            if "html" in bodies:
+                msg.attach_alternative(bodies["html"], "text/html")
+        else:
+            msg = EmailMessage(subject, bodies["html"], from_email, to, headers=headers)
+            msg.content_subtype = "html"  # Main content is now text/html
+        return msg
+    
 
     def format_email_subject(self, subject):
         prefix = self.request.tenant.clientsetting.email_subject_prefix

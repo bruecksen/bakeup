@@ -179,3 +179,16 @@ class CheckoutSettings(BaseGenericSetting):
     class Meta:
         verbose_name = "Checkout settings"
 
+
+@register_setting(icon='mail')
+class EmailSettings(BaseGenericSetting):
+    email_footer = models.TextField(blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt.")
+    email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{asdf}}")
+
+
+    panels = [
+        FieldPanel('email_footer'),
+        FieldPanel('email_order_confirm'),
+    ]
+    class Meta:
+        verbose_name = "E-Mail settings"
