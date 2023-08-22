@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 15:00+0200\n"
+"POT-Creation-Date: 2023-08-22 15:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -138,7 +138,9 @@ msgstr ""
 #: bakeup/templates/account/login.html:19
 #, python-format
 msgid "No account yet? <a href=\"%(signup_url)s\">Signup for an account</a>."
-msgstr "Haben Sie noch kein Konto? Dann bitte zuerst <a href=\"%(signup_url)s\">ein Konto erstellen</a>."
+msgstr ""
+"Haben Sie noch kein Konto? Dann bitte zuerst <a href=\"%(signup_url)s\">ein "
+"Konto erstellen</a>."
 
 #: bakeup/templates/account/login.html:26
 #: bakeup/templates/account/password_change.html:25
@@ -168,7 +170,9 @@ msgstr ""
 msgid ""
 "Forgotten your password? Enter your e-mail address below, and we'll send you "
 "an e-mail allowing you to reset it."
-msgstr "Passwort vergessen? Geben Sie Ihre E-Mail-Adresse unten ein, dann schicken wir Ihnen einen Link, unter dem Sie Ihr Passwort zurücksetzen können."
+msgstr ""
+"Passwort vergessen? Geben Sie Ihre E-Mail-Adresse unten ein, dann schicken "
+"wir Ihnen einen Link, unter dem Sie Ihr Passwort zurücksetzen können."
 
 #: bakeup/templates/account/password_reset.html:29
 msgid "Reset My Password"
@@ -213,7 +217,9 @@ msgstr ""
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
-msgstr "Sie haben bereits ein Konto bei uns? Dann bitte <a href=\"%(login_url)s\">hier entlang</a>."
+msgstr ""
+"Sie haben bereits ein Konto bei uns? Dann bitte <a href=\"%(login_url)s"
+"\">hier entlang</a>."
 
 #: bakeup/templates/account/verification_sent.html:6
 #: bakeup/templates/account/verification_sent.html:19
@@ -235,10 +241,16 @@ msgstr "Ihr Brotkorb ist leer."
 
 #: bakeup/templates/shop/includes/basket.html:20
 #, python-format
-msgid "You ordered <strong>%(total_quantity)s</strong> product."
-msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
-msgstr[0] "Sie haben <strong>%(total_quantity)s</strong> Brot bestellt."
-msgstr[1] "Sie haben <strong>%(total_quantity)s</strong> Brote bestellt."
+msgid ""
+"You <a class=\"text-white\" data-bs-toggle=\"modal\" data-bs-target=\".modal-"
+"checkout\">ordered <strong>%(total_quantity)s</strong> product</a>."
+msgid_plural ""
+"You <a class=\"text-white\" data-bs-toggle=\"modal\" data-bs-target=\".modal-"
+"checkout\">ordered <strong>%(total_quantity)s</strong> products</a>."
+msgstr[0] "Sie haben <a class=\"text-white\" data-bs-toggle=\"modal\" data-bs-target=\".modal-"
+"checkout\"><strong>%(total_quantity)s</strong> Brot bestellt</a>."
+msgstr[1] "Sie haben <a class=\"text-white\" data-bs-toggle=\"modal\" data-bs-target=\".modal-"
+"checkout\"><strong>%(total_quantity)s</strong> Brote bestellt</a>."
 
 #: bakeup/templates/shop/includes/checkout.html:57
 msgid "You already have a subscription for this product."
@@ -348,3 +360,9 @@ msgstr ""
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
 msgstr ""
+
+#, python-format
+#~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
+#~ msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
+#~ msgstr[0] "Sie haben <strong>%(total_quantity)s</strong> Brot bestellt."
+#~ msgstr[1] "Sie haben <strong>%(total_quantity)s</strong> Brote bestellt."

@@ -243,6 +243,13 @@ a.rounded-circle {
 }
 
 #basket {
+  .current-order {
+    h4 a {
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
 
   @media (max-width: 991px) {
     position: fixed;
@@ -254,7 +261,7 @@ a.rounded-circle {
     border-radius: 0;
     margin-bottom: 0!important;
     a.btn {
-      width: 80%;
+      // width: 80%;
     }
   }
 
