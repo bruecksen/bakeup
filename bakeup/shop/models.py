@@ -410,7 +410,9 @@ class CustomerOrder(CommonBaseClass):
 
     def replace_message_tags(self, message, request):
         t = Template(message)
+        client = request.tenant
         message = t.render(Context({
+            'site_name': client.name,
             'user': self.customer.user.first_name,
             'order': self.get_order_positions_string(),
             'production_day': self.production_day.day_of_sale.strftime('%d.%m.%Y'),
