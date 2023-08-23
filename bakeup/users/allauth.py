@@ -1,9 +1,12 @@
+from django.utils.translation import gettext_lazy as _
+from django.contrib import messages
 from django.urls import reverse
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_str
 from django.template import Template, Context
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
+from django.http import HttpResponseRedirect
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 from allauth.account.adapter import DefaultAccountAdapter
@@ -12,6 +15,18 @@ from bakeup.pages.models import EmailSettings
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
+    def pre_login(
+        self,
+        request,
+        user,
+        **kwargs
+    ):
+        if not user.is_active:
+            messages.add_message(self.request, messages.INFO, _("This account is closed. Login is not possible."))
+            return HttpResponseRedirect('/shop/')
+        else:
+            return super().pre_login(request, user, **kwargs)
 
     def get_signup_redirect_url(self, request):
         if request.user.is_staff:

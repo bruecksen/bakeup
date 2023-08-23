@@ -51,6 +51,16 @@
         </form>
       </div>
     </div>
+    <div class="col-12">
+      <div class="card px-3 py-3">
+        <h4 class="">{% trans "Closure of Your Account" %}</h4>
+        <div class="w-75">
+          <p>{% trans 'Do you really want to close your account and delete all your personal information?' %}</p>
+            {% csrf_token %}
+            <a type="submit" href="{% url 'shop:account-closure' %}" class="btn btn-primary">{% trans "Close Account" %}</a>
+        </div>
+      </div>
+    </div>
   </div>
   <script>
     {% if first_invalid_form %}

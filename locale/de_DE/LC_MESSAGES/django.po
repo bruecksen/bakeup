@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:05+0200\n"
+"POT-Creation-Date: 2023-09-01 11:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -190,6 +190,10 @@ msgstr "anmelden/"
 msgid "signup/"
 msgstr "registrieren/"
 
+#: bakeup/shop/urls.py:28
+msgid "account/closure/"
+msgstr "konto/schliessen/"
+
 #: bakeup/templates/account/email_confirm.html:19
 msgid "Confirm E-mail Address"
 msgstr "E-Mail-Adresse bestätigen"
@@ -204,6 +208,7 @@ msgstr ""
 "Mailadresse von Benutzer %(user_display)s ist."
 
 #: bakeup/templates/account/email_confirm.html:29
+#: bakeup/templates/users/user_profile_delete.html:16
 #: bakeup/templates/workshop/category_confirm_delete.html:31
 #: bakeup/templates/workshop/customerorder_confirm_delete.html:17
 #: bakeup/templates/workshop/product_confirm_delete.html:19
@@ -431,16 +436,30 @@ msgstr ""
 "kannst eine neue E-Mail-Adresse hinzufügen in dem du in dem folgenden "
 "Formular die neue E-Mail-Adresse eingibst und anschließend bestätigst."
 
-#: bakeup/templates/workshop/batch_customerorder_form.html:5
-#: bakeup/templates/workshop/batch_customerorder_form.html:20
-#: bakeup/templates/workshop/batch_customerorder_form.html:63
-msgid "Update orders"
-msgstr "Ändere Bestellungen"
+#: bakeup/templates/users/user_profile.html:56
+msgid "Closure of Your Account"
+msgstr "Konto schließen"
 
-#: bakeup/templates/workshop/batch_customerorder_form.html:7
-msgid "Update orders for"
-msgstr "Ändere Bestellungen für den"
+#: bakeup/templates/users/user_profile.html:58
+msgid ""
+"Do you really want to close your account and delete all your personal "
+"information?"
+msgstr ""
+"Willst du wirklich dein Konto schließen und alle persönlichen Daten löschen?"
 
+#: bakeup/templates/users/user_profile.html:60
+msgid "Close Account"
+msgstr "Konto schließen"
+
+#: bakeup/templates/users/user_profile_delete.html:5
+msgid "Close your account"
+msgstr "Konto schließen"
+
+#: bakeup/templates/users/user_profile_delete.html:10
+msgid "Do you really want to close your account?"
+msgstr "Willst du wirklich dein Konto schließen?"
+
+#: bakeup/templates/users/user_profile_delete.html:14
 #: bakeup/templates/workshop/batch_customerorder_form.html:26
 #: bakeup/templates/workshop/batch_customerorder_form.html:69
 #: bakeup/templates/workshop/category_confirm_delete.html:29
@@ -454,6 +473,16 @@ msgstr "Ändere Bestellungen für den"
 #: bakeup/templates/workshop/productionday_form.html:53
 msgid "Cancel"
 msgstr "Abbrechen"
+
+#: bakeup/templates/workshop/batch_customerorder_form.html:5
+#: bakeup/templates/workshop/batch_customerorder_form.html:20
+#: bakeup/templates/workshop/batch_customerorder_form.html:63
+msgid "Update orders"
+msgstr "Ändere Bestellungen"
+
+#: bakeup/templates/workshop/batch_customerorder_form.html:7
+msgid "Update orders for"
+msgstr "Ändere Bestellungen für den"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:5
 msgid "Delete category"
@@ -846,7 +875,6 @@ msgid "Start all"
 msgstr "Alle starten"
 
 #: bakeup/templates/workshop/productionday_detail.html:56
-#| msgid "Max quantity"
 msgid "Order max. quantities"
 msgstr "max. Menge bestellen"
 
@@ -955,6 +983,10 @@ msgstr "Lösche Hierarchie"
 msgid "Hi %(user)s, welcome to bakeup!"
 msgstr "Hallo %(user)s, willkommen in Bakeup!"
 
+#: bakeup/users/allauth.py:26
+msgid "This account is closed. Login is not possible."
+msgstr "Dies ist ein geschlossener Account. Anmelden ist nicht mehr möglich."
+
 #: bakeup/users/apps.py:7
 msgid "Users"
 msgstr "Benutzer"
@@ -966,6 +998,11 @@ msgstr ""
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
+
+#: bakeup/users/views.py:244
+#| msgid "account/closure/"
+msgid "Your account is closed."
+msgstr "Dein Konto ist jetzt geschlossen."
 
 #: bakeup/workshop/forms.py:38
 msgid "A product with the SKU already exists"

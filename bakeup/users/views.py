@@ -1,3 +1,5 @@
+from django.core.mail import send_mail
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -5,8 +7,9 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse, resolve
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView, RedirectView, UpdateView, FormView
+from django.views.generic import DetailView, RedirectView, UpdateView, FormView, DeleteView
 from django.shortcuts import redirect
+from django.conf import settings
 
 from allauth.account.views import SignupView as _SignupView
 from allauth.account.adapter import get_adapter
@@ -211,3 +214,35 @@ class ShopUserUpdateView(UserUpdateView):
 
 user_update_view = UserUpdateView.as_view()
 shop_user_update_view = ShopUserUpdateView.as_view()
+
+
+
+class UserProfileDeleteView(DeleteView):
+    model = User
+    template_name = 'users/user_profile_delete.html'
+
+    def get_success_url(self):
+        return '/shop/'
+
+    def get_object(self):
+        return self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            self.object.is_active = False
+            self.object.save()
+            logout(request)
+            send_mail(
+                "Account geschlossen {}".format(self.object.email),
+                "Der folgende Account wurde geschlossen: {}\n\nBitte löschen/anonymisieren Sie alle persönlichen Daten.".format(self.object.email),
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
+            messages.add_message(request, messages.INFO, _("Your account is closed."))
+        except ProtectedError as e:
+            messages.error(request, e)
+        finally:
+            return redirect(success_url)
