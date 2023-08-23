@@ -62,7 +62,7 @@
                                     {% endif %}
                                 {% elif product.product.is_open_for_abo %}
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
+                                    <input class="form-check-input abo-checkbox" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
                                   </div>
                                 {% endif %}
                             </td>
@@ -114,6 +114,7 @@
                 {% endif %}
                 {% if not  customer_order %}
                 <button type="submit" class="btn btn-primary mt-3 mb-3">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
+                <button class="btn btn-primary mt-3 mb-3 d-none" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
                 {% else %}
                 <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">
                     <span class="text-change">{{ settings.pages.CheckoutSettings.order_button_change }}</span>

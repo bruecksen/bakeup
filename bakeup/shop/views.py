@@ -111,7 +111,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        created_order = CustomerOrder.create_or_update_customer_order_position(
+        created_order, created = CustomerOrder.create_or_update_customer_order_position(
             self.production_day_product.production_day,
             self.request.user.customer,
             self.production_day_product.product,
@@ -138,9 +138,10 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
 @login_required
 def customer_order_add_or_update(request, production_day):
     if request.method == 'POST':
+        next_url = request.POST.get('next_url', None)
         production_day = get_object_or_404(ProductionDay, pk=production_day)
         products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
-        order = CustomerOrder.create_or_update_customer_order(
+        order, created = CustomerOrder.create_or_update_customer_order(
             production_day,
             request.user.customer,
             products,
@@ -153,6 +154,14 @@ def customer_order_add_or_update(request, production_day):
                 request.user.customer,
                 products_recurring,
             )
+        if order and created:
+            messages.add_message(request, messages.INFO, "Vielen Dank für die Bestellung.")
+        elif order and not created:
+            messages.add_message(request, messages.INFO, "Vielen Dank, die Bestellung wurde geändert.")
+        else:
+            messages.add_message(request, messages.INFO, "Bestellung erfolgreich storniert.")
+        if next_url:
+            return HttpResponseRedirect(next_url)
         if order:
             if EmailSettings.load(request_or_site=request).send_email_order_confirm:
                 order.send_order_confirm_email(request)
