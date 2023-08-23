@@ -219,6 +219,8 @@ function updateModalChange(modal){
     form.find('button[type="submit"]').removeClass('d-none').show();
     form.find('button[data-bs-dismiss="modal"]').hide();
     modal.find('.modal-title span').removeClass('d-none').show();
+    form.find('table').show();
+    form.find('.message-empty-checkout').addClass('d-none').hide();
 }
 function updateModalUnchange(modal){
     var form = modal.find('form');
@@ -236,8 +238,22 @@ function updateModalStorno(modal) {
     modal.find('.text-change').hide();
     form.find('.form-check.terms-conditions').removeClass('d-none').hide();
     form.find('.form-check.terms-conditions input').attr("required", false);
+    form.find('button[type="submit"]').removeClass('d-none').show();
+    form.find('button[data-bs-dismiss="modal"]').hide();
     form.find('table').hide();
     form.find('.message-empty-checkout').removeClass('d-none').show();
+}
+function updateModalEmpty(modal) {
+    console.log('empty');
+    var form = modal.find('form');
+    modal.find('.text-cancel').removeClass('d-none').show();
+    modal.find('.text-change').hide();
+    form.find('.form-check.terms-conditions').removeClass('d-none').hide();
+    // form.find('.form-check.terms-conditions input').attr("required", false);
+    form.find('table').hide();
+    form.find('.message-empty-checkout').removeClass('d-none').show();
+    form.find('button[data-bs-dismiss="modal"]').removeClass('d-none').show();
+    form.find('button[type="submit"]').removeClass('d-none').hide();
 }
 
 function updateModal(modal, basketQuantity, totalQuantity) {
@@ -248,8 +264,12 @@ function updateModal(modal, basketQuantity, totalQuantity) {
     } else {
         updateModalChange(modal);
     }
-    if (form.hasClass('has_order') && totalQuantity ===0) {
-        updateModalStorno(modal);
+    if (totalQuantity ===0) {
+        if (form.hasClass('has_order')) {
+            updateModalStorno(modal);
+        } else {
+            updateModalEmpty(modal);
+        }
     } 
 }
 
@@ -387,13 +407,14 @@ $(function(){
             $('.product-card .product-quantity').each(function(){
                 var product = $(this).data('product');
                 var orderedQty = $(this).data('ordered-quantity');
-                var quantity = parseInt($(this).val());
+                var quantity = parseInt($(this).val()) || 0;
                 totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
                 basketQuantity += basketQuantity + quantity;
                 console.log(product, quantity);
                 updateProduct(product, quantity, true);
                 // totalBasketQuantity += quantity;
             });
+            setTotalPrice($(this));
             updateModal($(this), basketQuantity, totalBasketQuantity);
         })
         console.log('checkout exists');
@@ -430,11 +451,16 @@ $(function(){
             var product = $(this).parents('tr').data('product');
             var qty = this.value;
             var modal = $(this).parents('.modal-checkout');
-            var orderedQty = $(this).parents('tr').data('ordered-quantity');
-            if (orderedQty) {
-                qty = qty - orderedQty;
+            if (modal.hasClass('in-checkout')) {
+                // only maintain ordered qty if we are in a real checkout and not just updating an order
+                var orderedQty = $(this).parents('tr').data('ordered-quantity');
+                if (orderedQty) {
+                    qty = qty - orderedQty;
+                }
+                updateProduct(product, qty, true);
+            } else {
+                updateProduct(product, qty, false);
             }
-            updateProduct(product, qty, true);
             setTotalPrice(modal);
         }
         var basketQuantity = 0;
@@ -445,8 +471,12 @@ $(function(){
             totalBasketQuantity = totalBasketQuantity + qty;
             basketQuantity = basketQuantity + (orderedQty - qty);
         })
-        if (form.hasClass('has_order') && totalBasketQuantity === 0) {
-            updateModalStorno(modal);
+        if (totalBasketQuantity === 0) {
+            if (form.hasClass('has_order')) {
+                updateModalStorno(modal);
+            } else {
+                updateModalEmpty(modal);
+            }
         } else if (basketQuantity > 0 ){
             updateModalChange(modal);
         } else if (form.dirty('isDirty')) {
