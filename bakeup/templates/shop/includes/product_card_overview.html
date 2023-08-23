@@ -26,6 +26,9 @@
             <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0 }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
             {% endif %}
             {% endwith %}
+            {% if product.sale_price %}
+                <p class="mt-3 mb-3 fs-5 fw-bold">{{ product.sale_price.price }}</p>
+            {% endif %}
         </div>
         
         <div class="card-footer">
