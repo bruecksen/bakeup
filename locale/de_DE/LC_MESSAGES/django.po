@@ -148,7 +148,7 @@ msgstr ""
 #: bakeup/templates/account/password_change.html:25
 #: bakeup/templates/users/user_profile.html:50
 msgid "Forgot Password?"
-msgstr ""
+msgstr "Passwort vergessen?"
 
 #: bakeup/templates/account/password_change.html:6
 #: bakeup/templates/account/password_change.html:19
@@ -159,7 +159,7 @@ msgstr ""
 #: bakeup/templates/users/user_profile.html:44
 #: bakeup/templates/users/user_profile.html:49
 msgid "Change Password"
-msgstr ""
+msgstr "Passwort ändern"
 
 #: bakeup/templates/account/password_reset.html:6
 #: bakeup/templates/account/password_reset.html:19
@@ -173,6 +173,8 @@ msgid ""
 "Forgotten your password? Enter your e-mail address below, and we'll send you "
 "an e-mail allowing you to reset it."
 msgstr ""
+"Passwort vergessen? Gib deine E-Mail-Adresse unten ein, dann schicken "
+"wir dir einen Link, unter dem du dein Passwort zurücksetzen kannst."
 
 #: bakeup/templates/account/password_reset.html:29
 msgid "Reset My Password"
@@ -326,10 +328,11 @@ msgid ""
 "<p>The deletion of the selected object: <strong>%(object)s</strong> would "
 "require first the deletion of the protected related objects:</p>"
 msgstr ""
-"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setztdas "
+"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setzt das"
 "Löschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
+#, python-format
 msgid ""
 "<h3>Are you sure?</h3> <p>You're about to delete the following category: "
 "<strong>%(object)s</strong>. Please confirm.</p>"
