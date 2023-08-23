@@ -30,7 +30,6 @@ class TenantSettingsMiddleware:
             settings.EMAIL_HOST_USER = client_settings.email_host_user
             settings.EMAIL_PORT = client_settings.email_port
             settings.EMAIL_USE_TLS = client_settings.emaiL_use_tls
-            settings.EMAIL_SUBJECT_PREFIX = client_settings.email_subject_prefix
         settings.WAGTAILADMIN_BASE_URL = current_schema_obj.get_absolute_primary_domain(self.request)
 
 

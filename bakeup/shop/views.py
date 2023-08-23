@@ -29,6 +29,7 @@ from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderTemplate, C
 
 from bakeup.workshop.models import Product
 from bakeup.shop.tables import CustomerOrderTable
+from bakeup.pages.models import EmailSettings
 
 # Limit orders in the future
 MAX_FUTURE_ORDER_YEARS = 2
@@ -153,6 +154,8 @@ def customer_order_add_or_update(request, production_day):
                 products_recurring,
             )
         if order:
+            if EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                order.send_order_confirm_email(request)
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
             return HttpResponseRedirect('/shop/')

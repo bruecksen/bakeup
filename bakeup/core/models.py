@@ -75,7 +75,6 @@ class ClientSetting(models.Model):
     email_host_user = models.CharField(max_length=1024, blank=True, null=True)
     email_port = models.PositiveSmallIntegerField(default=25)
     emaiL_use_tls = models.BooleanField(default=False)
-    email_subject_prefix = models.CharField(max_length=1024, blank=True, null=True)
     show_full_name_delivery_bill = models.BooleanField(default=True)
     show_remaining_products = models.BooleanField(default=False)
     user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)
@@ -93,6 +92,8 @@ class ClientInfo(models.Model):
 def get_production_day_reminder_body():
     return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}'})
 
+
+# TODO delete model after deployment, deprecated
 class ClientEmailTemplate(models.Model):
     client = models.OneToOneField('Client', on_delete=models.CASCADE)
     production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024)

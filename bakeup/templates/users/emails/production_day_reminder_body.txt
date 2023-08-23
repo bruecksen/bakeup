@@ -5,4 +5,4 @@ deine Bestellung ist fertig und abholbereit.
 {{ order }}
 
 Viele Grüße,
-{{ client }}
+{{ site_name }}
