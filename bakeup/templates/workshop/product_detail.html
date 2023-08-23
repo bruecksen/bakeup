@@ -32,7 +32,7 @@
     <ul class="list-unstyled list-inline mb-1">
       {% if object.sale_price %}<li class="list-inline-item"><strong>Preis:</strong> {{ object.sale_price.price }}{% endif %}
       <li class="list-inline-item">{% if object.is_recurring %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} Abo-fähiges Produkt</li>
-      <li class="list-inline-item"><strong>Maximale Abos: </strong> {{ object.max_recurring_order_qty }}</li>
+      {% if object.max_recurring_order_qty %}<li class="list-inline-item"><strong>Maximale Abos: </strong> {{ object.max_recurring_order_qty }}</li>{% endif %}
     </ul>
     <ul class="list-unstyled list-inline mb-1">
       {% for parent in object.childs.all %}
