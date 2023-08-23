@@ -1,28 +1,29 @@
+{% load i18n %}
 <div class="row mt-4 mb-4">
     <div class="col-12 col-sm-3 offset-sm-1 mb-sm-0 mb-4">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Categories <small class="text-muted">{{ categories_count }}</small></h4>
+              <h4 class="card-title">{% trans "Categories" %} <small class="text-muted">{{ categories_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:category-list' %}" class="btn btn-sm btn-outline-primary">Go to categories</a>
+              <a href="{% url 'workshop:category-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to categories" %}</a>
             </div>
         </div>
     </div>
     <div class="col-12 col-sm-3 mb-sm-0 mb-4">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Recipes <small class="text-muted">{{ recipies_count }}</small></h4>
+              <h4 class="card-title">{% trans "Recipes" %} <small class="text-muted">{{ recipies_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:recipe-list' %}" class="btn btn-sm btn-outline-primary">Go to recipies</a>
+              <a href="{% url 'workshop:recipe-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to recipies" %}</a>
             </div>
         </div>
     </div>
     <div class="col-12 col-sm-3 mb-sm-0">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Products <small class="text-muted">{{ products_count }}</small></h4>
+              <h4 class="card-title">{% trans "Products" %} <small class="text-muted">{{ products_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:product-list' %}" class="btn btn-sm btn-outline-primary">Go to products</a>
+              <a href="{% url 'workshop:product-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to products" %}</a>
             </div>
         </div>
     </div>
@@ -31,18 +32,18 @@
     <div class="col-12 col-sm-3  offset-sm-1">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Production days <small class="text-muted">{{ productiondays_count }}</small></h4>
+              <h4 class="card-title">{% trans "Production days" %} <small class="text-muted">{{ productiondays_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:production-day-next' %}" class="btn btn-sm btn-outline-primary">Go to production days</a>
+              <a href="{% url 'workshop:production-day-next' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to production days" %}</a>
             </div>
         </div>
     </div>
     <div class="col-12 col-sm-3">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Production plans <small class="text-muted">{{ productionplans_count }}</small></h4>
+              <h4 class="card-title">{% trans "Production plans" %} <small class="text-muted">{{ productionplans_count }}</small></h4>
               <p class="card-text"></p>
-              <a href="{% url 'workshop:production-plan-next' %}" class="btn btn-sm btn-outline-primary">Go to production plans</a>
+              <a href="{% url 'workshop:production-plan-next' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to production plans" %}</a>
             </div>
         </div>
     </div>
