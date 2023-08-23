@@ -5,7 +5,4 @@ Hallo!
 
 {% block content %}{% endblock %}
 
---
-{{ current_tenant.name }}{% if current_tenant.description %} - {{ current_tenant.description}}{% endif %}
-{{ current_tenant.get_primary_domain.domain }}
 {% endautoescape %}
