@@ -100,14 +100,16 @@ class ShopPage(Page):
                 )
             ).annotate(
                has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
-            ).annotate(
-                abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
-                    Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
-                    orders__order__pk=current_customer_order.pk,
-                    orders__order__customer=customer,
-                    ).values("quantity")
-                )
             )
+            if current_customer_order:
+                production_day_products = production_day_products.annotate(
+                    abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                        Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                        orders__order__pk=current_customer_order.pk,
+                        orders__order__customer=customer,
+                        ).values("quantity")
+                    )
+                )
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
