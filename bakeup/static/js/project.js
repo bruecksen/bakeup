@@ -202,6 +202,7 @@ function setTotalBasketQuantity(modal) {
         }
         // modal.find("form").dirty("setAsDirty");
         modal.find("form .form-check.terms-conditions").removeClass('d-none').show();
+        modal.find('form .form-check.terms-conditions input').attr("required", true);
         modal.find('form button[type="submit"]').removeClass('d-none').show();
         modal.find('form button[data-bs-dismiss="modal"]').hide();
         modal.find('.modal-title span').removeClass('d-none').show();
@@ -409,6 +410,7 @@ $(function(){
                     $(this).parents('.modal-checkout').find('.text-cancel').removeClass('d-none').show();
                     $(this).parents('.modal-checkout').find('.text-change').hide();
                     form.find('.form-check.terms-conditions').removeClass('d-none').hide();
+                    form.find('.form-check.terms-conditions input').attr("required", false);
                     form.find('table').hide();
                     form.find('.message-empty-checkout').removeClass('d-none').show();
                 }
