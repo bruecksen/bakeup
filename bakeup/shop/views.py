@@ -311,6 +311,7 @@ class ShopView(TemplateView):
             production_day_products = self.production_day.production_day_products.published()
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
             context['current_customer_order'] = current_customer_order
+            # TODO this needs to go at one place, code duplication, very bad idea pages/models
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(
                     CustomerOrderPosition.objects.filter(
@@ -329,14 +330,16 @@ class ShopView(TemplateView):
                 )
             ).annotate(
                has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
-            ).annotate(
-                abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
-                    Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
-                    orders__order__pk=current_customer_order.pk,
-                    orders__order__customer=customer,
-                    ).values("quantity")
-                )
             )
+            if current_customer_order:
+                production_day_products = production_day_products.annotate(
+                    abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                        Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                        orders__order__pk=current_customer_order.pk,
+                        orders__order__customer=customer,
+                        ).values("quantity")
+                    )
+                )
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
