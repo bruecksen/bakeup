@@ -670,7 +670,7 @@ class ProductionDayMixin(object):
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
-        production_day.create_template_orders()    
+        production_day.create_template_orders(self.request)
         production_day.create_production_plans(create_max_quantity=True)
         return HttpResponseRedirect(self.get_success_url())
 

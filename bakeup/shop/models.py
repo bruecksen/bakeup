@@ -22,7 +22,7 @@ from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.models import Product, ProductionPlan
-# from bakeup.pages.models import EmailSettings
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,12 +147,12 @@ class ProductionDay(CommonBaseClass):
             production_day_product.save()
             return obj
 
-    def create_template_orders(self):
+    def create_template_orders(self, request):
         with transaction.atomic():
             for product in self.production_day_products.published():
                 if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
                     for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
-                        order_template_position.create_order(self)
+                        order_template_position.create_order(self, request)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -526,7 +526,8 @@ class CustomerOrderTemplatePosition(BasePositionClass):
 
     objects = CustomerOrderTemplatePositionQuerySet.as_manager()
 
-    def create_order(self, production_day):
+    def create_order(self, production_day, request):
+        # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
         with transaction.atomic():
             customer_order, created = CustomerOrder.objects.update_or_create(
                 production_day=production_day,
@@ -544,7 +545,7 @@ class CustomerOrderTemplatePosition(BasePositionClass):
             self.order_template.set_locked()
         from bakeup.pages.models import EmailSettings
         if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-            order.send_order_confirm_email(request)
+            customer_order.send_order_confirm_email(request)
 
     def cancel(self):
         with transaction.atomic():
