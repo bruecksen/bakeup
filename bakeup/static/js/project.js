@@ -382,21 +382,6 @@ $(function(){
             form.find('button[type="submit"]').removeClass('d-none').show();
             form.find('button[data-bs-dismiss="modal"]').hide();
             $(this).parents('.modal-checkout').find('.modal-title span').removeClass('d-none').show();
-            var product = $(this).parents('tr').data('product');
-            var qty = this.value;
-            var modal = $(this).parents('.modal-checkout');
-            updateProduct(product, qty, false);
-            setTotalPrice(modal);
-            // var orderedQty = $(this).parents('tr').data('ordered-quantity');
-            // if (!orderedQty) {
-            //     console.log('#product-quantity-input-' + product);
-            //     $('#product-quantity-input-' + product).val(qty);
-            // }
-            if (form.hasClass('has_order') && form.find('tbody tr.product:visible').length === 0) {
-                console.log('Cancel all');
-                $(this).parents('.modal-checkout').find('.text-cancel').removeClass('d-none').show();
-                $(this).parents('.modal-checkout').find('.text-change').hide();
-            }
         }
         if ($(this).hasClass('order-quantity')) {
             var product = $(this).parents('tr').data('product');
@@ -427,7 +412,7 @@ $(function(){
                     form.find('table').hide();
                     form.find('.message-empty-checkout').removeClass('d-none').show();
                 }
-            } 
+            }
         }
     });
 });
