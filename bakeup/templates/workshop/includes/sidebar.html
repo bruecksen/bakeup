@@ -9,54 +9,54 @@
       <h3 class="mt-0 mb-2 mb-sm-5 text-center text-light w-100">{{ request.tenant.name }}</h3>
           <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> Dashboard</a>
+              <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i>{% translate "Dashboard" %}</a>
             </li>
             {% if request.user.is_authenticated and request.user.is_staff %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-tags fa-fw"></i> Categories</a>
+              <a class="nav-link" href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-tags fa-fw"></i>{% translate "Categories" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-book fa-fw"></i> Recipes</a>
+              <a class="nav-link" href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-book fa-fw"></i>{% translate "Recipes" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-atom fa-fw"></i> Products</a>
+              <a class="nav-link" href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-atom fa-fw"></i>{% translate "Products" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> Production Days</a>
+              <a class="nav-link" href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i>{% translate "Production Days" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i> Production Plans</a>
+              <a class="nav-link" href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i>{% translate "Production Plans" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i> Orders</a>
+              <a class="nav-link" href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i>{% translate "Orders" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:customer-list' %}"><i class="fas fa-users fa-fw"></i> Customers</a>
+              <a class="nav-link" href="{% url 'workshop:customer-list' %}"><i class="fas fa-users fa-fw"></i>{% translate "Customers" %}</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i> Points of sale</a>
+              <a class="nav-link" href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i>{% translate "Points of sale" %}</a>
             </li>
             {% endif %}
           </ul>
           <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start">
             {% if request.user.is_authenticated and request.user.is_customer %}
             <li class="nav-item">
-              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop"></i> Shop</a>
+              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop"></i>{% translate "Shop" %}</a>
             </li>
             {% endif %}
             {% if request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i> CMS</a>
+                <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i>{% translate "CMS" %}</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Logout</a>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i>{% translate "Logout" %}</a>
               </li>
             {% else %}
               <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Login</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i>{% translate "Login" %}</a>
               </li>
             {% endif %}
           </ul>

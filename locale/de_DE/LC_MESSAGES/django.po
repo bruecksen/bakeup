@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-22 19:42+0200\n"
+"POT-Creation-Date: 2023-08-23 14:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,14 +62,15 @@ msgid "Image carousel"
 msgstr ""
 
 #: bakeup/pages/blocks.py:302
+#: bakeup/templates/workshop/includes/sidebar.html:25
 msgid "Production Days"
-msgstr ""
+msgstr "Produktionstage"
 
 #: bakeup/pages/blocks.py:321
 msgid "Product Assortment"
 msgstr ""
 
-#: bakeup/pages/models.py:46
+#: bakeup/pages/models.py:47
 msgid "No production days planned"
 msgstr ""
 
@@ -77,11 +78,11 @@ msgstr ""
 msgid "Abo"
 msgstr ""
 
-#: bakeup/shop/models.py:534
+#: bakeup/shop/models.py:587
 msgid "running"
 msgstr ""
 
-#: bakeup/shop/models.py:535
+#: bakeup/shop/models.py:588
 msgid "finished"
 msgstr ""
 
@@ -131,8 +132,8 @@ msgstr ""
 #: bakeup/templates/account/email_confirm.html:36
 #, python-format
 msgid ""
-"This e-mail confirmation link expired or is invalid. Please <a href="
-"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+"This e-mail confirmation link expired or is invalid. Please <a "
+"href=\"%(email_url)s\">issue a new e-mail confirmation request</a>."
 msgstr ""
 
 #: bakeup/templates/account/login.html:19
@@ -252,11 +253,11 @@ msgstr[1] ""
 "Du hast <a class=\"text-white\" data-bs-toggle=\"modal\" data-bs-target=\"."
 "modal-checkout\"><strong>%(total_quantity)s</strong> Brote bestellt</a>."
 
-#: bakeup/templates/shop/includes/checkout.html:59
+#: bakeup/templates/shop/includes/checkout.html:61
 msgid "You already have a subscription for this product."
 msgstr "Du hast dieses Produkt bereits abonniert."
 
-#: bakeup/templates/shop/includes/checkout.html:101
+#: bakeup/templates/shop/includes/checkout.html:105
 msgid "Currently no products selected."
 msgstr "Aktuell sind keine Produkte ausgewählt."
 
@@ -271,11 +272,12 @@ msgid ""
 "in</a> or <a href=\"%(signup_url)s\" class=\"text-white fw-bold\">signup</a> "
 "for an account before you can order something."
 msgstr ""
-"Um bestellen zu können musst du dich zuerst <a href=\"%(login_url)s\" class="
-"\"text-white fw-bold\">anmelden</a> oder <a href=\"%(signup_url)s\" class="
-"\"text-white fw-bold\">registrieren</a>."
+"Um bestellen zu können musst du dich zuerst <a href=\"%(login_url)s\" "
+"class=\"text-white fw-bold\">anmelden</a> oder <a href=\"%(signup_url)s\" "
+"class=\"text-white fw-bold\">registrieren</a>."
 
 #: bakeup/templates/shop/weekly.html:9
+#: bakeup/templates/workshop/includes/sidebar.html:44
 msgid "Shop"
 msgstr ""
 
@@ -320,42 +322,86 @@ msgstr ""
 #: bakeup/templates/workshop/includes/production_plan_item.html:19
 #: bakeup/templates/workshop/includes/production_plan_item.html:20
 msgid "Duration"
-msgstr ""
+msgstr "Dauer"
 
 #: bakeup/templates/workshop/includes/production_plan_table.html:11
 msgid "Day"
-msgstr ""
+msgstr "Tag"
 
 #: bakeup/templates/workshop/includes/production_plan_table.html:12
 msgid "Qty"
-msgstr ""
+msgstr "Menge"
 
 #: bakeup/templates/workshop/includes/production_plan_table.html:13
 msgid "Product"
+msgstr "Produkt"
+
+#: bakeup/templates/workshop/includes/sidebar.html:12
+msgid "Dashboard"
+msgstr "Übersicht"
+
+#: bakeup/templates/workshop/includes/sidebar.html:16
+msgid "Categories"
+msgstr "Kategorien"
+
+#: bakeup/templates/workshop/includes/sidebar.html:19
+msgid "Recipes"
+msgstr "Rezepte"
+
+#: bakeup/templates/workshop/includes/sidebar.html:22
+msgid "Products"
+msgstr "Produkte"
+
+#: bakeup/templates/workshop/includes/sidebar.html:28
+msgid "Production Plans"
+msgstr "Produktionspläne"
+
+#: bakeup/templates/workshop/includes/sidebar.html:31
+msgid "Orders"
+msgstr "Bestellungen"
+
+#: bakeup/templates/workshop/includes/sidebar.html:34
+msgid "Customers"
+msgstr "Kunden"
+
+#: bakeup/templates/workshop/includes/sidebar.html:37
+msgid "Points of sale"
+msgstr "Abholstellen"
+
+#: bakeup/templates/workshop/includes/sidebar.html:49
+msgid "CMS"
 msgstr ""
 
 #: bakeup/templates/workshop/includes/sidebar.html:52
 msgid "Profile"
-msgstr ""
+msgstr "Profil"
+
+#: bakeup/templates/workshop/includes/sidebar.html:55
+msgid "Logout"
+msgstr "Ausloggen"
+
+#: bakeup/templates/workshop/includes/sidebar.html:59
+msgid "Login"
+msgstr "Einloggen"
 
 #: bakeup/templates/workshop/product_detail.html:28
 #: bakeup/templates/workshop/recipe_detail.html:39
 msgid "Sellable"
-msgstr ""
+msgstr "verkaufbar"
 
 #: bakeup/templates/workshop/product_detail.html:29
 #: bakeup/templates/workshop/recipe_detail.html:40
 msgid "Buyable"
-msgstr ""
+msgstr "kaufbar"
 
 #: bakeup/templates/workshop/product_detail.html:30
 #: bakeup/templates/workshop/recipe_detail.html:41
 msgid "Composable"
-msgstr ""
+msgstr "kombinierbar"
 
 #: bakeup/users/apps.py:7
 msgid "Users"
-msgstr ""
+msgstr "Benutzer"
 
 #: bakeup/users/forms.py:21
 msgid "Token"
@@ -363,7 +409,7 @@ msgstr ""
 
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
-msgstr ""
+msgstr "Dieser Benutzername ist schon vergeben."
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
