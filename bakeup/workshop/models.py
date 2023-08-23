@@ -515,9 +515,11 @@ class ReminderMessage(CommonBaseClass):
     def replace_message_tags(self, message, order, client, production_day):
         t = Template(message)
         message = t.render(Context({
-            'user': order.customer.user.first_name,
-            'order': order.get_order_positions_string(),
             'site_name': client.name,
+            'first_name': order.customer.user.first_name,
+            'last_name': order.customer.user.last_name,
+            'email': order.customer.user.email,
+            'order': order.get_order_positions_string(),
             'production_day': production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': order.total_quantity,
         }))

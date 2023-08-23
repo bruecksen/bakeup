@@ -413,7 +413,9 @@ class CustomerOrder(CommonBaseClass):
         client = request.tenant
         message = t.render(Context({
             'site_name': client.name,
-            'user': self.customer.user.first_name,
+            'first_name': self.customer.user.first_name,
+            'last_name': self.customer.user.last_name,
+            'email': self.customer.user.email,
             'order': self.get_order_positions_string(),
             'production_day': self.production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': self.total_quantity,
