@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('email_host_password', models.CharField(blank=True, max_length=1024, null=True)),
                 ('email_host_user', models.CharField(blank=True, max_length=1024, null=True)),
                 ('email_port', models.PositiveSmallIntegerField(default=25)),
-                ('email_use_tls', models.BooleanField(default=False)),
+                ('emaiL_use_tls', models.BooleanField(default=False)),
                 ('client', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='core.client')),
             ],
         ),
