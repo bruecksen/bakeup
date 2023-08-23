@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import datetime
 
+from djmoney.models.fields import MoneyField
 from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
 
@@ -99,6 +100,10 @@ class Product(CommonBaseClass):
                 quantity=child.quantity
             )
         return product
+
+    @property
+    def sale_price(self):
+        return self.sale_prices.first()
     
     @property
     def category_name(self):
@@ -296,6 +301,15 @@ class Product(CommonBaseClass):
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=['quantity'])
 
+
+class ProductPrice(CommonBaseClass):
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE, related_name='sale_prices')
+    price = MoneyField(max_digits=14, decimal_places=2, default_currency='EUR')
+
+
+
+
+
 # Assembly
 class Instruction(CommonBaseClass):
     product = models.OneToOneField('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
@@ -396,6 +410,9 @@ class ProductionPlan(CommonBaseClass):
                 name='production_plan_not_equal_parent'
             )
         ]
+
+    def __str__(self):
+        return "ProductionPlan {} {} {}".format(self.production_day, self.product, self.state)
     
     @property
     def is_locked(self):
@@ -459,6 +476,9 @@ class ProductionPlan(CommonBaseClass):
     def set_next_state(self):
         self.set_state(self.get_next_state())
 
+    def set_production(self):
+        self.set_state(self.State.IN_PRODUCTION)
+    
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):
         for child in children:

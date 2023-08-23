@@ -1,7 +1,8 @@
+{% load l10n %}
 {% load shop_tags %}
 {% load wagtailcore_tags %}
 {% load i18n %}
-<div class="modal fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -16,7 +17,7 @@
             </div>
             <div class="modal-body">
                 <p class="mb-1">Backtag: <strong>{{ production_day }}</strong></p>
-                <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
+                <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{%if customer_order%} has_order{% endif %}{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
                     {% csrf_token %}
                     {% if next_url %}
                     <input type="hidden" name="next_url" value="{{ next_url }}">
@@ -28,18 +29,19 @@
                     {% endfor %}
                     </select></p>
                 {% endif %}
-                <table class="table table-light mt-4 mb-4">
+                <table class="table table-light mt-4 mb-4 border-white">
                     <thead>
                         <tr>
                         <th scope="col">Menge</th>
                         <th scope="col">Brot</th>
                         <th scope="col">Abo</th>
+                        {% if show_price %}<th class="price-column text-end" scope="col">Preis</th>{% endif %}
                         <th scope="col"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %}" data-product="{{ product.product.pk }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0">
+                        <tr class="{% if not display_all and not product.ordered_quantity %}d-none{% endif %} product" data-product="{{ product.product.pk }}" data-quantity="{{ product.ordered_quantity|default:'0' }}" data-ordered-quantity="{{ product.ordered_quantity|default:'0' }}" data-basket-quantity="0" data-product-price="{{ product.product.sale_price.price.amount|unlocalize }}">
                             <th scope="row">
                                 {% max_quantity production_day product.product as production_day_product_max_quantity %}
                                 <select class="form-select form-select-xs order-quantity" name="product-{{ product.product.pk }}"{% if product.is_locked %} disabled{% endif %}>
@@ -53,14 +55,30 @@
                             </td>
                             <td>
                                 {% if product.has_abo %}
-                                
-                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                    {% if product.abo_qty %}
+                                        <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ position.customer_order_template_positions.first.quantity }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ product.abo_qty }}x</span></a>
+                                    {% else %}
+                                        <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><span class="badge rounded-pill text-bg-primary">abonniert</span></a>
+                                    {% endif %}
                                 {% elif product.product.is_open_for_abo %}
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
+                                    <input class="form-check-input abo-checkbox" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
                                   </div>
                                 {% endif %}
                             </td>
+                            {% if show_price %}
+                            <td class="text-end">
+                                <span class="sale-price{% if not product.product.sale_price or not product.price %} d-none{% endif %}">
+                                    <nobr>
+                                        <span class="price">
+                                            {% if product.product.sale_price and product.price %}
+                                            {{ product.price }}
+                                            {% endif %}
+                                        </span> €
+                                    </nobr>
+                                </span>
+                            </td>
+                            {% endif %}
                             <td>
                                 {% if not position.production_plan or not position.production_plan.is_locked %}
                                 <div class="col-2 text-end">
@@ -76,8 +94,16 @@
                             </td>
                         </tr>
                         {% endfor %}
+                        {% if show_price %}
+                        <tr class="border-top border-3 price border-white">
+                            <td colspan="3"></td><td class="text-end"><strong><nobr class="price-total"><span>{{ customer_order.price_total }}</span> €</nobr></strong></td><td></td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
+                <div class="alert alert-warning message-empty-checkout d-none" role="alert">
+                    {% trans 'Currently no products selected.' %}
+                  </div>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">
@@ -88,6 +114,7 @@
                 {% endif %}
                 {% if not  customer_order %}
                 <button type="submit" class="btn btn-primary mt-3 mb-3">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
+                <button class="btn btn-primary mt-3 mb-3 d-none" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
                 {% else %}
                 <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">
                     <span class="text-change">{{ settings.pages.CheckoutSettings.order_button_change }}</span>

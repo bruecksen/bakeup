@@ -53,7 +53,7 @@
     </div>
 </div>
 {% if user.is_authenticated %}
-    {% include "shop/includes/checkout.html" with name='checkout' customer_order=current_customer_order production_day=production_day products=production_day_products %}
+    {% include "shop/includes/checkout.html" with name='checkout in-checkout' customer_order=current_customer_order production_day=production_day products=production_day_products show_price=production_day.has_products_with_price %}
 {% endif %}
 <div class="row gy-4">
     {% for production_day_product in production_day_products %}

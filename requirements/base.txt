@@ -29,3 +29,4 @@ django-htmx==1.14.0
 wagtail==4.2.*
 tablib==3.4.0
 wagtailmenus==3.1.7
+django-money==3.2.0

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField
+from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField, Q
 from django.db.models import OuterRef, Subquery
 from django.db.models import Case, When, Value, IntegerField, Exists
 
@@ -77,13 +77,38 @@ class ShopPage(Page):
         if self.production_day:
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
-            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
+            current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
+            context['current_customer_order'] = current_customer_order
             production_day_products = self.production_day.production_day_products.published()
+            # TODO this needs to go at one place, code duplication, very bad idea shop/views
             production_day_products = production_day_products.annotate(
-                ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+                ordered_quantity=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("quantity")
+                )
+            ).annotate(
+                price=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("price_total")
+                )
             ).annotate(
                has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
+            if current_customer_order:
+                production_day_products = production_day_products.annotate(
+                    abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                        Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                        orders__order__pk=current_customer_order.pk,
+                        orders__order__customer=customer,
+                        ).values("quantity")
+                    )
+                )
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()

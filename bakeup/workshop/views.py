@@ -40,7 +40,7 @@ from bakeup.core.utils import get_deleted_objects
 from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTemplateFormSet, CustomerOrderPositionFormSet, CustomerProductionDayOrderForm, ProductionDayProductFormSet, ProductionDayForm
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate, CustomerOrderTemplatePosition
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm, ReminderMessageForm, SelectReminderMessageForm
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
+from bakeup.workshop.models import Category, Product, ProductPrice, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
 from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
 from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
@@ -89,6 +89,12 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
 
     def form_valid(self, form):
         product = form.save()
+        price = form.cleaned_data['price']
+        if price:
+            price, created = ProductPrice.objects.update_or_create(
+                product=product,
+                defaults={"price": price},
+            )
         self.object = product
         if self.product_parent:
             self.product_parent.add_child(product)
@@ -128,9 +134,21 @@ def product_add_inline_view(request, pk):
             raise Exception(formset.errors)
     return HttpResponseRedirect(reverse('workshop:product-detail', kwargs={'pk': parent_product.pk}))
 
+
 class ProductUpdateView(StaffPermissionsMixin, UpdateView):
     model = Product
     form_class = ProductForm
+
+    def form_valid(self, form):
+        product = form.save()
+        price = form.cleaned_data['price']
+        if price:
+            price, created = ProductPrice.objects.update_or_create(
+                product=product,
+                defaults={"price": price},
+            )
+        self.object = product
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class ProductDeleteView(StaffPermissionsMixin, DeleteView):
@@ -408,12 +426,26 @@ def production_plans_start_view(request, production_day):
     for production_plan in production_plans:
         production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
     production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
-    production_plans.update(
-        state=ProductionPlan.State.IN_PRODUCTION
-    )
+    for production_plan in production_plans:
+        production_plan.set_production()
+        production_plan.production_day.update_order_positions_product(production_plan.product)
+        production_plan.set_production()
     if 'next' in request.GET:
         return HttpResponseRedirect(request.GET.get('next'))
     return HttpResponseRedirect(reverse('workshop:production-plan-next'))
+
+
+@staff_member_required(login_url='login')
+def production_plan_start_view(request, pk):
+    production_plan = ProductionPlan.objects.get(pk=pk)
+
+    if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
+        production_plan = production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+        production_plan.set_production()
+        production_plan.production_day.update_order_positions_product(production_plan.product)
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
 
 
 @staff_member_required(login_url='login')

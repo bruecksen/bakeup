@@ -5,17 +5,27 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from bakeup.shop.models import ProductionDay, Customer
+from djmoney.forms.fields import MoneyField
 
+from bakeup.shop.models import ProductionDay, Customer
 from bakeup.shop.models import PointOfSale
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan, ReminderMessage
 
 
 class ProductForm(ModelForm):
+    price = DecimalField(max_digits=14, decimal_places=2, required=False, label='Price in EUR')
+
     class Meta:
         model = Product
         fields = ['name', 'display_name', 'sku', 'description', 'image', 'image_secondary', 'category', 'tags', 'weight', 'is_sellable', 'is_buyable', 'is_composable', 'is_recurring', 'max_recurring_order_qty']
 
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance:
+            kwargs.update(initial={
+                'price': instance.sale_price and instance.sale_price.price.amount
+            })
+        super().__init__(*args, **kwargs)
 
     def clean_sku(self):
         sku = self.cleaned_data['sku']

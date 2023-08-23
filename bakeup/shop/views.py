@@ -110,7 +110,7 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        created_order = CustomerOrder.create_or_update_customer_order_position(
+        created_order, created = CustomerOrder.create_or_update_customer_order_position(
             self.production_day_product.production_day,
             self.request.user.customer,
             self.production_day_product.product,
@@ -137,9 +137,10 @@ class CustomerOrderAddView(CustomerRequiredMixin, FormView):
 @login_required
 def customer_order_add_or_update(request, production_day):
     if request.method == 'POST':
+        next_url = request.POST.get('next_url', None)
         production_day = get_object_or_404(ProductionDay, pk=production_day)
         products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
-        order = CustomerOrder.create_or_update_customer_order(
+        order, created = CustomerOrder.create_or_update_customer_order(
             production_day,
             request.user.customer,
             products,
@@ -152,6 +153,14 @@ def customer_order_add_or_update(request, production_day):
                 request.user.customer,
                 products_recurring,
             )
+        if order and created:
+            messages.add_message(request, messages.INFO, "Vielen Dank für die Bestellung.")
+        elif order and not created:
+            messages.add_message(request, messages.INFO, "Vielen Dank, die Bestellung wurde geändert.")
+        else:
+            messages.add_message(request, messages.INFO, "Bestellung erfolgreich storniert.")
+        if next_url:
+            return HttpResponseRedirect(next_url)
         if order:
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
         else:
@@ -309,13 +318,38 @@ class ShopView(TemplateView):
             context['production_day_next'] = self.production_day
             context['production_day_products'] = self.production_day.production_day_products.published()
             production_day_products = self.production_day.production_day_products.published()
+            current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
+            context['current_customer_order'] = current_customer_order
+            # TODO this needs to go at one place, code duplication, very bad idea pages/models
             production_day_products = production_day_products.annotate(
-                ordered_quantity=Subquery(CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("quantity"))
+                ordered_quantity=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("quantity")
+                )
+            ).annotate(
+                price=Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                        order__customer=customer, 
+                        order__production_day=self.production_day, 
+                    ).values("price_total")
+                )
             ).annotate(
                has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
             )
+            if current_customer_order:
+                production_day_products = production_day_products.annotate(
+                    abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                        Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                        orders__order__pk=current_customer_order.pk,
+                        orders__order__customer=customer,
+                        ).values("quantity")
+                    )
+                )
             context['production_day_products'] = production_day_products
-            context['current_customer_order'] = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
         context['show_remaining_products'] = self.request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
         context['production_days'] = ProductionDay.objects.upcoming().exclude(id=self.production_day.pk)

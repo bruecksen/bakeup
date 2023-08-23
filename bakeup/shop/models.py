@@ -12,6 +12,7 @@ from django.db.models import OuterRef, Subquery
 from django.utils import formats
 from django import forms
 
+from djmoney.models.fields import MoneyField
 from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
@@ -64,6 +65,9 @@ class ProductionDay(CommonBaseClass):
 
     def has_products_open_for_order(self):
         return self.production_day_products.filter(production_plan__isnull=True).exists()
+
+    def has_products_with_price(self):
+        return self.production_day_products.filter(product__sale_prices__isnull=False).exists()
     
     def get_random_product_image(self):
         product = self.production_day_products.published().exclude(
@@ -86,7 +90,7 @@ class ProductionDay(CommonBaseClass):
 
     def update_production_plan(self, filter_product, create_max_quantity):
         ProductionPlan.objects.filter(product__product_template=filter_product, production_day=self).delete()
-        self.create_production_plans(filter_product, create_max_quantity)
+        return self.create_production_plans(filter_product, create_max_quantity)
 
     @property
     def total_ordered_quantity(self):
@@ -98,24 +102,27 @@ class ProductionDay(CommonBaseClass):
 
     def create_production_plans(self, filter_product=None, create_max_quantity=False):
         if filter_product:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product)
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product, product__product_template__isnull=True)
         else:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self)
-        product_quantities = positions.values('product').order_by('product').annotate(total_quantity=Sum('quantity'))
+            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product__product_template__isnull=True)
+        product_quantities = positions.values('product', 'product__product_template').order_by('product').annotate(total_quantity=Sum('quantity'))
         if not product_quantities and create_max_quantity:
             # fallback to max product quantities of production day
             if filter_product:
                 product_quantities = self.production_day_products.filter(product=filter_product).values('product', total_quantity=F('max_quantity'))
             else:
                 product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
+        # raise Exception(product_quantities)
         for product_quantity in product_quantities:
             product_template = Product.objects.get(pk=product_quantity.get('product'))
             if product_quantity.get('total_quantity') == 0:
                 continue
             if ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template).exists():
+                print('plan exists: {}'.format(product_template))
                 if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
                     self.update_production_plan(product_template, create_max_quantity)
                 continue
+            print('plan create: {}'.format(product_template))
             product = Product.duplicate(product_template)
             obj = ProductionPlan.objects.create(
                 parent_plan=None,
@@ -130,6 +137,7 @@ class ProductionDay(CommonBaseClass):
             production_day_product.production_plan = obj
             # production_day_product.product = product
             production_day_product.save()
+            return obj
 
     def create_template_orders(self):
         with transaction.atomic():
@@ -163,6 +171,13 @@ class ProductionDay(CommonBaseClass):
                     category['sum'] = category_sum
         return collections.OrderedDict(sorted(ingredients.items(), key=lambda t: t[0].path))
 
+    def update_order_positions_product(self, production_plan_product):
+
+        positions = CustomerOrderPosition.objects.filter(
+            order__production_day=self, 
+            product=production_plan_product.product_template
+        )
+        positions.update(product=production_plan_product)
 
 class ProductionDayProductQuerySet(models.QuerySet):
     def published(self):
@@ -309,6 +324,10 @@ class CustomerOrder(CommonBaseClass):
         return "\n".join(["{}x {}".format(position.quantity, position.product.get_display_name()) for position in self.positions.all()])
     
     @property
+    def price_total(self):
+        return self.positions.aggregate(price_total=Sum('price_total'))['price_total']
+
+    @property
     def total_quantity(self):
         return self.positions.aggregate(total_quantity=Sum('quantity'))['total_quantity']
 
@@ -322,7 +341,7 @@ class CustomerOrder(CommonBaseClass):
     
     @property
     def is_locked(self):
-        return not self.positions.filter(production_plan__state=0).exists()
+        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
 
     @property
     def order_nr(self):
@@ -348,7 +367,9 @@ class CustomerOrder(CommonBaseClass):
         position, created = CustomerOrderPosition.objects.get_or_create(
             order=customer_order,
             product=product,
-            defaults={'quantity': quantity}
+            defaults={
+                'quantity': quantity,
+            }
         )
         if not created:
             position.quantity = (position.quantity or 0) + quantity
@@ -373,11 +394,18 @@ class CustomerOrder(CommonBaseClass):
             if production_day_product.is_locked:
                 raise forms.ValidationError("Product is locked.")
             if quantity > 0:
+                price = None
+                price_total = None
+                if product.sale_price:
+                    price = product.sale_price.price.amount
+                    price_total = price * quantity
                 position, created = CustomerOrderPosition.objects.update_or_create(
                     order=customer_order,
                     product=product,
                     defaults={
-                        'quantity': quantity
+                        'quantity': quantity,
+                        'price': price,
+                        'price_total': price_total,
                     }
                 )
             elif quantity == 0:
@@ -388,15 +416,24 @@ class CustomerOrder(CommonBaseClass):
             
         if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
             customer_order.delete()
-            return None
-        return customer_order
+            return None, None
+        return customer_order, created
     
     def get_production_day_products_ordered_list(self):
         production_day_products = self.production_day.production_day_products.published()
         production_day_products = production_day_products.annotate(
-            ordered_quantity=Subquery(self.positions.filter(product=OuterRef('product__pk')).values("quantity"))
+            ordered_quantity=Subquery(self.positions.filter(Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),).values("quantity"))
+        ).annotate(
+                price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
         ).annotate(
             has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
+        ).annotate(
+            abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                Q(orders__product=OuterRef('product__pk')) | Q(orders__product__product_template=OuterRef('product__pk')),
+                orders__order__pk=self.pk,
+                orders__order__customer=self.customer,
+                ).values("quantity")
+            )
         )
         return production_day_products
 
@@ -421,6 +458,8 @@ class CustomerOrderPosition(BasePositionClass):
     is_paid = models.BooleanField(default=False)
     is_picked_up = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
+    price = MoneyField(blank=True, null=True, max_digits=14, decimal_places=2, default_currency='EUR')
+    price_total = MoneyField(blank=True, null=True, max_digits=14, decimal_places=2, default_currency='EUR')
 
     objects = CustomerOrderPositionQuerySet.as_manager()
 
