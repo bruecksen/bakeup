@@ -4,14 +4,15 @@ import django_tables2 as tables
 import django_filters
 from django_tables2.utils import A
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from bakeup.workshop.models import Category, Product, ProductionPlan
 from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct, Customer
 
 
 class ProductFilter(django_filters.FilterSet):
-    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all(), method='category_filter', empty_label='Select category')
-    search = django_filters.filters.CharFilter(method='filter_search', label="Search")
+    category = django_filters.ModelChoiceFilter(queryset=Category.objects.all(), method='category_filter', empty_label=_("Select category"))
+    search = django_filters.filters.CharFilter(method='filter_search', label=_("Search"))
 
     class Meta:
         model = Product

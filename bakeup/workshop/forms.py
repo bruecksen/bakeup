@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from djmoney.forms.fields import MoneyField
+from django.utils.translation import gettext_lazy as _
 
 from bakeup.shop.models import ProductionDay, Customer
 from bakeup.shop.models import PointOfSale
@@ -13,7 +14,7 @@ from bakeup.workshop.models import Category, Product, ProductHierarchy, Producti
 
 
 class ProductForm(ModelForm):
-    price = DecimalField(max_digits=14, decimal_places=2, required=False, label='Price in EUR')
+    price = DecimalField(max_digits=14, decimal_places=2, required=False, label=_("Price"))
 
     class Meta:
         model = Product
@@ -34,19 +35,19 @@ class ProductForm(ModelForm):
             if self.instance:
                 products = products.exclude(pk=self.instance.pk)
             if products.exists():
-                raise ValidationError('A product with the SKU already exists')
+                raise ValidationError(_('A product with the SKU already exists'))
         return sku
 
 
 
 class AddProductForm(Form):
     weight = FloatField(required=False)
-    product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label="Select existing product")
-    product_new = CharField(required=False, label="New product name")
-    category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label="Select a category")
-    is_sellable = BooleanField(label='Sellable?', required=False)
-    is_buyable = BooleanField(label='Buyable?', required=False)
-    is_composable = BooleanField(label='Composable?', required=False)
+    product_existing = ModelChoiceField(queryset=Product.objects.all(), required=False, empty_label=_("Select existing product"))
+    product_new = CharField(required=False, label=_("New product name"))
+    category = ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label=_("Select a category"))
+    is_sellable = BooleanField(label=_('Sellable?'), required=False)
+    is_buyable = BooleanField(label=_('Buyable?'), required=False)
+    is_composable = BooleanField(label=_('Composable?'), required=False)
 
     def __init__(self, product=None, parent_products=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -83,13 +84,13 @@ class ProductionPlanForm(ModelForm):
 
 
 class ProductKeyFiguresForm(Form):
-    fermentation_loss = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Gärverlust', localize=True)
-    dough_yield = IntegerField(min_value=100, label='TA', disabled=True, required=False)
-    salt = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Salz', disabled=True, required=False, localize=True)
-    starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Starter', disabled=True, required=False)
-    wheat = CharField(label='Mehl', disabled=True, required=False, widget=Textarea(attrs={'rows':2,}))
-    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, label='Ferment. Mehlmenge', disabled=True, required=False, localize=True)
-    total_dough_weight = DecimalField(decimal_places=2, min_value=0, label='Teiggewicht', disabled=True, required=False, localize=True)
+    fermentation_loss = DecimalField(decimal_places=2, min_value=0, max_value=100, label=_('Fermentation Loss'), localize=True)
+    dough_yield = IntegerField(min_value=100, label=_('Hydration'), disabled=True, required=False)
+    salt = DecimalField(decimal_places=2, min_value=0, max_value=100, label=_("Salt"), disabled=True, required=False, localize=True)
+    starter = DecimalField(decimal_places=2, min_value=0, max_value=100, label=_('Starter'), disabled=True, required=False)
+    wheat = CharField(disabled=True, required=False, widget=Textarea(attrs={'rows':2,}), label=_('Flour'))
+    pre_ferment = DecimalField(decimal_places=2, min_value=0, max_value=100, disabled=True, required=False, localize=True, label=_('Fermented Flour'))
+    total_dough_weight = DecimalField(decimal_places=2, min_value=0, disabled=True, required=False, localize=True, label=_('Dough Weight'))
 
 
     def __init__(self, *args, **kwargs):
@@ -100,7 +101,7 @@ class ProductKeyFiguresForm(Form):
 
 
 class SelectProductionDayForm(Form):
-    select_production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), empty_label='Select production day')
+    select_production_day = ModelChoiceField(queryset=ProductionDay.objects.all(), empty_label=_('Select production day'))
 
 
 class CustomerForm(ModelForm):
@@ -113,9 +114,9 @@ class CustomerForm(ModelForm):
 
 
 class ProductionDayMetaProductForm(forms.Form):
-    meta_product = forms.CharField(widget=forms.HiddenInput, label='Source Product')
-    meta_product_name = forms.CharField(disabled=True, required=False, label='Source Product')
-    product = forms.ModelChoiceField(queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME), required=False, label='Target Product')
+    meta_product = forms.CharField(widget=forms.HiddenInput, label=_('Source Product'))
+    meta_product_name = forms.CharField(disabled=True, required=False, label=_('Source Product'))
+    product = forms.ModelChoiceField(queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME), required=False, label=_('Target Product'))
 
     def __init__(self, *args, **kwargs):
         self.production_day = kwargs.pop('production_day')
@@ -129,14 +130,14 @@ ProductionDayMetaProductformSet = formset_factory(
 
 
 class ProductionDayReminderForm(forms.Form):
-    point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label='Point of sale', help_text="Send emails to orders of specific point of sale, leave empty to send to all point of sales.")
+    point_of_sale = forms.ModelChoiceField(empty_label=_('All'), queryset=PointOfSale.objects.all(), required=False, label=_('Point of sale'), help_text=_("Send emails to orders of specific point of sale, leave empty to send to all point of sales."))
     subject = forms.CharField(required=True)
     body = forms.CharField(required=True, widget=forms.Textarea)
 
 
 class ReminderMessageForm(ModelForm):
     # messages = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, empty_label="Create new Message")
-    point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label='Point of sale')
+    point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label=_('Point of sale'))
     subject = forms.CharField(widget=forms.TextInput)
     production_day = forms.HiddenInput()
 
@@ -152,7 +153,7 @@ class ReminderMessageForm(ModelForm):
 
 
 class SelectReminderMessageForm(forms.Form):
-    message = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, label='Create a new message or select a saved one', empty_label="Create a new message")
+    message = forms.ModelChoiceField(queryset=ReminderMessage.objects.none(), required=False, label=_('Create a new message or select a saved one'), empty_label=_("Create a new message"))
 
     def __init__(self, *args, **kwargs):
         production_day = kwargs.pop('production_day', None)

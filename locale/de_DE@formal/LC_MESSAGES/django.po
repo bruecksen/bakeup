@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 18:32+0200\n"
+"POT-Creation-Date: 2023-08-23 19:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Document"
 msgstr ""
 
-#: bakeup/pages/blocks.py:125
+#: bakeup/pages/blocks.py:125 bakeup/workshop/models.py:60
 msgid "Image"
 msgstr ""
 
@@ -328,8 +328,8 @@ msgid ""
 "<p>The deletion of the selected object: <strong>%(object)s</strong> would "
 "require first the deletion of the protected related objects:</p>"
 msgstr ""
-"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setzt das"
-"Löschen der geschützten verbundenen Objekte voraus.</p>"
+"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setzt "
+"dasLöschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
 #, python-format
@@ -338,7 +338,8 @@ msgid ""
 "<strong>%(object)s</strong>. Please confirm.</p>"
 msgstr ""
 "<h3>Sind Sie sich sicher?</h3> <p>Sie löschen gerade folgende Kategorie: "
-"<strong>%(object)s</strong>. Bitte bestätigen Sie, dass Sie die Kategorie löschen wollen.</p>"
+"<strong>%(object)s</strong>. Bitte bestätigen Sie, dass Sie die Kategorie "
+"löschen wollen.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
@@ -392,6 +393,8 @@ msgstr "Zu den Rezepten"
 
 #: bakeup/templates/workshop/includes/dashboard.html:24
 #: bakeup/templates/workshop/includes/sidebar.html:22
+#: bakeup/templates/workshop/product_list.html:6
+#: bakeup/templates/workshop/product_list.html:7
 msgid "Products"
 msgstr "Produkte"
 
@@ -488,6 +491,16 @@ msgstr "kaufbar"
 msgid "Composable"
 msgstr "kombinierbar"
 
+#: bakeup/templates/workshop/product_list.html:11
+#, fuzzy
+#| msgid "Add new category"
+msgid "Add new product"
+msgstr "Neue Kategorie hinzufügen"
+
+#: bakeup/templates/workshop/product_list.html:26
+msgid "Reset filters"
+msgstr ""
+
 #: bakeup/templates/workshop/workshop.html:10
 #, python-format
 msgid "Hi %(request.user)s, welcome to bakeup!"
@@ -504,6 +517,80 @@ msgstr ""
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
+
+#: bakeup/workshop/forms.py:17 bakeup/workshop/models.py:309
+msgid "Price"
+msgstr ""
+
+#: bakeup/workshop/models.py:55
+msgid "Name"
+msgstr ""
+
+#: bakeup/workshop/models.py:57
+msgid "display name"
+msgstr ""
+
+#: bakeup/workshop/models.py:59
+#, fuzzy
+#| msgid "Duration"
+msgid "Description"
+msgstr "Dauer"
+
+#: bakeup/workshop/models.py:61
+msgid "Secondary Image"
+msgstr ""
+
+#: bakeup/workshop/models.py:62
+#, fuzzy
+#| msgid "Categories"
+msgid "Category"
+msgstr "Kategorien"
+
+#: bakeup/workshop/models.py:64
+msgid "weight in grams"
+msgstr ""
+
+#: bakeup/workshop/models.py:64
+msgid "Weight"
+msgstr ""
+
+#: bakeup/workshop/models.py:66
+#, fuzzy
+#| msgid "Sellable"
+msgid "Is sellable"
+msgstr "verkaufbar"
+
+#: bakeup/workshop/models.py:67
+#, fuzzy
+#| msgid "Buyable"
+msgid "Is buyable"
+msgstr "kaufbar"
+
+#: bakeup/workshop/models.py:68
+#, fuzzy
+#| msgid "Composable"
+msgid "Is composable"
+msgstr "kombinierbar"
+
+#: bakeup/workshop/models.py:69
+#, fuzzy
+#| msgid "Go to products"
+msgid "Is abo product?"
+msgstr "Zu den Produkte"
+
+#: bakeup/workshop/models.py:70
+msgid "Max abo quantity?"
+msgstr ""
+
+#: bakeup/workshop/tables.py:14
+#, fuzzy
+#| msgid "Delete category"
+msgid "Select category"
+msgstr "Lösche Kategorie"
+
+#: bakeup/workshop/tables.py:15
+msgid "Search"
+msgstr ""
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."

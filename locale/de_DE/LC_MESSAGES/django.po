@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 18:32+0200\n"
+"POT-Creation-Date: 2023-08-23 19:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,9 +25,9 @@ msgstr ""
 msgid "Document"
 msgstr ""
 
-#: bakeup/pages/blocks.py:125
+#: bakeup/pages/blocks.py:125 bakeup/workshop/models.py:60
 msgid "Image"
-msgstr ""
+msgstr "Bild"
 
 #: bakeup/pages/blocks.py:126
 msgid "External link"
@@ -173,8 +173,8 @@ msgid ""
 "Forgotten your password? Enter your e-mail address below, and we'll send you "
 "an e-mail allowing you to reset it."
 msgstr ""
-"Passwort vergessen? Gib deine E-Mail-Adresse unten ein, dann schicken "
-"wir dir einen Link, unter dem du dein Passwort zurücksetzen kannst."
+"Passwort vergessen? Gib deine E-Mail-Adresse unten ein, dann schicken wir "
+"dir einen Link, unter dem du dein Passwort zurücksetzen kannst."
 
 #: bakeup/templates/account/password_reset.html:29
 msgid "Reset My Password"
@@ -328,8 +328,8 @@ msgid ""
 "<p>The deletion of the selected object: <strong>%(object)s</strong> would "
 "require first the deletion of the protected related objects:</p>"
 msgstr ""
-"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setzt das"
-"Löschen der geschützten verbundenen Objekte voraus.</p>"
+"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setzt "
+"dasLöschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
 #, python-format
@@ -338,7 +338,8 @@ msgid ""
 "<strong>%(object)s</strong>. Please confirm.</p>"
 msgstr ""
 "<h3>Bist du dir sicher?</h3> <p>Du löscht gerade folgende Kategorie: "
-"<strong>%(object)s</strong>. Bitte bestätige, dass du die Kategorie löschen willst.</p>"
+"<strong>%(object)s</strong>. Bitte bestätige, dass du die Kategorie löschen "
+"willst.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
@@ -392,6 +393,8 @@ msgstr "Zu den Rezepten"
 
 #: bakeup/templates/workshop/includes/dashboard.html:24
 #: bakeup/templates/workshop/includes/sidebar.html:22
+#: bakeup/templates/workshop/product_list.html:6
+#: bakeup/templates/workshop/product_list.html:7
 msgid "Products"
 msgstr "Produkte"
 
@@ -488,6 +491,16 @@ msgstr "kaufbar"
 msgid "Composable"
 msgstr "kombinierbar"
 
+#: bakeup/templates/workshop/product_list.html:11
+#, fuzzy
+#| msgid "Add new category"
+msgid "Add new product"
+msgstr "Neue Kategorie hinzufügen"
+
+#: bakeup/templates/workshop/product_list.html:26
+msgid "Reset filters"
+msgstr "Filter zurücksetzen"
+
 #: bakeup/templates/workshop/workshop.html:10
 #, python-format
 msgid "Hi %(request.user)s, welcome to bakeup!"
@@ -504,6 +517,66 @@ msgstr ""
 #: bakeup/users/tests/test_forms.py:39
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
+
+#: bakeup/workshop/forms.py:17 bakeup/workshop/models.py:309
+msgid "Price"
+msgstr "Preis"
+
+#: bakeup/workshop/models.py:55
+msgid "Name"
+msgstr ""
+
+#: bakeup/workshop/models.py:57
+msgid "display name"
+msgstr "Anzeigename"
+
+#: bakeup/workshop/models.py:59
+msgid "Description"
+msgstr "Beschreibung"
+
+#: bakeup/workshop/models.py:61
+msgid "Secondary Image"
+msgstr "Zweitbild"
+
+#: bakeup/workshop/models.py:62
+msgid "Category"
+msgstr "Kategorie"
+
+#: bakeup/workshop/models.py:64
+msgid "weight in grams"
+msgstr "Gewicht in Gramm"
+
+#: bakeup/workshop/models.py:64
+msgid "Weight"
+msgstr "Gewicht"
+
+#: bakeup/workshop/models.py:66
+msgid "Is sellable"
+msgstr "verkaufbar"
+
+#: bakeup/workshop/models.py:67
+msgid "Is buyable"
+msgstr "kaufbar"
+
+#: bakeup/workshop/models.py:68
+msgid "Is composable"
+msgstr "kombinierbar"
+
+#: bakeup/workshop/models.py:69
+msgid "Is abo product?"
+msgstr "Aboprodukt"
+
+#: bakeup/workshop/models.py:70
+msgid "Max abo quantity?"
+msgstr "Maximal abonierbare Stückzahl"
+
+#: bakeup/workshop/tables.py:14
+msgid "Select category"
+msgstr "Wähle Kategorie"
+
+#: bakeup/workshop/tables.py:15
+msgid "Search"
+msgstr "Suche"
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
