@@ -50,7 +50,7 @@
                 <div class="col">
                     <div class="input-group">
                         <button class="btn btn-outline-secondary btn-minus" {% if is_locked or production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="minus" data-field="quantity" data-product="{{ production_day_product.product.pk }}"><i class="fa-solid fa-minus fa-fw"></i></button>
-                        <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="0" max="{{ production_day_product.calculate_max_quantity }}" class="form-control product-quantity" placeholder="Quantity" name="{{ form.quantity.html_name }}" id="product-quantity-input-{{ production_day_product.product.pk }}" data-product="{{ production_day_product.product.pk }}">
+                        <input type="number" {% if is_locked %} disabled{% endif %} value="0" min="0" max="{{ production_day_product.calculate_max_quantity }}" class="form-control product-quantity" placeholder="Quantity" name="{{ form.quantity.html_name }}" id="product-quantity-input-{{ production_day_product.product.pk }}" data-product="{{ production_day_product.product.pk }}" data-ordered-quantity="{{ customer_quantity }}">
                         <button class="btn btn-primary btn-plus" {% if is_locked or production_day_product.is_sold_out %} disabled{% endif %} type="button" data-type="plus" data-field="quantity" data-product="{{ production_day_product.product.pk }}"><i class="fa-solid fa-plus fa-fw"></i></button>
                     </div>
                 </div>
