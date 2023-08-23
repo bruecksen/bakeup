@@ -1,12 +1,13 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
-{% block title %}Categories{% endblock %}
-{% block page_heading %}Categories{% endblock %}
+{% block title %}{% trans "Categories" %}{% endblock %}
+{% block page_heading %}{% trans "Categories" %}{% endblock %}
 
 {% block page_heading_action %}
-<a href="{% url 'workshop:category-add' %}" class="btn btn-primary btn-sm float-end">Add new category</a>
+<a href="{% url 'workshop:category-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add new category" %}</a>
 {% endblock page_heading_action %}
 
 {% block page_content %}

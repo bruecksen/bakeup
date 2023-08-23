@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 16:52+0200\n"
+"POT-Creation-Date: 2023-08-23 18:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,6 +126,7 @@ msgid ""
 msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:29
+#: bakeup/templates/workshop/category_confirm_delete.html:31
 msgid "Confirm"
 msgstr ""
 
@@ -315,10 +316,63 @@ msgstr ""
 "kannst eine neue E-Mail-Adresse hinzufügen in dem du in dem folgenden "
 "Formular die neue E-Mail-Adresse eingibst und anschließend bestätigst."
 
+#: bakeup/templates/workshop/category_confirm_delete.html:5
+msgid "Delete category"
+msgstr "Lösche Kategorie"
+
+#: bakeup/templates/workshop/category_confirm_delete.html:11
+#, python-format
+msgid ""
+"<p>The deletion of the selected object: <strong>%(object)s</strong> would "
+"require first the deletion of the protected related objects:</p>"
+msgstr ""
+"<p>Das Löschen von folgendem Objekt <strong>%(object)s</strong> setztdas "
+"Löschen der geschützten verbundenen Objekte voraus.</p>"
+
+#: bakeup/templates/workshop/category_confirm_delete.html:22
+msgid ""
+"<h3>Are you sure?</h3> <p>You're about to delete the following category: "
+"<strong>%(object)s</strong>. Please confirm.</p>"
+msgstr ""
+"<h3>Bist du dir sicher?</h3> <p>Du löscht gerade folgende Kategorie: "
+"<strong>%(object)s</strong>. Bitte bestätige, dass du die Kategorie löschen willst.</p>"
+
+#: bakeup/templates/workshop/category_confirm_delete.html:29
+#: bakeup/templates/workshop/category_form.html:21
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: bakeup/templates/workshop/category_form.html:5
+#: bakeup/templates/workshop/category_form.html:10
+#: bakeup/templates/workshop/category_list.html:10
+msgid "Add new category"
+msgstr "Neue Kategorie hinzufügen"
+
+#: bakeup/templates/workshop/category_form.html:8
+msgid "Update category"
+msgstr "Ändere Kategorie"
+
+#: bakeup/templates/workshop/category_form.html:23
+msgid "Update"
+msgstr "Ändern"
+
+#: bakeup/templates/workshop/category_form.html:23
+msgid "Add"
+msgstr "Hinzufügen"
+
+#: bakeup/templates/workshop/category_list.html:6
+#: bakeup/templates/workshop/category_list.html:7
 #: bakeup/templates/workshop/includes/dashboard.html:6
 #: bakeup/templates/workshop/includes/sidebar.html:16
 msgid "Categories"
 msgstr "Kategorien"
+
+#: bakeup/templates/workshop/includes/category.html:8
+#, python-format
+msgid "%(counter)s Product"
+msgid_plural "%(counter)s Products"
+msgstr[0] "%(counter)s Produkt"
+msgstr[1] "%(counter)s Produkte"
 
 #: bakeup/templates/workshop/includes/dashboard.html:8
 msgid "Go to categories"

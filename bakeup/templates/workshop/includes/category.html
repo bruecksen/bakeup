@@ -1,9 +1,15 @@
+{% load i18n %}
 <ol class="list-group{% if is_root %} list-group-root card{% endif %}">
 {% for category in categories %}
     <li class="list-group-item d-flex justify-content-between align-items-start">
         <div class="ms-2 me-auto">
             <a href="{% url 'workshop:category-update' pk=category.pk %}" class="fs-4">{{ category.name }}</a>
-            <a href="{% url 'workshop:product-list' %}?category={{ category.pk }}" class="ms-2"><span class="badge bg-primary rounded-pill">{{ category.get_product_count }} Product{{ category.get_product_count|pluralize }}</span></a>
+            <a href="{% url 'workshop:product-list' %}?category={{ category.pk }}" class="ms-2"><span class="badge bg-primary rounded-pill">
+            {% blocktranslate count counter=category.get_product_count trimmed %}
+                {{ counter }} Product
+            {% plural %}
+                {{ counter }} Products
+            {% endblocktranslate %}</span></a>
             <div class="fw-bold"></div>
             {{ category.description|default:'' }}
         </div>
