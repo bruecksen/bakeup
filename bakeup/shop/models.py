@@ -424,7 +424,7 @@ class CustomerOrder(CommonBaseClass):
             
         if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
             customer_order.delete()
-            return None
+            return None, None
         return customer_order, created
     
     def get_production_day_products_ordered_list(self):
