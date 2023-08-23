@@ -13,7 +13,7 @@ from bakeup.workshop.models import Category, Product, ProductHierarchy, Producti
 
 
 class ProductForm(ModelForm):
-    price = DecimalField(max_digits=14, decimal_places=2, required=False)
+    price = DecimalField(max_digits=14, decimal_places=2, required=False, label='Price in EUR')
 
     class Meta:
         model = Product
