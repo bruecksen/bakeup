@@ -25,7 +25,7 @@
                     </thead>
                     <tbody>
                         {% for product in products %}
-                        <tr>
+                        <tr class="product" data-product="{{ product.product.pk }}">
                             <th scope="row">
                                 <select class="form-select form-select-xs order-quantity" name="productabo-{{ product.product.pk }}">
                                     {% for i in product.product.available_abo_quantity|default:20|add:product.quantity|times %}
@@ -51,7 +51,10 @@
                     </label>
                 </div>
                 {% endif %}
-                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">{{ settings.pages.CheckoutSettings.order_button_change }}</button>
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">
+                    <span class="text-change">{{ settings.pages.CheckoutSettings.order_button_change }}</span>
+                    <span class="d-none text-cancel">{{ settings.pages.CheckoutSettings.order_button_cancel }}</span>
+                </button>
                 <input type="reset" class="btn btn-outline-primary mt-3 mb-3 d-none" value="Änderungen verwerfen">
                 <button class="btn btn-primary mt-3 mb-3" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
                 </form>
