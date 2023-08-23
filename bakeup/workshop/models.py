@@ -45,8 +45,8 @@ class Category(CommonBaseClass, MP_Node):
 
 
 WEIGHT_UNIT_CHOICES = [
-    ('g', 'Grams'),
-    ('kg', 'Kilograms'),
+    ('g', _('Grams')),
+    ('kg', _('Kilograms')),
 ]
 
 # Item

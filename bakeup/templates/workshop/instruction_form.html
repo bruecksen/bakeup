@@ -1,9 +1,10 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}Add new product{% endblock %}
+{% block title %}{% trans "Add new product" %}{% endblock %}
 {% block page_heading %}
-<h1>Update Instructions</h1>
+<h1>{% trans "Update Instructions" %}</h1>
 {% endblock %}
 
 {% block page_content %}
@@ -14,7 +15,7 @@
     <div class="control-group">
       <div class="controls">
         <button type="submit" class="btn btn-primary" name="add-new">
-          {% if object %}Update{% else %}Add{% endif %}
+          {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
         </button>
       </div>
     </div>

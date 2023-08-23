@@ -10,9 +10,9 @@
 {% block page_heading %}{{ object.name }} {{ object.weight|floatformat:"0" }}{{ object.unit }}{% endblock %}
 {% block page_heading_action %}
 <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
-  <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit product</a>
-  <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
-  <a href="{% url 'workshop:product-add' %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add new product</a>
+  <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> {% trans "Edit product" %}</a>
+  <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> {% trans "Delete product" %}</a>
+  <a href="{% url 'workshop:product-add' %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> {% trans "Add new product" %}</a>
 </div>
 {% endblock %}
 
@@ -22,7 +22,7 @@
     <small>
     <ul class="list-unstyled list-inline mb-1">
       {% if object.sku %}<li class="list-inline-item"><strong>SKU:</strong> {{ object.sku }}</li>{% endif %}
-      {% if object.display_name %}<li class="list-inline-item"><strong>Shop:</strong> {{ object.display_name|default:'-' }}</li>{% endif %}
+      {% if object.display_name %}<li class="list-inline-item"><strong>{% trans "Shop" %}:</strong> {{ object.display_name|default:'-' }}</li>{% endif %}
       <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>
       <li class="list-inline-item">{% for tag in object.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}</li>
       <li class="list-inline-item">{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
@@ -30,9 +30,9 @@
       <li class="list-inline-item">{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>
     </ul>
     <ul class="list-unstyled list-inline mb-1">
-      {% if object.sale_price %}<li class="list-inline-item"><strong>Preis:</strong> {{ object.sale_price.price }}{% endif %}
-      <li class="list-inline-item">{% if object.is_recurring %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} Abo-fähiges Produkt</li>
-      {% if object.max_recurring_order_qty %}<li class="list-inline-item"><strong>Maximale Abos: </strong> {{ object.max_recurring_order_qty }}</li>{% endif %}
+      {% if object.sale_price %}<li class="list-inline-item"><strong>{% trans "Price" %}:</strong> {{ object.sale_price.price }}{% endif %}
+      <li class="list-inline-item">{% if object.is_recurring %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "recurring product" %}</li>
+      {% if object.max_recurring_order_qty %}<li class="list-inline-item"><strong>{% trans "max recurring order qty" %}: </strong> {{ object.max_recurring_order_qty }}</li>{% endif %}
     </ul>
     <ul class="list-unstyled list-inline mb-1">
       {% for parent in object.childs.all %}
@@ -67,10 +67,10 @@
       <form action="{% url 'workshop:product-normalize' pk=object.pk %}" method="POST">
         {% csrf_token %}
         <div class="row">
-          <label class="col-6 col-form-label" for="id_fermentation_loss">Gärverlust</label>
+          <label class="col-6 col-form-label" for="id_fermentation_loss">{% trans "Fermentation Loss" %}</label>
           <div class="col-6">
             <div class="input-group input-group-sm">
-              <input type="text" pattern="[0-9]+([\.,][0-9]+)?" name="fermentation_loss" value="{{ object.get_fermentation_loss|clever_rounding|unlocalize }}" min="0" max="100" step="0.1" class="form-control form-control-sm" placeholder="Gärverlust" required="" id="id_fermentation_loss">
+              <input type="text" pattern="[0-9]+([\.,][0-9]+)?" name="fermentation_loss" value="{{ object.get_fermentation_loss|clever_rounding|unlocalize }}" min="0" max="100" step="0.1" class="form-control form-control-sm" placeholder="{% trans 'Fermentation Loss' %}" required="" id="id_fermentation_loss">
               <span class="input-group-text">%</span>
               <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-scale-balanced"></i></button>
             </div>
@@ -94,10 +94,10 @@
 <div class="card p-3 mt-4 mb-4">
   <div class="row">
     <div class="col-8">
-      <h2>Instructions</h2>
+      <h2>{% trans "Instructions" %}</h2>
     </div>
     <div class="col-4 text-end align-self-center">
-      <a href="{% url 'workshop:product-instructions-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+      <a href="{% url 'workshop:product-instructions-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
     </div>
   </div>
   <hr>
@@ -106,7 +106,7 @@
       {% if object.instructions %}
       <p>{{ object.instructions.instruction|linebreaksbr }}</p>
       {% else %}
-      <p>No instructions yet!</p>
+      <p>{% trans "No instructions yet!" %}</p>
       {% endif %}
     </div>
   </div>

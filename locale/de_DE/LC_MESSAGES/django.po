@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 19:37+0200\n"
+"POT-Creation-Date: 2023-08-23 21:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -282,6 +282,7 @@ msgstr ""
 
 #: bakeup/templates/shop/weekly.html:9
 #: bakeup/templates/workshop/includes/sidebar.html:44
+#: bakeup/templates/workshop/product_detail.html:25
 msgid "Shop"
 msgstr ""
 
@@ -357,10 +358,15 @@ msgid "Update category"
 msgstr "Ändere Kategorie"
 
 #: bakeup/templates/workshop/category_form.html:23
+#: bakeup/templates/workshop/instruction_form.html:18
+#: bakeup/templates/workshop/point_of_sale_form.html:8
+#: bakeup/templates/workshop/point_of_sale_form.html:24
 msgid "Update"
 msgstr "Ändern"
 
 #: bakeup/templates/workshop/category_form.html:23
+#: bakeup/templates/workshop/instruction_form.html:18
+#: bakeup/templates/workshop/point_of_sale_form.html:24
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -384,6 +390,7 @@ msgstr "Zu den Kategorien"
 
 #: bakeup/templates/workshop/includes/dashboard.html:15
 #: bakeup/templates/workshop/includes/sidebar.html:19
+#: bakeup/templates/workshop/recipe_detail.html:11
 msgid "Recipes"
 msgstr "Rezepte"
 
@@ -476,6 +483,35 @@ msgstr "Ausloggen"
 msgid "Login"
 msgstr "Einloggen"
 
+#: bakeup/templates/workshop/instruction_form.html:5
+#: bakeup/templates/workshop/point_of_sale_form.html:5
+#: bakeup/templates/workshop/product_detail.html:15
+#: bakeup/templates/workshop/product_list.html:11
+#: bakeup/templates/workshop/recipe_detail.html:6
+msgid "Add new product"
+msgstr "Neues Produkt hinzufügen"
+
+#: bakeup/templates/workshop/instruction_form.html:7
+msgid "Update Instructions"
+msgstr "Anweisungen korrigieren"
+
+#: bakeup/templates/workshop/point_of_sale_form.html:10
+msgid "Add new point of sale"
+msgstr "Neue Abholstelle hinzufügen"
+
+#: bakeup/templates/workshop/point_of_sale_form.html:22
+msgid "Back"
+msgstr ""
+
+#: bakeup/templates/workshop/product_detail.html:13
+#: bakeup/templates/workshop/recipe_detail.html:15
+msgid "Edit product"
+msgstr "Ändere Produkte"
+
+#: bakeup/templates/workshop/product_detail.html:14
+msgid "Delete product"
+msgstr "Produkte löschen"
+
 #: bakeup/templates/workshop/product_detail.html:28
 #: bakeup/templates/workshop/recipe_detail.html:39
 msgid "Sellable"
@@ -491,15 +527,53 @@ msgstr "kaufbar"
 msgid "Composable"
 msgstr "kombinierbar"
 
-#: bakeup/templates/workshop/product_list.html:11
-#, fuzzy
-#| msgid "Add new category"
-msgid "Add new product"
-msgstr "Neue Kategorie hinzufügen"
+#: bakeup/templates/workshop/product_detail.html:33 bakeup/workshop/forms.py:17
+#: bakeup/workshop/models.py:309
+msgid "Price"
+msgstr "Preis"
+
+#: bakeup/templates/workshop/product_detail.html:34
+msgid "recurring product"
+msgstr "abofähiges Produkt"
+
+#: bakeup/templates/workshop/product_detail.html:35
+msgid "max recurring order qty"
+msgstr "maximal abonierbare Menge"
+
+#: bakeup/templates/workshop/product_detail.html:70
+#: bakeup/templates/workshop/product_detail.html:73 bakeup/workshop/forms.py:87
+msgid "Fermentation Loss"
+msgstr "Gärverlust"
+
+#: bakeup/templates/workshop/product_detail.html:97
+msgid "Instructions"
+msgstr "Anweisungen"
+
+#: bakeup/templates/workshop/product_detail.html:100
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: bakeup/templates/workshop/product_detail.html:109
+msgid "No instructions yet!"
+msgstr "Noch keine Anweisungen vorhanden!"
 
 #: bakeup/templates/workshop/product_list.html:26
 msgid "Reset filters"
 msgstr "Filter zurücksetzen"
+
+#: bakeup/templates/workshop/recipe_detail.html:16
+msgid "Add product"
+msgstr "Neues Produkt hinzugügen"
+
+#: bakeup/templates/workshop/recipe_detail.html:63
+msgid "Save"
+msgstr ""
+
+#: bakeup/templates/workshop/recipe_detail.html:79
+#, fuzzy
+#| msgid "Delete category"
+msgid "Delete relation"
+msgstr "Lösche Kategorie"
 
 #: bakeup/templates/workshop/workshop.html:10
 #, python-format
@@ -518,9 +592,99 @@ msgstr ""
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
 
-#: bakeup/workshop/forms.py:17 bakeup/workshop/models.py:309
-msgid "Price"
-msgstr "Preis"
+#: bakeup/workshop/forms.py:38
+msgid "A product with the SKU already exists"
+msgstr ""
+
+#: bakeup/workshop/forms.py:45
+msgid "Select existing product"
+msgstr ""
+
+#: bakeup/workshop/forms.py:46
+msgid "New product name"
+msgstr "Neuer Produktname"
+
+#: bakeup/workshop/forms.py:47
+msgid "Select a category"
+msgstr "Wähle Kategorie"
+
+#: bakeup/workshop/forms.py:48
+msgid "Sellable?"
+msgstr "verkaufbar?"
+
+#: bakeup/workshop/forms.py:49
+msgid "Buyable?"
+msgstr "kaufbar?"
+
+#: bakeup/workshop/forms.py:50
+msgid "Composable?"
+msgstr "kombinierbar?"
+
+#: bakeup/workshop/forms.py:88
+msgid "Hydration"
+msgstr "TA"
+
+#: bakeup/workshop/forms.py:89
+msgid "Salt"
+msgstr ""
+
+#: bakeup/workshop/forms.py:90
+msgid "Starter"
+msgstr ""
+
+#: bakeup/workshop/forms.py:91
+msgid "Flour"
+msgstr ""
+
+#: bakeup/workshop/forms.py:92
+msgid "Fermented Flour"
+msgstr ""
+
+#: bakeup/workshop/forms.py:93
+msgid "Dough Weight"
+msgstr "Teiggewicht"
+
+#: bakeup/workshop/forms.py:104
+msgid "Select production day"
+msgstr "Wähle Produktionstag"
+
+#: bakeup/workshop/forms.py:117 bakeup/workshop/forms.py:118
+msgid "Source Product"
+msgstr "Ursprüngliches Produkt"
+
+#: bakeup/workshop/forms.py:119
+msgid "Target Product"
+msgstr "Zielprodukt"
+
+#: bakeup/workshop/forms.py:133
+msgid "All"
+msgstr ""
+
+#: bakeup/workshop/forms.py:133 bakeup/workshop/forms.py:140
+msgid "Point of sale"
+msgstr "Abholstelle"
+
+#: bakeup/workshop/forms.py:133
+msgid ""
+"Send emails to orders of specific point of sale, leave empty to send to all "
+"point of sales."
+msgstr ""
+
+#: bakeup/workshop/forms.py:156
+msgid "Create a new message or select a saved one"
+msgstr ""
+
+#: bakeup/workshop/forms.py:156
+msgid "Create a new message"
+msgstr ""
+
+#: bakeup/workshop/models.py:48
+msgid "Grams"
+msgstr ""
+
+#: bakeup/workshop/models.py:49
+msgid "Kilograms"
+msgstr ""
 
 #: bakeup/workshop/models.py:55
 msgid "Name"
