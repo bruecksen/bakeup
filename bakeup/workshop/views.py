@@ -881,11 +881,19 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                             customer=customer,
                             defaults={'point_of_sale': customer.point_of_sale}
                         )
+                        product = meta_product_mapping[customer_order_template_position.product]['target_product']
+                        price = None
+                        price_total = None
+                        if product.sale_price:
+                            price = product.sale_price.price.amount
+                            price_total = price * customer_order_template_position.quantity
                         position, created = CustomerOrderPosition.objects.get_or_create(
                             order=customer_order,
-                            product=meta_product_mapping[customer_order_template_position.product]['target_product'],
+                            product=product,
                             defaults={
-                                'quantity': customer_order_template_position.quantity
+                                'quantity': customer_order_template_position.quantity,
+                                'price': price,
+                                'price_total': price_total,
                             }
                         )
                         if not created:
@@ -1146,11 +1154,18 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                     if not quantity or quantity == 0:
                         CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
                     else:
+                        price = None
+                        price_total = None
+                        if product.sale_price:
+                            price = product.sale_price.price.amount
+                            price_total = price * quantity
                         position, created = CustomerOrderPosition.objects.update_or_create(
                             order=customer_order,
                             product=product,
                             defaults={
-                                'quantity': quantity
+                                'quantity': quantity,
+                                'price': price,
+                                'price_total': price_total,
                             }
                         )
         return HttpResponseRedirect(self.get_success_url())

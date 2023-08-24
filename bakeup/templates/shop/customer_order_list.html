@@ -63,11 +63,9 @@
                       <tr>
                         <th scope="col">Menge</th>
                         <th scope="col">Gebäck</th>
-                        {% if has_price %}<th class="price-column" scope="col">Preis</th>{% endif %}
                         <th scope="col">Status</th>
-                        {% if order.has_abo %}
-                        <th scope="col">Abo</th>
-                        {% endif %}
+                        {% if order.has_abo %}<th scope="col">Abo</th>{% endif %}
+                        {% if has_price %}<th class="price-column" scope="col">Preis</th>{% endif %}
                       </tr>
                     </thead>
                     <tbody>
@@ -75,6 +73,14 @@
                             <tr>
                             <td>{{ position.quantity }}x</td>
                             <td>{{ position.product.get_display_name }}</td>
+                            <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
+                            {% if order.has_abo %}
+                            <td>
+                              {% if position.customer_order_template_positions.exists %}
+                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ position.customer_order_template_positions.first.quantity }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ position.customer_order_template_positions.first.quantity }}x</span></a>
+                              {% endif %}
+                            </td>
+                            {% endif %}
                             {% if has_price %}
                             <td>
                                 {% if position.price_total %}
@@ -84,19 +90,11 @@
                                 {% endif %}
                             </td>
                             {% endif %}
-                            <td>{% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan %}</td>
-                            {% if order.has_abo %}
-                            <td>
-                              {% if position.customer_order_template_positions.exists %}
-                                <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Du hast dieses Produkt {{ position.customer_order_template_positions.first.quantity }}x abonniert."><span class="badge rounded-pill text-bg-primary">{{ position.customer_order_template_positions.first.quantity }}x</span></a>
-                              {% endif %}
-                            </td>
-                            {% endif %}
                             </tr>
                         {% endfor %}
                         {% if has_price %}
                         <tr class="border-top border-3 price border-white">
-                            <td colspan="2"></td><td><strong><nobr class="price-total"><span>{{ order.price_total }}</span> €</nobr></strong></td><td></td>
+                            <td colspan="3"></td>{% if order.has_abo %}<td></td>{% endif %}<td><strong><nobr class="price-total"><span>{{ order.price_total }}</span> €</nobr></strong></td>
                         </tr>
                         {% endif %}
                     </tbody>
