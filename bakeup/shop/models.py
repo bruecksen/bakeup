@@ -325,7 +325,7 @@ class CustomerOrder(CommonBaseClass):
     
     @property
     def price_total(self):
-        return self.positions.aggregate(price_total=Sum('price_total'))['price_total']
+        return self.positions.aggregate(price_total=Sum('price_total', default=0))['price_total']
 
     @property
     def total_quantity(self):
@@ -492,10 +492,17 @@ class CustomerOrderTemplatePosition(BasePositionClass):
                     'point_of_sale': self.order_template.customer.point_of_sale
                 }
             )
+            price = None
+            price_total = None
+            if self.product.sale_price:
+                price = self.product.sale_price.price.amount
+                price_total = price * self.quantity
             position = CustomerOrderPosition.objects.create(
                 order=customer_order,
                 product=self.product,
                 quantity=self.quantity,
+                price=price,
+                price_total=price_total,
             )
             self.orders.add(position)
             self.order_template.set_locked()
