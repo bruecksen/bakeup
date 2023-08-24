@@ -242,14 +242,14 @@ class ProductionDayProduct(CommonBaseClass):
 
     def get_order_quantity(self):
         orders = CustomerOrderPosition.objects.filter(
-            product=self.product, 
+            Q(product=self.product) | Q(product__product_template=self.product),
             order__production_day=self.production_day
         )
         return orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
 
     def calculate_max_quantity(self, exclude_customer=None):
         orders = CustomerOrderPosition.objects.filter(
-            product=self.product, 
+            Q(product=self.product) | Q(product__product_template=self.product),
             order__production_day=self.production_day
         )
         if exclude_customer:
