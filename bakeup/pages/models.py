@@ -99,7 +99,10 @@ class ShopPage(Page):
                     ).values("price_total")
                 )
             ).annotate(
-               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=OuterRef('product__pk'))))
+               has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(
+                    Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),
+                    order_template__customer=customer, 
+                )))
             )
             if current_customer_order:
                 production_day_products = production_day_products.annotate(
