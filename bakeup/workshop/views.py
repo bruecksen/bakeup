@@ -1054,7 +1054,9 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
                 order.customer.telephone_number
             ])
             for product in production_day_products:
-                order_position = order.positions.filter(product=product.product).first()
+                order_position = order.positions.filter(
+                    Q(product=product.product) | Q(product__product_template=product.product)
+                ).first()
                 row.append(order_position and order_position.quantity or 0)
             pos = order.point_of_sale and order.point_of_sale.get_short_name() or ''
             row.append(pos)
