@@ -1,12 +1,14 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
+
 {% load crispy_forms_tags %}
 
 {% block title %}Add new product{% endblock %}
 {% block page_heading %}
 {% if object %}
-<h1>Update: {{ object.name }}</h1>
+<h1>{% trans "Update product" %}: {{ object.name }}</h1>
 {% else %}
-<h2>Add new product</h2>
+<h2>{% trans "Add new product" %}</h2>
 {% endif %}
 {% endblock %}
 
@@ -17,9 +19,9 @@
     {{ form|crispy }}
     <div class="control-group">
       <div class="controls">
-        <button class="btn btn-outline-primary" onclick="window.history.go(-1);">Cancel</button>
+        <button class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</button>
         <button type="submit" class="btn btn-primary" name="add-new">
-          {% if object %}Update{% else %}Add{% endif %}
+          {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
         </button>
       </div>
     </div>

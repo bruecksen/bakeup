@@ -315,7 +315,7 @@ class ProductPrice(CommonBaseClass):
 # Assembly
 class Instruction(CommonBaseClass):
     product = models.OneToOneField('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
-    instruction = models.TextField(blank=True, null=True)
+    instruction = models.TextField(blank=True, null=True, verbose_name=_('Instruction'))
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds", blank=True, null=True)
 
 """ 

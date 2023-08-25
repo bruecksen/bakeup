@@ -1,4 +1,5 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 
@@ -41,7 +42,7 @@
         </div>
       {% endfor %}
       <span id="formset-before-element"></span>
-      <a id="add-form" class="btn btn-dark d-inline"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
+      <a id="add-form" class="btn btn-dark d-inline"><i class="fa-solid fa-circle-plus"></i> {$ trans "Add another product" %}</a>
     </div>
   </div>
 </div>

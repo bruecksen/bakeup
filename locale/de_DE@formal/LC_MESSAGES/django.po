@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 21:55+0200\n"
+"POT-Creation-Date: 2023-08-25 10:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,11 +78,11 @@ msgstr ""
 msgid "Abo"
 msgstr ""
 
-#: bakeup/shop/models.py:587
+#: bakeup/shop/models.py:595
 msgid "running"
 msgstr ""
 
-#: bakeup/shop/models.py:588
+#: bakeup/shop/models.py:596
 msgid "finished"
 msgstr ""
 
@@ -344,6 +344,7 @@ msgstr ""
 
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
+#: bakeup/templates/workshop/product_form.html:22
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -361,12 +362,14 @@ msgstr "Ändere Kategorie"
 #: bakeup/templates/workshop/instruction_form.html:18
 #: bakeup/templates/workshop/point_of_sale_form.html:8
 #: bakeup/templates/workshop/point_of_sale_form.html:24
+#: bakeup/templates/workshop/product_form.html:24
 msgid "Update"
 msgstr "Ändern"
 
 #: bakeup/templates/workshop/category_form.html:23
 #: bakeup/templates/workshop/instruction_form.html:18
 #: bakeup/templates/workshop/point_of_sale_form.html:24
+#: bakeup/templates/workshop/product_form.html:24
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -376,6 +379,12 @@ msgstr "Hinzufügen"
 #: bakeup/templates/workshop/includes/sidebar.html:16
 msgid "Categories"
 msgstr "Kategorien"
+
+#: bakeup/templates/workshop/customerorder_form.html:48
+#, fuzzy
+#| msgid "Add new category"
+msgid "Add another product"
+msgstr "Neue Kategorie hinzufügen"
 
 #: bakeup/templates/workshop/includes/category.html:8
 #, python-format
@@ -424,6 +433,19 @@ msgstr "Produktionspläne"
 #: bakeup/templates/workshop/includes/dashboard.html:46
 msgid "Go to production plans"
 msgstr "Zu den Produktionsplänen"
+
+#: bakeup/templates/workshop/includes/product_children.html:56
+msgid "Add another"
+msgstr ""
+
+#: bakeup/templates/workshop/includes/product_children.html:73
+msgid "Or"
+msgstr ""
+
+#: bakeup/templates/workshop/includes/product_children.html:103
+#: bakeup/templates/workshop/recipe_detail.html:63
+msgid "Save"
+msgstr ""
 
 #: bakeup/templates/workshop/includes/production_plan_item.html:13
 #: bakeup/templates/workshop/includes/production_plan_item.html:14
@@ -484,18 +506,19 @@ msgid "Login"
 msgstr "Einloggen"
 
 #: bakeup/templates/workshop/instruction_form.html:5
+#: bakeup/templates/workshop/instruction_form.html:7
+msgid "Update Instructions"
+msgstr ""
+
 #: bakeup/templates/workshop/point_of_sale_form.html:5
 #: bakeup/templates/workshop/product_detail.html:15
+#: bakeup/templates/workshop/product_form.html:11
 #: bakeup/templates/workshop/product_list.html:11
 #: bakeup/templates/workshop/recipe_detail.html:6
 #, fuzzy
 #| msgid "Add new category"
 msgid "Add new product"
 msgstr "Neue Kategorie hinzufügen"
-
-#: bakeup/templates/workshop/instruction_form.html:7
-msgid "Update Instructions"
-msgstr ""
 
 #: bakeup/templates/workshop/point_of_sale_form.html:10
 #, fuzzy
@@ -565,6 +588,12 @@ msgstr ""
 msgid "No instructions yet!"
 msgstr ""
 
+#: bakeup/templates/workshop/product_form.html:9
+#, fuzzy
+#| msgid "Go to products"
+msgid "Update product"
+msgstr "Zu den Produkte"
+
 #: bakeup/templates/workshop/product_list.html:26
 msgid "Reset filters"
 msgstr ""
@@ -574,10 +603,6 @@ msgstr ""
 #| msgid "Add new category"
 msgid "Add product"
 msgstr "Neue Kategorie hinzufügen"
-
-#: bakeup/templates/workshop/recipe_detail.html:63
-msgid "Save"
-msgstr ""
 
 #: bakeup/templates/workshop/recipe_detail.html:79
 #, fuzzy
@@ -604,6 +629,10 @@ msgstr "Dieser Benutzername ist schon vergeben."
 
 #: bakeup/workshop/forms.py:38
 msgid "A product with the SKU already exists"
+msgstr ""
+
+#: bakeup/workshop/forms.py:44 bakeup/workshop/models.py:64
+msgid "Weight"
 msgstr ""
 
 #: bakeup/workshop/forms.py:45
@@ -745,10 +774,6 @@ msgstr "Kategorien"
 msgid "weight in grams"
 msgstr ""
 
-#: bakeup/workshop/models.py:64
-msgid "Weight"
-msgstr ""
-
 #: bakeup/workshop/models.py:66
 #, fuzzy
 #| msgid "Sellable"
@@ -777,6 +802,10 @@ msgstr "Zu den Produkte"
 msgid "Max abo quantity?"
 msgstr ""
 
+#: bakeup/workshop/models.py:318
+msgid "Instruction"
+msgstr ""
+
 #: bakeup/workshop/tables.py:14
 #, fuzzy
 #| msgid "Delete category"
@@ -786,6 +815,11 @@ msgstr "Lösche Kategorie"
 #: bakeup/workshop/tables.py:15
 msgid "Search"
 msgstr ""
+
+#, fuzzy
+#~| msgid "Go to products"
+#~ msgid "Updae Instructions"
+#~ msgstr "Zu den Produkte"
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
