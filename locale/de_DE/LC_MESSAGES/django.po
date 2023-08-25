@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 10:58+0200\n"
+"POT-Creation-Date: 2023-08-25 11:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -129,6 +129,8 @@ msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:29
 #: bakeup/templates/workshop/category_confirm_delete.html:31
+#: bakeup/templates/workshop/product_confirm_delete.html:19
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:19
 msgid "Confirm"
 msgstr "Bestätigen"
 
@@ -340,18 +342,25 @@ msgstr ""
 "dasLöschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
+#: bakeup/templates/workshop/product_confirm_delete.html:10
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:10
+msgid "Are you sure?"
+msgstr "Bist du dir sicher?"
+
+#: bakeup/templates/workshop/category_confirm_delete.html:23
 #, python-format
 msgid ""
-"<h3>Are you sure?</h3> <p>You're about to delete the following category: "
-"<strong>%(object)s</strong>. Please confirm.</p>"
+"<p>You're about to delete the following category: <strong>%(object)s</"
+"strong>. Please confirm.</p>"
 msgstr ""
-"<h3>Bist du dir sicher?</h3> <p>Du löscht gerade folgende Kategorie: "
-"<strong>%(object)s</strong>. Bitte bestätige, dass du die Kategorie löschen "
-"willst.</p>"
+"<p>Du löscht gerade folgende Kategorie: <strong>%(object)s</strong>. Bitte "
+"bestätige, dass du die Kategorie löschen willst.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
+#: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -531,14 +540,24 @@ msgstr "Neue Abholstelle hinzufügen"
 msgid "Back"
 msgstr "Zurück"
 
+#: bakeup/templates/workshop/product_confirm_delete.html:5
+#: bakeup/templates/workshop/product_detail.html:14
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:5
+msgid "Delete product"
+msgstr "Produkt löschen"
+
+#: bakeup/templates/workshop/product_confirm_delete.html:11
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:11
+#, python-format
+msgid "<p>You're about to delete %(object)s. Please confirm.</p>"
+msgstr ""
+"<p>Du löscht gerade folgendes Produkt: <strong>%(object)s</strong>. Bitte "
+"bestätige, dass du das Produkt löschen willst.</p>"
+
 #: bakeup/templates/workshop/product_detail.html:13
 #: bakeup/templates/workshop/recipe_detail.html:15
 msgid "Edit product"
 msgstr "Ändere Produkt"
-
-#: bakeup/templates/workshop/product_detail.html:14
-msgid "Delete product"
-msgstr "Produkt löschen"
 
 #: bakeup/templates/workshop/product_detail.html:28
 #: bakeup/templates/workshop/recipe_detail.html:39
@@ -773,7 +792,6 @@ msgstr "Wähle Kategorie"
 #: bakeup/workshop/tables.py:15
 msgid "Search"
 msgstr "Suche"
-
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."

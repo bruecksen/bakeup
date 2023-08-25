@@ -19,8 +19,8 @@
                 </ul>
             </p>
         {% else %}
+        <h3>{% trans "Are you sure?" %}</h3>
         {% blocktranslate trimmed %}
-        <h3>Are you sure?</h3>
         <p>You're about to delete the following category: <strong>{{ object }}</strong>. Please confirm.</p>
         {% endblocktranslate %}
         <form action="" method="post">

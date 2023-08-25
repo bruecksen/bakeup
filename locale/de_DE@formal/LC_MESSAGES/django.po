@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 10:58+0200\n"
+"POT-Creation-Date: 2023-08-25 11:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,6 +127,8 @@ msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:29
 #: bakeup/templates/workshop/category_confirm_delete.html:31
+#: bakeup/templates/workshop/product_confirm_delete.html:19
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:19
 msgid "Confirm"
 msgstr ""
 
@@ -333,10 +335,19 @@ msgstr ""
 "dasLöschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
-#, python-format
+#: bakeup/templates/workshop/product_confirm_delete.html:10
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:10
+msgid "Are you sure?"
+msgstr ""
+
+#: bakeup/templates/workshop/category_confirm_delete.html:23
+#, fuzzy, python-format
+#| msgid ""
+#| "<h3>Are you sure?</h3> <p>You're about to delete the following category: "
+#| "<strong>%(object)s</strong>. Please confirm.</p>"
 msgid ""
-"<h3>Are you sure?</h3> <p>You're about to delete the following category: "
-"<strong>%(object)s</strong>. Please confirm.</p>"
+"<p>You're about to delete the following category: <strong>%(object)s</"
+"strong>. Please confirm.</p>"
 msgstr ""
 "<h3>Sind Sie sich sicher?</h3> <p>Sie löschen gerade folgende Kategorie: "
 "<strong>%(object)s</strong>. Bitte bestätigen Sie, dass Sie die Kategorie "
@@ -344,7 +355,9 @@ msgstr ""
 
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
+#: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -530,17 +543,31 @@ msgstr "Abholstellen"
 msgid "Back"
 msgstr ""
 
+#: bakeup/templates/workshop/product_confirm_delete.html:5
+#: bakeup/templates/workshop/product_detail.html:14
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:5
+#, fuzzy
+#| msgid "Go to products"
+msgid "Delete product"
+msgstr "Zu den Produkte"
+
+#: bakeup/templates/workshop/product_confirm_delete.html:11
+#: bakeup/templates/workshop/producthierarchy_confirm_delete.html:11
+#, fuzzy, python-format
+#| msgid ""
+#| "<h3>Are you sure?</h3> <p>You're about to delete the following category: "
+#| "<strong>%(object)s</strong>. Please confirm.</p>"
+msgid "<p>You're about to delete %(object)s. Please confirm.</p>"
+msgstr ""
+"<h3>Sind Sie sich sicher?</h3> <p>Sie löschen gerade folgende Kategorie: "
+"<strong>%(object)s</strong>. Bitte bestätigen Sie, dass Sie die Kategorie "
+"löschen wollen.</p>"
+
 #: bakeup/templates/workshop/product_detail.html:13
 #: bakeup/templates/workshop/recipe_detail.html:15
 #, fuzzy
 #| msgid "Go to products"
 msgid "Edit product"
-msgstr "Zu den Produkte"
-
-#: bakeup/templates/workshop/product_detail.html:14
-#, fuzzy
-#| msgid "Go to products"
-msgid "Delete product"
 msgstr "Zu den Produkte"
 
 #: bakeup/templates/workshop/product_detail.html:28
