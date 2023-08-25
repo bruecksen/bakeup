@@ -276,8 +276,6 @@ function updateModal(modal, basketQuantity, totalQuantity) {
 function updateProduct(product, qty, maintainOrderedQty) {
     qty = parseInt(qty);
     console.log('Update product', product, qty, maintainOrderedQty);
-    var basket = $('#basket');
-    var modal = $('.modal-checkout');
     // basket.find('.summary').removeClass('d-none');
     // basket.find('.current-order').hide();
     var row = $("tr[data-product='" + product + "']");
@@ -360,13 +358,12 @@ minus_btns.forEach(btn=>{
         }
     })
 
-$('.modal-checkout .btn-delete').click(function(){
+$('.modal-checkout .btn-delete, .modal-abo .btn-delete').click(function(){
     var tr = $(this).parents('tr');
     tr.hide();
     tr.find('.order-quantity').val(0).change();
-
 })
-$('.modal-checkout form').on('reset', function(e)
+$('.modal-checkout form, .modal-abo form').on('reset', function(e)
 {
     console.log('reset');
     var form = $(this);
@@ -396,7 +393,7 @@ $('.modal-checkout form').on('reset', function(e)
 $(function(){
     $('.link-new-tab a').attr('target', '_blank');
     $('.link-new-tab a').attr('rel', 'nofollow noopener');
-    $('.modal-checkout').on('hide.bs.modal', function() {
+    $('.modal-checkout, .modal-abo').on('hide.bs.modal', function() {
         // // console.log('hide', $('.modal-checkout form input[type="reset"]'));
         $(this).find('form input[type="reset"]').click();
     })
@@ -441,8 +438,31 @@ $(function(){
         //     $('input[data-product=' + $(this).parents('tr').data('product') + ']').val(basketQty);
         // }
     })
-    $('.modal-checkout form input, .modal-checkout form select').change(function() { 
-        console.log('detect form change');
+    $('.modal-abo form select.order-quantity').change(function(){
+        // quantity changes in the abo modal
+        console.log('detect abo modal form change');
+        var form = $(this).parents('form');
+        var modal = $(this).parents('.modal');
+        var product = $(this).parents('tr').data('product');
+        console.log($(this).val());
+        var qty = this.value;
+        updateProduct(product, qty, false);
+        var basketQuantity = 0;
+        form.find('tr.product select').each(function(){
+            var qty = parseInt($(this).val());
+            basketQuantity = basketQuantity + qty;
+        })
+        if (basketQuantity === 0) {
+            updateModalStorno(modal);
+        } else if (form.dirty('isDirty')) {
+            updateModalChange(modal);
+        } else {
+            updateModalUnchange(modal);
+        }
+    })
+    $('.modal-checkout form input, .modal-checkout form select.order-quantity, .modal-checkout form select.pos-select').change(function() { 
+        // Any changes in the checkout or order modal
+        console.log('detect checkout/order modal form change');
         var form = $(this).parents('form');
         var modal = $(this).parents('.modal-checkout');
         var nowdata = form.serialize();

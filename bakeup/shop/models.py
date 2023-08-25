@@ -22,7 +22,7 @@ from recurrence.fields import RecurrenceField
 
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.models import Product, ProductionPlan
-# from bakeup.pages.models import EmailSettings
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,12 +147,12 @@ class ProductionDay(CommonBaseClass):
             production_day_product.save()
             return obj
 
-    def create_template_orders(self):
+    def create_template_orders(self, request):
         with transaction.atomic():
             for product in self.production_day_products.published():
                 if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
                     for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
-                        order_template_position.create_order(self)
+                        order_template_position.create_order(self, request)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -242,14 +242,14 @@ class ProductionDayProduct(CommonBaseClass):
 
     def get_order_quantity(self):
         orders = CustomerOrderPosition.objects.filter(
-            product=self.product, 
+            Q(product=self.product) | Q(product__product_template=self.product),
             order__production_day=self.production_day
         )
         return orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
 
     def calculate_max_quantity(self, exclude_customer=None):
         orders = CustomerOrderPosition.objects.filter(
-            product=self.product, 
+            Q(product=self.product) | Q(product__product_template=self.product),
             order__production_day=self.production_day
         )
         if exclude_customer:
@@ -333,7 +333,7 @@ class CustomerOrder(CommonBaseClass):
     
     @property
     def price_total(self):
-        return self.positions.aggregate(price_total=Sum('price_total'))['price_total']
+        return self.positions.aggregate(price_total=Sum('price_total', default=0))['price_total']
 
     @property
     def total_quantity(self):
@@ -526,7 +526,8 @@ class CustomerOrderTemplatePosition(BasePositionClass):
 
     objects = CustomerOrderTemplatePositionQuerySet.as_manager()
 
-    def create_order(self, production_day):
+    def create_order(self, production_day, request):
+        # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
         with transaction.atomic():
             customer_order, created = CustomerOrder.objects.update_or_create(
                 production_day=production_day,
@@ -535,16 +536,23 @@ class CustomerOrderTemplatePosition(BasePositionClass):
                     'point_of_sale': self.order_template.customer.point_of_sale
                 }
             )
+            price = None
+            price_total = None
+            if self.product.sale_price:
+                price = self.product.sale_price.price.amount
+                price_total = price * self.quantity
             position = CustomerOrderPosition.objects.create(
                 order=customer_order,
                 product=self.product,
                 quantity=self.quantity,
+                price=price,
+                price_total=price_total,
             )
             self.orders.add(position)
             self.order_template.set_locked()
         from bakeup.pages.models import EmailSettings
         if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-            order.send_order_confirm_email(request)
+            customer_order.send_order_confirm_email(request)
 
     def cancel(self):
         with transaction.atomic():
