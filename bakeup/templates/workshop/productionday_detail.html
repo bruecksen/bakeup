@@ -1,12 +1,13 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load workshop_tags %}
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 {% load export_url from django_tables2 %}
 
-{% block title %}Production day{% endblock %}
-{% block page_heading %}<span class="d-print-none">Production day <form class="d-inline-block" method="post" action="{% url 'workshop:production-day-next' %}"></span>
+{% block title %}{% trans "Production day" %}{% endblock %}
+{% block page_heading %}<span class="d-print-none">{% trans "Production day" %} <form class="d-inline-block" method="post" action="{% url 'workshop:production-day-next' %}"></span>
   {% csrf_token %}
   <div class="input-group d-print-none">
     <a class="btn btn-outline-primary{% if not production_day_prev %} disabled{% endif %}" type="button" href="{% if production_day_prev %}{% url 'workshop:production-day-detail' pk=production_day_prev.pk %}{% endif %}"><i class="fas fa-chevron-left"></i></a>
@@ -16,49 +17,49 @@
 </form>
 {% endblock %}
 {% block page_heading_action %}
-<a href="{% url 'workshop:production-day-add' %}" class="btn btn-primary btn-sm float-end">Add new production day</a>
+<a href="{% url 'workshop:production-day-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add new production day" %}</a>
 {% endblock %}
 
 {% block page_content %}
 <div class="row">
   <div class="col">
     <div class="btn-group btn-group-sm float-end d-print-none" role="group" aria-label="Basic example">
-      <a href="{% url 'workshop:production-day-update' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>Edit</a>
-      <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> Delete</a>
-      <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> Show orders</a>
-      <a href="{% url 'workshop:production-plan-production-day' pk=object.pk %}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> Show plans</a>
-      <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-retweet"></i> Abos</a>
-      <a href="{% url 'workshop:production-day-reminder' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-envelope"></i> Reminder</a>
-      <a href="{% url 'workshop:production-day-export' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-file-download"></i> Export as CSV</a>
+      <a href="{% url 'workshop:production-day-update' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>{% trans "Edit" %}</a>
+      <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> {% trans "Delete" %}</a>
+      <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> {% trans "Show orders" %}</a>
+      <a href="{% url 'workshop:production-plan-production-day' pk=object.pk %}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> {% trans "Show plans" %}</a>
+      <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-retweet"></i> {% trans "Abos" %}</a>
+      <a href="{% url 'workshop:production-day-reminder' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-envelope"></i> {% trans "Reminder" %}</a>
+      <a href="{% url 'workshop:production-day-export' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-file-download"></i> {% trans "Export as CSV" %}</a>
     </div>
   </div>
 </div>
 <ul class="nav nav-tabs d-print-none" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">Summary</button>
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">{% trans "Summary" %}</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">Ingredients</button>
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">{% trans "Ingredients" %}</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">Delivery bill</button>
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">{% trans "Delivery bill" %}</button>
   </li>
 </ul>
 <div class="tab-content">
   <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-    <p class="mt-4"><strong>Description: </strong> {{ object.description }}</p>
+    <p class="mt-4"><strong>{% trans "Description" %}: </strong> {{ object.description }}</p>
     
-    <h2 class="mt-4">Summary
+    <h2 class="mt-4">{% trans "Summary" %}
       
-      <a href="{% url 'workshop:production-plans-finish' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>Finish all</a>
-      <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>Start all</a>
+      <a href="{% url 'workshop:production-plans-finish' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
+      <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
     </h2>
     <table class="table">
       <tr>
-          <th>Product</th>
-          <th>Published in shop</th>
-          <th>Ordered qty.</th>
-          <th>Max qty.</th>
+          <th>{% trans "Product" %}</th>
+          <th>{% trans "Published" %}</th>
+          <th>{% trans "Ordered qty." %}</th>
+          <th>{% trans "Max qty." %}</th>
       </tr>
       {% for product in object.production_day_products.all %}
       <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
@@ -69,16 +70,16 @@
       </tr>
       {% endfor %}
     </table>
-    <a href="{% url 'workshop:order-add' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">Edit orders</a>
-    <p>Customer ordered quantity: <strong>{{ object.total_published_ordered_quantity }}</strong> (from {{ object.customer_orders.count }} orders)  <br>
-      Total ordered quantity: <strong>{{ object.total_ordered_quantity }}</strong>
+    <a href="{% url 'workshop:order-add' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">{% trans "Edit orders" %}</a>
+    <p>{% trans "Customer ordered quantity" %}: <strong>{{ object.total_published_ordered_quantity }}</strong> ({% blocktranslate count counter=object.customer_orders.count %}from {{ counter }} order {% plural %}from {{ counter }} orders{% endblocktranslate %})  <br>
+      {% trans "Total ordered quantity" %}: <strong>{{ object.total_ordered_quantity }}</strong>
     </p>
-    <h3 class="mt-4">Product Mapping</h3>
+    <h3 class="mt-4">{% trans "Product Mapping" %}</h3>
     <table class="table">
       <tr>
-          <th>Source Product</th>
-          <th>Target Product</th>
-          <th>Count</th>
+          <th>{% trans "Source Product" %}</th>
+          <th>{% trans "Target Product" %}</th>
+          <th>{% trans "Count" %}</th>
       </tr>
       {% for product_mapping in object.product_mapping.all %}
       <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
@@ -100,11 +101,11 @@
         </ul>
     <table class="table" style="table-layout: fixed;">
       <tr>
-          <th width="" class="align-middle">Benutzer</th>
-          <th width="60%" class="align-middle">Produkte</th>
-          {% if object.has_products_with_price %}<th width="10%">Preis</th>{% endif %}
+          <th width="" class="align-middle">{% trans "User" %}</th>
+          <th width="60%" class="align-middle">{% trans "Products" %}</th>
+          {% if object.has_products_with_price %}<th width="10%">{% trans "Price" %}</th>{% endif %}
           <th width="15%" class="text-center align-middle">
-            <nobr>Abgeholt <button class="btn btn-link d-print-none btn-sm py-0"
+            <nobr>{% trans "Picked" %} <button class="btn btn-link d-print-none btn-sm py-0"
             hx-get="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
             hx-trigger="click"
             ><i class="far fa-square-check fa-xl"></i></button></nobr>
@@ -130,7 +131,7 @@
               {% if order.is_picked_up %}checked {% endif %}
               class="form-check-input form-input-lg border-dark rounded-0"
               type="checkbox"
-              aria-label="is picked up"
+              aria-label="{% trans 'is picked up' %}"
               hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
               hx-trigger="click"
               >
@@ -144,11 +145,11 @@
     {% endfor %}
   </div>
   <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
-    <h2 class="mt-4">Ingredients Summary</h2>
+    <h2 class="mt-4">{% trans "Ingredients Summary" %}</h2>
     <table class="table">
       <tr>
-          <th>Ingredient</th>
-          <th>Amount</th>
+          <th>{% trans "Ingredient" %}</th>
+          <th>{% trans "Amount" %}</th>
       </tr>
       {% for category, products in object.get_ingredient_summary_list.items %}
         <tr class="table-active">

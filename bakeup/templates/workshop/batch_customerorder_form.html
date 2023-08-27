@@ -1,9 +1,10 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load django_bootstrap5 %}
 
-{% block title %}Add new production day{% endblock %}
+{% block title %}{% trans "Update orders" %}{% endblock %}
 {% block page_heading %}
-Update orders for <small class="text-muted">{{ production_day }}</small>
+{% trans "Update orders for" %} <small class="text-muted">{{ production_day }}</small>
 {% endblock %}
 
 {% block page_content %}
@@ -16,13 +17,13 @@ Update orders for <small class="text-muted">{{ production_day }}</small>
           <div class="control-group">
             <div class="controls">
               <button type="submit" class="btn btn-primary float-end" name="add-new">
-                Update orders
+                {% trans "Update orders" %}
               </button>
               {% if next %}
-              <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+              <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">
               {% else %}
-              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
-              {% endif %}
+              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">
+              {% endif %}{% trans "Cancel" %}</a>
             </div>
           </div>
           </div>  
@@ -35,7 +36,7 @@ Update orders for <small class="text-muted">{{ production_day }}</small>
           <div class="row">
             <div class="col">
               {% if forloop.first %}
-              <label class="form-label fw-bold">Customer</label>
+              <label class="form-label fw-bold">{% trans "Customer" %}</label>
               {% endif %}
               {% bootstrap_field form.customer_name show_label='skip' %}
               {% bootstrap_field form.customer show_label='skip' %}
@@ -59,13 +60,13 @@ Update orders for <small class="text-muted">{{ production_day }}</small>
           <div class="control-group">
             <div class="controls">
               <button type="submit" class="btn btn-primary float-end" name="add-new">
-                Update orders
+                {% trans "Update orders" %}
               </button>
               {% if next %}
-              <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+              <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">
               {% else %}
-              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
-              {% endif %}
+              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">
+              {% endif %}{% trans "Cancel" %}</a>
             </div>
           </div>
           </div>  

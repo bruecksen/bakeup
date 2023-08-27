@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import formset_factory, modelformset_factory, BaseModelFormSet, BaseFormSet
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 from bakeup.users.models import User
@@ -11,7 +12,7 @@ from bakeup.workshop.models import Product
 
 
 class CustomerOrderForm(forms.Form):
-    quantity = forms.IntegerField(label="Quantity")
+    quantity = forms.IntegerField(label=_("Quantity"))
 
     def __init__(self, *args, **kwargs):
         self.production_day_product = kwargs.pop('production_day_product')
@@ -25,16 +26,16 @@ class CustomerOrderForm(forms.Form):
     def clean(self):
         cleaned_data = self.cleaned_data
         if int(cleaned_data['quantity']) > self.production_day_product.calculate_max_quantity(self.customer):
-            raise forms.ValidationError("Sorry, but we don't have enough products.")
+            raise forms.ValidationError(_("Sorry, but we don't have enough products."))
         if self.production_day_product.is_locked:
-            raise forms.ValidationError("Sorry, aber es sind keine Bestellungen für diesen Tag möglich")
+            raise forms.ValidationError(_("Sorry, but this production day is already locked."))
 
         return cleaned_data
 
 
 class CustomerOrderBatchForm(forms.Form):
     product = forms.CharField(widget=forms.HiddenInput)
-    quantity = forms.IntegerField(label="Quantity")
+    quantity = forms.IntegerField(label=_("Quantity"))
 
     def __init__(self, *args, **kwargs):
         production_day_product = kwargs.pop('production_day_product')
@@ -57,7 +58,7 @@ class CustomerProductionDayOrderForm(forms.Form):
         for production_day_product in self.production_day_products:
             if not production_day_product.is_locked and not production_day_product.is_sold_out:
                 self.fields[f'production_day_{production_day_product.product.pk}-product'] = forms.IntegerField(widget=forms.HiddenInput, required=False)
-                self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label="Quantity", required=False)
+                self.fields[f'production_day_{production_day_product.product.pk}-quantity'] = forms.IntegerField(label=_("Quantity"), required=False)
     
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -67,9 +68,9 @@ class CustomerProductionDayOrderForm(forms.Form):
                 product = cleaned_data[f'production_day_{production_day_product.product.pk}-product']
                 quantity = cleaned_data[f'production_day_{production_day_product.product.pk}-quantity']
                 if not product == production_day_product.product.pk:
-                    raise forms.ValidationError("Wrong product")
+                    raise forms.ValidationError(_("Wrong product"))
                 if quantity > production_day_product.calculate_max_quantity(self.customer):
-                    raise forms.ValidationError("Sorry, but we don't have enough products.")
+                    raise forms.ValidationError(_("Sorry, but we don't have enough products."))
                 self.product_quantity[production_day_product.product] = quantity
         return cleaned_data
 
@@ -79,7 +80,7 @@ class ProductionDayForm(forms.ModelForm):
         model = ProductionDay
         fields = ['day_of_sale', 'description']
         widgets = {
-            'day_of_sale': forms.DateInput(format=('%Y-%m-%d'), attrs={'class':'form-control', 'placeholder':'Select a date', 'type':'date'}),
+            'day_of_sale': forms.DateInput(format=('%Y-%m-%d'), attrs={'class':'form-control', 'placeholder':_('Select a date'), 'type':'date'}),
             'description': forms.Textarea(attrs={'rows':3}),
         }
 
@@ -124,7 +125,7 @@ class BaseBatchCustomerOrderFormFormSet(BaseFormSet):
                     if ordered_qty:
                         products_qty[product]['ordered_qty'] = products_qty[product]['ordered_qty'] + ordered_qty
             if any(v['is_locked'] and v['ordered_qty'] > v['max_qty'] for k, v in products_qty.items()):
-                raise ValidationError("There are more products ordered then max qty")
+                raise ValidationError(_("There are more products ordered then max qty."))
 
 class BatchCustomerOrderForm(forms.Form):
     customer = forms.CharField(widget=forms.HiddenInput)
@@ -137,7 +138,7 @@ class BatchCustomerOrderForm(forms.Form):
         # self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
         for product in self.production_day.production_day_products.all():
             field_name = 'product_{}'.format(product.product.pk)
-            self.fields[field_name] = forms.IntegerField(required=False, label="{} (max. {})".format(product.product.name, product.max_quantity), widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
+            self.fields[field_name] = forms.IntegerField(required=False, label=_("{} (max. {})").format(product.product.name, product.max_quantity), widget=forms.NumberInput(attrs={'placeholder': _('Quantity')}))
 
     def get_product_fields(self):
         for field_name in self.fields:
@@ -158,7 +159,7 @@ class BaseProductionDayProductFormSet(BaseModelFormSet):
                 continue
             product = form.cleaned_data.get('product')
             if product in products:
-                raise ValidationError("You can't add the same product twice!")
+                raise ValidationError(_("You can't add the same product twice!"))
             products.append(product)
 
 
@@ -192,7 +193,7 @@ class BatchCustomerOrderTemplateForm(forms.Form):
         # self.fields['customer'].label_from_instance = lambda instance: "{} ({})".format(instance, instance.user.email)
         for product in self.products:
             field_name = 'product_{}'.format(product.pk)
-            self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': 'Quantity'}))
+            self.fields[field_name] = forms.IntegerField(required=False, label=product.name, widget=forms.NumberInput(attrs={'placeholder': _('Quantity')}))
 
     def get_product_fields(self):
         for field_name in self.fields:

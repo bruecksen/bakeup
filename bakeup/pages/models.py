@@ -6,6 +6,7 @@ from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerFiel
 from django.db.models import OuterRef, Subquery
 from django.db.models import Case, When, Value, IntegerField, Exists
 from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _
 
 from wagtail import blocks
 from wagtail.models import Page
@@ -57,7 +58,7 @@ class ShopPage(Page):
         ], heading="Banner"),
         MultiFieldPanel([
             FieldPanel('text_no_production_day'),
-        ], heading="Production Day"),
+        ], heading=_("Production Day")),
         FieldPanel('content'),
     ]
 
