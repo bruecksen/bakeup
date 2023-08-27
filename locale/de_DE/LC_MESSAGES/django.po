@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 21:00+0200\n"
+"POT-Creation-Date: 2023-08-27 21:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,7 +74,8 @@ msgstr ""
 msgid "No production days planned"
 msgstr "Keine Produktionstage geplant"
 
-#: bakeup/pages/models.py:61
+#: bakeup/pages/models.py:61 bakeup/shop/models.py:320
+#: bakeup/workshop/tables.py:74
 msgid "Production Day"
 msgstr "Produktionstag"
 
@@ -138,6 +139,16 @@ msgstr "Max Stückzahl"
 #: bakeup/shop/models.py:210
 msgid "Published?"
 msgstr "Veröffentlicht?"
+
+#: bakeup/shop/models.py:321
+#: bakeup/templates/workshop/batch_customerorder_form.html:39
+#: bakeup/workshop/tables.py:75
+msgid "Customer"
+msgstr "Kunden"
+
+#: bakeup/shop/models.py:322
+msgid "Point of Sale"
+msgstr "Abholstelle"
 
 #: bakeup/shop/models.py:596
 msgid "running"
@@ -436,10 +447,6 @@ msgstr "Ändere Bestellungen für den"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: bakeup/templates/workshop/batch_customerorder_form.html:39
-msgid "Customer"
-msgstr "Kunden"
-
 #: bakeup/templates/workshop/category_confirm_delete.html:5
 msgid "Delete category"
 msgstr "Lösche Kategorie"
@@ -516,7 +523,6 @@ msgid "Export as CSV"
 msgstr "Exportieren als CSV"
 
 #: bakeup/templates/workshop/customer_list.html:18
-
 msgid "Export"
 msgstr "Exportieren"
 
@@ -527,7 +533,7 @@ msgstr ""
 #: bakeup/templates/workshop/customer_list.html:40
 #: bakeup/templates/workshop/order_list.html:36
 msgid "Reset"
-msgstr ""
+msgstr "Zurücksetzen"
 
 #: bakeup/templates/workshop/customerorder_form.html:48
 #: bakeup/templates/workshop/productionday_form.html:45
@@ -1060,6 +1066,22 @@ msgstr "Wähle einen Produktionstag"
 #: bakeup/workshop/tables.py:64 bakeup/workshop/tables.py:126
 msgid "Select a point of sale"
 msgstr "Wähle eine Abholstelle"
+
+#: bakeup/workshop/tables.py:76
+msgid "eMail"
+msgstr "E-Mail"
+
+#: bakeup/workshop/tables.py:77
+msgid "Positions"
+msgstr "Positionen"
+
+#: bakeup/workshop/tables.py:78
+msgid "Sum"
+msgstr "Summe"
+
+#: bakeup/workshop/tables.py:79
+msgid "Collected"
+msgstr "Abgeholt"
 
 #: bakeup/workshop/views.py:1089
 msgid "productionday-{}"

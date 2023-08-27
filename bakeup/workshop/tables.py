@@ -71,12 +71,12 @@ class CustomerOrderFilter(django_filters.FilterSet):
 class CustomerOrderTable(tables.Table):
     # order_nr = tables.LinkColumn('workshop:order-update', args=[A('pk')], verbose_name='#', order_by='pk')
     # order_nr = tables.LinkColumn(verbose_name='#', order_by='pk')
-    production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
-    customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")])
-    email = tables.TemplateColumn("{{ record.customer.user.email }}")
-    positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name='Positions')
-    price_total = tables.TemplateColumn("{% if record.price_total %}<nobr>{{ record.price_total }} €</nobr>{% endif %}", verbose_name='Betrag')
-    collected = tables.TemplateColumn('{% if record.is_picked_up %}x{% endif %}', verbose_name='Collected', orderable=False)
+    production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')], verbose_name=_('Production Day'))
+    customer = tables.LinkColumn('workshop:customer-detail', args=[A("customer.pk")], verbose_name=_('Customer'))
+    email = tables.TemplateColumn("{{ record.customer.user.email }}", verbose_name=_('eMail'))
+    positions = tables.TemplateColumn(template_name='tables/customer_order_positions_column.html', verbose_name=_('Positions'))
+    price_total = tables.TemplateColumn("{% if record.price_total %}<nobr>{{ record.price_total }} €</nobr>{% endif %}", verbose_name=_('Sum'))
+    collected = tables.TemplateColumn('{% if record.is_picked_up %}x{% endif %}', verbose_name=_('Collected'), orderable=False)
     actions = tables.TemplateColumn(template_name='tables/customer_order_actions_column.html', verbose_name='', exclude_from_export=True)
 
     class Meta:

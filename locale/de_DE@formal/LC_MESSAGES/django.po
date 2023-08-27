@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 21:00+0200\n"
+"POT-Creation-Date: 2023-08-27 21:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,7 +74,8 @@ msgstr ""
 msgid "No production days planned"
 msgstr ""
 
-#: bakeup/pages/models.py:61
+#: bakeup/pages/models.py:61 bakeup/shop/models.py:320
+#: bakeup/workshop/tables.py:74
 #, fuzzy
 #| msgid "Production Days"
 msgid "Production Day"
@@ -146,6 +147,20 @@ msgstr ""
 #: bakeup/shop/models.py:210
 msgid "Published?"
 msgstr ""
+
+#: bakeup/shop/models.py:321
+#: bakeup/templates/workshop/batch_customerorder_form.html:39
+#: bakeup/workshop/tables.py:75
+#, fuzzy
+#| msgid "Customers"
+msgid "Customer"
+msgstr "Kunden"
+
+#: bakeup/shop/models.py:322
+#, fuzzy
+#| msgid "Points of sale"
+msgid "Point of Sale"
+msgstr "Abholstellen"
 
 #: bakeup/shop/models.py:596
 msgid "running"
@@ -442,12 +457,6 @@ msgstr "Ändere Kategorie"
 #: bakeup/templates/workshop/productionday_form.html:53
 msgid "Cancel"
 msgstr "Abbrechen"
-
-#: bakeup/templates/workshop/batch_customerorder_form.html:39
-#, fuzzy
-#| msgid "Customers"
-msgid "Customer"
-msgstr "Kunden"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:5
 msgid "Delete category"
@@ -1149,6 +1158,24 @@ msgstr "Zu den Produktionstagen"
 #| msgid "Points of sale"
 msgid "Select a point of sale"
 msgstr "Abholstellen"
+
+#: bakeup/workshop/tables.py:76
+msgid "eMail"
+msgstr ""
+
+#: bakeup/workshop/tables.py:77
+#, fuzzy
+#| msgid "Duration"
+msgid "Positions"
+msgstr "Dauer"
+
+#: bakeup/workshop/tables.py:78
+msgid "Sum"
+msgstr ""
+
+#: bakeup/workshop/tables.py:79
+msgid "Collected"
+msgstr ""
 
 #: bakeup/workshop/views.py:1089
 #, fuzzy
