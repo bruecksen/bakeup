@@ -50,7 +50,7 @@ class ProductionDayTable(tables.Table):
     # pk = tables.LinkColumn('workshop:production-day-update', args=[A('pk')], verbose_name='#')
     day_of_sale = tables.LinkColumn('workshop:production-day-detail', args=[A('pk')], text=lambda record: record.day_of_sale.strftime('%d.%m.%Y'))
     # name = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
-    summary = tables.TemplateColumn(template_name="tables/production_day_summary_column.html", verbose_name="Summary", orderable=False)
+    summary = tables.TemplateColumn(template_name="tables/production_day_summary_column.html", verbose_name=_("Summary"), orderable=False)
     action = tables.TemplateColumn(template_name="tables/production_day_action_column.html", verbose_name="")
 
     class Meta:
@@ -59,9 +59,9 @@ class ProductionDayTable(tables.Table):
 
 
 class CustomerOrderFilter(django_filters.FilterSet):
-    customer = django_filters.ModelChoiceFilter(queryset=Customer.objects.all(), empty_label='Select a customer')
-    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label='Select a production day')
-    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
+    customer = django_filters.ModelChoiceFilter(queryset=Customer.objects.all(), empty_label=_('Select a customer'))
+    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label=_('Select a production day'))
+    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label=_('Select a point of sale'))
     
     class Meta:
         model = CustomerOrder
@@ -123,7 +123,7 @@ class CustomerTable(tables.Table):
 
 class CustomerFilter(django_filters.FilterSet):
     abos = django_filters.ModelChoiceFilter(method='filter_abos', queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME), empty_label='Select abo')
-    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label='Select a point of sale')
+    point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label=_('Select a point of sale'))
     search = django_filters.filters.CharFilter(method='filter_search', label="Search")
     
     class Meta:
@@ -140,7 +140,7 @@ class CustomerFilter(django_filters.FilterSet):
 
 class ProductionPlanFilter(django_filters.FilterSet):
     state = django_filters.MultipleChoiceFilter(choices=ProductionPlan.State.choices, widget=forms.CheckboxSelectMultiple)
-    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label='Select a production day')
+    production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label=_('Select a production day'))
     
     class Meta:
         model = ProductionPlan

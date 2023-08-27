@@ -4,16 +4,16 @@
 {% load i18n %}
 {% block title %}Production plans{% endblock %}
 {% block page_heading %}
-<span class="d-print-none">Production plans <small class="text-muted">{{ day_of_sale_selected }}</small></span>
+<span class="d-print-none">{% trans "Production plans" %} <small class="text-muted">{{ day_of_sale_selected }}</small></span>
 {% endblock %}
 {% block page_heading_action %}
-<a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary btn-sm float-end me-2">Add or update production plans</a>
+<a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary btn-sm float-end me-2">{% trans "Add or update production plans" %}</a>
 {% endblock%}
 
 {% block page_content %}
 <div class="row mt-2 mb-4">
   <div class="col-8">
-    <h6 class="d-none d-print-block">Production plans {{ day_of_sale_selected }}</h6>
+    <h6 class="d-none d-print-block">{% trans "Production plans" %} {{ day_of_sale_selected }}</h6>
   </div>
 </div>
   {% if filter %}
@@ -32,7 +32,7 @@
       </div>
       <div class="col-2">
         {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
-        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> Reset filters</button>
+        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> {% trans "Reset filters" %}</button>
       </div>
     </div>
   </form>

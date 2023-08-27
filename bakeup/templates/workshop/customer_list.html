@@ -2,20 +2,21 @@
 {% load django_bootstrap5 %}
 {% load export_url from django_tables2 %}
 {% load render_table from django_tables2 %}
+{% load i18n %}
 
-{% block title %}Customers{% endblock %}
-{% block page_heading %}Customers{% endblock %}
+{% block title %}{% endblock %}
+{% block page_heading %}{% trans "Customers" %}{% endblock %}
 
 {% block page_heading_action %}
 <div class="btn-group float-end" role="group" aria-label="Basic example">
-  <a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm">Manage customer abos</a>
+  <a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm">{% trans "Manage customer abos" %}</a>
   <div class="btn-group">
     <a class="btn btn-sm btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="fas fa-file-download"></i> Export as CSV
+      <i class="fas fa-file-download"></i> {% trans "Export as CSV" %}
     </a>
     <ul class="dropdown-menu">
-      <li><a class="dropdown-item" href="{% export_url "csv" %}">Export</a></li>
-      <li><a class="dropdown-item" href="{% url 'workshop:customer-export-ready-2-order' %}?{{ request.GET.urlencode }}">Export Ready2Order</a></li>
+      <li><a class="dropdown-item" href="{% export_url "csv" %}">{% trans "Export" %}</a></li>
+      <li><a class="dropdown-item" href="{% url 'workshop:customer-export-ready-2-order' %}?{{ request.GET.urlencode }}">{% trans "Export Ready2Order" %}</a></li>
     </ul>
   </div>
 </div>
@@ -36,7 +37,7 @@
       </div>
       <div class="col-2">
         {% bootstrap_button "Filter" button_type="submit" button_class="btn-primary" size="sm" %}
-        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> Reset</button>
+        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> {% trans "Reset" %}</button>
       </div>
     </div>
 

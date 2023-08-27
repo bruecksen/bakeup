@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 19:23+0200\n"
+"POT-Creation-Date: 2023-08-27 21:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -115,11 +115,35 @@ msgstr ""
 msgid "You can't add the same product twice!"
 msgstr "Du kannst nicht zweimal das gleiche Produkt hinzufügen."
 
-#: bakeup/shop/models.py:595
+#: bakeup/shop/models.py:58
+msgid "Day of Sale"
+msgstr "Verkaufstag"
+
+#: bakeup/shop/models.py:59
+#: bakeup/templates/workshop/productionday_detail.html:50
+#: bakeup/workshop/models.py:59
+msgid "Description"
+msgstr "Beschreibung"
+
+#: bakeup/shop/models.py:207
+#: bakeup/templates/workshop/includes/production_plan_table.html:13
+#: bakeup/templates/workshop/productionday_detail.html:59
+msgid "Product"
+msgstr "Produkt"
+
+#: bakeup/shop/models.py:208
+msgid "Max quantity"
+msgstr "Max Stückzahl"
+
+#: bakeup/shop/models.py:210
+msgid "Published?"
+msgstr "Veröffentlicht?"
+
+#: bakeup/shop/models.py:596
 msgid "running"
 msgstr "laufend"
 
-#: bakeup/shop/models.py:596
+#: bakeup/shop/models.py:597
 msgid "finished"
 msgstr "beendet"
 
@@ -310,6 +334,32 @@ msgstr "Du hast dieses Produkt bereits abonniert."
 msgid "Currently no products selected."
 msgstr "Aktuell sind keine Produkte ausgewählt."
 
+#: bakeup/templates/shop/includes/dashboard.html:5
+msgid "Welcome to the bakeup shop"
+msgstr ""
+
+#: bakeup/templates/shop/includes/dashboard.html:14
+msgid "Baking Days"
+msgstr ""
+
+#: bakeup/templates/shop/includes/dashboard.html:16
+msgid "Go to the next baking days"
+msgstr ""
+
+#: bakeup/templates/shop/includes/dashboard.html:23
+#: bakeup/templates/workshop/includes/sidebar.html:31
+#: bakeup/templates/workshop/order_list.html:8
+msgid "Orders"
+msgstr "Bestellungen"
+
+#: bakeup/templates/shop/includes/dashboard.html:25
+msgid "Here you can view your existing orders for the next baking days."
+msgstr ""
+
+#: bakeup/templates/shop/includes/dashboard.html:27
+msgid "Go to orders"
+msgstr "Zu den Bestellungen"
+
 #: bakeup/templates/shop/includes/main_menu.html:13
 #: bakeup/templates/workshop/workshop.html:7
 msgid "Workshop"
@@ -382,6 +432,7 @@ msgstr "Ändere Bestellungen für den"
 #: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
+#: bakeup/templates/workshop/productionday_form.html:53
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -449,6 +500,35 @@ msgstr "Hinzufügen"
 msgid "Categories"
 msgstr "Kategorien"
 
+#: bakeup/templates/workshop/customer_list.html:8
+#: bakeup/templates/workshop/includes/sidebar.html:34
+msgid "Customers"
+msgstr "Kunden"
+
+#: bakeup/templates/workshop/customer_list.html:12
+msgid "Manage customer abos"
+msgstr ""
+
+#: bakeup/templates/workshop/customer_list.html:15
+#: bakeup/templates/workshop/order_list.html:15
+#: bakeup/templates/workshop/productionday_detail.html:33
+msgid "Export as CSV"
+msgstr "Exportieren als CSV"
+
+#: bakeup/templates/workshop/customer_list.html:18
+
+msgid "Export"
+msgstr "Exportieren"
+
+#: bakeup/templates/workshop/customer_list.html:19
+msgid "Export Ready2Order"
+msgstr ""
+
+#: bakeup/templates/workshop/customer_list.html:40
+#: bakeup/templates/workshop/order_list.html:36
+msgid "Reset"
+msgstr ""
+
 #: bakeup/templates/workshop/customerorder_form.html:48
 #: bakeup/templates/workshop/productionday_form.html:45
 msgid "Add another product"
@@ -496,6 +576,8 @@ msgid "Go to production days"
 msgstr "Zu den Produktionstagen"
 
 #: bakeup/templates/workshop/includes/dashboard.html:44
+#: bakeup/templates/workshop/productionplan_list.html:7
+#: bakeup/templates/workshop/productionplan_list.html:16
 msgid "Production plans"
 msgstr "Produktionspläne"
 
@@ -534,11 +616,6 @@ msgstr "Tag"
 msgid "Qty"
 msgstr "Menge"
 
-#: bakeup/templates/workshop/includes/production_plan_table.html:13
-#: bakeup/templates/workshop/productionday_detail.html:59
-msgid "Product"
-msgstr "Produkt"
-
 #: bakeup/templates/workshop/includes/sidebar.html:12
 msgid "Dashboard"
 msgstr "Übersicht"
@@ -546,14 +623,6 @@ msgstr "Übersicht"
 #: bakeup/templates/workshop/includes/sidebar.html:28
 msgid "Production Plans"
 msgstr "Produktionspläne"
-
-#: bakeup/templates/workshop/includes/sidebar.html:31
-msgid "Orders"
-msgstr "Bestellungen"
-
-#: bakeup/templates/workshop/includes/sidebar.html:34
-msgid "Customers"
-msgstr "Kunden"
 
 #: bakeup/templates/workshop/includes/sidebar.html:37
 msgid "Points of sale"
@@ -667,6 +736,7 @@ msgid "Update product"
 msgstr "Ändere Produkt"
 
 #: bakeup/templates/workshop/product_list.html:26
+#: bakeup/templates/workshop/productionplan_list.html:35
 msgid "Reset filters"
 msgstr "Filter zurücksetzen"
 
@@ -676,6 +746,8 @@ msgid "Production day"
 msgstr "Produktionstag"
 
 #: bakeup/templates/workshop/productionday_detail.html:20
+#: bakeup/templates/workshop/productionday_form.html:6
+#: bakeup/templates/workshop/productionday_form.html:8
 msgid "Add new production day"
 msgstr "Neuen Produktionstag hinzufügen"
 
@@ -699,12 +771,9 @@ msgstr ""
 msgid "Reminder"
 msgstr "Erinnerungen"
 
-#: bakeup/templates/workshop/productionday_detail.html:33
-msgid "Export as CSV"
-msgstr "Exportieren als CSV"
-
 #: bakeup/templates/workshop/productionday_detail.html:39
 #: bakeup/templates/workshop/productionday_detail.html:52
+#: bakeup/workshop/tables.py:53
 msgid "Summary"
 msgstr "Zusammenfassung"
 
@@ -715,11 +784,6 @@ msgstr "Zutaten"
 #: bakeup/templates/workshop/productionday_detail.html:45
 msgid "Delivery bill"
 msgstr "Lieferschein"
-
-#: bakeup/templates/workshop/productionday_detail.html:50
-#: bakeup/workshop/models.py:59
-msgid "Description"
-msgstr "Beschreibung"
 
 #: bakeup/templates/workshop/productionday_detail.html:54
 msgid "Finish all"
@@ -801,6 +865,20 @@ msgstr "Zutaten"
 #: bakeup/templates/workshop/productionday_detail.html:152
 msgid "Amount"
 msgstr "Menge"
+
+#: bakeup/templates/workshop/productionday_form.html:6
+#: bakeup/templates/workshop/productionday_form.html:8
+#: bakeup/templates/workshop/productionday_form.html:55
+msgid "Update production day"
+msgstr "Ändere Produktionstag"
+
+#: bakeup/templates/workshop/productionday_form.html:55
+msgid "Create production day"
+msgstr "Erstelle Produktionstag"
+
+#: bakeup/templates/workshop/productionplan_list.html:10
+msgid "Add or update production plans"
+msgstr "Ändere oder kreiere Produktionspläne"
 
 #: bakeup/templates/workshop/recipe_detail.html:16
 msgid "Add product"
@@ -970,6 +1048,22 @@ msgstr "Wähle Kategorie"
 #: bakeup/workshop/tables.py:15
 msgid "Search"
 msgstr "Suche"
+
+#: bakeup/workshop/tables.py:62
+msgid "Select a customer"
+msgstr "Wähle einen Kunden"
+
+#: bakeup/workshop/tables.py:63 bakeup/workshop/tables.py:143
+msgid "Select a production day"
+msgstr "Wähle einen Produktionstag"
+
+#: bakeup/workshop/tables.py:64 bakeup/workshop/tables.py:126
+msgid "Select a point of sale"
+msgstr "Wähle eine Abholstelle"
+
+#: bakeup/workshop/views.py:1089
+msgid "productionday-{}"
+msgstr "produktionstag-{}"
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."

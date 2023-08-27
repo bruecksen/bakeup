@@ -3,9 +3,9 @@
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 
-{% block title %}Add new production day{% endblock %}
+{% block title %}{% if object %}{% trans "Update production day" %}{% else %}{% trans "Add new production day" %}{% endif %}{% endblock %}
 {% block page_heading %}
-{% if object %}Update production day{% else %}Add new production day{% endif %}
+{% if object %}{% trans "Update production day" %}{% else %}{% trans "Add new production day" %}{% endif %}
 {% endblock %}
 
 {% block page_content %}
@@ -50,9 +50,9 @@
   <div class="col">
     <div class="control-group">
       <div class="controls">
-        <button class="btn btn-outline-primary" onclick="window.history.go(-1);">Cancel</button>
+        <button class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</button>
         <button type="submit" class="btn btn-primary" name="add-new">
-          {% if object %}Update production day{% else %}Create production day{% endif %}
+          {% if object %}{% trans "Update production day" %}{% else %}{% trans "Create production day" %}{% endif %}
         </button>
       </div>
     </div>

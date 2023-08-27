@@ -16,6 +16,7 @@ from django.utils import formats
 from django import forms
 from django.template import Template, Context
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from djmoney.models.fields import MoneyField
 from recurrence.fields import RecurrenceField
@@ -54,8 +55,8 @@ class ProductionDayQuerySet(models.QuerySet):
 
 
 class ProductionDay(CommonBaseClass):
-    day_of_sale = models.DateField(unique=True)
-    description = models.TextField(blank=True, null=True)
+    day_of_sale = models.DateField(unique=True, verbose_name=_("Day of Sale"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
 
     objects = ProductionDayQuerySet.as_manager()
 
@@ -203,10 +204,10 @@ class ProductionDayProductQuerySet(models.QuerySet):
 
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
-    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False)
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True}, verbose_name=_("Product"))
+    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False, verbose_name=_("Max quantity"))
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
-    is_published = models.BooleanField(default=False, verbose_name="Published?")
+    is_published = models.BooleanField(default=False, verbose_name=_("Published?"))
     
     objects = ProductionDayProductQuerySet.as_manager()
 
