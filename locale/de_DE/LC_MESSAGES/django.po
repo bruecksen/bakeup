@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 21:33+0200\n"
+"POT-Creation-Date: 2023-08-27 22:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,7 +84,7 @@ msgid "Abo"
 msgstr ""
 
 #: bakeup/shop/forms.py:15 bakeup/shop/forms.py:38 bakeup/shop/forms.py:61
-#: bakeup/shop/forms.py:141 bakeup/shop/forms.py:196
+#: bakeup/shop/forms.py:141 bakeup/shop/forms.py:196 bakeup/shop/models.py:492
 msgid "Quantity"
 msgstr "Menge"
 
@@ -126,7 +126,7 @@ msgstr "Verkaufstag"
 msgid "Description"
 msgstr "Beschreibung"
 
-#: bakeup/shop/models.py:207
+#: bakeup/shop/models.py:207 bakeup/shop/models.py:491
 #: bakeup/templates/workshop/includes/production_plan_table.html:13
 #: bakeup/templates/workshop/productionday_detail.html:59
 msgid "Product"
@@ -201,6 +201,7 @@ msgstr ""
 
 #: bakeup/templates/account/email_confirm.html:29
 #: bakeup/templates/workshop/category_confirm_delete.html:31
+#: bakeup/templates/workshop/customerorder_confirm_delete.html:17
 #: bakeup/templates/workshop/product_confirm_delete.html:19
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:19
 msgid "Confirm"
@@ -440,6 +441,8 @@ msgstr "Ändere Bestellungen für den"
 #: bakeup/templates/workshop/batch_customerorder_form.html:69
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
+#: bakeup/templates/workshop/customerorder_confirm_delete.html:15
+#: bakeup/templates/workshop/customerorder_form.html:56
 #: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
@@ -461,6 +464,7 @@ msgstr ""
 "dasLöschen der geschützten verbundenen Objekte voraus.</p>"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:22
+#: bakeup/templates/workshop/customerorder_confirm_delete.html:10
 #: bakeup/templates/workshop/product_confirm_delete.html:10
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:10
 msgid "Are you sure?"
@@ -534,6 +538,33 @@ msgstr ""
 #: bakeup/templates/workshop/order_list.html:36
 msgid "Reset"
 msgstr "Zurücksetzen"
+
+#: bakeup/templates/workshop/customerorder_confirm_delete.html:5
+msgid "Delete order"
+msgstr "Bestellung löschen"
+
+#: bakeup/templates/workshop/customerorder_confirm_delete.html:11
+#, python-format
+msgid ""
+"You're about to delete the following customer order: <strong>%(object)s</"
+"strong>. Please confirm, ."
+msgstr ""
+"Du löscht gerade folgende Kundenbestellung: <strong>%(object)s</strong>. Bitte bestätige, "
+"dass du die Bestellung löschen willst."
+
+#: bakeup/templates/workshop/customerorder_form.html:5
+#: bakeup/templates/workshop/customerorder_form.html:7
+#: bakeup/templates/workshop/customerorder_form.html:58
+#: bakeup/templates/workshop/productionday_detail.html:20
+#: bakeup/templates/workshop/productionday_form.html:6
+#: bakeup/templates/workshop/productionday_form.html:8
+msgid "Add new production day"
+msgstr "Neuen Produktionstag hinzufügen"
+
+#: bakeup/templates/workshop/customerorder_form.html:7
+#: bakeup/templates/workshop/customerorder_form.html:58
+msgid "Update customer order"
+msgstr "Ändere Kundenbestellung"
 
 #: bakeup/templates/workshop/customerorder_form.html:48
 #: bakeup/templates/workshop/productionday_form.html:45
@@ -750,12 +781,6 @@ msgstr "Filter zurücksetzen"
 #: bakeup/templates/workshop/productionday_detail.html:10
 msgid "Production day"
 msgstr "Produktionstag"
-
-#: bakeup/templates/workshop/productionday_detail.html:20
-#: bakeup/templates/workshop/productionday_form.html:6
-#: bakeup/templates/workshop/productionday_form.html:8
-msgid "Add new production day"
-msgstr "Neuen Produktionstag hinzufügen"
 
 #: bakeup/templates/workshop/productionday_detail.html:28
 msgid "Delete"
@@ -1067,7 +1092,8 @@ msgstr "Wähle einen Produktionstag"
 msgid "Select a point of sale"
 msgstr "Wähle eine Abholstelle"
 
-#: bakeup/workshop/tables.py:76
+#: bakeup/workshop/tables.py:76 bakeup/workshop/tables.py:95
+#: bakeup/workshop/tables.py:108
 msgid "eMail"
 msgstr "E-Mail"
 
@@ -1082,6 +1108,18 @@ msgstr "Summe"
 #: bakeup/workshop/tables.py:79
 msgid "Collected"
 msgstr "Abgeholt"
+
+#: bakeup/workshop/tables.py:93
+msgid "Last Name"
+msgstr ""
+
+#: bakeup/workshop/tables.py:94
+msgid "First Name"
+msgstr ""
+
+#: bakeup/workshop/tables.py:96
+msgid "phone"
+msgstr ""
 
 #: bakeup/workshop/views.py:1089
 msgid "productionday-{}"

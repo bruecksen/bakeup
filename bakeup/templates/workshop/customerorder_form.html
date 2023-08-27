@@ -2,9 +2,9 @@
 {% load i18n %}
 {% load django_bootstrap5 %}
 
-{% block title %}Add new production day{% endblock %}
+{% block title %}{% trans "Add new production day" %}{% endblock %}
 {% block page_heading %}
-{% if object %}Update customer order{% else %}Add new production day{% endif %}
+{% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
 {% endblock %}
 
 {% block page_content %}
@@ -53,9 +53,9 @@
         <div class="col">
           <div class="control-group">
             <div class="controls">
-              <button class="btn btn-outline-primary" onclick="window.history.go(-1);">Cancel</button>
+              <button class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</button>
               <button type="submit" class="btn btn-primary" name="add-new">
-                {% if object %}Update customer order{% else %}Create production day{% endif %}
+                {% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
               </button>
             </div>
           </div>

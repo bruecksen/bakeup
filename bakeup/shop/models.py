@@ -488,8 +488,8 @@ class CustomerOrderPositionQuerySet(models.QuerySet):
 
 
 class BasePositionClass(CommonBaseClass):
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions')
-    quantity = models.PositiveSmallIntegerField()
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions', verbose_name=_('Product'))
+    quantity = models.PositiveSmallIntegerField(verbose_name=_('Quantity'))
     comment = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -90,10 +90,10 @@ class CustomerOrderTable(tables.Table):
 
 
 class ProductionDayExportTable(tables.Table):
-    last_name = tables.TemplateColumn('{{ record.customer.user.last_name }}', verbose_name='Nachname')
-    first_name = tables.TemplateColumn('{{ record.customer.user.first_name }}', verbose_name='Vorname')
-    email = tables.TemplateColumn("{{ record.customer.user.email }}", verbose_name='E-Mail')
-    phone = tables.TemplateColumn("{{ record.customer.telephone_number|default:'' }}", verbose_name='Telefonnummer')
+    last_name = tables.TemplateColumn('{{ record.customer.user.last_name }}', verbose_name=_('Last Name'))
+    first_name = tables.TemplateColumn('{{ record.customer.user.first_name }}', verbose_name=_('First Name'))
+    email = tables.TemplateColumn("{{ record.customer.user.email }}", verbose_name=_('eMail'))
+    phone = tables.TemplateColumn("{{ record.customer.telephone_number|default:'' }}", verbose_name=_('phone'))
 
     class Meta:
         model = CustomerOrder
@@ -105,7 +105,7 @@ class CustomerTable(tables.Table):
     # order_nr = tables.Column(verbose_name='#', order_by='pk')
     # production_day = tables.LinkColumn('workshop:production-day-detail', args=[A('production_day.pk')])
     # customer = tables.TemplateColumn("{{ record.customer }}")
-    email = tables.LinkColumn('workshop:customer-detail', args=[A('pk')], text=lambda record: record.user.email, verbose_name='E-Mail')
+    email = tables.LinkColumn('workshop:customer-detail', args=[A('pk')], text=lambda record: record.user.email, verbose_name=_('eMail'))
     abos = tables.TemplateColumn(template_name='tables/customer_abos_column.html', verbose_name='Abos', exclude_from_export=True)
     actions = tables.TemplateColumn(template_name='tables/customer_actions_column.html', verbose_name='', exclude_from_export=True)
     street = tables.Column(visible=False)
