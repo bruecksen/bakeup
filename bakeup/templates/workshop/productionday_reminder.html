@@ -36,7 +36,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
             {% bootstrap_field form.subject %}
           </div>
           <div class="col">
-            <label for="email-subject" class="form-label">Subject:</label>
+            <label for="email-subject" class="form-label">&nbsp;</label>
             <input class="form-control" id="email-subject" readonly disabled>
           </div>
         </div>
@@ -45,7 +45,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
             {% bootstrap_field form.body %}
           </div>
           <div class="col">
-            <label for="email-body" class="form-label">Send email to:</label>
+            <label for="email-body" class="form-label">&nbsp;</label>
             <textarea class="form-control" id="email-body" rows="10" readonly disabled></textarea>
           </div>
         </div>
@@ -112,11 +112,15 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   source.addEventListener('input', function() {
     var sourceValue = source.value;
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*first_name\\s*\\}\\}","g"), 'Manu');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*last_name\\s*\\}\\}","g"), 'Musteruser');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*email\\s*\\}\\}","g"), 'manu@gmail.com');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*production_day\\s*\\}\\}","g"), '16.03.2023');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*site_name\\s*\\}\\}","g"), '{{ request.tenant.name|safe }}');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order\\s*\\}\\}","g"), '1 x Hasenbrot 3,99 €\n2 x Baguette \n1 x Roggenmisch');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order_count\\s*\\}\\}","g"), '4');
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*price_total\\s*\\}\\}","g"), '23,99 €');
+    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*point_of_sale\\s*\\}\\}","g"), 'Im Laden');
     target.value = sourceValue;
   });
   source.dispatchEvent(new Event('input'));

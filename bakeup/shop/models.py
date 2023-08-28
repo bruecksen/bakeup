@@ -465,6 +465,7 @@ class CustomerOrder(CommonBaseClass):
             'production_day': self.production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': self.total_quantity,
             'order_link': request.build_absolute_uri("{}#bestellung-{}".format(reverse_lazy('shop:order-list'), self.pk)),
+            'point_of_sale': order.point_of_sale,
         }))
         return message
 
