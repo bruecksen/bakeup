@@ -219,7 +219,7 @@ class EmailSettings(BaseGenericSetting):
     email_footer = models.TextField(blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt.")
     send_email_order_confirm = models.BooleanField(default=False, help_text='Soll eine Bestellbestätigungsmail versendet werden?', verbose_name='Bestellbestätigung versenden?')
     email_order_confirm_subject = models.CharField(default='Vielen Dank für Deine Bestellung', max_length=1024, help_text="Betreff Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}, {{ order_link }}")
-    email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}, {{ order_link }}")
+    email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{ order_count }}, {{ order_link }}")
     email_order_confirm_attachment = models.ForeignKey(
         'wagtaildocs.Document',
         null=True,
