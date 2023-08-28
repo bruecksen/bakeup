@@ -18,6 +18,7 @@ from django import forms
 from django.template import Template, Context
 from django.conf import settings
 
+from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 from recurrence.fields import RecurrenceField
 
@@ -461,7 +462,7 @@ class CustomerOrder(CommonBaseClass):
             'last_name': self.customer.user.last_name,
             'email': self.customer.user.email,
             'order': self.get_order_positions_string(),
-            'price_total': self.price_total and "{} €".format(self.price_total) or '',
+            'price_total': self.price_total and Money(self.price_total, 'EUR') or '',
             'production_day': self.production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': self.total_quantity,
             'order_link': request.build_absolute_uri("{}#bestellung-{}".format(reverse_lazy('shop:order-list'), self.pk)),
