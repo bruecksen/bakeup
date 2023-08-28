@@ -131,7 +131,7 @@ ProductionDayMetaProductformSet = formset_factory(
 class ProductionDayReminderForm(forms.Form):
     point_of_sale = forms.ModelChoiceField(empty_label='All', queryset=PointOfSale.objects.all(), required=False, label='Point of sale', help_text="Send emails to orders of specific point of sale, leave empty to send to all point of sales.")
     subject = forms.CharField(required=True)
-    body = forms.CharField(required=True, widget=forms.Textarea)
+    body = forms.CharField(required=True, widget=forms.Textarea, help_text='Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{ order_count }}, {{ order_link }}')
 
 
 class ReminderMessageForm(ModelForm):
