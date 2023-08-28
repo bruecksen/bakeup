@@ -3,6 +3,7 @@ Hallo {{ user }},
 deine Bestellung ist fertig und abholbereit.
 
 {{ order }}
+{{ price_total }}
 
 Viele Grüße,
 {{ site_name }}

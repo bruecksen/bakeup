@@ -540,6 +540,7 @@ class ReminderMessage(CommonBaseClass):
             'last_name': order.customer.user.last_name,
             'email': order.customer.user.email,
             'order': order.get_order_positions_string(),
+            'price_total': self.price_total,
             'production_day': production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': order.total_quantity,
         }))

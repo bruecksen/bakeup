@@ -2,6 +2,7 @@ import logging
 import collections
 
 from django.urls import reverse_lazy
+from django.core.mail import EmailMessage
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.utils.translation import gettext as _
@@ -329,7 +330,13 @@ class CustomerOrder(CommonBaseClass):
         return "{} {}".format(self.production_day, self.customer)
     
     def get_order_positions_string(self):
-        return "\n".join(["{}x {}".format(position.quantity, position.product.get_display_name()) for position in self.positions.all()])
+        positions_string = ""
+        for position in self.positions.all():
+            price_total = ''
+            if position.price_total:
+                price_total = " {}".format(position.price_total)
+            positions_string += "{}x {}{}".format(position.quantity, position.product.get_display_name(), price_total) + "\n"
+        return positions_string
     
     @property
     def price_total(self):
@@ -454,6 +461,7 @@ class CustomerOrder(CommonBaseClass):
             'last_name': self.customer.user.last_name,
             'email': self.customer.user.email,
             'order': self.get_order_positions_string(),
+            'price_total': self.price_total,
             'production_day': self.production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': self.total_quantity,
             'order_link': request.build_absolute_uri("{}#bestellung-{}".format(reverse_lazy('shop:order-list'), self.pk)),
@@ -467,13 +475,15 @@ class CustomerOrder(CommonBaseClass):
             user_email = self.customer.user.email
             message_body = self.replace_message_tags(email_settings.get_body_with_footer(email_settings.email_order_confirm), request)
             message_subject = self.replace_message_tags(email_settings.get_subject_with_prefix(email_settings.email_order_confirm_subject), request)
-            send_mail(
+            message = EmailMessage(
                 message_subject,
                 message_body,
                 settings.DEFAULT_FROM_EMAIL,
                 [user_email],
-                fail_silently=False,
             )
+            if email_settings.email_order_confirm_attachment:
+                message.attach(email_settings.email_order_confirm_attachment.title, email_settings.email_order_confirm_attachment.file.read(), 'application/pdf')
+            message.send(fail_silently=False) 
         except Exception as e:
             logger.exception('Sending order confirm email failed.', stack_info=True)
 
