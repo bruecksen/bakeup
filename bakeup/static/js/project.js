@@ -397,29 +397,30 @@ $(function(){
         // // console.log('hide', $('.modal-checkout form input[type="reset"]'));
         $(this).find('form input[type="reset"]').click();
     })
-    if ($('.modal-checkout').length == 1) {
-        $('.modal-checkout').on('show.bs.modal', function() {
-            var basketQuantity = 0;
-            var totalBasketQuantity = 0;
-            $('.product-card .product-quantity').each(function(){
-                var product = $(this).data('product');
-                var orderedQty = $(this).data('ordered-quantity');
-                var quantity = parseInt($(this).val()) || 0;
-                totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
-                basketQuantity += basketQuantity + quantity;
-                console.log(product, quantity);
-                updateProduct(product, quantity, true);
-                // totalBasketQuantity += quantity;
-            });
-            setTotalPrice($(this));
-            updateModal($(this), basketQuantity, totalBasketQuantity);
-        })
+    $('.modal-checkout.in-checkout').on('show.bs.modal', function() {
+        var basketQuantity = 0;
+        var totalBasketQuantity = 0;
+        $('.product-card .product-quantity').each(function(){
+            var product = $(this).data('product');
+            var orderedQty = $(this).data('ordered-quantity');
+            var quantity = parseInt($(this).val()) || 0;
+            totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
+            basketQuantity += basketQuantity + quantity;
+            console.log(product, quantity);
+            updateProduct(product, quantity, true);
+            // totalBasketQuantity += quantity;
+        });
+        setTotalPrice($(this));
+        updateModal($(this), basketQuantity, totalBasketQuantity);
+    })
+    if ($('.modal-checkout.in-checkout').length) {
         console.log('checkout exists');
         $('header .shopping-basket').addClass('d-lg-block');
-    } else {
-        console.log('checkout not');
-        $('header .shopping-basket').removeClass('d-lg-block');
     }
+    // } else {
+    //     console.log('checkout not');
+    //     $('header .shopping-basket').removeClass('d-lg-block');
+    // }
     var initdata = $('.modal-checkout form').serialize();
     $('.modal-checkout form select').change(function(){
         // console.log('form select change');
