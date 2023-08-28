@@ -85,7 +85,6 @@ SHARED_APPS = [
     "django_bootstrap5",
     'modelcluster',
     "django_htmx",
-    "django.contrib.sites",
     'djmoney',
 ]
 
