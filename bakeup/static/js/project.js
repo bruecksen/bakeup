@@ -390,6 +390,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
      });
 });
 
+var aboProductDays = {};
 $(function(){
     $('.link-new-tab a').attr('target', '_blank');
     $('.link-new-tab a').attr('rel', 'nofollow noopener');
@@ -397,6 +398,11 @@ $(function(){
         // // console.log('hide', $('.modal-checkout form input[type="reset"]'));
         $(this).find('form input[type="reset"]').click();
     })
+    if (document.getElementById('abo_product_days')) {
+        aboProductDays = JSON.parse(document.getElementById('abo_product_days').textContent);
+        console.log(aboProductDays);
+
+    }
     $('.modal-checkout.in-checkout').on('show.bs.modal', function() {
         var basketQuantity = 0;
         var totalBasketQuantity = 0;
@@ -422,6 +428,7 @@ $(function(){
     //     $('header .shopping-basket').removeClass('d-lg-block');
     // }
     var initdata = $('.modal-checkout form').serialize();
+    
     $('.modal-checkout form select').change(function(){
         // console.log('form select change');
         // var basketQty = this.value;
@@ -461,6 +468,17 @@ $(function(){
             updateModalUnchange(modal);
         }
     })
+    $('.modal-checkout form .abo-checkbox').change(function(){
+        var form = $(this).parents('form');
+        var currentAboProductDays = [];
+        form.find('tr.product .abo-checkbox:checked').each(function(){
+            var product = $(this).attr('name').replace('productabo-', '');
+
+            console.log(product);
+            currentAboProductDays = currentAboProductDays.concat(aboProductDays[product])
+        })
+        console.log(currentAboProductDays);
+    });
     $('.modal-checkout form input, .modal-checkout form select.order-quantity, .modal-checkout form select.pos-select').change(function() { 
         // Any changes in the checkout or order modal
         console.log('detect checkout/order modal form change');
