@@ -69,6 +69,7 @@
          const elem = document.getElementById('select-production-day-date');
      const datepicker = new Datepicker(elem, {
         format: 'dd.mm.yyyy',
+        language: 'de',
         beforeShowDay: function(date) {
             date_formatted = date.toLocaleDateString('de-de', {
                 day: '2-digit',
