@@ -87,7 +87,7 @@ msgstr ""
 
 #: bakeup/shop/urls.py:30
 msgid "orders/"
-msgstr ""
+msgstr "bestellungen/"
 
 #: bakeup/shop/urls.py:31
 msgid "order-templates/positions/<int:pk>/delete/"
@@ -103,15 +103,15 @@ msgstr ""
 
 #: bakeup/shop/urls.py:34
 msgid "order-templates/"
-msgstr ""
+msgstr "abos/"
 
 #: bakeup/shop/urls.py:36
 msgid "login/"
-msgstr ""
+msgstr "anmelden/"
 
 #: bakeup/shop/urls.py:37
 msgid "signup/"
-msgstr ""
+msgstr "registrieren/"
 
 #: bakeup/templates/account/email_confirm.html:19
 msgid "Confirm E-mail Address"
