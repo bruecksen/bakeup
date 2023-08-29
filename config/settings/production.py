@@ -37,6 +37,14 @@ DATABASES["default"]["ENGINE"] = 'django_tenants.postgresql_backend'
 #     }
 # }
 
+CACHES = {
+    "default": {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'KEY_FUNCTION': 'django_tenants.cache.make_key',
+        'REVERSE_KEY_FUNCTION': 'django_tenants.cache.reverse_key',
+    },
+}
+
 # SECURITY
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
