@@ -43,6 +43,7 @@ class ShopPage(Page):
     )
     banner_text = RichTextField(blank=True, verbose_name='Text')
     banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action', blank=True, null=True, use_json_field=True)
+    banner_position = models.CharField(max_length=10, choices=[('top', 'Oben'), ('center', 'Mittig'), ('end', 'Unten')], default='center', verbose_name='Banner Inhalt Position')
 
     text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days planned'), help_text="This text is displayed if no production day is planned.")
     content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
@@ -52,6 +53,7 @@ class ShopPage(Page):
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel('banner_image'),
+            FieldPanel('banner_position'),
             FieldPanel('banner_text'),
             FieldPanel('banner_cta'),
         ], heading="Banner"),
