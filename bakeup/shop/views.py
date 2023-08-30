@@ -97,45 +97,6 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
         return context
 
 
-class CustomerOrderAddView(CustomerRequiredMixin, FormView):
-    form_class = CustomerOrderForm
-    http_method_names = ['post']
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['production_day_product'] = self.production_day_product
-        kwargs['customer'] = self.request.user.customer
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        self.production_day_product = get_object_or_404(ProductionDayProduct, pk=kwargs['production_day_product'])
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        created_order, created = CustomerOrder.create_or_update_customer_order_position(
-            self.production_day_product.production_day,
-            self.request.user.customer,
-            self.production_day_product.product,
-            form.cleaned_data["quantity"],
-        )
-        if created_order is None:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
-        elif created_order:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
-        else:
-            messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return '/shop/'
-
-    def form_invalid(self, form):
-        messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
-        return redirect(self.get_success_url())
-
-
-   
-
 @login_required
 def customer_order_add_or_update(request, production_day):
     if request.method == 'POST':

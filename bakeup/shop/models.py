@@ -152,7 +152,11 @@ class ProductionDay(CommonBaseClass):
     def create_template_orders(self, request):
         with transaction.atomic():
             for product in self.production_day_products.published():
-                if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
+                customer_order = CustomerOrderPosition.objects.filter(
+                    Q(product=product.product) | Q(product__product_template=product.product),
+                    order__production_day=self
+                )
+                if not customer_order.exists():
                     for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
                         order_template_position.create_order(self, request)
 
@@ -370,30 +374,6 @@ class CustomerOrder(CommonBaseClass):
         return self.positions.filter(customer_order_template_positions__isnull=False).exists()
     
     @classmethod
-    def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):
-        # TODO order_nr, address, should point of sale really be saved in order?
-        customer_order, created_order = CustomerOrder.objects.update_or_create(
-            production_day=production_day,
-            customer=customer,
-            defaults={
-                'point_of_sale': customer.point_of_sale,
-            }
-        )
-        position, created = CustomerOrderPosition.objects.get_or_create(
-            order=customer_order,
-            product=product,
-            defaults={
-                'quantity': quantity,
-            }
-        )
-        if not created:
-            position.quantity = (position.quantity or 0) + quantity
-            position.save(update_fields=['quantity'])
-            
-        return created_order
-
-
-    @classmethod
     def create_or_update_customer_order(cls, production_day, customer, products, point_of_sale=None):
         # TODO order_nr, address, should point of sale really be saved in order?
         point_of_sale = point_of_sale and PointOfSale.objects.get(pk=point_of_sale) or customer.point_of_sale
@@ -405,6 +385,7 @@ class CustomerOrder(CommonBaseClass):
             }
         )
         for product, quantity in products.items():
+            print(product, quantity)
             production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
             if production_day_product.is_locked:
                 raise forms.ValidationError("Product is locked.")
@@ -414,9 +395,10 @@ class CustomerOrder(CommonBaseClass):
                 if product.sale_price:
                     price = product.sale_price.price.amount
                     price_total = price * quantity
-                position, created = CustomerOrderPosition.objects.update_or_create(
+                position, created = CustomerOrderPosition.objects.filter(
+                    Q(product=product) | Q(product__product_template=product)
+                ).update_or_create(
                     order=customer_order,
-                    product=product,
                     defaults={
                         'quantity': quantity,
                         'price': price,
@@ -425,8 +407,8 @@ class CustomerOrder(CommonBaseClass):
                 )
             elif quantity == 0:
                 CustomerOrderPosition.objects.filter(
-                    order=customer_order,
-                    product=product
+                    Q(product=product) | Q(product__product_template=product),
+                    order=customer_order
                 ).delete()
             
         if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
@@ -676,7 +658,11 @@ class CustomerOrderTemplate(CommonBaseClass):
                         product=product
                     ).exclude(production_day=production_day)
                     for production_day_product in planned_production_day_products:
-                        if not CustomerOrderPosition.objects.filter(order__production_day=production_day, product=product).exists():
+                        customer_order = CustomerOrderPosition.objects.filter(
+                            Q(product=product.product) | Q(product__product_template=product.product),
+                            order__production_day=production_day
+                        )
+                        if not customer_order.exists():
                             order_template_position.create_order(production_day_product.production_day, request)
 
         return order_template

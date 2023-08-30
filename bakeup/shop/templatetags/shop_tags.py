@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django import template
 from django.template.defaultfilters import floatformat
 
@@ -8,7 +9,11 @@ register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def customer_quantity(context, production_day_product):
-    position = CustomerOrderPosition.objects.filter(order__customer=context['request'].user.customer, order__production_day=production_day_product.production_day, product=production_day_product.product).first()
+    position = CustomerOrderPosition.objects.filter(
+        Q(product=production_day_product.product) | Q(product__product_template=production_day_product.product),
+        order__customer=context['request'].user.customer, 
+        order__production_day=production_day_product.production_day, 
+    ).first()
     return position and position.quantity or None
 
 @register.simple_tag(takes_context=True)

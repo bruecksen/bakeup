@@ -887,6 +887,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                         if product.sale_price:
                             price = product.sale_price.price.amount
                             price_total = price * customer_order_template_position.quantity
+                        # TODO Q(product=product) | ... and switch to update_or_create
                         position, created = CustomerOrderPosition.objects.get_or_create(
                             order=customer_order,
                             product=product,
@@ -1113,8 +1114,13 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
             }
             for product in self.production_day.production_day_products.all():
                 quantity = None
-                if CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=product.product).exists():
-                    quantity = CustomerOrderPosition.objects.get(order__customer=customer, order__production_day=self.production_day, product=product.product).quantity
+                customer_order_position = CustomerOrderPosition.objects.filter(
+                    Q(product=product.product) | Q(product__product_template=product.product),
+                    order__customer=customer, 
+                    order__production_day=self.production_day, 
+                )
+                if customer_order_position.exists():
+                    quantity = customer_order_position.first().quantity
                 initial_customer['product_{}'.format(product.product.pk)] = quantity
             initial.append(initial_customer)
         return initial
@@ -1154,16 +1160,20 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 for product in Product.objects.filter(production_days__production_day=self.production_day):
                     quantity = form.cleaned_data['product_%s' % (product.pk,)]
                     if not quantity or quantity == 0:
-                        CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
+                        CustomerOrderPosition.objects.filter(
+                            Q(product=product) | Q(product__product_template=product),
+                            order=customer_order, 
+                        ).delete()
                     else:
                         price = None
                         price_total = None
                         if product.sale_price:
                             price = product.sale_price.price.amount
                             price_total = price * quantity
-                        position, created = CustomerOrderPosition.objects.update_or_create(
+                        position, created = CustomerOrderPosition.objects.filter(
+                            Q(product=product) | Q(product__product_template=product)
+                        ).update_or_create(
                             order=customer_order,
-                            product=product,
                             defaults={
                                 'quantity': quantity,
                                 'price': price,
@@ -1229,8 +1239,12 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
             }
             for product in Product.objects.filter(is_recurring=True):
                 quantity = None
-                if CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=product).exists():
-                    quantity = CustomerOrderTemplatePosition.objects.active().get(order_template__customer=customer, product=product).quantity
+                customer_order_template_position = CustomerOrderTemplatePosition.objects.active().filter(
+                    Q(product=product) | Q(product__product_template=product),
+                    order_template__customer=customer
+                )
+                if customer_order_template_position.exists():
+                    quantity = customer_order_template_position.first().quantity
                 initial_customer['product_{}'.format(product.pk)] = quantity
             initial.append(initial_customer)
         return initial

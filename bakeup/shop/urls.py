@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from wagtail import urls as wagtail_urls
 
-from bakeup.shop.views import customer_order_template_update, CustomerOrderTemplateDeleteView, CustomerOrderTemplateListView, customer_order_add_or_update, CustomerOrderListView, ProductionDayListView, redirect_to_production_day_view, CustomerOrderAddView, ProductListView, ShopView, ProductionDayWeeklyView
+from bakeup.shop.views import customer_order_template_update, CustomerOrderTemplateDeleteView, CustomerOrderTemplateListView, customer_order_add_or_update, CustomerOrderListView, ProductionDayListView, redirect_to_production_day_view, ProductListView, ShopView, ProductionDayWeeklyView
 from bakeup.users.views import LoginView, TokenLoginView, SignupView
 from bakeup.users.views import (
     shop_user_profile_view,
