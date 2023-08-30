@@ -605,7 +605,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         for point_of_sale in PointOfSale.objects.filter(customer_orders__production_day=self.object).distinct():
             positions = CustomerOrderPosition.objects.exclude(
                 Q(production_plan__state=ProductionPlan.State.CANCELED) |
-                Q(production_plan__state__isnull=True)
+                Q(production_plan__isnull=True)
             ).filter(
                 order__point_of_sale=point_of_sale, 
                 order__production_day=self.object

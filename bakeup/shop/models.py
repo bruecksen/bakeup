@@ -49,7 +49,7 @@ class ProductionDayTemplate(CommonBaseClass):
 
 class ProductionDayQuerySet(models.QuerySet):
     def planned(self):
-        return self.filter(Q(production_day_products__production_plan__state=0)| Q(production_day_products__production_plan__state__isnull=True))
+        return self.filter(Q(production_day_products__production_plan__state=0)| Q(production_day_products__production_plan__isnull=True))
 
     def published(self):
         return self.filter(production_day_products__is_published=True).distinct()
@@ -202,7 +202,7 @@ class ProductionDayProductQuerySet(models.QuerySet):
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
 
     def planned(self):
-        return self.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True))
+        return self.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True))
     
     def with_pictures(self):
         return self.exclude(
@@ -383,7 +383,7 @@ class CustomerOrder(CommonBaseClass):
 
     @property
     def is_locked(self):
-        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
+        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True)).exists()
 
     @property
     def order_nr(self):
