@@ -49,7 +49,7 @@ class ProductionDayTemplate(CommonBaseClass):
 
 class ProductionDayQuerySet(models.QuerySet):
     def planned(self):
-        return self.filter(Q(production_day_products__production_plan__state=0)| Q(production_day_products__production_plan__state__isnull=True))
+        return self.filter(Q(production_day_products__production_plan__state=0)| Q(production_day_products__production_plan__isnull=True))
 
     def published(self):
         return self.filter(production_day_products__is_published=True).distinct()
@@ -202,7 +202,7 @@ class ProductionDayProductQuerySet(models.QuerySet):
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
 
     def planned(self):
-        return self.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True))
+        return self.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True))
     
     def with_pictures(self):
         return self.exclude(
@@ -383,7 +383,7 @@ class CustomerOrder(CommonBaseClass):
 
     @property
     def is_locked(self):
-        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
+        return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True)).exists()
 
     @property
     def order_nr(self):
@@ -619,9 +619,9 @@ class CustomerOrderTemplate(CommonBaseClass):
     def create_abo_orders_for_production_days(cls, customer, customer_order_template_positions, production_days, request):
         # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
         with transaction.atomic():
-            is_order_created = False
             # TODO check if its ok without .exclude(production_day=production_day)
             for production_day in production_days:
+                is_order_created = False
                 for customer_order_template_position in customer_order_template_positions:
                     product = customer_order_template_position.product
                     customer_order = CustomerOrderPosition.objects.filter(
@@ -658,9 +658,9 @@ class CustomerOrderTemplate(CommonBaseClass):
                             customer_order_template_position.orders.add(position)
                             customer_order_template_position.order_template.set_locked()
                             is_order_created = True
-        from bakeup.pages.models import EmailSettings
-        if is_order_created and EmailSettings.load(request_or_site=request).send_email_order_confirm:
-            customer_order.send_order_confirm_email(request)
+                from bakeup.pages.models import EmailSettings
+                if is_order_created and EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                    customer_order.send_order_confirm_email(request)
 
     @classmethod
     def create_customer_order_template(cls, request, customer, products, production_day=None, create_future_production_day_orders=False):
