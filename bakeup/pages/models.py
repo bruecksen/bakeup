@@ -78,11 +78,11 @@ class ShopPage(Page):
         self.production_day = self.get_production_day(*args, **kwargs)
         customer = None if request.user.is_anonymous else request.user.customer
         context['production_days'] = ProductionDay.objects.upcoming()
-        abo_product_days = list(ProductionDayProduct.objects.upcoming().filter(
-            product__is_recurring=True
-        ).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
-        context['abo_product_days'] = {item['product']:item['production_days'] for item in abo_product_days}
         if self.production_day:
+            abo_product_days = list(ProductionDayProduct.objects.upcoming().filter(
+                product__is_recurring=True
+            ).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
+            context['abo_product_days'] = {item['product']:item['production_days'] for item in abo_product_days}
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()

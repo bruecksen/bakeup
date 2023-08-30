@@ -1,7 +1,8 @@
 from datetime import datetime
-
 from itertools import product
 from typing import Any, Dict, List
+
+from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.db.models.query import QuerySet
 from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
@@ -318,6 +319,10 @@ class ShopView(TemplateView):
         context = super().get_context_data(**kwargs)
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if self.production_day:
+            abo_product_days = list(ProductionDayProduct.objects.upcoming().filter(
+                product__is_recurring=True
+            ).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
+            context['abo_product_days'] = {item['product']:item['production_days'] for item in abo_product_days}
             context['production_day_next'] = self.production_day
             context['production_day_products'] = self.production_day.production_day_products.published()
             production_day_products = self.production_day.production_day_products.published()
