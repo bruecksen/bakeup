@@ -635,6 +635,9 @@ class CustomerOrderTemplate(CommonBaseClass):
                         customer_order, created = CustomerOrder.objects.get_or_create(
                             production_day=production_day,
                             customer=customer,
+                            defaults={
+                                'point_of_sale': customer.point_of_sale,
+                            }
                         )
                         max_quantity = production_day_product.calculate_max_quantity(customer)
                         quantity = min(customer_order_template_position.quantity, max_quantity)
