@@ -1,13 +1,14 @@
 from datetime import datetime
-
 from itertools import product
 from typing import Any, Dict, List
+
+from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.db.models.query import QuerySet
 from django.forms import formset_factory
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import OuterRef, Subquery, Exists
 from django.utils import timezone
@@ -96,45 +97,6 @@ class ProductionDayWeeklyView(CustomerRequiredMixin, TemplateView):
         return context
 
 
-class CustomerOrderAddView(CustomerRequiredMixin, FormView):
-    form_class = CustomerOrderForm
-    http_method_names = ['post']
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['production_day_product'] = self.production_day_product
-        kwargs['customer'] = self.request.user.customer
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        self.production_day_product = get_object_or_404(ProductionDayProduct, pk=kwargs['production_day_product'])
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        created_order, created = CustomerOrder.create_or_update_customer_order_position(
-            self.production_day_product.production_day,
-            self.request.user.customer,
-            self.production_day_product.product,
-            form.cleaned_data["quantity"],
-        )
-        if created_order is None:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich gelöscht!")
-        elif created_order:
-            messages.add_message(self.request, messages.INFO, "Bestellung erfolgreich hinzugefügt!")
-        else:
-            messages.add_message(self.request, messages.INFO, "Bestellung wurde erfolgreich aktualisiert!")
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return '/shop/'
-
-    def form_invalid(self, form):
-        messages.add_message(self.request, messages.WARNING, form.non_field_errors().as_text())
-        return redirect(self.get_success_url())
-
-
-   
-
 @login_required
 def customer_order_add_or_update(request, production_day):
     if request.method == 'POST':
@@ -153,6 +115,8 @@ def customer_order_add_or_update(request, production_day):
                 request,
                 request.user.customer,
                 products_recurring,
+                production_day,
+                True
             )
         if order and created:
             messages.add_message(request, messages.INFO, "Vielen Dank für die Bestellung.")
@@ -197,58 +161,6 @@ class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
 
     def get_queryset(self):
         return super().get_queryset().active().filter(customer=self.request.user.customer)
-
-
-class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
-    model = CustomerOrderPosition
-
-    def get_success_url(self):
-        return "{}#current-order".format('/shop/')
-
-
-class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
-    model = CustomerOrderPosition
-    fields = ['quantity']
-
-    def get_success_url(self):
-        return "{}#current-order".format('/shop/')
-
-    def form_valid(self, form):
-        self.object = form.save()
-        if self.object.quantity == 0:
-            self.object.delete()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
-    model = CustomerOrder
-    fields = ['point_of_sale']
-
-    def get_success_url(self):
-        return "/shop/#current-order"
-
-    # def form_valid(self, form):
-    #     self.object = form.save()
-    #     return HttpResponseRedirect(self.get_success_url())
-
-
-class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView):
-    model = CustomerOrderTemplatePosition
-    template_name = 'shop/customer_order_template_position_delete.html'
-
-    def delete(self, request, *args, **kwargs):
-        """
-        Call the delete() method on the fetched object and then redirect to the
-        success URL.
-        """
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        self.object.cancel()
-        return HttpResponseRedirect(success_url)
-    
-
-    def get_success_url(self):
-        return reverse_lazy('shop:order-list')
 
 
 class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
@@ -318,6 +230,7 @@ class ShopView(TemplateView):
         context = super().get_context_data(**kwargs)
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if self.production_day:
+            context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_day_next'] = self.production_day
             context['production_day_products'] = self.production_day.production_day_products.published()
             production_day_products = self.production_day.production_day_products.published()
@@ -375,3 +288,10 @@ def redirect_to_production_day_view(request):
     production_day_date = make_aware(datetime.strptime(request.POST.get('production_day_date', None), "%d.%m.%Y")).date()
     production_day = ProductionDay.objects.get(day_of_sale=production_day_date)
     return HttpResponseRedirect(reverse('shop:shop-production-day', kwargs={'production_day': production_day.pk}))
+
+
+@login_required
+def production_day_abo_products(request, pk):
+    production_day = ProductionDay.objects.get(pk=pk)
+    data = ProductionDayProduct.get_available_abo_product_days(production_day, request.user.customer)
+    return JsonResponse(data)

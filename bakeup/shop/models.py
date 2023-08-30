@@ -1,6 +1,7 @@
 import logging 
 import collections
 
+from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.core.mail import send_mail
@@ -150,11 +151,15 @@ class ProductionDay(CommonBaseClass):
             return obj
 
     def create_template_orders(self, request):
-        with transaction.atomic():
-            for product in self.production_day_products.published():
-                if not CustomerOrderPosition.objects.filter(order__production_day=self, product=product.product).exists():
-                    for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
-                        order_template_position.create_order(self, request)
+        for product in self.production_day_products.published():
+            customer_order = CustomerOrderPosition.objects.filter(
+                Q(product=product.product) | Q(product__product_template=product.product),
+                order__production_day=self
+            )
+            if not customer_order.exists():
+                # only create abo orders if no order exists at this production day
+                for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
+                    order_template_position.create_order(self.production_day_products.get(product=order_template_position.product), request)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -196,6 +201,9 @@ class ProductionDayProductQuerySet(models.QuerySet):
     def upcoming(self):
         today = timezone.now().date()
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
+
+    def planned(self):
+        return self.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True))
     
     def with_pictures(self):
         return self.exclude(
@@ -218,6 +226,29 @@ class ProductionDayProduct(CommonBaseClass):
 
     def __str__(self):
         return "{}: {}".format(self.production_day, self.product)
+
+    @classmethod
+    def get_available_abo_product_days(cls, production_day, customer):
+        production_day_products = cls.objects.published().upcoming().planned().filter(
+                product__is_recurring=True
+            ).annotate(
+                has_order=Exists(Subquery(
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=OuterRef('product')) | Q(product__product_template=OuterRef('product')),
+                        order__customer=customer, 
+                        order__production_day=OuterRef('production_day'), 
+                    ))
+                )
+            ).exclude(
+                production_day=production_day,
+            ).filter(
+                has_order=False
+            ).distinct()
+        result = collections.defaultdict(dict)
+        for production_day_product in production_day_products:
+            production_days = result[production_day_product.product.pk]
+            production_days["{}".format(production_day_product.production_day.day_of_sale)] = production_day_product.calculate_max_quantity()
+        return result
 
     @property
     def is_sold_out(self):
@@ -352,10 +383,6 @@ class CustomerOrder(CommonBaseClass):
         return not self.positions.filter(is_picked_up=False).exists()
 
     @property
-    def is_planned(self):
-        return self.positions.filter(production_plan__isnull=False).exists()
-    
-    @property
     def is_locked(self):
         return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
 
@@ -371,69 +398,51 @@ class CustomerOrder(CommonBaseClass):
         return self.positions.filter(customer_order_template_positions__isnull=False).exists()
     
     @classmethod
-    def create_or_update_customer_order_position(cls, production_day, customer, product, quantity):
-        # TODO order_nr, address, should point of sale really be saved in order?
-        customer_order, created_order = CustomerOrder.objects.update_or_create(
-            production_day=production_day,
-            customer=customer,
-            defaults={
-                'point_of_sale': customer.point_of_sale,
-            }
-        )
-        position, created = CustomerOrderPosition.objects.get_or_create(
-            order=customer_order,
-            product=product,
-            defaults={
-                'quantity': quantity,
-            }
-        )
-        if not created:
-            position.quantity = (position.quantity or 0) + quantity
-            position.save(update_fields=['quantity'])
-            
-        return created_order
-
-
-    @classmethod
     def create_or_update_customer_order(cls, production_day, customer, products, point_of_sale=None):
         # TODO order_nr, address, should point of sale really be saved in order?
-        point_of_sale = point_of_sale and PointOfSale.objects.get(pk=point_of_sale) or customer.point_of_sale
-        customer_order, created = CustomerOrder.objects.update_or_create(
-            production_day=production_day,
-            customer=customer,
-            defaults={
-                'point_of_sale': point_of_sale,
-            }
-        )
-        for product, quantity in products.items():
-            production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
-            if production_day_product.is_locked:
-                raise forms.ValidationError("Product is locked.")
-            if quantity > 0:
-                price = None
-                price_total = None
-                if product.sale_price:
-                    price = product.sale_price.price.amount
-                    price_total = price * quantity
-                position, created = CustomerOrderPosition.objects.update_or_create(
-                    order=customer_order,
-                    product=product,
-                    defaults={
-                        'quantity': quantity,
-                        'price': price,
-                        'price_total': price_total,
-                    }
-                )
-            elif quantity == 0:
-                CustomerOrderPosition.objects.filter(
-                    order=customer_order,
-                    product=product
-                ).delete()
-            
-        if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
-            customer_order.delete()
-            return None, None
-        return customer_order, created
+        # TODO check quantity with availalbe quantity
+        with transaction.atomic():
+            point_of_sale = point_of_sale and PointOfSale.objects.get(pk=point_of_sale) or customer.point_of_sale
+            customer_order, created = CustomerOrder.objects.update_or_create(
+                production_day=production_day,
+                customer=customer,
+                defaults={
+                    'point_of_sale': point_of_sale,
+                }
+            )
+            for product, quantity in products.items():
+                # print(product, quantity)
+                production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
+                max_quantity = production_day_product.calculate_max_quantity(customer)
+                if production_day_product.is_locked or max_quantity == 0:
+                    raise forms.ValidationError("Product is locked.")
+                if quantity > 0:
+                    quantity = min(quantity, max_quantity)
+                    price = None
+                    price_total = None
+                    if product.sale_price:
+                        price = product.sale_price.price.amount
+                        price_total = price * quantity
+                    position, created = CustomerOrderPosition.objects.filter(
+                        Q(product=product) | Q(product__product_template=product)
+                    ).update_or_create(
+                        order=customer_order,
+                        defaults={
+                            'quantity': quantity,
+                            'price': price,
+                            'price_total': price_total,
+                        }
+                    )
+                elif quantity == 0:
+                    CustomerOrderPosition.objects.filter(
+                        Q(product=product) | Q(product__product_template=product),
+                        order=customer_order
+                    ).delete()
+                
+            if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
+                customer_order.delete()
+                return None, None
+            return customer_order, created
     
     def get_production_day_products_ordered_list(self):
         production_day_products = self.production_day.production_day_products.published()
@@ -536,33 +545,37 @@ class CustomerOrderTemplatePosition(BasePositionClass):
 
     objects = CustomerOrderTemplatePositionQuerySet.as_manager()
 
-    def create_order(self, production_day, request):
+    def create_order(self, production_day_product, request):
         # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
-        with transaction.atomic():
-            customer_order, created = CustomerOrder.objects.update_or_create(
-                production_day=production_day,
-                customer=self.order_template.customer,
-                defaults={
-                    'point_of_sale': self.order_template.customer.point_of_sale
-                }
-            )
-            price = None
-            price_total = None
-            if self.product.sale_price:
-                price = self.product.sale_price.price.amount
-                price_total = price * self.quantity
-            position = CustomerOrderPosition.objects.create(
-                order=customer_order,
-                product=self.product,
-                quantity=self.quantity,
-                price=price,
-                price_total=price_total,
-            )
-            self.orders.add(position)
-            self.order_template.set_locked()
-        from bakeup.pages.models import EmailSettings
-        if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-            customer_order.send_order_confirm_email(request)
+            max_quantity = production_day_product.calculate_max_quantity(self.order_template.customer)
+            quantity = min(self.quantity, max_quantity)
+            if not production_day_product.is_locked and quantity > 0:
+                print('Create Abo order: ', production_day_product.production_day, self.product, quantity)
+                with transaction.atomic():
+                    customer_order, created = CustomerOrder.objects.update_or_create(
+                        production_day=production_day_product.production_day,
+                        customer=self.order_template.customer,
+                        defaults={
+                            'point_of_sale': self.order_template.customer.point_of_sale
+                        }
+                    )
+                    price = None
+                    price_total = None
+                    if self.product.sale_price:
+                        price = self.product.sale_price.price.amount
+                        price_total = price * quantity
+                    position = CustomerOrderPosition.objects.create(
+                        order=customer_order,
+                        product=self.product,
+                        quantity=quantity,
+                        price=price,
+                        price_total=price_total,
+                    )
+                    self.orders.add(position)
+                    self.order_template.set_locked()
+                from bakeup.pages.models import EmailSettings
+                if EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                    customer_order.send_order_confirm_email(request)
 
     def cancel(self):
         with transaction.atomic():
@@ -635,7 +648,7 @@ class CustomerOrderTemplate(CommonBaseClass):
             return self
 
     @classmethod
-    def create_customer_order_template(cls, request, customer, products):
+    def create_customer_order_template(cls, request, customer, products, production_day=None, create_future_production_day_orders=False):
         order_template, created = CustomerOrderTemplate.objects.get_or_create(
             parent=None,
             customer=customer,
@@ -664,13 +677,28 @@ class CustomerOrderTemplate(CommonBaseClass):
                 if product.available_abo_quantity and quantity > (product.available_abo_quantity + existing_abo_qty):
                     quantity = product.available_abo_quantity
                     messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
-                CustomerOrderTemplatePosition.objects.update_or_create(
+                order_template_position, created = CustomerOrderTemplatePosition.objects.update_or_create(
                     order_template=order_template,
                     product=product,
                     defaults={
                         'quantity': quantity,
                     }
                 )
+                if create_future_production_day_orders:
+                    # create orders for all planned future production days
+                    planned_production_day_products = ProductionDayProduct.objects.published().upcoming().planned().filter(
+                        product=product
+                    ).exclude(production_day=production_day)
+                    for production_day_product in planned_production_day_products:
+                        customer_order = CustomerOrderPosition.objects.filter(
+                            Q(product=production_day_product.product) | Q(product__product_template=production_day_product.product),
+                            order__production_day=production_day_product.production_day,
+                            order__customer=customer
+                        )
+                        if not customer_order.exists():
+                            # only create abo orders if customer didn't order this product yet
+                            order_template_position.create_order(production_day_product, request)
+
         return order_template
 
         

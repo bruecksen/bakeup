@@ -2,7 +2,7 @@
 {% load shop_tags %}
 {% load wagtailcore_tags %}
 {% load i18n %}
-<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} data-production-day="{{ production_day.pk }}" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -103,6 +103,9 @@
                 </table>
                 <div class="alert alert-warning message-empty-checkout d-none" role="alert">
                     {% trans 'Currently no products selected.' %}
+                  </div>
+                <div class="alert alert-warning message-abo-orders d-none" role="alert">
+                    Das Abo löst Bestellungen an den folgenden Backtagen aus: <span class="fw-bold"></span>
                   </div>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">

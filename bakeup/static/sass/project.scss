@@ -457,6 +457,12 @@ nav {
   background-image: linear-gradient(to right top, #051937, #0a2250, #1b2a69, #313182, #4c3699);
 }
 
+.modal {
+  .alert {
+    padding: 0.5rem;
+  }
+}
+
 .jumbotron {
   position: relative;
   height: 100vh;

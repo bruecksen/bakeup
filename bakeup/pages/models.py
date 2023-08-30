@@ -78,6 +78,7 @@ class ShopPage(Page):
         customer = None if request.user.is_anonymous else request.user.customer
         context['production_days'] = ProductionDay.objects.upcoming()
         if self.production_day:
+            context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
