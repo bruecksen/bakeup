@@ -619,9 +619,9 @@ class CustomerOrderTemplate(CommonBaseClass):
     def create_abo_orders_for_production_days(cls, customer, customer_order_template_positions, production_days, request):
         # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
         with transaction.atomic():
-            is_order_created = False
             # TODO check if its ok without .exclude(production_day=production_day)
             for production_day in production_days:
+                is_order_created = False
                 for customer_order_template_position in customer_order_template_positions:
                     product = customer_order_template_position.product
                     customer_order = CustomerOrderPosition.objects.filter(
@@ -658,9 +658,9 @@ class CustomerOrderTemplate(CommonBaseClass):
                             customer_order_template_position.orders.add(position)
                             customer_order_template_position.order_template.set_locked()
                             is_order_created = True
-        from bakeup.pages.models import EmailSettings
-        if is_order_created and EmailSettings.load(request_or_site=request).send_email_order_confirm:
-            customer_order.send_order_confirm_email(request)
+                from bakeup.pages.models import EmailSettings
+                if is_order_created and EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                    customer_order.send_order_confirm_email(request)
 
     @classmethod
     def create_customer_order_template(cls, request, customer, products, production_day=None, create_future_production_day_orders=False):
