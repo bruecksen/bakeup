@@ -200,46 +200,6 @@ class CustomerOrderTemplateListView(CustomerRequiredMixin, ListView):
         return super().get_queryset().active().filter(customer=self.request.user.customer)
 
 
-class CustomerOrderPositionDeleteView(CustomerRequiredMixin, DeleteView):
-    model = CustomerOrderPosition
-
-    def get_success_url(self):
-        return "{}#current-order".format('/shop/')
-
-
-class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
-    model = CustomerOrderPosition
-    fields = ['quantity']
-
-    def get_success_url(self):
-        return "{}#current-order".format('/shop/')
-
-    def form_valid(self, form):
-        self.object = form.save()
-        if self.object.quantity == 0:
-            self.object.delete()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView):
-    model = CustomerOrderTemplatePosition
-    template_name = 'shop/customer_order_template_position_delete.html'
-
-    def delete(self, request, *args, **kwargs):
-        """
-        Call the delete() method on the fetched object and then redirect to the
-        success URL.
-        """
-        self.object = self.get_object()
-        success_url = self.get_success_url()
-        self.object.cancel()
-        return HttpResponseRedirect(success_url)
-    
-
-    def get_success_url(self):
-        return reverse_lazy('shop:order-list')
-
-
 class CustomerOrderTemplateDeleteView(CustomerRequiredMixin, DeleteView):
     model = CustomerOrderTemplate
     template_name = 'shop/customer_order_template_delete.html'
