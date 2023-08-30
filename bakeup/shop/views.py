@@ -124,12 +124,12 @@ def customer_order_add_or_update(request, production_day):
             messages.add_message(request, messages.INFO, "Vielen Dank, die Bestellung wurde geändert.")
         else:
             messages.add_message(request, messages.INFO, "Bestellung erfolgreich storniert.")
-        if next_url:
-            return HttpResponseRedirect(next_url)
         if order:
             if EmailSettings.load(request_or_site=request).send_email_order_confirm:
                 order.send_order_confirm_email(request)
             return HttpResponseRedirect("{}#bestellung-{}".format(reverse('shop:order-list'), order.pk))
+        if next_url:
+            return HttpResponseRedirect(next_url)
         else:
             return HttpResponseRedirect('/shop/')
 
