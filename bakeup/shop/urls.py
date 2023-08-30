@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from wagtail import urls as wagtail_urls
 
-from bakeup.shop.views import CustomerOrderTemplatePositionDeleteView, customer_order_template_update, CustomerOrderTemplateDeleteView, CustomerOrderTemplateListView, customer_order_add_or_update, CustomerOrderListView, ProductionDayListView, redirect_to_production_day_view, CustomerOrderUpdateView, CustomerOrderAddView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderPositionUpdateView
+from bakeup.shop.views import CustomerOrderTemplatePositionDeleteView, customer_order_template_update, CustomerOrderTemplateDeleteView, CustomerOrderTemplateListView, customer_order_add_or_update, CustomerOrderListView, ProductionDayListView, redirect_to_production_day_view, CustomerOrderAddView, ProductListView, ShopView, ProductionDayWeeklyView, CustomerOrderPositionDeleteView, CustomerOrderPositionUpdateView
 from bakeup.users.views import LoginView, TokenLoginView, SignupView
 from bakeup.users.views import (
     shop_user_profile_view,
@@ -24,7 +24,6 @@ urlpatterns = [
 #    path(_("production-days/"), view=ProductionDayListView.as_view(), name="production-day-list"),
    path("orders/add/<int:production_day>/", view=customer_order_add_or_update, name="customer-order-add"),
 #    path("orders/add/<int:production_day_product>/", view=CustomerOrderAddView.as_view(), name="order-add"),
-   path("orders/<int:pk>/update/", view=CustomerOrderUpdateView.as_view(), name="customer-order-update"),
    path("orders/positions/<int:pk>/delete/", view=CustomerOrderPositionDeleteView.as_view(), name="customer-order-position-delete"),
    path("orders/positions/<int:pk>/update/", view=CustomerOrderPositionUpdateView.as_view(), name="customer-order-position-update"),
    path(_("orders/"), view=CustomerOrderListView.as_view(), name="order-list"),

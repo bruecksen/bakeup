@@ -221,18 +221,6 @@ class CustomerOrderPositionUpdateView(CustomerRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class CustomerOrderUpdateView(CustomerRequiredMixin, UpdateView):
-    model = CustomerOrder
-    fields = ['point_of_sale']
-
-    def get_success_url(self):
-        return "/shop/#current-order"
-
-    # def form_valid(self, form):
-    #     self.object = form.save()
-    #     return HttpResponseRedirect(self.get_success_url())
-
-
 class CustomerOrderTemplatePositionDeleteView(CustomerRequiredMixin, DeleteView):
     model = CustomerOrderTemplatePosition
     template_name = 'shop/customer_order_template_position_delete.html'
