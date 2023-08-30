@@ -399,24 +399,27 @@ $(function(){
         // // console.log('hide', $('.modal-checkout form input[type="reset"]'));
         $(this).find('form input[type="reset"]').click();
     })
-    if (document.getElementById('abo_product_days')) {
-        aboProductDays = JSON.parse(document.getElementById('abo_product_days').textContent);
-    }
-    $('.modal-checkout.in-checkout').on('show.bs.modal', function() {
-        var basketQuantity = 0;
-        var totalBasketQuantity = 0;
-        $('.product-card .product-quantity').each(function(){
-            var product = $(this).data('product');
-            var orderedQty = $(this).data('ordered-quantity');
-            var quantity = parseInt($(this).val()) || 0;
-            totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
-            basketQuantity += basketQuantity + quantity;
-            console.log(product, quantity);
-            updateProduct(product, quantity, true);
-            // totalBasketQuantity += quantity;
+    $('.modal-checkout').on('show.bs.modal', function() {
+        if ($(this).hasClass('in-checkout')) {
+            var basketQuantity = 0;
+            var totalBasketQuantity = 0;
+            $('.product-card .product-quantity').each(function(){
+                var product = $(this).data('product');
+                var orderedQty = $(this).data('ordered-quantity');
+                var quantity = parseInt($(this).val()) || 0;
+                totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
+                basketQuantity += basketQuantity + quantity;
+                console.log(product, quantity);
+                updateProduct(product, quantity, true);
+                // totalBasketQuantity += quantity;
+            });
+            setTotalPrice($(this));
+            updateModal($(this), basketQuantity, totalBasketQuantity);
+        }
+        var productionDay = $(this).data('production-day');
+        $.get('/shop/api/production-day-abo-products/' + productionDay ,function(data, status){
+            aboProductDays = data;
         });
-        setTotalPrice($(this));
-        updateModal($(this), basketQuantity, totalBasketQuantity);
     })
     if ($('.modal-checkout.in-checkout').length) {
         console.log('checkout exists');
@@ -467,20 +470,28 @@ $(function(){
             updateModalUnchange(modal);
         }
     })
-    $('.modal-checkout form .abo-checkbox').change(function(){
+    $('.modal-checkout form tr.product .abo-checkbox, .modal-checkout form tr.product select.order-quantity').change(function(){
         // show info message about created abo orders
         var form = $(this).parents('form');
         var currentAboProductDays = [];
+        console.log("aboProductDays", aboProductDays);
         form.find('tr.product .abo-checkbox:checked').each(function(){
             var product = $(this).attr('name').replace('productabo-', '');
+            var selectedQty = parseInt($(this).parents('tr.product').find('select.order-quantity').val());
             if (aboProductDays[product]) {
-                currentAboProductDays = currentAboProductDays.concat(aboProductDays[product]);
+                for (const [key, value] of Object.entries(aboProductDays[product])) {
+                    // console.log(value - selectedQty);
+                    if (value - selectedQty >= 0){
+                        currentAboProductDays.push(key)
+                    }
+                  }
             }
         })
         // console.log(aboProductDays);
         // console.log(currentAboProductDays);
+        // currentAboProductDays = Object.keys(currentAboProductDays).filter((key) => currentAboProductDays[key] > 0)
         if (currentAboProductDays.length) {
-            currentAboProductDays = currentAboProductDays.filter((item, pos) => currentAboProductDays.indexOf(item) === pos)
+            currentAboProductDays = Array.from(new Set(currentAboProductDays));
             currentAboProductDays.sort((a, b) => a - b);
             // console.log(currentAboProductDays);
             currentAboProductDays = currentAboProductDays.map((str) => {

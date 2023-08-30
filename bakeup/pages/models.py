@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.db.models import F, Func, Value, CharField, PositiveSmallIntegerField, Q
@@ -79,10 +78,7 @@ class ShopPage(Page):
         customer = None if request.user.is_anonymous else request.user.customer
         context['production_days'] = ProductionDay.objects.upcoming()
         if self.production_day:
-            abo_product_days = list(ProductionDayProduct.objects.published().upcoming().planned().filter(
-                product__is_recurring=True
-            ).exclude(production_day=self.production_day).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
-            context['abo_product_days'] = {item['product']:item['production_days'] for item in abo_product_days}
+            context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()

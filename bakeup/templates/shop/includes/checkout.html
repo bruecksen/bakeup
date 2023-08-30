@@ -2,7 +2,7 @@
 {% load shop_tags %}
 {% load wagtailcore_tags %}
 {% load i18n %}
-<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+<div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} data-production-day="{{ production_day.pk }}" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -131,4 +131,3 @@
         </div>
     </div>
 </div>
-{{ abo_product_days |json_script:"abo_product_days" }}

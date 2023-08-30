@@ -1175,6 +1175,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                         ).update_or_create(
                             order=customer_order,
                             defaults={
+                                'product': product,
                                 'quantity': quantity,
                                 'price': price,
                                 'price_total': price_total,
