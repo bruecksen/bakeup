@@ -378,6 +378,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         form.dirty("setAsClean");
         form.find('table').show();
         form.find('.message-empty-checkout').addClass('d-none').hide();
+        form.find('.message-abo-orders').addClass('d-none');
         
         // var basket = $('#basket');
         // $('header .shopping-basket .order-quantity').hide();
@@ -400,8 +401,6 @@ $(function(){
     })
     if (document.getElementById('abo_product_days')) {
         aboProductDays = JSON.parse(document.getElementById('abo_product_days').textContent);
-        console.log(aboProductDays);
-
     }
     $('.modal-checkout.in-checkout').on('show.bs.modal', function() {
         var basketQuantity = 0;
@@ -469,15 +468,25 @@ $(function(){
         }
     })
     $('.modal-checkout form .abo-checkbox').change(function(){
+        // show info message about created abo orders
         var form = $(this).parents('form');
         var currentAboProductDays = [];
         form.find('tr.product .abo-checkbox:checked').each(function(){
             var product = $(this).attr('name').replace('productabo-', '');
-
-            console.log(product);
-            currentAboProductDays = currentAboProductDays.concat(aboProductDays[product])
+            currentAboProductDays = currentAboProductDays.concat(aboProductDays[product]);
         })
-        console.log(currentAboProductDays);
+        if (currentAboProductDays.length) {
+            currentAboProductDays = currentAboProductDays.filter((item, pos) => currentAboProductDays.indexOf(item) === pos)
+            currentAboProductDays.sort((a, b) => a - b);
+            console.log(currentAboProductDays);
+            currentAboProductDays = currentAboProductDays.map((str) => {
+                return new Date(str).toLocaleDateString('de-DE');
+            });
+            $('.alert.message-abo-orders').removeClass('d-none').find('span').html(currentAboProductDays.join(', '));
+        } else {
+            $('.alert.message-abo-orders').addClass('d-none');
+        }
+        
     });
     $('.modal-checkout form input, .modal-checkout form select.order-quantity, .modal-checkout form select.pos-select').change(function() { 
         // Any changes in the checkout or order modal

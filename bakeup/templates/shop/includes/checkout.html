@@ -104,6 +104,9 @@
                 <div class="alert alert-warning message-empty-checkout d-none" role="alert">
                     {% trans 'Currently no products selected.' %}
                   </div>
+                <div class="alert alert-warning message-abo-orders d-none" role="alert">
+                    Das Abo löst Bestellungen an den folgenden Backtagen aus: <span class="fw-bold"></span>
+                  </div>
                 {% if settings.pages.CheckoutSettings.terms_and_conditions_show %}
                 <div class="form-check terms-conditions link-new-tab{% if  customer_order %} d-none{% endif %}">
                     <label class="form-check-label">
