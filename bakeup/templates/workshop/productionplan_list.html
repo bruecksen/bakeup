@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 {% load i18n %}
-{% block title %}Production plans{% endblock %}
+{% block title %}{% trans "Production plans" %}{% endblock %}
 {% block page_heading %}
 <span class="d-print-none">{% trans "Production plans" %} <small class="text-muted">{{ day_of_sale_selected }}</small></span>
 {% endblock %}

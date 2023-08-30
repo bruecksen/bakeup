@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 22:02+0200\n"
+"POT-Creation-Date: 2023-08-30 20:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -146,7 +146,7 @@ msgstr "Veröffentlicht?"
 msgid "Customer"
 msgstr "Kunden"
 
-#: bakeup/shop/models.py:322
+#: bakeup/shop/models.py:322 bakeup/shop/tables.py:11
 msgid "Point of Sale"
 msgstr "Abholstelle"
 
@@ -157,6 +157,14 @@ msgstr "laufend"
 #: bakeup/shop/models.py:597
 msgid "finished"
 msgstr "beendet"
+
+#: bakeup/shop/tables.py:10
+msgid "Productionday"
+msgstr "Produktionstag"
+
+#: bakeup/shop/tables.py:12 bakeup/workshop/tables.py:77
+msgid "Positions"
+msgstr "Positionen"
 
 #: bakeup/shop/urls.py:30
 msgid "orders/"
@@ -443,6 +451,7 @@ msgstr "Ändere Bestellungen für den"
 #: bakeup/templates/workshop/category_form.html:21
 #: bakeup/templates/workshop/customerorder_confirm_delete.html:15
 #: bakeup/templates/workshop/customerorder_form.html:56
+#: bakeup/templates/workshop/includes/production_plan_table.html:38
 #: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
@@ -549,8 +558,8 @@ msgid ""
 "You're about to delete the following customer order: <strong>%(object)s</"
 "strong>. Please confirm, ."
 msgstr ""
-"Du löscht gerade folgende Kundenbestellung: <strong>%(object)s</strong>. Bitte bestätige, "
-"dass du die Bestellung löschen willst."
+"Du löscht gerade folgende Kundenbestellung: <strong>%(object)s</strong>. "
+"Bitte bestätige, dass du die Bestellung löschen willst."
 
 #: bakeup/templates/workshop/customerorder_form.html:5
 #: bakeup/templates/workshop/customerorder_form.html:7
@@ -613,6 +622,7 @@ msgid "Go to production days"
 msgstr "Zu den Produktionstagen"
 
 #: bakeup/templates/workshop/includes/dashboard.html:44
+#: bakeup/templates/workshop/productionplan_list.html:5
 #: bakeup/templates/workshop/productionplan_list.html:7
 #: bakeup/templates/workshop/productionplan_list.html:16
 msgid "Production plans"
@@ -652,6 +662,23 @@ msgstr "Tag"
 #: bakeup/templates/workshop/includes/production_plan_table.html:12
 msgid "Qty"
 msgstr "Menge"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:31
+msgid "Start"
+msgstr "Starten"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:33
+msgid "Finish"
+msgstr "Fertigstellen"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:36
+#: bakeup/templates/workshop/productionday_detail.html:28
+msgid "Delete"
+msgstr "Löschen"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:68
+msgid "Update plan"
+msgstr "Plan ändern"
 
 #: bakeup/templates/workshop/includes/sidebar.html:12
 msgid "Dashboard"
@@ -782,10 +809,6 @@ msgstr "Filter zurücksetzen"
 msgid "Production day"
 msgstr "Produktionstag"
 
-#: bakeup/templates/workshop/productionday_detail.html:28
-msgid "Delete"
-msgstr "Löschen"
-
 #: bakeup/templates/workshop/productionday_detail.html:29
 msgid "Show orders"
 msgstr "Bestellungen anzeigen"
@@ -817,10 +840,12 @@ msgid "Delivery bill"
 msgstr "Lieferschein"
 
 #: bakeup/templates/workshop/productionday_detail.html:54
+#: bakeup/templates/workshop/productionplan_productionday.html:17
 msgid "Finish all"
 msgstr "Alle fertigstellen"
 
 #: bakeup/templates/workshop/productionday_detail.html:55
+#: bakeup/templates/workshop/productionplan_productionday.html:18
 msgid "Start all"
 msgstr "Alle starten"
 
@@ -911,6 +936,11 @@ msgstr "Erstelle Produktionstag"
 msgid "Add or update production plans"
 msgstr "Ändere oder kreiere Produktionspläne"
 
+#: bakeup/templates/workshop/productionplan_productionday.html:5
+#: bakeup/templates/workshop/productionplan_productionday.html:6
+msgid "Production Plan"
+msgstr "Produktionsplan"
+
 #: bakeup/templates/workshop/recipe_detail.html:16
 msgid "Add product"
 msgstr "Neues Produkt hinzufügen"
@@ -921,8 +951,8 @@ msgstr "Lösche Hierarchie"
 
 #: bakeup/templates/workshop/workshop.html:10
 #, python-format
-msgid "Hi %(request.user)s, welcome to bakeup!"
-msgstr "Hallo %(request.user)s, willkommen in Bakeup!"
+msgid "Hi %(user)s, welcome to bakeup!"
+msgstr "Hallo %(user)s, willkommen in Bakeup!"
 
 #: bakeup/users/apps.py:7
 msgid "Users"
@@ -1096,10 +1126,6 @@ msgstr "Wähle eine Abholstelle"
 #: bakeup/workshop/tables.py:108
 msgid "eMail"
 msgstr "E-Mail"
-
-#: bakeup/workshop/tables.py:77
-msgid "Positions"
-msgstr "Positionen"
 
 #: bakeup/workshop/tables.py:78
 msgid "Sum"

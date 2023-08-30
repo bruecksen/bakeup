@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-27 22:02+0200\n"
+"POT-Creation-Date: 2023-08-30 20:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -156,7 +156,7 @@ msgstr ""
 msgid "Customer"
 msgstr "Kunden"
 
-#: bakeup/shop/models.py:322
+#: bakeup/shop/models.py:322 bakeup/shop/tables.py:11
 #, fuzzy
 #| msgid "Points of sale"
 msgid "Point of Sale"
@@ -169,6 +169,18 @@ msgstr ""
 #: bakeup/shop/models.py:597
 msgid "finished"
 msgstr ""
+
+#: bakeup/shop/tables.py:10
+#, fuzzy
+#| msgid "Production days"
+msgid "Productionday"
+msgstr "Produktionstage"
+
+#: bakeup/shop/tables.py:12 bakeup/workshop/tables.py:77
+#, fuzzy
+#| msgid "Duration"
+msgid "Positions"
+msgstr "Dauer"
 
 #: bakeup/shop/urls.py:30
 msgid "orders/"
@@ -454,6 +466,7 @@ msgstr "Ändere Kategorie"
 #: bakeup/templates/workshop/category_form.html:21
 #: bakeup/templates/workshop/customerorder_confirm_delete.html:15
 #: bakeup/templates/workshop/customerorder_form.html:56
+#: bakeup/templates/workshop/includes/production_plan_table.html:38
 #: bakeup/templates/workshop/product_confirm_delete.html:17
 #: bakeup/templates/workshop/product_form.html:22
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
@@ -640,6 +653,7 @@ msgid "Go to production days"
 msgstr "Zu den Produktionstagen"
 
 #: bakeup/templates/workshop/includes/dashboard.html:44
+#: bakeup/templates/workshop/productionplan_list.html:5
 #: bakeup/templates/workshop/productionplan_list.html:7
 #: bakeup/templates/workshop/productionplan_list.html:16
 msgid "Production plans"
@@ -679,6 +693,27 @@ msgstr "Tag"
 #: bakeup/templates/workshop/includes/production_plan_table.html:12
 msgid "Qty"
 msgstr "Menge"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:31
+msgid "Start"
+msgstr ""
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:33
+msgid "Finish"
+msgstr ""
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:36
+#: bakeup/templates/workshop/productionday_detail.html:28
+#, fuzzy
+#| msgid "Go to products"
+msgid "Delete"
+msgstr "Zu den Produkte"
+
+#: bakeup/templates/workshop/includes/production_plan_table.html:68
+#, fuzzy
+#| msgid "Update"
+msgid "Update plan"
+msgstr "Ändern"
 
 #: bakeup/templates/workshop/includes/sidebar.html:12
 msgid "Dashboard"
@@ -825,12 +860,6 @@ msgstr ""
 msgid "Production day"
 msgstr "Produktionstage"
 
-#: bakeup/templates/workshop/productionday_detail.html:28
-#, fuzzy
-#| msgid "Go to products"
-msgid "Delete"
-msgstr "Zu den Produkte"
-
 #: bakeup/templates/workshop/productionday_detail.html:29
 msgid "Show orders"
 msgstr ""
@@ -862,10 +891,12 @@ msgid "Delivery bill"
 msgstr ""
 
 #: bakeup/templates/workshop/productionday_detail.html:54
+#: bakeup/templates/workshop/productionplan_productionday.html:17
 msgid "Finish all"
 msgstr ""
 
 #: bakeup/templates/workshop/productionday_detail.html:55
+#: bakeup/templates/workshop/productionplan_productionday.html:18
 msgid "Start all"
 msgstr ""
 
@@ -975,6 +1006,13 @@ msgstr "Zu den Produktionstagen"
 msgid "Add or update production plans"
 msgstr "Zu den Produktionsplänen"
 
+#: bakeup/templates/workshop/productionplan_productionday.html:5
+#: bakeup/templates/workshop/productionplan_productionday.html:6
+#, fuzzy
+#| msgid "Production Plans"
+msgid "Production Plan"
+msgstr "Produktionspläne"
+
 #: bakeup/templates/workshop/recipe_detail.html:16
 #, fuzzy
 #| msgid "Add new category"
@@ -988,8 +1026,9 @@ msgid "Delete relation"
 msgstr "Lösche Kategorie"
 
 #: bakeup/templates/workshop/workshop.html:10
-#, python-format
-msgid "Hi %(request.user)s, welcome to bakeup!"
+#, fuzzy, python-format
+#| msgid "Hi %(request.user)s, welcome to bakeup!"
+msgid "Hi %(user)s, welcome to bakeup!"
 msgstr "Hallo %(request.user)s, willkommen in Bakeup!"
 
 #: bakeup/users/apps.py:7
@@ -1197,12 +1236,6 @@ msgstr "Abholstellen"
 msgid "eMail"
 msgstr ""
 
-#: bakeup/workshop/tables.py:77
-#, fuzzy
-#| msgid "Duration"
-msgid "Positions"
-msgstr "Dauer"
-
 #: bakeup/workshop/tables.py:78
 msgid "Sum"
 msgstr ""
@@ -1228,6 +1261,11 @@ msgstr ""
 #| msgid "Production days"
 msgid "productionday-{}"
 msgstr "Produktionstage"
+
+#, fuzzy
+#~| msgid "Production plans"
+#~ msgid "Production plan"
+#~ msgstr "Produktionspläne"
 
 #, fuzzy
 #~| msgid "Go to products"
