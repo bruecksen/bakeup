@@ -417,7 +417,8 @@ $(function(){
             updateModal($(this), basketQuantity, totalBasketQuantity);
         }
         var productionDay = $(this).data('production-day');
-        $.get('/shop/api/production-day-abo-products/' + productionDay ,function(data, status){
+        // TODO should not be a fix url
+        $.get('/shop/api/production-day-abo-products/' + productionDay + '/' ,function(data, status){
             aboProductDays = data;
         });
     })
