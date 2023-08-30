@@ -48,6 +48,9 @@ class ProductionDayTemplate(CommonBaseClass):
 
 
 class ProductionDayQuerySet(models.QuerySet):
+    def planned(self):
+        return self.filter(Q(production_day_products__production_plan__state=0)| Q(production_day_products__production_plan__state__isnull=True))
+
     def published(self):
         return self.filter(production_day_products__is_published=True).distinct()
 
@@ -151,15 +154,11 @@ class ProductionDay(CommonBaseClass):
             return obj
 
     def create_template_orders(self, request):
-        for product in self.production_day_products.published():
-            customer_order = CustomerOrderPosition.objects.filter(
-                Q(product=product.product) | Q(product__product_template=product.product),
-                order__production_day=self
-            )
-            if not customer_order.exists():
-                # only create abo orders if no order exists at this production day
-                for order_template_position in CustomerOrderTemplatePosition.objects.active().filter(product=product.product):
-                    order_template_position.create_order(self.production_day_products.get(product=order_template_position.product), request)
+        production_day_products = self.production_day_products.published().values_list('product', flat=True)
+        order_templates = CustomerOrderTemplate.objects.active().filter(positions__product__in=production_day_products)
+        for order_template in order_templates:
+            customer_order_template_positions = order_template.positions.filter(product__in=production_day_products)
+            CustomerOrderTemplate.create_abo_orders_for_production_days(order_template.customer, customer_order_template_positions, [self], request)
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -428,6 +427,7 @@ class CustomerOrder(CommonBaseClass):
                     ).update_or_create(
                         order=customer_order,
                         defaults={
+                            'product': product,
                             'quantity': quantity,
                             'price': price,
                             'price_total': price_total,
@@ -545,38 +545,6 @@ class CustomerOrderTemplatePosition(BasePositionClass):
 
     objects = CustomerOrderTemplatePositionQuerySet.as_manager()
 
-    def create_order(self, production_day_product, request):
-        # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
-            max_quantity = production_day_product.calculate_max_quantity(self.order_template.customer)
-            quantity = min(self.quantity, max_quantity)
-            if not production_day_product.is_locked and quantity > 0:
-                print('Create Abo order: ', production_day_product.production_day, self.product, quantity)
-                with transaction.atomic():
-                    customer_order, created = CustomerOrder.objects.update_or_create(
-                        production_day=production_day_product.production_day,
-                        customer=self.order_template.customer,
-                        defaults={
-                            'point_of_sale': self.order_template.customer.point_of_sale
-                        }
-                    )
-                    price = None
-                    price_total = None
-                    if self.product.sale_price:
-                        price = self.product.sale_price.price.amount
-                        price_total = price * quantity
-                    position = CustomerOrderPosition.objects.create(
-                        order=customer_order,
-                        product=self.product,
-                        quantity=quantity,
-                        price=price,
-                        price_total=price_total,
-                    )
-                    self.orders.add(position)
-                    self.order_template.set_locked()
-                from bakeup.pages.models import EmailSettings
-                if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-                    customer_order.send_order_confirm_email(request)
-
     def cancel(self):
         with transaction.atomic():
             template_order = self.order_template.prepare_update()
@@ -648,6 +616,50 @@ class CustomerOrderTemplate(CommonBaseClass):
             return self
 
     @classmethod
+    def create_abo_orders_for_production_days(cls, customer, customer_order_template_positions, production_days, request):
+        # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
+        with transaction.atomic():
+            is_order_created = False
+            # TODO check if its ok without .exclude(production_day=production_day)
+            for production_day in production_days:
+                for customer_order_template_position in customer_order_template_positions:
+                    product = customer_order_template_position.product
+                    customer_order = CustomerOrderPosition.objects.filter(
+                        Q(product=product) | Q(product__product_template=product),
+                        order__production_day=production_day,
+                        order__customer=customer
+                    )
+                    production_day_product = production_day.production_day_products.filter(product=product)
+                    if not customer_order.exists() and production_day_product:
+                        production_day_product = production_day_product.get()
+                        customer_order, created = CustomerOrder.objects.get_or_create(
+                            production_day=production_day,
+                            customer=customer,
+                        )
+                        max_quantity = production_day_product.calculate_max_quantity(customer)
+                        quantity = min(customer_order_template_position.quantity, max_quantity)
+                        if not production_day_product.is_locked and quantity > 0:
+                            print('Create Abo order: ', production_day, product, quantity)
+                            price = None
+                            price_total = None
+                            if product.sale_price:
+                                price = product.sale_price.price.amount
+                                price_total = price * quantity
+                            position = CustomerOrderPosition.objects.create(
+                                order=customer_order,
+                                product=product,
+                                quantity=quantity,
+                                price=price,
+                                price_total=price_total,
+                            )
+                            customer_order_template_position.orders.add(position)
+                            customer_order_template_position.order_template.set_locked()
+                            is_order_created = True
+        from bakeup.pages.models import EmailSettings
+        if is_order_created and EmailSettings.load(request_or_site=request).send_email_order_confirm:
+            customer_order.send_order_confirm_email(request)
+
+    @classmethod
     def create_customer_order_template(cls, request, customer, products, production_day=None, create_future_production_day_orders=False):
         order_template, created = CustomerOrderTemplate.objects.get_or_create(
             parent=None,
@@ -657,6 +669,7 @@ class CustomerOrderTemplate(CommonBaseClass):
             }
         )
         # raise Exception('here')
+        customer_order_template_positions = []
         if products:
             order_template = order_template.prepare_update()
         for product, quantity in products.items():
@@ -684,20 +697,13 @@ class CustomerOrderTemplate(CommonBaseClass):
                         'quantity': quantity,
                     }
                 )
-                if create_future_production_day_orders:
-                    # create orders for all planned future production days
-                    planned_production_day_products = ProductionDayProduct.objects.published().upcoming().planned().filter(
-                        product=product
-                    ).exclude(production_day=production_day)
-                    for production_day_product in planned_production_day_products:
-                        customer_order = CustomerOrderPosition.objects.filter(
-                            Q(product=production_day_product.product) | Q(product__product_template=production_day_product.product),
-                            order__production_day=production_day_product.production_day,
-                            order__customer=customer
-                        )
-                        if not customer_order.exists():
-                            # only create abo orders if customer didn't order this product yet
-                            order_template_position.create_order(production_day_product, request)
+                customer_order_template_positions.append(order_template_position)
+        if create_future_production_day_orders and customer_order_template_positions:
+            # create orders for all planned future production days
+            production_days = ProductionDay.objects.published().upcoming().planned().filter(
+                production_day_products__product__in=[position.product.pk for position in customer_order_template_positions]
+            ).distinct()
+            CustomerOrderTemplate.create_abo_orders_for_production_days(customer, customer_order_template_positions, production_days, request)
 
         return order_template
 
