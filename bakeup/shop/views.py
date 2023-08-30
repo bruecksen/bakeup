@@ -154,6 +154,8 @@ def customer_order_add_or_update(request, production_day):
                 request,
                 request.user.customer,
                 products_recurring,
+                production_day,
+                True
             )
         if order and created:
             messages.add_message(request, messages.INFO, "Vielen Dank für die Bestellung.")
@@ -267,9 +269,9 @@ class ShopView(TemplateView):
         context = super().get_context_data(**kwargs)
         customer = None if self.request.user.is_anonymous else self.request.user.customer
         if self.production_day:
-            abo_product_days = list(ProductionDayProduct.objects.upcoming().filter(
+            abo_product_days = list(ProductionDayProduct.objects.published().upcoming().planned().filter(
                 product__is_recurring=True
-            ).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
+            ).exclude(production_day=self.production_day).values('product').annotate(production_days=ArrayAgg('production_day__day_of_sale', distinct=True)).order_by().values('product', 'production_days'))
             context['abo_product_days'] = {item['product']:item['production_days'] for item in abo_product_days}
             context['production_day_next'] = self.production_day
             context['production_day_products'] = self.production_day.production_day_products.published()

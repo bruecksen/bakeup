@@ -473,12 +473,16 @@ $(function(){
         var currentAboProductDays = [];
         form.find('tr.product .abo-checkbox:checked').each(function(){
             var product = $(this).attr('name').replace('productabo-', '');
-            currentAboProductDays = currentAboProductDays.concat(aboProductDays[product]);
+            if (aboProductDays[product]) {
+                currentAboProductDays = currentAboProductDays.concat(aboProductDays[product]);
+            }
         })
+        // console.log(aboProductDays);
+        // console.log(currentAboProductDays);
         if (currentAboProductDays.length) {
             currentAboProductDays = currentAboProductDays.filter((item, pos) => currentAboProductDays.indexOf(item) === pos)
             currentAboProductDays.sort((a, b) => a - b);
-            console.log(currentAboProductDays);
+            // console.log(currentAboProductDays);
             currentAboProductDays = currentAboProductDays.map((str) => {
                 return new Date(str).toLocaleDateString('de-DE');
             });

@@ -196,6 +196,9 @@ class ProductionDayProductQuerySet(models.QuerySet):
     def upcoming(self):
         today = timezone.now().date()
         return self.filter(production_day__day_of_sale__gte=today).order_by('production_day__day_of_sale')
+
+    def planned(self):
+        return self.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True))
     
     def with_pictures(self):
         return self.exclude(
@@ -351,10 +354,6 @@ class CustomerOrder(CommonBaseClass):
     def is_picked_up(self):
         return not self.positions.filter(is_picked_up=False).exists()
 
-    @property
-    def is_planned(self):
-        return self.positions.filter(production_plan__isnull=False).exists()
-    
     @property
     def is_locked(self):
         return not self.positions.filter(Q(production_plan__state=0)| Q(production_plan__state__isnull=True)).exists()
@@ -635,7 +634,7 @@ class CustomerOrderTemplate(CommonBaseClass):
             return self
 
     @classmethod
-    def create_customer_order_template(cls, request, customer, products):
+    def create_customer_order_template(cls, request, customer, products, production_day=None, create_future_production_day_orders=False):
         order_template, created = CustomerOrderTemplate.objects.get_or_create(
             parent=None,
             customer=customer,
@@ -664,13 +663,22 @@ class CustomerOrderTemplate(CommonBaseClass):
                 if product.available_abo_quantity and quantity > (product.available_abo_quantity + existing_abo_qty):
                     quantity = product.available_abo_quantity
                     messages.add_message(request, messages.INFO, f"Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde eine kleinere Menge von {product.name } abonniert.")
-                CustomerOrderTemplatePosition.objects.update_or_create(
+                order_template_position, created = CustomerOrderTemplatePosition.objects.update_or_create(
                     order_template=order_template,
                     product=product,
                     defaults={
                         'quantity': quantity,
                     }
                 )
+                if create_future_production_day_orders:
+                    # create orders for all planned future production days
+                    planned_production_day_products = ProductionDayProduct.objects.published().upcoming().planned().filter(
+                        product=product
+                    ).exclude(production_day=production_day)
+                    for production_day_product in planned_production_day_products:
+                        if not CustomerOrderPosition.objects.filter(order__production_day=production_day, product=product).exists():
+                            order_template_position.create_order(production_day_product.production_day, request)
+
         return order_template
 
         
