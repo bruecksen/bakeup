@@ -403,7 +403,8 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 def production_plan_update(request, production_day, product):
     product = Product.objects.get(pk=product)
     production_day = ProductionDay.objects.get(pk=production_day)
-    production_day.update_production_plan(filter_product=product, create_max_quantity=False)
+    production_plan = ProductionPlan.objects.get(product__product_template=product, production_day=production_day)
+    production_day.update_production_plan(filter_product=product, create_max_quantity=production_plan.is_planned)
     return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
@@ -430,7 +431,6 @@ def production_plans_start_view(request, production_day):
     for production_plan in production_plans:
         production_plan.set_production()
         production_plan.production_day.update_order_positions_product(production_plan.product)
-        production_plan.set_production()
     if 'next' in request.GET:
         return HttpResponseRedirect(request.GET.get('next'))
     return HttpResponseRedirect(reverse('workshop:production-plan-next'))
