@@ -481,6 +481,23 @@ def customer_order_all_picked_up_view(request, pk):
     CustomerOrderPosition.objects.filter(order__production_day=pk).update(is_picked_up=True)
     return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
 
+
+@staff_member_required(login_url='login')
+def order_max_quantities_view(request, pk):
+    production_day = ProductionDay.objects.get(pk=pk)
+    products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
+    products = {}
+    for production_day_product in production_day.production_day_products.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True)):
+        products[production_day_product.product] = production_day_product.calculate_max_quantity(request.user.customer)
+    CustomerOrder.create_or_update_customer_order(
+        production_day,
+        request.user.customer,
+        products,
+        request.user.customer.point_of_sale.pk,
+    )
+    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
+
+
 @staff_member_required(login_url='login')
 def pos_order_all_picked_up_view(request, production_day, pos):
     CustomerOrderPosition.objects.filter(order__production_day=production_day, order__point_of_sale=pos).update(is_picked_up=True)
@@ -608,9 +625,15 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 order__production_day=self.object
             )
             order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
+            # raise Exception(order_summary)
+            orders = CustomerOrder.objects.filter(
+                point_of_sale=point_of_sale,
+                production_day=self.object
+            ).order_by('customer__user__last_name')
+            # raise Exception(positions)
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
-                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)).order_by('customer__user__last_name'),
+                'orders': orders,
                 'summary': order_summary,
                 'all_picked_up': not CustomerOrderPosition.objects.filter(order__production_day=self.object, order__point_of_sale=point_of_sale, is_picked_up=False).exists()
             })

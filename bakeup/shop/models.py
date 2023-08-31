@@ -151,11 +151,14 @@ class ProductionDay(CommonBaseClass):
         if create_max_quantity:
             quantity = self.production_day_products.get(product=product).max_quantity
         else:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=product, product__product_template__isnull=True)
+            positions = CustomerOrderPosition.objects.filter(
+                Q(product=product) | Q(product__product_template=product),
+                order__production_day=self, 
+            )
             quantity = positions.values('product', 'product__product_template').aggregate(total_quantity=Sum('quantity')).get('total_quantity') or 0
         plan = self._create_production_plan(product, quantity, state, create_max_quantity)
         if positions:
-            positions.filter(product_id=product).update(production_plan=plan)
+            positions.update(production_plan=plan)
         return plan
 
 
@@ -165,13 +168,15 @@ class ProductionDay(CommonBaseClass):
         if create_max_quantity:
             product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
         else:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product__product_template__isnull=True)
+            positions = CustomerOrderPosition.objects.filter(
+                order__production_day=self, 
+            )
             product_quantities = positions.values('product', 'product__product_template').order_by('product').annotate(total_quantity=Sum('quantity'))
         for product_quantity in product_quantities:
             product = Product.objects.get(pk=product_quantity.get('product'))
             plan = self._create_production_plan(product, product_quantity.get('total_quantity'), state, create_max_quantity)
             if positions:
-                positions.filter(product_id=product).update(production_plan=plan)
+                positions.update(production_plan=plan)
             plans.append(plan)
         return plans
             
@@ -211,8 +216,8 @@ class ProductionDay(CommonBaseClass):
     def update_order_positions_product(self, production_plan_product):
 
         positions = CustomerOrderPosition.objects.filter(
-            order__production_day=self, 
-            product=production_plan_product.product_template
+            Q(product=production_plan_product.product_template) | Q(product__product_template=production_plan_product.product_template),
+            order__production_day=self,
         )
         positions.update(product=production_plan_product)
 
