@@ -367,7 +367,14 @@ header {
     }
   }
 }
-
+footer {
+  a {
+    color: $white;
+    &:hover {
+      color: $white;
+    }
+  }
+}
 .position-fixed-mobile {
   @media (max-width: 991px) {
     position: fixed;

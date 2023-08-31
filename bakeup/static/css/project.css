@@ -12966,6 +12966,13 @@ header .navbar .collapsing {
   transition: none !important;
 }
 
+footer a {
+  color: #fff;
+}
+footer a:hover {
+  color: #fff;
+}
+
 @media (max-width: 991px) {
   .position-fixed-mobile {
     position: fixed;
