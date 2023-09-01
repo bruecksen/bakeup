@@ -393,7 +393,7 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
         production_day = form.cleaned_data['production_day']
         self.production_day = production_day 
         if production_day:
-            production_day.create_production_plans(create_max_quantity=True)
+            production_day.create_or_update_production_plans(state=ProductionPlan.State.PLANNED, create_max_quantity=True)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -401,24 +401,14 @@ class ProductionPlanAddView(StaffPermissionsMixin, FormView):
 
 
 @staff_member_required(login_url='login')
-def production_plan_update(request, production_day, product):
-    product = Product.objects.get(pk=product)
-    production_day = ProductionDay.objects.get(pk=production_day)
-    production_day.update_production_plan(filter_product=product, create_max_quantity=False)
-    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
-
-
-@staff_member_required(login_url='login')
-def production_plan_next_state_view(request, pk):
+def production_plan_update(request, pk,):
     production_plan = ProductionPlan.objects.get(pk=pk)
-    production_day = production_plan.production_day
-    product = production_plan.product.product_template
-    if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
-        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
-    if ProductionPlan.objects.filter(production_day=production_day, product__product_template=product).exists():
-        production_plan = ProductionPlan.objects.get(production_day=production_day, product__product_template=product)
-        production_plan.set_next_state()
-    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_plan.production_day.pk}))
+    if production_plan.is_planned or production_plan.is_canceled:
+        product = production_plan.product.product_template
+        production_day = production_plan.production_day
+        production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
+        production_day.update_production_plan(product=product, quantity=production_day_product.max_quantity, state=ProductionPlan.State.PLANNED, create_max_quantity=True)
+    return HttpResponseRedirect(reverse('workshop:production-plan-production-day', kwargs={'pk': production_day.pk}))
 
 
 @staff_member_required(login_url='login')
@@ -426,12 +416,11 @@ def production_plans_start_view(request, production_day):
     production_day = ProductionDay.objects.get(pk=production_day)
     production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
     for production_plan in production_plans:
-        production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
+        production_plan.production_day.create_or_update_production_plan(product=production_plan.product.product_template, state=ProductionPlan.State.IN_PRODUCTION, create_max_quantity=False)
     production_plans = ProductionPlan.objects.filter(production_day=production_day, state=ProductionPlan.State.PLANNED, parent_plan__isnull=True)
     for production_plan in production_plans:
         production_plan.set_production()
         production_plan.production_day.update_order_positions_product(production_plan.product)
-        production_plan.set_production()
     if 'next' in request.GET:
         return HttpResponseRedirect(request.GET.get('next'))
     return HttpResponseRedirect(reverse('workshop:production-plan-next'))
@@ -440,10 +429,8 @@ def production_plans_start_view(request, production_day):
 @staff_member_required(login_url='login')
 def production_plan_start_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
-
     if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
-        production_plan = production_plan.production_day.update_production_plan(filter_product=production_plan.product.product_template, create_max_quantity=False)
-        production_plan.set_production()
+        production_plan = production_plan.production_day.create_or_update_production_plan(product=production_plan.product.product_template, state=ProductionPlan.State.IN_PRODUCTION, create_max_quantity=False)
         production_plan.production_day.update_order_positions_product(production_plan.product)
     if 'next' in request.GET:
         return HttpResponseRedirect(request.GET.get('next'))
@@ -460,6 +447,16 @@ def production_plans_finish_view(request, production_day):
     production_plans.update(
         state=ProductionPlan.State.PRODUCED
     )
+    if 'next' in request.GET:
+        return HttpResponseRedirect(request.GET.get('next'))
+    return HttpResponseRedirect(reverse('workshop:production-plan-next'))
+
+
+@staff_member_required(login_url='login')
+def production_plan_finish_view(request, pk):
+    production_plan = ProductionPlan.objects.get(pk=pk)
+    if production_plan.is_production:
+        production_plan.set_state(ProductionPlan.State.PRODUCED)
     if 'next' in request.GET:
         return HttpResponseRedirect(request.GET.get('next'))
     return HttpResponseRedirect(reverse('workshop:production-plan-next'))
@@ -484,6 +481,23 @@ def customer_order_toggle_picked_up_view(request, pk):
 def customer_order_all_picked_up_view(request, pk):
     CustomerOrderPosition.objects.filter(order__production_day=pk).update(is_picked_up=True)
     return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
+
+
+@staff_member_required(login_url='login')
+def order_max_quantities_view(request, pk):
+    production_day = ProductionDay.objects.get(pk=pk)
+    products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
+    products = {}
+    for production_day_product in production_day.production_day_products.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True)):
+        products[production_day_product.product] = production_day_product.calculate_max_quantity(request.user.customer)
+    CustomerOrder.create_or_update_customer_order(
+        production_day,
+        request.user.customer,
+        products,
+        request.user.customer.point_of_sale.pk,
+    )
+    return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
+
 
 @staff_member_required(login_url='login')
 def pos_order_all_picked_up_view(request, production_day, pos):
@@ -606,15 +620,21 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         for point_of_sale in PointOfSale.objects.filter(customer_orders__production_day=self.object).distinct():
             positions = CustomerOrderPosition.objects.exclude(
                 Q(production_plan__state=ProductionPlan.State.CANCELED) |
-                Q(production_plan__state__isnull=True)
+                Q(production_plan__isnull=True)
             ).filter(
                 order__point_of_sale=point_of_sale, 
                 order__production_day=self.object
             )
             order_summary = positions.values('product__name').annotate(quantity=Sum('quantity'))
+            # raise Exception(order_summary)
+            orders = CustomerOrder.objects.filter(
+                point_of_sale=point_of_sale,
+                production_day=self.object
+            ).order_by('customer__user__last_name')
+            # raise Exception(positions)
             point_of_sales.append({
                 'point_of_sale': point_of_sale,
-                'orders': CustomerOrder.objects.filter(pk__in=positions.values_list('order', flat=True)).order_by('customer__user__last_name'),
+                'orders': orders,
                 'summary': order_summary,
                 'all_picked_up': not CustomerOrderPosition.objects.filter(order__production_day=self.object, order__point_of_sale=point_of_sale, is_picked_up=False).exists()
             })
@@ -672,7 +692,7 @@ class ProductionDayMixin(object):
                 instance.production_day = production_day
                 instance.save()
         production_day.create_template_orders(self.request)
-        production_day.create_production_plans(create_max_quantity=True)
+        production_day.create_or_update_production_plans(state=ProductionPlan.State.PLANNED, create_max_quantity=True)
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, formset):
@@ -888,6 +908,7 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
                         if product.sale_price:
                             price = product.sale_price.price.amount
                             price_total = price * customer_order_template_position.quantity
+                        # TODO Q(product=product) | ... and switch to update_or_create
                         position, created = CustomerOrderPosition.objects.get_or_create(
                             order=customer_order,
                             product=product,
@@ -1114,8 +1135,13 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
             }
             for product in self.production_day.production_day_products.all():
                 quantity = None
-                if CustomerOrderPosition.objects.filter(order__customer=customer, order__production_day=self.production_day, product=product.product).exists():
-                    quantity = CustomerOrderPosition.objects.get(order__customer=customer, order__production_day=self.production_day, product=product.product).quantity
+                customer_order_position = CustomerOrderPosition.objects.filter(
+                    Q(product=product.product) | Q(product__product_template=product.product),
+                    order__customer=customer, 
+                    order__production_day=self.production_day, 
+                )
+                if customer_order_position.exists():
+                    quantity = customer_order_position.first().quantity
                 initial_customer['product_{}'.format(product.product.pk)] = quantity
             initial.append(initial_customer)
         return initial
@@ -1155,17 +1181,22 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 for product in Product.objects.filter(production_days__production_day=self.production_day):
                     quantity = form.cleaned_data['product_%s' % (product.pk,)]
                     if not quantity or quantity == 0:
-                        CustomerOrderPosition.objects.filter(order=customer_order, product=product).delete()
+                        CustomerOrderPosition.objects.filter(
+                            Q(product=product) | Q(product__product_template=product),
+                            order=customer_order, 
+                        ).delete()
                     else:
                         price = None
                         price_total = None
                         if product.sale_price:
                             price = product.sale_price.price.amount
                             price_total = price * quantity
-                        position, created = CustomerOrderPosition.objects.update_or_create(
+                        position, created = CustomerOrderPosition.objects.filter(
+                            Q(product=product) | Q(product__product_template=product)
+                        ).update_or_create(
                             order=customer_order,
-                            product=product,
                             defaults={
+                                'product': product,
                                 'quantity': quantity,
                                 'price': price,
                                 'price_total': price_total,
@@ -1230,8 +1261,12 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
             }
             for product in Product.objects.filter(is_recurring=True):
                 quantity = None
-                if CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=customer, product=product).exists():
-                    quantity = CustomerOrderTemplatePosition.objects.active().get(order_template__customer=customer, product=product).quantity
+                customer_order_template_position = CustomerOrderTemplatePosition.objects.active().filter(
+                    Q(product=product) | Q(product__product_template=product),
+                    order_template__customer=customer
+                )
+                if customer_order_template_position.exists():
+                    quantity = customer_order_template_position.first().quantity
                 initial_customer['product_{}'.format(product.pk)] = quantity
             initial.append(initial_customer)
         return initial

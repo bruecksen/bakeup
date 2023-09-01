@@ -44,6 +44,7 @@ class ShopPage(Page):
     )
     banner_text = RichTextField(blank=True, verbose_name='Text')
     banner_cta = StreamField([('buttons', ButtonBlock()),], verbose_name='Call to action', blank=True, null=True, use_json_field=True)
+    banner_position = models.CharField(max_length=10, choices=[('top', 'Oben'), ('center', 'Mittig'), ('end', 'Unten')], default='center', verbose_name='Banner Inhalt Position')
 
     text_no_production_day = RichTextField(blank=True, verbose_name=_('No production days planned'), help_text="This text is displayed if no production day is planned.")
     content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
@@ -53,6 +54,7 @@ class ShopPage(Page):
     content_panels = Page.content_panels + [
         MultiFieldPanel([
             FieldPanel('banner_image'),
+            FieldPanel('banner_position'),
             FieldPanel('banner_text'),
             FieldPanel('banner_cta'),
         ], heading="Banner"),
@@ -77,6 +79,7 @@ class ShopPage(Page):
         customer = None if request.user.is_anonymous else request.user.customer
         context['production_days'] = ProductionDay.objects.upcoming()
         if self.production_day:
+            context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
             context['production_day_next'] = self.production_day
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
@@ -211,7 +214,7 @@ class CheckoutSettings(BaseGenericSetting):
 
 
 def get_production_day_reminder_body():
-    return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}'})
+    return render_to_string('users/emails/production_day_reminder_body.txt', {'client': '{{ client }}', 'user': '{{ user }}', 'order': '{{ order }}', 'price_total': '{{ price_total }}'})
 
 
 @register_setting(icon='mail')
@@ -220,7 +223,15 @@ class EmailSettings(BaseGenericSetting):
     email_footer = models.TextField(blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt.")
     send_email_order_confirm = models.BooleanField(default=False, help_text='Soll eine Bestellbestätigungsmail versendet werden?', verbose_name='Bestellbestätigung versenden?')
     email_order_confirm_subject = models.CharField(default='Vielen Dank für Deine Bestellung', max_length=1024, help_text="Betreff Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}, {{ order_link }}")
-    email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}, {{ order_link }}")
+    email_order_confirm = models.TextField(blank=True, null=True, help_text="Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{ order_count }}, {{ order_link }}, {{ point_of_sale }}")
+    email_order_confirm_attachment = models.ForeignKey(
+        'wagtaildocs.Document',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        verbose_name='Attachment'
+    )
     production_day_reminder_subject = models.CharField(default='Deine Bestellung ist abholbereit', max_length=1024, help_text="Betreff Erinnerungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}")
     production_day_reminder_body = models.TextField(default=get_production_day_reminder_body, help_text="Erinnerungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ production_day }}, {{ order_count }}")
 
@@ -232,6 +243,7 @@ class EmailSettings(BaseGenericSetting):
             FieldPanel('send_email_order_confirm'),
             FieldPanel('email_order_confirm_subject'),
             FieldPanel('email_order_confirm'),
+            FieldPanel('email_order_confirm_attachment'),
         ], heading='Bestellbestätigung'),
         MultiFieldPanel([
             FieldPanel('production_day_reminder_subject'),

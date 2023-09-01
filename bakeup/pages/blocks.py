@@ -145,7 +145,6 @@ class LinkTargetBlock(StreamBlock):
 
 
 class LinkValue(StructValue):
-    @cached_property
     def href(self):
         """Return the URL of the chosen target or `None` if it is undefined."""
         try:

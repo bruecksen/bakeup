@@ -85,7 +85,6 @@ SHARED_APPS = [
     "django_bootstrap5",
     'modelcluster',
     "django_htmx",
-    "django.contrib.sites",
     'djmoney',
 ]
 
@@ -95,7 +94,6 @@ TENANT_APPS = [
     "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",
-    "django.contrib.sites",
     'wagtail.contrib.modeladmin',
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',

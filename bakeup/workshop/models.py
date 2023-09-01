@@ -15,6 +15,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import datetime
 
 from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
 from django.utils.translation import gettext_lazy as _
@@ -502,7 +503,7 @@ class ReminderMessage(CommonBaseClass):
         SENT = 1
     state = models.IntegerField(choices=State.choices, default=State.PLANNED)
     subject = models.TextField()
-    body = models.TextField()
+    body = models.TextField(help_text='Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{ order_count }}, {{ point_of_sale }}')
     point_of_sale = models.ForeignKey('shop.PointOfSale', blank=True, null=True, on_delete=models.CASCADE)
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE)
     send_log = models.JSONField(default=dict)
@@ -537,15 +538,17 @@ class ReminderMessage(CommonBaseClass):
         t = Template(message)
         message = t.render(Context({
             'site_name': client.name,
+            'user': order.customer.user.get_full_name(),
             'first_name': order.customer.user.first_name,
             'last_name': order.customer.user.last_name,
             'email': order.customer.user.email,
             'order': order.get_order_positions_string(),
+            'price_total': order.price_total and Money(order.price_total, 'EUR') or '',
             'production_day': production_day.day_of_sale.strftime('%d.%m.%Y'),
             'order_count': order.total_quantity,
+            'point_of_sale': order.point_of_sale,
         }))
         return message
-
 
     def send_messages(self):
         user_successfull = []

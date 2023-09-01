@@ -12966,6 +12966,13 @@ header .navbar .collapsing {
   transition: none !important;
 }
 
+footer a {
+  color: #fff;
+}
+footer a:hover {
+  color: #fff;
+}
+
 @media (max-width: 991px) {
   .position-fixed-mobile {
     position: fixed;
@@ -13053,6 +13060,11 @@ nav .nav-link:hover, nav .nav-link:focus {
 .primary-gradient {
   background-image: -webkit-gradient(linear, left bottom, right top, from(#051937), color-stop(#0a2250), color-stop(#1b2a69), color-stop(#313182), to(#4c3699));
   background-image: linear-gradient(to right top, #051937, #0a2250, #1b2a69, #313182, #4c3699);
+}
+
+.modal .alert {
+  padding: 8px;
+  padding: 0.5rem;
 }
 
 .jumbotron {

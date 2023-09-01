@@ -4,7 +4,7 @@
       {{ settings.pages.FooterSettings.footer }}
       <div class="row align-items-end mt-4">
         <div class="col-10 offset-1 col-md-12 offset-md-0">
-            <p class="text-end small mb-0">{% now "Y" %} &copy; bakeup.org | {% current_git_tag %} | {% flat_menu 'footer' template="shop/includes/flat_menu.html" %}</p>
+            <p class="text-end small mb-0">Gebacken mit <a href="https://bakeup.org" class="fw-bold">bakeup.org</a> | <a href="https://github.com/bruecksen/bakeup/releases/latest" target="_blank">{% current_git_tag %}</a> | {% flat_menu 'footer' template="shop/includes/flat_menu.html" %}</p>
         </div>
       </div>
     </div>

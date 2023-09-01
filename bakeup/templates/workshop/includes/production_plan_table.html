@@ -30,16 +30,13 @@
                     {% if production_plan.root.is_planned %}
                     <a href="{% url "workshop:production-plan-start" pk=production_plan.root.pk %}" class="btn btn-warning btn-sm d-print-none">{% trans "Start" %}</a>
                     {% elif production_plan.root.is_production %}
-                    <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-success btn-sm d-print-none">{% trans "Finish" %}</a>
+                    <a href="{% url "workshop:production-plan-finish" pk=production_plan.root.pk %}" class="btn btn-success btn-sm d-print-none">{% trans "Finish" %}</a>
                     {% endif %}
                     {% if production_plan.root.is_canceled %}
-                    <a href="{% url "workshop:production-plan-delete" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none">{% trans "Delete" %}</a>
+                    <a href="{% url "workshop:production-plan-update" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none">{% trans "Reset" %}</a>
                     {% else %}
                     <a href="{% url "workshop:production-plan-cancel" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none">{% trans "Cancel" %}</a>
                     {% endif %}
-                    <!-- <div class="btn-group btn-group-sm">
-                        <a href="{% url "workshop:production-plan-next-state" pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm">Delete</a>
-                    </div> -->
                 </td>
             </tr>
             <tr class="tr-collapsed">
@@ -65,7 +62,7 @@
                                 <tr>
                                     <td>
                                         {% if not production_plan.root.is_locked %}
-                                        <a href="{% url 'workshop:production-plan-update' production_day=production_plan.root.production_day.pk product=production_plan.root.product.product_template.pk %}" class="btn btn-outline-primary btn-sm d-print-none"><i class="fas fa-sync-alt"></i> {% trans "Update plan" %}</a>
+                                        <a href="{% url 'workshop:production-plan-update' pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none"><i class="fas fa-sync-alt"></i> {% trans "Update plan" %}</a>
                                         {% endif %}
                                     </td>
                                 </tr>

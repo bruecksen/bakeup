@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django import template
 from django.template.defaultfilters import floatformat
 
@@ -24,5 +25,7 @@ def clever_rounding(value):
 
 @register.simple_tag
 def ordered_quantity(order, product):
-    position = order.positions.filter(product=product).first()
+    position = order.positions.filter(
+        Q(product=product) | Q(product__product_template=product),
+    ).first()
     return position and position.quantity or 0
