@@ -102,10 +102,6 @@ class ProductionDay(CommonBaseClass):
     def is_locked(self):
         return self.customer_orders.exists()
 
-    def update_production_plan(self, filter_product, create_max_quantity):
-        ProductionPlan.objects.filter(product__product_template=filter_product, production_day=self).delete()
-        return self.create_production_plans(filter_product, create_max_quantity)
-
     @property
     def total_ordered_quantity(self):
         return CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(Sum('quantity'))['quantity__sum']
@@ -113,45 +109,77 @@ class ProductionDay(CommonBaseClass):
     @property
     def total_published_ordered_quantity(self):
         return CustomerOrderPosition.objects.filter(order__production_day=self, product__in=self.production_day_products.filter(is_published=True).values_list('product', flat=True)).aggregate(Sum('quantity'))['quantity__sum']
+    
+    def update_production_plan(self, product, quantity, state, create_max_quantity):
+        ProductionPlan.objects.filter(product__product_template=product, production_day=self).delete()
+        return self._create_production_plan(product, quantity, state, create_max_quantity)
 
-    def create_production_plans(self, filter_product=None, create_max_quantity=False):
-        if filter_product:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product=filter_product, product__product_template__isnull=True)
+    def _create_production_plan(self, product, quantity, state, create_max_quantity=False):
+        # product_product_quantity.get('product'), product_quantity.get('total_quantity')
+        product_template = product
+        if quantity == 0:
+            # if no orders, plan is cancelled
+            state = ProductionPlan.State.CANCELED
+        production_plan = ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template)
+        if production_plan.exists() and not production_plan.first().is_locked:
+            print('plan exists, plan update: {}'.format(product_template))
+            return self.update_production_plan(product_template, quantity, state, create_max_quantity)
+        elif production_plan.exists():
+            # plan is locked no update
+            print('plan exists: {}'.format(product_template))
+            return production_plan.first()
+        print('plan create: {}'.format(product_template))
+        # this needs to happen before duplicating!
+        production_day_product = ProductionDayProduct.objects.get(product=product, production_day=self)
+        product = Product.duplicate(product_template)
+        obj = ProductionPlan.objects.create(
+            parent_plan=None,
+            production_day=self,
+            product=product,
+            quantity=quantity,
+            start_date=self.day_of_sale,
+            state=state,
+        )
+        # raise Exception(product.pk, product_template.pk)
+        if quantity > 0:
+            ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=quantity)
+        production_day_product.production_plan = obj
+        production_day_product.save()
+        return obj
+
+    def create_or_update_production_plan(self, product, state, create_max_quantity=False):
+        if create_max_quantity:
+            quantity = self.production_day_products.get(product=product).max_quantity
         else:
-            positions = CustomerOrderPosition.objects.filter(order__production_day=self, product__product_template__isnull=True)
-        product_quantities = positions.values('product', 'product__product_template').order_by('product').annotate(total_quantity=Sum('quantity'))
-        if not product_quantities and create_max_quantity:
-            # fallback to max product quantities of production day
-            if filter_product:
-                product_quantities = self.production_day_products.filter(product=filter_product).values('product', total_quantity=F('max_quantity'))
-            else:
-                product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
-        # raise Exception(product_quantities)
-        for product_quantity in product_quantities:
-            product_template = Product.objects.get(pk=product_quantity.get('product'))
-            if product_quantity.get('total_quantity') == 0:
-                continue
-            if ProductionPlan.objects.filter(production_day=self, parent_plan=None, product__product_template=product_template).exists():
-                print('plan exists: {}'.format(product_template))
-                if not ProductionPlan.objects.get(production_day=self, parent_plan=None, product__product_template=product_template).is_locked:
-                    self.update_production_plan(product_template, create_max_quantity)
-                continue
-            print('plan create: {}'.format(product_template))
-            product = Product.duplicate(product_template)
-            obj = ProductionPlan.objects.create(
-                parent_plan=None,
-                production_day=self,
-                product=product,
-                quantity=product_quantity.get('total_quantity'),
-                start_date=self.day_of_sale,
+            positions = CustomerOrderPosition.objects.filter(
+                Q(product=product) | Q(product__product_template=product),
+                order__production_day=self, 
             )
-            ProductionPlan.create_all_child_plans(obj, obj.product.parents.all(), quantity_parent=product_quantity.get('total_quantity'))
-            positions.filter(product_id=product_quantity.get('product')).update(production_plan=obj)
-            production_day_product = ProductionDayProduct.objects.get(product_id=product_quantity.get('product'), production_day=self)
-            production_day_product.production_plan = obj
-            # production_day_product.product = product
-            production_day_product.save()
-            return obj
+            quantity = positions.values('product', 'product__product_template').aggregate(total_quantity=Sum('quantity')).get('total_quantity') or 0
+        plan = self._create_production_plan(product, quantity, state, create_max_quantity)
+        if positions:
+            positions.update(production_plan=plan)
+        return plan
+
+
+    def create_or_update_production_plans(self, state, create_max_quantity=False):
+        plans = []
+        positions = None
+        if create_max_quantity:
+            product_quantities = self.production_day_products.values('product', total_quantity=F('max_quantity'))
+        else:
+            positions = CustomerOrderPosition.objects.filter(
+                order__production_day=self, 
+            )
+            product_quantities = positions.values('product', 'product__product_template').order_by('product').annotate(total_quantity=Sum('quantity'))
+        for product_quantity in product_quantities:
+            product = Product.objects.get(pk=product_quantity.get('product'))
+            plan = self._create_production_plan(product, product_quantity.get('total_quantity'), state, create_max_quantity)
+            if positions:
+                positions.update(production_plan=plan)
+            plans.append(plan)
+        return plans
+            
 
     def create_template_orders(self, request):
         production_day_products = self.production_day_products.published().values_list('product', flat=True)
@@ -188,8 +216,8 @@ class ProductionDay(CommonBaseClass):
     def update_order_positions_product(self, production_plan_product):
 
         positions = CustomerOrderPosition.objects.filter(
-            order__production_day=self, 
-            product=production_plan_product.product_template
+            Q(product=production_plan_product.product_template) | Q(product__product_template=production_plan_product.product_template),
+            order__production_day=self,
         )
         positions.update(product=production_plan_product)
 

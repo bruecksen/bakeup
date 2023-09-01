@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from bakeup.workshop.views import production_plan_start_view, CategoryDeleteView, CategoryUpdateView, CategoryAddView, PointOfSaleCreateView, PointOfSaleDeleteView, PointOfSaleUpdateView, PointOfSaleListView, CustomerReady2OrderExportView, CustomerOrderListView, ProductionDayExportView, ProductionDayReminderDeleteView, reminder_message_redirect_view, CustomerDetailView, pos_order_all_picked_up_view, customer_order_all_picked_up_view, customer_order_toggle_picked_up_view, production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_next_state_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
+from bakeup.workshop.views import order_max_quantities_view, production_plan_start_view, CategoryDeleteView, CategoryUpdateView, CategoryAddView, PointOfSaleCreateView, PointOfSaleDeleteView, PointOfSaleUpdateView, PointOfSaleListView, CustomerReady2OrderExportView, CustomerOrderListView, ProductionDayExportView, ProductionDayReminderDeleteView, reminder_message_redirect_view, CustomerDetailView, pos_order_all_picked_up_view, customer_order_all_picked_up_view, customer_order_toggle_picked_up_view, production_plans_finish_view, production_plans_start_view, production_plan_redirect_view, production_day_redirect_view, ProductionDayReminderView, ProductionPlanOfProductionDay, ProductionDayMetaProductView, BatchCustomerTemplateView, CustomerUpdateView, CustomerDeleteView, CategoryListView, CustomerOrderDeleteView, CustomerListView, CustomerOrderListView, CustomerOrderUpdateView, ProductionDayDetailView, RecipeListView, RecipeDetailView, ProductAddView, ProductDeleteView, ProductDetailView, ProductHierarchyDeleteView, ProductHierarchyUpdateView, ProductListView, ProductUpdateView, ProductionDayAddView, ProductionDayDeleteView, ProductionDayListView, ProductionDayUpdateView, ProductionPlanAddView, ProductionPlanDeleteView, ProductionPlanDetailView, ProductionPlanListView, WorkshopView, product_add_inline_view, product_normalize_view, production_plan_cancel_view, production_plan_finish_view, production_plan_update, CustomerOrderAddView, CreateUpdateInstructionsView
 
 
 app_name = "workshop"
@@ -29,11 +29,11 @@ urlpatterns = [
     path("production-plans/<int:pk>/", view=ProductionPlanDetailView.as_view(), name="production-plan-detail"),
     path("production-plans/<int:production_day>/start-all/", view=production_plans_start_view, name="production-plans-start"),
     path("production-plans/<int:production_day>/finish-all/", view=production_plans_finish_view, name="production-plans-finish"),
-    path("production-plans/<int:pk>/next-state/", view=production_plan_next_state_view, name="production-plan-next-state"),
+    path("production-plans/<int:pk>/finish/", view=production_plan_finish_view, name="production-plan-finish"),
     path("production-plans/<int:pk>/start/", view=production_plan_start_view, name="production-plan-start"),
     path("production-plans/<int:pk>/cancel/", view=production_plan_cancel_view, name="production-plan-cancel"),
     path("production-plans/<int:pk>/delete/", view=ProductionPlanDeleteView.as_view(), name="production-plan-delete"),
-    path("production-plans/<int:production_day>/<int:product>/update/", view=production_plan_update, name="production-plan-update"),
+    path("production-plans/<int:pk>/update/", view=production_plan_update, name="production-plan-update"),
     path("production-plans/add/", view=ProductionPlanAddView.as_view(), name="production-plan-add"),
     path("production-days/", view=production_day_redirect_view, name="production-day-next"),
     path("production-days/list/", view=ProductionDayListView.as_view(), name="production-day-list"),
@@ -48,6 +48,7 @@ urlpatterns = [
     path("production-days/<int:production_day>/reminder/", view=ProductionDayReminderView.as_view(), name="production-day-reminder"),
     path("production-days/<int:pk>/select-reminder/", view=reminder_message_redirect_view, name="reminder-message-redirect"),
     path("production-days/<int:pk>/all-picked-up/", view=customer_order_all_picked_up_view, name="production-day-all-picked-up"),
+    path("production-days/<int:pk>/order-max-quantities/", view=order_max_quantities_view, name="production-day-order-max-quantities"),
     path("production-days/<int:production_day>/<int:pos>/all-picked-up/", view=pos_order_all_picked_up_view, name="pos-all-picked-up"),
     path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
     path("orders/add/", view=CustomerOrderAddView.as_view(), name="order-add"),
