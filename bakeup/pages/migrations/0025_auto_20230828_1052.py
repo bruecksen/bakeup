@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('wagtaildocs', '0012_uploadeddocument'),
-        ('pages', '0025_auto_20230823_1413'),
+        ('pages', '0024_emailsettings_send_email_order_confirm'),
     ]
 
     operations = [
