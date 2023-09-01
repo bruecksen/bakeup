@@ -234,9 +234,13 @@ class UserProfileDeleteView(DeleteView):
             self.object.is_active = False
             self.object.save()
             logout(request)
+            client = request.tenant
+            domain = client.get_primary_domain().domain
+            subject = "Ein Konto auf {} wurde geschlossen".format(domain)
+            body = "Hallo, \n\nDer folgende Account wurde auf {} geschlossen: {}\n\nBitte löschen/anonymisieren Sie alle persönlichen Daten.\n\nViele Grüße\nBakeup.org".format(domain, self.object.email)
             send_mail(
-                "Account geschlossen {}".format(self.object.email),
-                "Der folgende Account wurde geschlossen: {}\n\nBitte löschen/anonymisieren Sie alle persönlichen Daten.".format(self.object.email),
+                subject,
+                body,
                 settings.DEFAULT_FROM_EMAIL,
                 [settings.DEFAULT_FROM_EMAIL],
                 fail_silently=False,
