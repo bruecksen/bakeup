@@ -1,4 +1,4 @@
-{% load l10n %}
+{% load i18n %}
 {% load workshop_tags %}
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
@@ -53,7 +53,7 @@
       <div class="row">
         <div class="col text-end">
           <div class="btn-group" role="group" aria-label="Basic example">
-            <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> Add another</a>
+            <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> {% trans "Add another" %}</a>
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@
             <div class="row">
               <div class="col-4">
                 {% bootstrap_field formset.empty_form.product_existing show_label=False size="sm" wrapper_class='' %}
-                <p class="text-center mb-0"><small>Or</small></p>
+                <p class="text-center mb-0"><small>{% trans "Or" %}</small></p>
               </div>
             </div>
             <div class="row">
@@ -100,7 +100,7 @@
     <li class="list-group-item">
       <div class="row">
         <div class="col text-end">
-          <button type="submit" class="btn btn-primary btn-sm add-another d-none save-another-form">Save</button>
+          <button type="submit" class="btn btn-primary btn-sm add-another d-none save-another-form">{% trans "Save" %}</button>
         </div>
       </div>
     </li>

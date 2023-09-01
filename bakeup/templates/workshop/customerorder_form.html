@@ -1,9 +1,10 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load django_bootstrap5 %}
 
-{% block title %}Add new production day{% endblock %}
+{% block title %}{% trans "Add new production day" %}{% endblock %}
 {% block page_heading %}
-{% if object %}Update customer order{% else %}Add new production day{% endif %}
+{% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
 {% endblock %}
 
 {% block page_content %}
@@ -44,7 +45,7 @@
       </div>
       <div class="row">
         <div class="col">
-          <a id="add-form" class="btn btn-dark d-inline float-end"><i class="fa-solid fa-circle-plus"></i> Add another product</a>
+          <a id="add-form" class="btn btn-dark d-inline float-end"><i class="fa-solid fa-circle-plus"></i> {% trans "Add another product" %}</a>
         </div>
       </div>
       
@@ -52,9 +53,9 @@
         <div class="col">
           <div class="control-group">
             <div class="controls">
-              <a class="btn btn-outline-primary" onclick="window.history.go(-1);">Cancel</a>
+              <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>
               <button type="submit" class="btn btn-primary" name="add-new">
-                {% if object %}Update customer order{% else %}Create production day{% endif %}
+                {% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
               </button>
             </div>
           </div>

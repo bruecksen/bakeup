@@ -74,7 +74,7 @@ class ClientSetting(models.Model):
     email_host_password = models.CharField(max_length=1024, blank=True, null=True)
     email_host_user = models.CharField(max_length=1024, blank=True, null=True)
     email_port = models.PositiveSmallIntegerField(default=25)
-    emaiL_use_tls = models.BooleanField(default=False)
+    email_use_tls = models.BooleanField(default=False)
     show_full_name_delivery_bill = models.BooleanField(default=True)
     show_remaining_products = models.BooleanField(default=False)
     user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)

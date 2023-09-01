@@ -26,6 +26,7 @@ from django.utils.timezone import make_aware
 from django.conf import settings
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
+from django.utils.translation import gettext_lazy as _
 
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
@@ -1106,7 +1107,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     @property
     def export_name(self):
-        return "produktionstag-{}".format(self.production_day.day_of_sale.strftime("%d-%m-%Y"));
+        return _("productionday-{}").format(self.production_day.day_of_sale.strftime("%d-%m-%Y"));
 
 
 class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):

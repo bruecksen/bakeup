@@ -1,19 +1,20 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
+{% load i18n %}
 
-{% block page_heading %}Delete order{% endblock page_heading %}
+{% block page_heading %}{% trans "Delete order" %}{% endblock page_heading %}
 
 {% block page_content %}
 <div id="content-container" class="container p-none">
     <div class="side-p">
-        <h3>Are you sure?</h3>
-        <p>You're about to delete the following customer order: {{ object }}. Please confirm.</p>
+        <h3>{% trans "Are you sure?" %}</h3>
+        <p>{% blocktranslate %}You're about to delete the following customer order: <strong>{{ object }}</strong>. Please confirm, .{% endblocktranslate%}</p>
         <form action="" method="post">
             {% csrf_token %}
             <input class="btn btn-link" 
-                   type="button" value="Cancel" 
+                   type="button" value="{% trans 'Cancel' %}" 
                    onclick="window.history.go(-1);"/>
-            <input class="btn btn-primary" type="submit" value="Confirm"/>
+            <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
         </form>
     </div>
 </div>

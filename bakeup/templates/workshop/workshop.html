@@ -1,11 +1,15 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
+
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
-{% block title %}Workshop{% endblock %}
+{% block title %}{% trans "Workshop" %}{% endblock %}
 
 {% block page_heading %}
-Hi {{ request.user }}, welcome to bakeup!
+{% blocktranslate trimmed %}
+Hi {{ user }}, welcome to bakeup!
+{% endblocktranslate %}
 {% endblock %}
 {% block page_content %}
   {% include "workshop/includes/dashboard.html" %}

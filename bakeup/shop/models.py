@@ -18,6 +18,7 @@ from django.utils import formats
 from django import forms
 from django.template import Template, Context
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 from djmoney.money import Money
 from djmoney.models.fields import MoneyField
@@ -60,8 +61,8 @@ class ProductionDayQuerySet(models.QuerySet):
 
 
 class ProductionDay(CommonBaseClass):
-    day_of_sale = models.DateField(unique=True)
-    description = models.TextField(blank=True, null=True)
+    day_of_sale = models.DateField(unique=True, verbose_name=_("Day of Sale"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
 
     objects = ProductionDayQuerySet.as_manager()
 
@@ -240,10 +241,10 @@ class ProductionDayProductQuerySet(models.QuerySet):
 
 class ProductionDayProduct(CommonBaseClass):
     production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.CASCADE, related_name='production_day_products')
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True})
-    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False)
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='production_days', limit_choices_to={'is_sellable': True}, verbose_name=_("Product"))
+    max_quantity = models.PositiveSmallIntegerField(blank=False, null=False, verbose_name=_("Max quantity"))
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
-    is_published = models.BooleanField(default=False, verbose_name="Published?")
+    is_published = models.BooleanField(default=False, verbose_name=_("Published?"))
     
     objects = ProductionDayProductQuerySet.as_manager()
 
@@ -376,9 +377,9 @@ class Customer(CommonBaseClass):
 
 class CustomerOrder(CommonBaseClass):
     # order_nr = models.CharField(max_length=255)
-    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='customer_orders')
-    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders')
-    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True, related_name='customer_orders')
+    production_day = models.ForeignKey('shop.ProductionDay', on_delete=models.PROTECT, related_name='customer_orders', verbose_name=_('Production Day'))
+    customer = models.ForeignKey('shop.Customer', on_delete=models.PROTECT, blank=True, null=True, related_name='orders', verbose_name=_('Customer'))
+    point_of_sale = models.ForeignKey('shop.PointOfSale', on_delete=models.SET_NULL, blank=True, null=True, related_name='customer_orders', verbose_name=_('Point of Sale'))
     address = models.TextField()
 
     class Meta:
@@ -479,6 +480,8 @@ class CustomerOrder(CommonBaseClass):
         ).annotate(
                 price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
         ).annotate(
+                price=Subquery(CustomerOrderPosition.objects.filter(order__customer=self.customer, order__production_day=self.production_day, product=OuterRef('product__pk')).values("price_total"))
+        ).annotate(
             has_abo=Exists(Subquery(CustomerOrderTemplatePosition.objects.active().filter(order_template__customer=self.customer, product=OuterRef('product__pk'))))
         ).annotate(
             abo_qty=Subquery(CustomerOrderTemplatePosition.objects.active().filter(
@@ -534,8 +537,8 @@ class CustomerOrderPositionQuerySet(models.QuerySet):
 
 
 class BasePositionClass(CommonBaseClass):
-    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions')
-    quantity = models.PositiveSmallIntegerField()
+    product = models.ForeignKey('workshop.Product', on_delete=models.PROTECT, related_name='%(class)s_positions', verbose_name=_('Product'))
+    quantity = models.PositiveSmallIntegerField(verbose_name=_('Quantity'))
     comment = models.TextField(blank=True, null=True)
 
     class Meta:

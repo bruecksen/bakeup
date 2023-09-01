@@ -1,13 +1,14 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
-{% block title %}Products{% endblock %}
-{% block page_heading %}Products{% endblock page_heading %}
+{% block title %}{% trans "Products" %}{% endblock %}
+{% block page_heading %}{% trans "Products"%}{% endblock page_heading %}
 
 
 {% block page_heading_action %}
-<a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">Add new product</a>
+<a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add new product" %}</a>
 {% endblock page_heading_action %}
 
 {% block page_content %}
@@ -22,7 +23,7 @@
       </div>
       <div class="col-2">
         {% bootstrap_button "Filter" button_type="submit" button_class="btn-outline-primary" size="sm" %}
-        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> Reset filters</button>
+        <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> {% trans "Reset filters" %}</button>
       </div>
     </div>
 

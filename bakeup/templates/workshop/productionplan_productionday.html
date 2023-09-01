@@ -2,8 +2,8 @@
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 {% load i18n %}
-{% block title %}Production plans{% endblock %}
-{% block page_heading %}Production plans <span class="d-none d-print-inline">{{ production_day }}</span>
+{% block title %}{% trans "Production Plan" %}{% endblock %}
+{% block page_heading %}{% trans "Production Plan" %} <span class="d-none d-print-inline">{{ production_day }}</span>
 <form class="d-inline-block d-print-none" method="post" action="{% url 'workshop:production-plan-next' %}">
   {% csrf_token %}
   <div class="input-group">
@@ -14,8 +14,8 @@
 </form>
 {% endblock %}
 {% block page_heading_action %}
-<a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>Finish all</a>
-<a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>Start all</a>
+<a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
+<a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
 {% endblock%}
 
 {% block page_content %}

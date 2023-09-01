@@ -3,18 +3,18 @@
 {% load i18n %}
 {% load thumbnail %}
 
-{% block title %}Add new product{% endblock %}
+{% block title %}{% trans "Add new product" %}{% endblock %}
 
 {% block page_content %}
 <div class="row mt-2 mb-2">
   <div class="col-7">
-    <h1>{{ object.name }} {{ object.weight|floatformat:"-1" }}{{ object.unit }} - Rezepte</h1>
+    <h1>{{ object.name }} {{ object.weight|floatformat:"-1" }}{{ object.unit }} - {% trans "Recipes" %}</h1>
   </div>
   <div class="col-5 align-self-center">
     <div class="btn-group btn-group-sm float-end" role="group" aria-label="Basic example">
-      <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edit product</a>
-      <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> Add product</a>
-      <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> Delete product</a>
+      <a href="{% url 'workshop:product-update' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-edit"></i> {% trans "Edit product" %}</a>
+      <a href="{% url 'workshop:product-add' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-circle-plus"></i> {% trans "Add product" %}</a>
+      <a href="{% url 'workshop:product-delete' pk=object.pk %}" class="btn btn-primary"><i class="fas fa-trash-can"></i> {% tarns "Delete product" %}</a>
     </div>
   </div>
 </div>
@@ -60,7 +60,7 @@
                     {% csrf_token %}
                     <div class="input-group input-group-sm">
                       <input type="number" class="form-control" name="amount" placeholder="" value="{{ this_child.weight|floatformat:"0" }}" step="0.1">
-                      <button class="btn btn-outline-secondary" type="submit">Save</button>
+                      <button class="btn btn-outline-secondary" type="submit">{% trans "Save" %}</button>
                     </div>
                   </form>
                   
@@ -76,7 +76,7 @@
               </div>
               <div class="col-3 text-end">
                 <div class="btn-group btn-group-sm">
-                  <a href="{% url 'workshop:product-hierarchy-delete' pk=this_child.pk %}" class="btn btn-outline-primary">Delete relation</a>
+                  <a href="{% url 'workshop:product-hierarchy-delete' pk=this_child.pk %}" class="btn btn-outline-primary">{% trans "Delete relation" %}</a>
                 </div>
               </div>
               <div class="col-12 m-2 collapse" id="item-{{ this_child.child.pk }}">

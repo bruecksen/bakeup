@@ -1,7 +1,8 @@
+{% load i18n utils %}
 <div class="row">
     <div class="col">
             <div class="page-heading pt-4 pb-4">
-            <h1>Welcome to the bakeup shop</h1>
+            <h1>{% trans "Welcome to the bakeup shop" %}</h1>
             <p>{{ request.user }}</p>
         </div>
     </div>
@@ -10,20 +11,20 @@
     <div class="col-12 col-sm-2">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Baking Days</h4>
+              <h4 class="card-title">{% trans "Baking Days" %}</h4>
               <p class="card-text"></p>
-              <a href="{% url 'shop:weekly' %}" class="btn btn-sm btn-outline-primary">Go to the next baking days</a>
+              <a href="{% url 'shop:weekly' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to the next baking days" %}</a>
             </div>
         </div>
     </div>
     <div class="col-12 col-sm-2">
         <div class="card">
             <div class="card-body">
-              <h4 class="card-title">Orders</h4>
+              <h4 class="card-title">{% trans "Orders" %}</h4>
               <p class="card-text">
-                  Here you can view your existing orders for the next baking days.
+                  {% trans "Here you can view your existing orders for the next baking days." %}
               </p>
-              <a href="#" class="btn btn-sm btn-outline-primary">Go to orders</a>
+              <a href="#" class="btn btn-sm btn-outline-primary">{% trans "Go to orders" %}</a>
             </div>
         </div>
     </div>

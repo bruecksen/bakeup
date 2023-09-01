@@ -18,6 +18,7 @@ from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node
+from django.utils.translation import gettext_lazy as _
 
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.managers import ProductManager, ProductionDayProductManager, ProductHierarchyManager
@@ -45,29 +46,29 @@ class Category(CommonBaseClass, MP_Node):
 
 
 WEIGHT_UNIT_CHOICES = [
-    ('g', 'Grams'),
-    ('kg', 'Kilograms'),
+    ('g', _('Grams')),
+    ('kg', _('Kilograms')),
 ]
 
 # Item
 class Product(CommonBaseClass):
     product_template = models.ForeignKey('workshop.Product', blank=True, null=True, on_delete=models.PROTECT)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
     sku = models.CharField(max_length=255, blank=True, null=True, verbose_name='SKU')
-    display_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='Anzeige name')
+    display_name = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("display name"))
     slug = models.SlugField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    image = models.FileField(null=True, blank=True, upload_to='product_images')
-    image_secondary = models.FileField(null=True, blank=True, upload_to='product_images')
-    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
+    description = models.TextField(null=True, blank=True, verbose_name=_("Description"))
+    image = models.FileField(null=True, blank=True, upload_to='product_images', verbose_name=_("Image"))
+    image_secondary = models.FileField(null=True, blank=True, upload_to='product_images', verbose_name=_("Secondary Image"))
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT, verbose_name=_("Category"))
     # data in database normalized in grams
-    weight = models.FloatField(help_text="weight in grams", default=1000)
+    weight = models.FloatField(help_text=_("weight in grams"), default=1000, verbose_name=_("Weight"))
     # data in database normalized in milliliter
-    is_sellable = models.BooleanField(default=False)
-    is_buyable = models.BooleanField(default=False)
-    is_composable = models.BooleanField(default=False)
-    is_recurring = models.BooleanField(default=False, verbose_name='Is abo product?')
-    max_recurring_order_qty = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Max abo quantity?')
+    is_sellable = models.BooleanField(default=False, verbose_name=_("Is sellable"))
+    is_buyable = models.BooleanField(default=False, verbose_name=_("Is buyable"))
+    is_composable = models.BooleanField(default=False, verbose_name=_("Is composable"))
+    is_recurring = models.BooleanField(default=False, verbose_name=_("Is abo product?"))
+    max_recurring_order_qty = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name=_("Max abo quantity?"))
 
 
     tags = TaggableManager(blank=True, ordering=['name'])
@@ -306,7 +307,7 @@ class Product(CommonBaseClass):
 
 class ProductPrice(CommonBaseClass):
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE, related_name='sale_prices')
-    price = MoneyField(max_digits=14, decimal_places=2, default_currency='EUR')
+    price = MoneyField(max_digits=14, decimal_places=2, default_currency='EUR', verbose_name=_("Price"))
 
 
 
@@ -315,7 +316,7 @@ class ProductPrice(CommonBaseClass):
 # Assembly
 class Instruction(CommonBaseClass):
     product = models.OneToOneField('workshop.Product', on_delete=models.CASCADE, related_name='instructions')
-    instruction = models.TextField(blank=True, null=True)
+    instruction = models.TextField(blank=True, null=True, verbose_name=_('Instruction'))
     duration = models.PositiveSmallIntegerField(help_text="duration in seconds", blank=True, null=True)
 
 """ 
