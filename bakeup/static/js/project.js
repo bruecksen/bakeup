@@ -403,10 +403,10 @@ $(function(){
         if ($(this).hasClass('in-checkout')) {
             var basketQuantity = 0;
             var totalBasketQuantity = 0;
-            $('.product-card .product-quantity').each(function(){
+            $('.product-card').each(function(){
                 var product = $(this).data('product');
                 var orderedQty = $(this).data('ordered-quantity');
-                var quantity = parseInt($(this).val()) || 0;
+                var quantity = parseInt($(this).find('.product-quantity').val()) || 0;
                 totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
                 basketQuantity += basketQuantity + quantity;
                 console.log(product, quantity);
@@ -414,6 +414,8 @@ $(function(){
                 // totalBasketQuantity += quantity;
             });
             setTotalPrice($(this));
+            console.log('basketQuantity', basketQuantity);
+            console.log('totalBasketQuantity', totalBasketQuantity);
             updateModal($(this), basketQuantity, totalBasketQuantity);
         }
         var productionDay = $(this).data('production-day');

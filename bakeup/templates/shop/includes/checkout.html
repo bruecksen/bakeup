@@ -60,7 +60,7 @@
                                     {% else %}
                                         <a href="{% url 'shop:order-template-list' %}" data-bs-container="body" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="{% trans 'You already have a subscription for this product.' %}"><i class="fas fa-check-circle"></i></a>
                                     {% endif %}
-                                {% elif product.product.is_open_for_abo %}
+                                {% elif product.product.is_open_for_abo and not product.is_locked %}
                                 <div class="form-check form-switch">
                                     <input class="form-check-input abo-checkbox" type="checkbox" role="switch" name="productabo-{{ product.product.pk }}">
                                   </div>
