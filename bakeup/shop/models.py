@@ -61,7 +61,7 @@ class ProductionDayQuerySet(models.QuerySet):
 
 
 class ProductionDay(CommonBaseClass):
-    day_of_sale = models.DateField(unique=True, verbose_name=_("Day of Sale"))
+    day_of_sale = models.DateField(unique=True, verbose_name=_("Day of Sale"), db_index=True)
     description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
 
     objects = ProductionDayQuerySet.as_manager()
