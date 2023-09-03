@@ -12966,6 +12966,9 @@ header .navbar .collapsing {
   transition: none !important;
 }
 
+footer {
+  font-size: 18px;
+}
 footer a {
   color: #fff;
 }
