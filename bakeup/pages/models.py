@@ -182,8 +182,10 @@ class GeneralSettings(BaseGenericSetting):
     abo_menu_item = models.CharField(max_length=13, default=Visibility.AUTOMATICALLY, choices=Visibility.choices, help_text="Soll der Abo Menüpunkt angezeigt werden?")
     brand_font = models.CharField(max_length=17, default=FontStyle.HANDWRITING, choices=FontStyle.choices, help_text="Welche Schriftart soll der brand name in der Mobilen ansicht haben?")
     brand_uppercase = models.BooleanField(default=False, help_text="Brand name in Großbuchstaben")
+    legal_entity = models.CharField(max_length=1024, blank=True, null=True)
 
     panels = [
+        FieldPanel('legal_entity'),
         FieldPanel('abo_menu_item'),
         MultiFieldPanel([
             FieldPanel('brand_font'),
