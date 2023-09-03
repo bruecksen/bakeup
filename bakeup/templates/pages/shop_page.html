@@ -31,16 +31,18 @@
 {% endblock jumbotron %}
 
 {% block page_content %}
-{% if not production_day_next %}
-<div class="row mb-10">
-  <div class="col">
-    <div class="card p-4">
-      {{ page.text_no_production_day|richtext }}
+{% if page.show_production_day %}
+  {% if not production_day_next %}
+  <div class="row mb-10">
+    <div class="col">
+      <div class="card p-4">
+        {{ page.text_no_production_day|richtext }}
+      </div>
     </div>
   </div>
-</div>
-{% else %}
-  {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
+  {% else %}
+    {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
+  {% endif %}
 {% endif %}
   {% for block in self.content %}
     {% include_block block %}
