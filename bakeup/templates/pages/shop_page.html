@@ -19,7 +19,7 @@
         <div class="text-center text-white mt-4 text-shadow">
           {{ page.banner_text|richtext }}
         </div>
-        <div class="mb-0 mb-sm-5 text-center text-white">
+        <div class="mb-0 mb-sm-5 text-center text-white mt-3">
             {% for cta in page.banner_cta %}
               <a class="btn btn-primary mb-3 me-2" href="{{ cta.value.link.href }}">{{ cta.value.text }}</a>
             {% endfor %}
