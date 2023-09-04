@@ -491,10 +491,11 @@ def order_max_quantities_view(request, pk):
     for production_day_product in production_day.production_day_products.filter(Q(production_plan__state=0)| Q(production_plan__isnull=True)):
         products[production_day_product.product] = production_day_product.calculate_max_quantity(request.user.customer)
     CustomerOrder.create_or_update_customer_order(
+        request,
         production_day,
         request.user.customer,
         products,
-        request.user.customer.point_of_sale.pk,
+        request.user.customer.point_of_sale.pk
     )
     return HttpResponseRedirect("{}#orders".format(reverse('workshop:production-day-detail', kwargs={'pk': pk})))
 

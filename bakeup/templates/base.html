@@ -61,9 +61,9 @@
 
   <body class="h-100 d-flex flex-column {% block body_class%}{% endblock body_class%}">
     {% block messages %}
+    <div class="toast-container position-fixed top-67 end-0 p-3">
     {% for message in messages %}
-      <div class="toast-container position-fixed top-67 end-0 p-3">
-        <div class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast align-items-center mb-1" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
           <div class="d-flex">
             <div class="toast-body">
               {{ message }}
@@ -71,8 +71,8 @@
             <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
           </div>
         </div>
+        {% endfor %}
       </div>
-    {% endfor %}
     {% endblock messages %}
 
     
