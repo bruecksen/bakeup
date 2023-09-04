@@ -657,15 +657,16 @@ class CustomerOrderTemplate(CommonBaseClass):
             # TODO check if its ok without .exclude(production_day=production_day)
             for production_day in production_days:
                 is_order_created = False
+                customer_order = None
                 for customer_order_template_position in customer_order_template_positions:
                     product = customer_order_template_position.product
-                    customer_order = CustomerOrderPosition.objects.filter(
+                    customer_order_position = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product),
                         order__production_day=production_day,
                         order__customer=customer
                     )
                     production_day_product = production_day.production_day_products.filter(product=product)
-                    if not customer_order.exists() and production_day_product:
+                    if not customer_order_position.exists() and production_day_product:
                         production_day_product = production_day_product.get()
                         customer_order, created = CustomerOrder.objects.get_or_create(
                             production_day=production_day,
