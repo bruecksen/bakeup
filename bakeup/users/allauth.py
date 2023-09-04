@@ -103,6 +103,6 @@ class AccountAdapter(DefaultAccountAdapter):
         if email_settings.email_subject_prefix:
             prefix = email_settings.get_subject_with_prefix(subject)
             t = Template(prefix)
-            prefix = t.render(Context({'site_name': self.request.tenant.name}))
-            return prefix + ' ' + force_str(subject)
+            subject = t.render(Context({'site_name': self.request.tenant.name}))
+            return force_str(subject)
         return force_str(subject)
