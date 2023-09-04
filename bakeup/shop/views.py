@@ -104,6 +104,7 @@ def customer_order_add_or_update(request, production_day):
         production_day = get_object_or_404(ProductionDay, pk=production_day)
         products =  {Product.objects.get(pk=k.replace('product-', '')): int(v) for k, v in request.POST.items() if k.startswith('product-')}
         order, created = CustomerOrder.create_or_update_customer_order(
+            request,
             production_day,
             request.user.customer,
             products,

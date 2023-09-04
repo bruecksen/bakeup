@@ -426,7 +426,7 @@ class CustomerOrder(CommonBaseClass):
         return self.positions.filter(customer_order_template_positions__isnull=False).exists()
     
     @classmethod
-    def create_or_update_customer_order(cls, production_day, customer, products, point_of_sale=None):
+    def create_or_update_customer_order(cls, request, production_day, customer, products, point_of_sale=None):
         # TODO order_nr, address, should point of sale really be saved in order?
         # TODO check quantity with availalbe quantity
         with transaction.atomic():
@@ -442,8 +442,12 @@ class CustomerOrder(CommonBaseClass):
                 # print(product, quantity)
                 production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
                 max_quantity = production_day_product.calculate_max_quantity(customer)
-                if production_day_product.is_locked or max_quantity == 0:
-                    raise forms.ValidationError("Product is locked.")
+                if quantity > 0 and production_day_product.is_sold_out and max_quantity <= quantity:
+                    messages.add_message(request, messages.INFO, "Leider ist das Produkt {} schon ausverkauft und konnte nicht mehr bestellt werden.".format(product.get_display_name()))
+                    continue
+                elif production_day_product.is_locked:
+                    messages.add_message(request, messages.INFO, "Das Produkt {} ist schon in Produktion und kann nicht mehr bestellt werden.".format(product.get_display_name()))
+                    continue
                 if quantity > 0:
                     quantity = min(quantity, max_quantity)
                     price = None
