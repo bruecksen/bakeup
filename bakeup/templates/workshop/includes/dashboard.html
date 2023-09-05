@@ -3,6 +3,35 @@
     <div class="col-12 col-sm-3 offset-sm-1 mb-sm-0 mb-4">
         <div class="card">
             <div class="card-body">
+              <h4 class="card-title">{% trans "Customers" %} <small class="text-muted">{{ customers_count }}</small></h4>
+              <p class="card-text"></p>
+              <a href="{% url 'workshop:customer-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to customers" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-3 mb-sm-0 mb-4">
+        <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">{% trans "Orders" %} <small class="text-muted">{{ orders_count }}</small></h4>
+              <p class="card-text"></p>
+              <a href="{% url 'workshop:order-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to orders" %}</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-3 mb-sm-0 mb-4">
+        <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">{% trans "Recurring orders" %} <small class="text-muted">{{ recurring_orders_count }}</small></h4>
+              <p class="card-text"></p>
+              <a href="{% url 'workshop:order-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to recurring orders" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4 mb-4">
+    <div class="col-12 col-sm-3 offset-sm-1 mb-sm-0 mb-4">
+        <div class="card">
+            <div class="card-body">
               <h4 class="card-title">{% trans "Categories" %} <small class="text-muted">{{ categories_count }}</small></h4>
               <p class="card-text"></p>
               <a href="{% url 'workshop:category-list' %}" class="btn btn-sm btn-outline-primary">{% trans "Go to categories" %}</a>
