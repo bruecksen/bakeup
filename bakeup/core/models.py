@@ -67,6 +67,13 @@ def default_registration_fields():
     return ['first_name', 'last_name', 'point_of_sale']
 
 
+ACCOUNT_EMAIL_VERIFICATION_CHOICES = [
+    ('optional', 'optional'), 
+    ('mandatory', 'mandatory'), 
+    ('none', 'none')
+]
+
+
 class ClientSetting(models.Model):
     client = models.OneToOneField('Client', on_delete=models.CASCADE)
     default_from_email = models.EmailField(blank=True, null=True)
@@ -79,6 +86,7 @@ class ClientSetting(models.Model):
     show_remaining_products = models.BooleanField(default=False)
     user_registration_fields = ChoiceArrayField(models.CharField(max_length=24, choices=RegistrationFieldOption.choices), default=default_registration_fields)
     language_default = models.CharField(max_length=12, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE)
+    account_email_verification = models.CharField(max_length=12, choices=ACCOUNT_EMAIL_VERIFICATION_CHOICES, default='optional')
     
 
 class ClientInfo(models.Model):
