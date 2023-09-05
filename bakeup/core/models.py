@@ -5,6 +5,7 @@ from django.db.models.enums import TextChoices
 from django.template.loader import render_to_string
 from django.conf import settings
 
+from wagtail.models import Site
 from django_tenants.models import TenantMixin, DomainMixin
 
 from bakeup.contrib.fields import ChoiceArrayField
@@ -28,11 +29,8 @@ class Client(TenantMixin):
     auto_create_schema = True
 
     def get_absolute_primary_domain(self, request):
-        http_type = 'https://' if request.is_secure() else 'http://'
-        domain = get_current_site(request).domain
-        return "".join([http_type, domain])
-
-
+        site = Site.find_for_request(request)
+        return site.root_url
 
     def reverse(self, request, view_name, **kwargs):
         """
