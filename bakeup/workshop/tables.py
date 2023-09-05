@@ -1,3 +1,4 @@
+from django.db.models.functions import Lower
 from django.db.models import Q
 from django import forms
 import django_tables2 as tables
@@ -59,13 +60,17 @@ class ProductionDayTable(tables.Table):
 
 
 class CustomerOrderFilter(django_filters.FilterSet):
-    customer = django_filters.ModelChoiceFilter(queryset=Customer.objects.all(), empty_label=_('Select a customer'))
+    customer = django_filters.ModelChoiceFilter(queryset=Customer.objects.all().order_by(Lower('user__last_name')), empty_label=_('Select a customer'))
     production_day = django_filters.ModelChoiceFilter(queryset=ProductionDay.objects.all(), empty_label=_('Select a production day'))
     point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label=_('Select a point of sale'))
+    search = django_filters.filters.CharFilter(method='filter_search', label="Search")
     
     class Meta:
         model = CustomerOrder
         fields = ('production_day','point_of_sale', 'customer')
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(Q(customer__user__first_name__icontains=value) | Q(customer__user__last_name__icontains=value)| Q(customer__user__email__icontains=value))
 
 
 class CustomerOrderTable(tables.Table):
