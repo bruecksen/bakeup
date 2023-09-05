@@ -16,6 +16,7 @@
             {% endif %}
           </div>
           <h2 class="my-3 fw-bold">{% trans "Sign Up" %}</h2>
+          {% url 'shop:login' as login_url %}
           <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
 
           <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
