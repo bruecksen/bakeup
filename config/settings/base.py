@@ -356,10 +356,12 @@ USER_REGISTRATION_FORM_FIELDS = {
     'first_name': {
         'label': 'Vorname',
         'required': True,
+        'max_length': 150,
     },
     'last_name': {
         'label': 'Nachname',
         'required': True,
+        'max_length': 150,
     },
     'point_of_sale': {
         'label': 'Abholstation',
@@ -368,22 +370,27 @@ USER_REGISTRATION_FORM_FIELDS = {
     'street': {
         'label': 'Straße',
         'required': True,
+        'max_length': 100,
     },
     'street_number': {
         'label': 'Hausnummer',
         'required': True,
+        'max_length': 10,
     },
     'postal_code': {
         'label': 'PLZ',
         'required': True,
+        'max_length': 10,
     },
     'city': {
         'label': 'Stadt',
         'required': True,
+        'max_length': 100,
     },
     'telephone_number': {
         'label': 'Telefonnummer',
         'required': True,
+        'max_length': 20,
     },
 }
 
