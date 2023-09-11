@@ -107,10 +107,18 @@ class SelectProductionDayForm(Form):
 class CustomerForm(ModelForm):
     first_name = CharField()
     last_name = CharField()
+    is_active = BooleanField(
+        required=False, 
+        label=_('active'), 
+        help_text=_(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
 
     class Meta:
         model = Customer
-        fields = ['first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number']
+        fields = ['is_active', 'first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number']
 
 
 class ProductionDayMetaProductForm(forms.Form):

@@ -120,7 +120,7 @@ class CustomerTable(tables.Table):
 
     class Meta:
         model = Customer
-        fields = ("email", "user__first_name", "user__last_name", "user__date_joined", "point_of_sale", "abos")
+        fields = ("email", "user__first_name", "user__last_name", "user__date_joined", "user__is_active", "point_of_sale", "abos")
 
     def value_street(self, record):
         return "{} {}".format(record.street, record.street_number)

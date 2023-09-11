@@ -1,5 +1,6 @@
 {% extends "workshop/base.html" %}
 {% load crispy_forms_tags %}
+{% load i18n %}
 
 {% block title %}Customer {{ object }}{% endblock %}
 {% block page_heading %}
@@ -80,6 +81,30 @@ Customer {{ object }}
         </div>
       </div>
       {% endif %}
+      <div class="row">
+        <div class="col-4 fw-bold">
+          {% trans "active" %}:
+        </div>
+        <div class="col-8">
+          {% if object.user.is_active %}<i class="fas fa-check-circle"></i>{% else %}<i class="fas fa-times-circle"></i>{% endif%}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          {% trans "date joined" %}:
+        </div>
+        <div class="col-8">
+          {{ object.user.date_joined }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          {% trans "last login" %}:
+        </div>
+        <div class="col-8">
+          {{ object.user.last_login }}
+        </div>
+      </div>
     </div>
   </div>
 </div>

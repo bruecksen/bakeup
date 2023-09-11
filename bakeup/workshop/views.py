@@ -986,13 +986,15 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         initial = super().get_initial()
         initial['first_name'] = self.object.user.first_name
         initial['last_name'] = self.object.user.last_name
+        initial['is_active'] = self.object.user.is_active
         return initial
     
     def form_valid(self, form):
         self.object = form.save()
         self.object.user.first_name = form.cleaned_data['first_name']
         self.object.user.last_name = form.cleaned_data['last_name']
-        self.object.user.save(update_fields=['first_name', 'last_name'])
+        self.object.user.is_active = form.cleaned_data['is_active']
+        self.object.user.save(update_fields=['first_name', 'last_name', 'is_active'])
         return HttpResponseRedirect(self.get_success_url())
 
 
