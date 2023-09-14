@@ -59,6 +59,15 @@ class ProductionDayQuerySet(models.QuerySet):
         today = timezone.now().date()
         return self.filter(day_of_sale__gte=today).order_by('day_of_sale')
 
+    def available_to_user(self, user):
+        return self.filter(
+            Q(production_day_products__group__isnull=True) |
+            Q(production_day_products__group__in=[group.pk for group in user.groups.all()])
+        )
+
+    def available(self):
+        return self.filter(production_day_products__group__isnull=True)
+
 
 class ProductionDay(CommonBaseClass):
     day_of_sale = models.DateField(unique=True, verbose_name=_("Day of Sale"), db_index=True)
@@ -223,6 +232,15 @@ class ProductionDay(CommonBaseClass):
         positions.update(product=production_plan_product)
 
 class ProductionDayProductQuerySet(models.QuerySet):
+    def available_to_user(self, user):
+        return self.filter(
+            Q(group__isnull=True) |
+            Q(group__in=[group.pk for group in user.groups.all()])
+        )
+    
+    def available(self):
+        return self.filter(group__isnull=True)
+
     def published(self):
         return self.filter(is_published=True)
     
@@ -245,6 +263,7 @@ class ProductionDayProduct(CommonBaseClass):
     max_quantity = models.PositiveSmallIntegerField(blank=False, null=False, verbose_name=_("Max quantity"))
     production_plan = models.ForeignKey('workshop.ProductionPlan', on_delete=models.SET_NULL, blank=True, null=True)
     is_published = models.BooleanField(default=False, verbose_name=_("Published?"))
+    group = models.ForeignKey('auth.Group', blank=True, null=True, verbose_name=_('Group'), on_delete=models.SET_NULL)
     
     objects = ProductionDayProductQuerySet.as_manager()
 
@@ -317,6 +336,13 @@ class ProductionDayProduct(CommonBaseClass):
             orders = orders.exclude(order__customer=exclude_customer)
         ordered_quantity = orders.aggregate(quantity_sum=Sum('quantity'))['quantity_sum'] or 0
         return max(self.max_quantity - ordered_quantity, 0)
+
+    def is_available_to_customer(self, customer):
+        if not self.group:
+            return True
+        if self.group and self.group in customer.user.groups.all():
+            return True
+        return False
 
 
 class PointOfSale(CommonBaseClass):
@@ -427,7 +453,6 @@ class CustomerOrder(CommonBaseClass):
     
     @classmethod
     def create_or_update_customer_order(cls, request, production_day, customer, products, point_of_sale=None):
-        # TODO order_nr, address, should point of sale really be saved in order?
         # TODO check quantity with availalbe quantity
         with transaction.atomic():
             point_of_sale = point_of_sale and PointOfSale.objects.get(pk=point_of_sale) or customer.point_of_sale
@@ -441,6 +466,9 @@ class CustomerOrder(CommonBaseClass):
             for product, quantity in products.items():
                 # print(product, quantity)
                 production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
+                if not production_day_product.is_available_to_customer(customer):
+                    messages.add_message(request, messages.INFO, "Leider ist das Produkt {} nicht verfügbar.".format(product.get_display_name()))
+                    continue
                 max_quantity = production_day_product.calculate_max_quantity(customer)
                 if quantity > 0 and production_day_product.is_sold_out and max_quantity <= quantity:
                     messages.add_message(request, messages.INFO, "Leider ist das Produkt {} schon ausverkauft und konnte nicht mehr bestellt werden.".format(product.get_display_name()))
@@ -478,7 +506,7 @@ class CustomerOrder(CommonBaseClass):
             return customer_order, created
     
     def get_production_day_products_ordered_list(self):
-        production_day_products = self.production_day.production_day_products.published()
+        production_day_products = self.production_day.production_day_products.published().available_to_user(self.customer.user)
         production_day_products = production_day_products.annotate(
             ordered_quantity=Subquery(self.positions.filter(Q(product=OuterRef('product__pk')) | Q(product__product_template=OuterRef('product__pk')),).values("quantity"))
         ).annotate(

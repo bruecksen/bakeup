@@ -17,6 +17,22 @@ def customer_quantity(context, production_day_product):
     return position and position.quantity or None
 
 @register.simple_tag(takes_context=True)
+def upcoming_available_production_days(context, product):
+    user = context['request'].user
+    if user.is_authenticated:
+        return product.production_days.published().upcoming().available_to_user(user)
+    else:
+        return product.production_days.published().upcoming().available()
+
+@register.simple_tag(takes_context=True)
+def available_products(context, production_day):
+    user = context['request'].user
+    if user.is_authenticated:
+        return production_day.production_day_products.published().upcoming().available_to_user(user)
+    else:
+        return production_day.production_day_products.published().upcoming().available()
+
+@register.simple_tag(takes_context=True)
 def max_quantity(context, production_day, product):
     production_day_product = ProductionDayProduct.objects.get(production_day=production_day, product=product)
     return production_day_product.calculate_max_quantity(context['request'].user.customer)

@@ -3,19 +3,20 @@
 <div class="card h-100 production-day-card">
     <div class="position-relative">
         <div class="row g-0">
-            {% if production_day.production_day_products.published.with_pictures.count == 1 %}
-                {% thumbnail production_day.production_day_products.published.first.product.image "600x450" crop="center" as im %}
+            {% available_products production_day as products %}
+            {% if products.with_pictures.count == 1 %}
+                {% thumbnail products.first.product.image "600x450" crop="center" as im %}
                 <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
                 {% endthumbnail %}
             {% else %}
             <div id="carousel-production-day-{{ production_day.pk }}" class="carousel slide" data-bs-ride="true">
                 <div class="carousel-indicators">
-                    {% for production_day_product in production_day.production_day_products.published.with_pictures.all %}
+                    {% for production_day_product in products.with_pictures.all %}
                         <button type="button" data-bs-target="#carousel-production-day-{{ production_day.pk }}" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
                     {% endfor %}
                 </div>
                 <div class="carousel-inner">
-                    {% for production_day_product in production_day.production_day_products.published.with_pictures.all %}
+                    {% for production_day_product in products.with_pictures.all %}
                         <div class="carousel-item{% if forloop.first %} active{% endif %}">
                             {% thumbnail production_day_product.product.image "600x450" crop="center" as im %}
                             <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
@@ -39,7 +40,7 @@
     <div class="card-body pb-0">
         <h2 class="card-title fw-bold">{{ production_day.day_of_sale|date:'d.m.Y' }}</h2>
         <p>{{ production_day.description|safe|linebreaksbr|urlize }}</p>
-        {% for product in production_day.production_day_products.published.all %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product.get_display_name }}</span>{% endfor %}
+        {% for product in products %}<span class="badge bg-dark me-2 mb-2 fs-6">{{ product.product.get_display_name }}</span>{% endfor %}
     </div>
     <div class="card-footer">
         <div class="d-grid">
