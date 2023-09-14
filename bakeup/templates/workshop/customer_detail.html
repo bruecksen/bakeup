@@ -94,7 +94,7 @@ Customer {{ object }}
           {% trans "Groups" %}:
         </div>
         <div class="col-8">
-          {% for group in object.user.groups.all %}<span class="badge text-bg-dark me-2">{{ group }}</span>{% endfor %}
+          {% for group in object.user.groups.all %}<span class="badge text-bg-dark me-2">{{ group }}</span>{% empty %} - {% endfor %}
         </div>
       </div>
       <div class="row">

@@ -164,7 +164,7 @@ class BaseProductionDayProductFormSet(BaseModelFormSet):
 
 
 ProductionDayProductFormSet = modelformset_factory(
-    ProductionDayProduct, fields=("product", "max_quantity", "is_published"), extra=1,  can_delete=True, formset=BaseProductionDayProductFormSet
+    ProductionDayProduct, fields=("product", "max_quantity", "is_published", "group"), extra=1,  can_delete=True, formset=BaseProductionDayProductFormSet
 )
 
 CustomerOrderPositionFormSet = modelformset_factory(
