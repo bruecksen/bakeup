@@ -16,12 +16,12 @@ Customer {{ object }}
 
 {% block page_content %}
 <div class="row">
-  <div class="col col-md-6">
+  <div class="col col-md-7">
     <div class="card p-3">
-      <h3>Account:</h3>
+      <h3>{% trans "Account" %}:</h3>
       <div class="row">
         <div class="col-4 fw-bold">
-          Email:
+          {% trans "Email" %}:
         </div>
         <div class="col-8">
           <a href="mailto:{{ object.user.email }}">{{ object.user.email }}</a>
@@ -29,7 +29,7 @@ Customer {{ object }}
       </div>
       <div class="row">
         <div class="col-4 fw-bold">
-          First name:
+          {% trans "First name" %}:
         </div>
         <div class="col-8">
           {{ object.user.first_name }}
@@ -37,7 +37,7 @@ Customer {{ object }}
       </div>
       <div class="row">
         <div class="col-4 fw-bold">
-          Last name:
+          {% trans "Last name" %}:
         </div>
         <div class="col-8">
           {{ object.user.last_name }}
@@ -45,7 +45,7 @@ Customer {{ object }}
       </div>
       <div class="row">
         <div class="col-4 fw-bold">
-          Point of sale:
+          {% trans "Point of sale" %}:
         </div>
         <div class="col-8">
           {{ object.point_of_sale }}
@@ -54,7 +54,7 @@ Customer {{ object }}
       {% if object.street %}
       <div class="row">
         <div class="col-4 fw-bold">
-          Street:
+          {% trans "Street" %}:
         </div>
         <div class="col-8">
           {{ object.street }} {{ object.street_number }}
@@ -64,7 +64,7 @@ Customer {{ object }}
       {% if object.city or object.postal_code %}
       <div class="row">
         <div class="col-4 fw-bold">
-          City:
+          {% trans "City" %}:
         </div>
         <div class="col-8">
           {{ object.postal_code }} {{ object.city }}
@@ -74,7 +74,7 @@ Customer {{ object }}
       {% if object.telephone_number %}
       <div class="row">
         <div class="col-4 fw-bold">
-          Telephone:
+          {% trans "Telephone" %}:
         </div>
         <div class="col-8">
           {{ object.telephone_number }}
@@ -87,6 +87,14 @@ Customer {{ object }}
         </div>
         <div class="col-8">
           {% if object.user.is_active %}<i class="fas fa-check-circle"></i>{% else %}<i class="fas fa-times-circle"></i>{% endif%}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          {% trans "Groups" %}:
+        </div>
+        <div class="col-8">
+          {% for group in object.user.groups.all %}<span class="badge text-bg-dark me-2">{{ group }}</span>{% endfor %}
         </div>
       </div>
       <div class="row">
@@ -109,7 +117,7 @@ Customer {{ object }}
   </div>
 </div>
 <div class="row mt-4">
-  <div class="col col-md-6">
+  <div class="col col-md-7">
     <div class="card p-3">
       <h3>Abo:</h3>
       <ul class="list-unstyled">
@@ -125,17 +133,17 @@ Customer {{ object }}
   </div>
 </div>
 <div class="row mt-4">
-  <div class="col col-md-6">
+  <div class="col col-md-7">
     <div class="card p-3">
       <h3>Order history:</h3>
       <p>Total orders: <strong>{{ object.orders.all.count }}</strong><br>
         Total positions: <strong>{{ object.total_ordered_positions }}</strong></p>
       {% for order in customer.orders.all %}
         <div class="row border-bottom">
-          <div class="col-4 fw-bold">
+          <div class="col-3 fw-bold">
             {{ order.production_day }}
           </div>
-          <div class="col-8">
+          <div class="col-9">
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </div>
         </div>

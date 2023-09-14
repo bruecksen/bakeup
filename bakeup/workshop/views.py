@@ -27,6 +27,7 @@ from django.conf import settings
 from django.views.generic.detail import SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import Group
 
 from django_htmx.http import HttpResponseClientRefresh
 from django_filters.views import FilterView
@@ -42,7 +43,7 @@ from bakeup.shop.forms import BatchCustomerOrderFormSet, BatchCustomerOrderTempl
 from bakeup.shop.models import Customer, CustomerOrder, CustomerOrderPosition, ProductionDay, ProductionDayProduct, PointOfSale, CustomerOrderTemplate, CustomerOrderTemplatePosition
 from bakeup.workshop.forms import AddProductForm, AddProductFormSet, ProductForm, ProductHierarchyForm, ProductKeyFiguresForm, ProductionPlanDayForm, ProductionPlanForm, SelectProductForm, SelectProductionDayForm, CustomerForm, ProductionDayMetaProductformSet, ProductionDayReminderForm, ReminderMessageForm, SelectReminderMessageForm
 from bakeup.workshop.models import Category, Product, ProductPrice, ProductHierarchy, ProductionPlan, Instruction, ProductMapping, ReminderMessage
-from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable
+from bakeup.workshop.tables import PointOfSaleTable, CustomerOrderFilter, CustomerOrderTable, CustomerTable, CustomerFilter, ProductFilter, ProductTable, ProductionDayTable, ProductionPlanFilter, ProductionPlanTable, GroupTable
 from bakeup.workshop.export import ExportMixin
 from bakeup.users.models import User
 from bakeup.pages.models import EmailSettings
@@ -987,6 +988,7 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         initial['first_name'] = self.object.user.first_name
         initial['last_name'] = self.object.user.last_name
         initial['is_active'] = self.object.user.is_active
+        initial['groups'] = [i.id for i in self.object.user.groups.all()]
         return initial
     
     def form_valid(self, form):
@@ -994,6 +996,7 @@ class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
         self.object.user.first_name = form.cleaned_data['first_name']
         self.object.user.last_name = form.cleaned_data['last_name']
         self.object.user.is_active = form.cleaned_data['is_active']
+        self.object.user.groups.set(form.cleaned_data['groups'])
         self.object.user.save(update_fields=['first_name', 'last_name', 'is_active'])
         return HttpResponseRedirect(self.get_success_url())
 
@@ -1012,6 +1015,56 @@ class CustomerOrderListView(StaffPermissionsMixin, TableExportMixin, SingleTable
         context = super().get_context_data(**kwargs)
         context['form_add_order'] = SelectProductionDayForm()
         return context
+
+
+class GroupDeleteView(DeleteView):
+    model = Group
+    template_name = 'workshop/group_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse(
+            'workshop:group-list',
+        )
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            self.object.delete()
+        except ProtectedError as e:
+            messages.error(request, e)
+        finally:
+            return redirect(success_url)
+
+
+
+class GroupListView(StaffPermissionsMixin, SingleTableView):
+    model = Group
+    table_class = GroupTable
+    template_name = 'workshop/group_list.html'
+
+    # @property
+    # def export_name(self):
+    #     return "orders-{}".format(now().strftime("%Y%m%d-%H%M%S"))
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['form_add_order'] = SelectProductionDayForm()
+    #     return context
+
+
+class GroupCreateView(StaffPermissionsMixin, CreateView):
+    model = Group
+    fields = ('name', )
+    template_name = 'workshop/group_form.html'
+    success_url = reverse_lazy('workshop:group-list')
+
+
+class GroupUpdateView(StaffPermissionsMixin, UpdateView):
+    model = Group
+    fields = ('name', )
+    template_name = 'workshop/group_form.html'
+    success_url = reverse_lazy('workshop:group-list')
     
 
 class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterView):

@@ -6,6 +6,7 @@ import django_filters
 from django_tables2.utils import A
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import Group
 
 from bakeup.workshop.models import Category, Product, ProductionPlan
 from bakeup.shop.models import CustomerOrder, PointOfSale, ProductionDay, ProductionDayProduct, Customer
@@ -105,6 +106,18 @@ class ProductionDayExportTable(tables.Table):
         fields = ()
 
 
+class GroupTable(tables.Table):
+    user_count = tables.Column(empty_values=(), verbose_name=_('Users'))
+    actions = tables.TemplateColumn(template_name='tables/group_actions_column.html', verbose_name='')
+
+    class Meta:
+        model = Group
+        fields = ("name",)
+
+    def render_user_count(self, value, record):
+        return record.user_set.count()
+
+
 class CustomerTable(tables.Table):
     # planned = tables.TemplateColumn('{% if record.is_planned %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}', orderable=False, verbose_name='')
     # order_nr = tables.Column(verbose_name='#', order_by='pk')
@@ -130,6 +143,7 @@ class CustomerFilter(django_filters.FilterSet):
     abos = django_filters.ModelChoiceFilter(method='filter_abos', queryset=Product.objects.filter(category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME), empty_label='Select abo')
     point_of_sale = django_filters.ModelChoiceFilter(queryset=PointOfSale.objects.all(), empty_label=_('Select a point of sale'))
     search = django_filters.filters.CharFilter(method='filter_search', label="Search")
+    group = django_filters.ModelChoiceFilter(method='filter_group', queryset=Group.objects.all(), empty_label=_('Select a group'))
     
     class Meta:
         model = Customer
@@ -137,6 +151,9 @@ class CustomerFilter(django_filters.FilterSet):
 
     def filter_abos(self, queryset, name, value):
         return queryset.filter(order_templates__product=value)
+    
+    def filter_group(self, queryset, name, value):
+        return queryset.filter(user__groups=value)
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(Q(user__first_name__icontains=value) | Q(user__last_name__icontains=value)| Q(user__email__icontains=value))

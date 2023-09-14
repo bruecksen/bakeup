@@ -1,0 +1,24 @@
+{% extends "workshop/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block page_heading %}{% trans "Delete group" %}{% endblock %}
+
+{% block page_content %}
+<div id="content-container" class="container p-none">
+    <div class="side-p">
+        <h3>{% trans "Are you sure?" %}</h3>
+        {% blocktranslate trimmed %}
+        <p>You're about to delete the following group: {{ object }}. Please confirm.</p>
+        {% endblocktranslate %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <input class="btn btn-link" 
+                   type="button" value="{% trans 'Cancel' %}" 
+                   onclick="window.history.go(-1);"/>
+            <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
