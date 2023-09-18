@@ -233,8 +233,8 @@ class ShopView(TemplateView):
         if self.production_day:
             context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_day_next'] = self.production_day
-            context['production_day_products'] = self.production_day.production_day_products.published()
-            production_day_products = self.production_day.production_day_products.published()
+            production_day_products = self.production_day.production_day_products.published().available_to_user(self.request.user)
+            context['production_day_products'] = production_day_products
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
             context['current_customer_order'] = current_customer_order
             # TODO this needs to go at one place, code duplication, very bad idea pages/models

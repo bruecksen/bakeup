@@ -86,7 +86,7 @@ class ShopPage(Page):
             context['production_day_next'] = self.production_day
             current_customer_order = CustomerOrder.objects.filter(customer=customer, production_day=self.production_day).first()
             context['current_customer_order'] = current_customer_order
-            production_day_products = self.production_day.production_day_products.published()
+            production_day_products = self.production_day.production_day_products.published().available_to_user(request.user)
             # TODO this needs to go at one place, code duplication, very bad idea shop/views
             production_day_products = production_day_products.annotate(
                 ordered_quantity=Subquery(

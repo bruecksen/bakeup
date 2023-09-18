@@ -5,22 +5,17 @@
 {% load i18n %}
 
 {% block title %}{% endblock %}
-{% block page_heading %}{% trans "Customers" %}{% endblock %}
+{% block page_heading %}{% trans "Groups" %}{% endblock %}
 
 {% block page_heading_action %}
-<div class="btn-group float-end" role="group" aria-label="Basic example">
-  <a href="{% url 'workshop:group-list' %}" class="btn btn-primary btn-sm"><i class="fas fa-users"></i> {% trans "Groups" %}</a>
-  <a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm">{% trans "Customer abos" %}</a>
-  <div class="btn-group">
-    <a class="btn btn-sm btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="fas fa-file-download"></i> {% trans "Export as CSV" %}
-    </a>
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item" href="{% export_url "csv" %}">{% trans "Export" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'workshop:customer-export-ready-2-order' %}?{{ request.GET.urlencode }}">{% trans "Export Ready2Order" %}</a></li>
-    </ul>
+<form action="{% url 'workshop:order-add' %}" method="post">
+  {% csrf_token %}
+  <div class="row justify-content-end">
+    <div class="col-10 text-end">
+      <a href="{% url 'workshop:group-add' %}" class="btn btn-primary btn-sm float-end"><i class="fas fa-plus-circle"></i> {% trans "Add group" %}</a>
+    </div>
   </div>
-</div>
+  </form>
 {% endblock %}
 
 {% block page_content %}
@@ -31,13 +26,13 @@
         {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-2">
-        {% bootstrap_field filter.form.abos size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+        {% bootstrap_field filter.form.customer size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-2">
         {% bootstrap_field filter.form.point_of_sale size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-2">
-        {% bootstrap_field filter.form.group size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+        {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-3">
         {% bootstrap_button "Filter" button_type="submit" button_class="btn-primary" size="sm" %}

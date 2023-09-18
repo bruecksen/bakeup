@@ -4,12 +4,15 @@
 {% customer_quantity production_day_product as customer_quantity %}
 {% endif %}
 <div class="card h-100 product-card" id="product-{{ production_day_product.pk }}" data-product="{{ production_day_product.product.pk }}" data-ordered-quantity="{{ customer_quantity|default:0 }}">
+    {% if production_day_product.group %}
+    <span class="badge bg-primary top text-uppercase fs-5">{{ production_day_product.group }}</span>
+    {% endif %}
     {% if production_day_product.production_plan.is_production %}
-    <span class="badge bg-dark top-middle text-uppercase fs-5">In Produktion</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-6">In Produktion</span>
     {% elif production_day_product.production_plan.is_produced %}
-    <span class="badge bg-dark top-middle text-uppercase fs-5">Produziert</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-6">Produziert</span>
     {% elif production_day_product.is_sold_out %}
-    <span class="badge bg-dark top-middle text-uppercase fs-5 opacity-100 shadow">Ausverkauft</span>
+    <span class="badge bg-dark top-middle text-uppercase fs-6 opacity-100 shadow">Ausverkauft</span>
     {% endif %}
     {% if production_day_product.is_locked or production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
 

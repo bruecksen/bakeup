@@ -13181,6 +13181,15 @@ textarea {
   z-index: 10;
 }
 
+.badge.top {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 10;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+          transform: translateX(-50%) translateY(-50%);
+}
+
 .badge.top-middle {
   position: absolute;
   left: 50%;

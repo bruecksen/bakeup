@@ -4,6 +4,7 @@ from django.db.models import Q
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import Group
 
 from djmoney.forms.fields import MoneyField
 from django.utils.translation import gettext_lazy as _
@@ -115,10 +116,17 @@ class CustomerForm(ModelForm):
             "Unselect this instead of deleting accounts."
         ),
     )
+    groups = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Group.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        label=_('Groups'),
+        help_text=_('This user belongs to the following groups.')
+    )
 
     class Meta:
         model = Customer
-        fields = ['is_active', 'first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number']
+        fields = ['is_active', 'first_name', 'last_name', 'point_of_sale', 'street', 'street_number', 'postal_code', 'city', 'telephone_number', 'groups']
 
 
 class ProductionDayMetaProductForm(forms.Form):
