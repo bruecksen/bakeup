@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-14 14:40+0200\n"
+"POT-Creation-Date: 2023-09-20 11:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -192,10 +192,14 @@ msgid "login/"
 msgstr "anmelden/"
 
 #: bakeup/shop/urls.py:27
+msgid "signup/<slug:token>/"
+msgstr ""
+
+#: bakeup/shop/urls.py:28
 msgid "signup/"
 msgstr "registrieren/"
 
-#: bakeup/shop/urls.py:28
+#: bakeup/shop/urls.py:29
 msgid "account/closure/"
 msgstr "konto/schliessen/"
 
@@ -308,11 +312,15 @@ msgid "Set Password"
 msgstr "Setze Passwort"
 
 #: bakeup/templates/account/signup.html:18
-#: bakeup/templates/account/signup.html:28
+#: bakeup/templates/account/signup.html:32
 msgid "Sign Up"
 msgstr "Registrieren"
 
 #: bakeup/templates/account/signup.html:20
+msgid "as"
+msgstr "als"
+
+#: bakeup/templates/account/signup.html:24
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
@@ -1093,7 +1101,7 @@ msgstr "Hallo %(user)s, willkommen in Bakeup!"
 msgid "This account is closed. Login is not possible."
 msgstr "Dies ist ein geschlossener Account. Anmelden ist nicht mehr möglich."
 
-#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:110
+#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:111
 msgid "Users"
 msgstr "Benutzer"
 
@@ -1105,7 +1113,7 @@ msgstr ""
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
 
-#: bakeup/users/views.py:248
+#: bakeup/users/views.py:272
 msgid "Your account is closed."
 msgstr "Dein Konto ist jetzt geschlossen."
 
@@ -1263,16 +1271,16 @@ msgstr "Suche"
 msgid "Select a customer"
 msgstr "Wähle einen Kunden"
 
-#: bakeup/workshop/tables.py:65 bakeup/workshop/tables.py:165
+#: bakeup/workshop/tables.py:65 bakeup/workshop/tables.py:166
 msgid "Select a production day"
 msgstr "Wähle einen Produktionstag"
 
-#: bakeup/workshop/tables.py:66 bakeup/workshop/tables.py:144
+#: bakeup/workshop/tables.py:66 bakeup/workshop/tables.py:145
 msgid "Select a point of sale"
 msgstr "Wähle eine Abholstelle"
 
 #: bakeup/workshop/tables.py:82 bakeup/workshop/tables.py:101
-#: bakeup/workshop/tables.py:126
+#: bakeup/workshop/tables.py:127
 msgid "eMail"
 msgstr "E-Mail"
 
@@ -1296,7 +1304,11 @@ msgstr ""
 msgid "phone"
 msgstr ""
 
-#: bakeup/workshop/tables.py:146
+#: bakeup/workshop/tables.py:110
+msgid "Signup url"
+msgstr ""
+
+#: bakeup/workshop/tables.py:147
 msgid "Select a group"
 msgstr "Wähle eine Gruppe"
 

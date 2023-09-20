@@ -326,7 +326,10 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_UNIQUE_EMAIL = True
 
 ACCOUNT_ADAPTER = 'bakeup.users.allauth.AccountAdapter'
-ACCOUNT_FORMS = {'signup': 'bakeup.users.forms.SignupForm'}
+ACCOUNT_FORMS = {
+    'signup': 'bakeup.users.forms.SignupForm',
+    'login': 'bakeup.users.forms.LoginForm',
+}
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True

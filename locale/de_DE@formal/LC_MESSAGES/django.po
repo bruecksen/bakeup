@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-14 14:40+0200\n"
+"POT-Creation-Date: 2023-09-20 11:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,10 +208,14 @@ msgid "login/"
 msgstr "anmelden/"
 
 #: bakeup/shop/urls.py:27
+msgid "signup/<slug:token>/"
+msgstr ""
+
+#: bakeup/shop/urls.py:28
 msgid "signup/"
 msgstr "registrieren/"
 
-#: bakeup/shop/urls.py:28
+#: bakeup/shop/urls.py:29
 msgid "account/closure/"
 msgstr "konto/schliessen/"
 
@@ -317,11 +321,15 @@ msgid "Set Password"
 msgstr ""
 
 #: bakeup/templates/account/signup.html:18
-#: bakeup/templates/account/signup.html:28
+#: bakeup/templates/account/signup.html:32
 msgid "Sign Up"
 msgstr ""
 
 #: bakeup/templates/account/signup.html:20
+msgid "as"
+msgstr "als"
+
+#: bakeup/templates/account/signup.html:24
 #, python-format
 msgid ""
 "Already have an account? Then please <a href=\"%(login_url)s\">sign in</a>."
@@ -711,7 +719,6 @@ msgid "Add another product"
 msgstr "Neue Kategorie hinzufügen"
 
 #: bakeup/templates/workshop/group_confirm_delete.html:5
-#| msgid "Go to products"
 msgid "Delete group"
 msgstr "Gruppe löschen"
 
@@ -731,12 +738,10 @@ msgstr ""
 #: bakeup/templates/workshop/group_form.html:6
 #: bakeup/templates/workshop/group_form.html:11
 #: bakeup/templates/workshop/group_list.html:15
-#| msgid "Add new category"
 msgid "Add group"
 msgstr "Neue Gruppe hinzufügen"
 
 #: bakeup/templates/workshop/group_form.html:9
-#| msgid "Go to products"
 msgid "Update group"
 msgstr "Gruppe aktualisieren"
 
@@ -1179,7 +1184,7 @@ msgstr "Hallo %(request.user)s, willkommen in Bakeup!"
 msgid "This account is closed. Login is not possible."
 msgstr "Dies ist ein geschlossener Account. Anmelden ist nicht mehr möglich."
 
-#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:110
+#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:111
 msgid "Users"
 msgstr "Benutzer"
 
@@ -1191,7 +1196,7 @@ msgstr ""
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
 
-#: bakeup/users/views.py:248
+#: bakeup/users/views.py:272
 msgid "Your account is closed."
 msgstr "Ihr Konto ist jetzt geschlossen."
 
@@ -1375,20 +1380,20 @@ msgstr ""
 msgid "Select a customer"
 msgstr "Lösche Kategorie"
 
-#: bakeup/workshop/tables.py:65 bakeup/workshop/tables.py:165
+#: bakeup/workshop/tables.py:65 bakeup/workshop/tables.py:166
 #, fuzzy
 #| msgid "Go to production days"
 msgid "Select a production day"
 msgstr "Zu den Produktionstagen"
 
-#: bakeup/workshop/tables.py:66 bakeup/workshop/tables.py:144
+#: bakeup/workshop/tables.py:66 bakeup/workshop/tables.py:145
 #, fuzzy
 #| msgid "Points of sale"
 msgid "Select a point of sale"
 msgstr "Abholstellen"
 
 #: bakeup/workshop/tables.py:82 bakeup/workshop/tables.py:101
-#: bakeup/workshop/tables.py:126
+#: bakeup/workshop/tables.py:127
 msgid "eMail"
 msgstr ""
 
@@ -1412,8 +1417,11 @@ msgstr ""
 msgid "phone"
 msgstr ""
 
-#: bakeup/workshop/tables.py:146
-#| msgid "Delete category"
+#: bakeup/workshop/tables.py:110
+msgid "Signup url"
+msgstr ""
+
+#: bakeup/workshop/tables.py:147
 msgid "Select a group"
 msgstr "Gruppe auswählen"
 

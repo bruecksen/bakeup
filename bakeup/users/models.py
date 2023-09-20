@@ -42,23 +42,17 @@ class User(AbstractUser):
             return self.first_name
 
 
-
-class Token(models.Model):
+class AbstractToken(models.Model):
     """Authentication token for user model"""
 
     # Secret string
     token = models.CharField(max_length=64, unique=True)
     # Time to live - number of days until token expiration
     ttl = models.IntegerField(default=30, help_text="Days till token expires")
-    user = models.OneToOneField(
-        User,
-        related_name='token',
-        on_delete=models.CASCADE
-    )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return "Token: {}".format(self.user)
+    class Meta:
+        abstract = True
 
     @classmethod
     def generate_token(cls):
@@ -90,3 +84,34 @@ class Token(models.Model):
         img.save(stream)
         html = "<div style='background-color: white;display: inline-block;'>{}</div>".format(stream.getvalue().decode())
         return html
+
+
+
+class Token(AbstractToken):
+    """Authentication token for user model"""
+    user = models.OneToOneField(
+        User,
+        related_name='token',
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return "Token: {}".format(self.user)
+    
+    def get_full_url(self, request):
+        return request.tenant.reverse(request, 'users:login-token', token=self.token)
+
+
+class GroupToken(AbstractToken):
+    """Authentication token for user model"""
+    group = models.OneToOneField(
+        'auth.Group',
+        related_name='token',
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return "Token: {}".format(self.group)
+    
+    def get_full_url(self, request):
+        return request.tenant.reverse(request, 'shop:signup', token=self.token)

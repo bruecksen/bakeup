@@ -29,3 +29,9 @@ def ordered_quantity(order, product):
         Q(product=product) | Q(product__product_template=product),
     ).first()
     return position and position.quantity or 0
+
+
+@register.simple_tag(takes_context=True)
+def token_url(context, token):
+    if token:
+        return token.token_url(context.get('request'))

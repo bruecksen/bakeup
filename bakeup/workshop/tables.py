@@ -107,12 +107,13 @@ class ProductionDayExportTable(tables.Table):
 
 
 class GroupTable(tables.Table):
+    token = tables.TemplateColumn('{% load workshop_tags %}{% token_url record.token %}', verbose_name=_('Signup url'))
     user_count = tables.Column(empty_values=(), verbose_name=_('Users'))
     actions = tables.TemplateColumn(template_name='tables/group_actions_column.html', verbose_name='')
 
     class Meta:
         model = Group
-        fields = ("name",)
+        fields = ("name", "token")
 
     def render_user_count(self, value, record):
         return record.user_set.count()

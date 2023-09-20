@@ -9,7 +9,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
 
 from allauth.utils import set_form_field_order
-from allauth.account.forms import SignupForm as _SignupForm
+from allauth.account.forms import SignupForm as _SignupForm, LoginForm as _LoginForm
 
 from bakeup.shop.models import PointOfSale
 
@@ -105,9 +105,22 @@ class UserFormMixin():
             
 
 class SignupForm(UserFormMixin, _SignupForm):
-    pass
+    email = forms.EmailField(
+        widget=forms.TextInput(
+            attrs={
+                "type": "email",
+                "placeholder": _("E-mail address"),
+                "autocomplete": "email",
+                "autofocus": True
+            }
+        )
+    )
 
 
 class UserProfileForm(UserFormMixin, forms.Form):
     pass
 
+class LoginForm(_LoginForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['login'].widget.attrs["autofocus"] = True
