@@ -192,7 +192,7 @@ class ProductionDay(CommonBaseClass):
             
 
     def create_template_orders(self, request):
-        production_day_products = self.production_day_products.published().values_list('product', flat=True)
+        production_day_products = self.production_day_products.published().available().values_list('product', flat=True)
         order_templates = CustomerOrderTemplate.objects.active().filter(positions__product__in=production_day_products)
         for order_template in order_templates:
             customer_order_template_positions = order_template.positions.filter(product__in=production_day_products)
