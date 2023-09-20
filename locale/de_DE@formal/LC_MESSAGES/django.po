@@ -1419,7 +1419,7 @@ msgstr ""
 
 #: bakeup/workshop/tables.py:110
 msgid "Signup url"
-msgstr ""
+msgstr "Registrieren"
 
 #: bakeup/workshop/tables.py:147
 msgid "Select a group"
