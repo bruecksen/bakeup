@@ -1,7 +1,10 @@
+from typing import Any
+from django import http
 from django.core.mail import send_mail
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth.models import Group
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse, resolve
@@ -69,12 +72,33 @@ class TokenLoginView(_LoginView):
 
 
 class SignupView(_SignupView):
+    group = None
+
+    def setup(self, request, *args, **kwargs):
+        token = kwargs.get('token', None)
+        if token and Group.objects.filter(token__token=token).exists():
+            self.group = Group.objects.get(token__token=token)
+        return super().setup(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
-            'request': self.request
+            'request': self.request,
         })
         return kwargs
+    
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data['group'] = self.group
+        return context_data
+    
+    def form_valid(self, form):
+        response =  super().form_valid(form)
+        if self.group and self.user:
+            # add user to group if group available
+            self.user.groups.add(self.group)
+        return response
+    
 
 
 
