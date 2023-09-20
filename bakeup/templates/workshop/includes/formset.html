@@ -23,6 +23,10 @@
         if (product) {
             product.selectedIndex = null;
         }
+        var group = document.getElementById(`id_form-${formNum}-group`);
+        if (group) {
+            group.selectedIndex = null;
+        }
         totalForms.setAttribute('value', `${formNum+1}`);
         var quantity = document.getElementById(`id_form-${formNum}-quantity`);
         if (quantity) {
