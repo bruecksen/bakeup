@@ -24,6 +24,7 @@ urlpatterns = [
    path(_("order-templates/"), view=CustomerOrderTemplateListView.as_view(), name="order-template-list"),
    path("profile/", view=shop_user_update_view, name="user-profile"),
    path(_("login/"), view=LoginView.as_view(), name="login"),
+   path(_("signup/<slug:token>/"), view=SignupView.as_view(), name="signup"),
    path(_("signup/"), view=SignupView.as_view(), name="signup"),
    path(_("account/closure/"), view=UserProfileDeleteView.as_view(), name="account-closure"),
    path("api/production-day-abo-products/<int:pk>/", view=production_day_abo_products, name="production-day-abo-products")

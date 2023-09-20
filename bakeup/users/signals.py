@@ -1,11 +1,12 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.models import Group
 
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 
 from bakeup.shop.models import Customer, PointOfSale
-from bakeup.users.models import User, Token
+from bakeup.users.models import User, Token, GroupToken
 
 
 @receiver(post_save, sender=User)
@@ -14,6 +15,15 @@ def create_user_token(sender, instance, created, **kwargs):
         Token.objects.create(
             user=instance,
             token=Token.generate_token(),
+        )
+
+
+@receiver(post_save, sender=Group)
+def create_group_token(sender, instance, created, **kwargs):
+    if not hasattr(instance, 'token'):
+        GroupToken.objects.create(
+            group=instance,
+            token=GroupToken.generate_token(),
         )
 
 
