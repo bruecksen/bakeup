@@ -79,7 +79,7 @@ class ShopPage(Page):
         context = super().get_context(request, *args, **kwargs)
         self.production_day = self.get_production_day(*args, **kwargs)
         customer = None if request.user.is_anonymous else request.user.customer
-        context['production_days'] = ProductionDay.objects.upcoming()
+        context['production_days'] = ProductionDay.objects.upcoming().available_to_user(request.user)
         if self.production_day:
             context['abo_product_days'] = ProductionDayProduct.get_available_abo_product_days(self.production_day, customer)
             context['production_days'] = context['production_days'].exclude(id=self.production_day.pk)
@@ -122,7 +122,7 @@ class ShopPage(Page):
             context['production_day_products'] = production_day_products
         context['show_remaining_products'] = request.tenant.clientsetting.show_remaining_products
         context['point_of_sales'] = PointOfSale.objects.all()
-        context['all_production_days'] = list(ProductionDay.objects.published().annotate(
+        context['all_production_days'] = list(ProductionDay.objects.published().available_to_user(request.user).annotate(
             formatted_date=Func(
                 F('day_of_sale'),
                 Value('dd.MM.yyyy'),
