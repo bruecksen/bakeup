@@ -200,7 +200,7 @@ class ProductionDay(CommonBaseClass):
 
     def get_ingredient_summary_list(self):
         ingredients = {}
-        for production_plan in self.production_plans.filter(parent_plan__isnull=True):
+        for production_plan in self.production_plans.filter(parent_plan__isnull=True).exclude(state=ProductionPlan.State.CANCELED):
             for child in ProductionPlan.objects.filter(
                 Q(parent_plan=production_plan) | 
                 Q(parent_plan__parent_plan=production_plan) | 
