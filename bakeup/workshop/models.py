@@ -17,7 +17,7 @@ from django.utils.timezone import datetime
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 from taggit.managers import TaggableManager
-from treebeard.mp_tree import MP_Node
+from treebeard.mp_tree import MP_Node, get_result_class
 from django.utils.translation import gettext_lazy as _
 
 from bakeup.core.models import CommonBaseClass
@@ -40,9 +40,16 @@ class Category(CommonBaseClass, MP_Node):
 
     def __str__(self):
         return '{} {}'.format('-' * (self.depth - 1), self.name)
+    
+    def get_descendants(self, include_self=False):
+        if include_self:
+            return self.__class__.get_tree(self)
+        if self.is_leaf():
+            return get_result_class(self.__class__).objects.none()
+        return self.__class__.get_tree(self).exclude(pk=self.pk)
 
     def get_product_count(self):
-        return self.product_set.count()
+        return Product.objects.filter(category__in=self.get_descendants(include_self=True)).count()
 
 
 WEIGHT_UNIT_CHOICES = [
