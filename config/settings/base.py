@@ -317,6 +317,7 @@ TENANT_MODEL = "core.Client" # app.Model
 
 TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
 
+SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
