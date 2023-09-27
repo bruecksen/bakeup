@@ -9,7 +9,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
 
 from allauth.utils import set_form_field_order
-from allauth.account.forms import SignupForm as _SignupForm, LoginForm as _LoginForm
+from allauth.account.forms import SignupForm as _SignupForm, LoginForm as _LoginForm, ResetPasswordForm
 
 from bakeup.shop.models import PointOfSale
 
@@ -124,3 +124,11 @@ class LoginForm(_LoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['login'].widget.attrs["autofocus"] = True
+
+
+class CustomResetPasswordForm(ResetPasswordForm):
+    def save(self, request, **kwargs):
+        email = self.cleaned_data["email"]
+        if self.users:
+            self._send_password_reset_mail(request, email, self.users, **kwargs)
+        return email
