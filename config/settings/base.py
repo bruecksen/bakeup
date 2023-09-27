@@ -330,6 +330,7 @@ ACCOUNT_ADAPTER = 'bakeup.users.allauth.AccountAdapter'
 ACCOUNT_FORMS = {
     'signup': 'bakeup.users.forms.SignupForm',
     'login': 'bakeup.users.forms.LoginForm',
+    'reset_password': 'bakeup.users.forms.CustomResetPasswordForm',
 }
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
