@@ -1,7 +1,19 @@
 from django.contrib import admin
 
 from bakeup.core.admin import ExcludeAdminMixin
-from .models import Customer, CustomerOrder, CustomerOrderTemplate, CustomerOrderTemplatePosition, CustomerOrderPosition, PointOfSale, PointOfSaleOpeningHour, ProductionDay, ProductionDayProduct, ProductionDayTemplate
+
+from .models import (
+    Customer,
+    CustomerOrder,
+    CustomerOrderPosition,
+    CustomerOrderTemplate,
+    CustomerOrderTemplatePosition,
+    PointOfSale,
+    PointOfSaleOpeningHour,
+    ProductionDay,
+    ProductionDayProduct,
+    ProductionDayTemplate,
+)
 
 
 class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
@@ -11,36 +23,33 @@ class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
 
 @admin.register(PointOfSale)
 class PointOfSaleAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'is_primary', 'address')
-    inlines = (PointOfSaleOpeningHourInline, )
-
+    list_display = ("name", "is_primary", "address")
+    inlines = (PointOfSaleOpeningHourInline,)
 
 
 @admin.register(Customer)
 class CustomerAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('user', 'point_of_sale',)
-    list_filter = ('point_of_sale',)
-    search_fields = ('user__email', 'point_of_sale__name')
+    list_display = (
+        "user",
+        "point_of_sale",
+    )
+    list_filter = ("point_of_sale",)
+    search_fields = ("user__email", "point_of_sale__name")
 
 
 @admin.register(ProductionDayProduct)
 class ProductionDayProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('production_day', 'product', 'max_quantity')
+    list_display = ("production_day", "product", "max_quantity")
 
 
 @admin.register(ProductionDay)
 class ProductionDayAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('day_of_sale',)
+    list_display = ("day_of_sale",)
 
 
 @admin.register(ProductionDayTemplate)
-class ProductionDayAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('day_of_the_week', 'calendar_week', 'product', 'quantity')
-
-
-@admin.register(CustomerOrderPosition)
-class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('order', 'product', 'quantity')
+class ProductionDayTemplateAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+    list_display = ("day_of_the_week", "calendar_week", "product", "quantity")
 
 
 class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.TabularInline):
@@ -50,7 +59,13 @@ class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.TabularInline):
 
 @admin.register(CustomerOrder)
 class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('order_nr', 'production_day', 'customer', 'point_of_sale', 'address')
+    list_display = (
+        "order_nr",
+        "production_day",
+        "customer",
+        "point_of_sale",
+        "address",
+    )
     inlines = (CustomerOrderPositionAdmin,)
 
 
@@ -61,5 +76,5 @@ class CustomerOrderTemplatePositionAdmin(ExcludeAdminMixin, admin.TabularInline)
 
 @admin.register(CustomerOrderTemplate)
 class CustomerOrderTemplateAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('customer', 'start_date', 'end_date', 'is_locked')
+    list_display = ("customer", "start_date", "end_date", "is_locked")
     inlines = (CustomerOrderTemplatePositionAdmin,)

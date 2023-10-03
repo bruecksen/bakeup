@@ -79,11 +79,11 @@ Production day reminder <small class="text-muted">{{ object }}</small>
           <p>{{ message.body|linebreaksbr }}</p>
           <hr>
           <p><small>
-            <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a> 
+            <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a>
             <span class="collapse email-log-{{ message.pk }}">{{ message.send_log|join:', ' }}</span><br>
             <a class="" data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail errors: {{ message.error_log|length }}</a>
             <span class="collapse email-log-{{ message.pk }}">{% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}</span>
-          </small>  
+          </small>
           </p>
 
         </div>
@@ -108,7 +108,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 
   var source = document.getElementById('id_body');
   var target = document.getElementById('email-body');
-  
+
   source.addEventListener('input', function() {
     var sourceValue = source.value;
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
@@ -126,7 +126,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
   source.dispatchEvent(new Event('input'));
   var source2 = document.getElementById('id_subject');
   var target2 = document.getElementById('email-subject');
-  
+
   source2.addEventListener('input', function() {
     var sourceValue = source2.value;
     sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');

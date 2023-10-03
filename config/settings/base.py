@@ -2,10 +2,10 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-from django.urls import reverse_lazy
-from django.contrib.messages import constants as messages
 
 import environ
+from django.contrib.messages import constants as messages
+from django.urls import reverse_lazy
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # bakeup/
@@ -38,9 +38,9 @@ USE_TZ = True
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
 
 LANGUAGES = [
-    ('de', 'Deutsch'),
-    ('de-DE@formal', 'Deutsch formal'),
-    ('en', 'Englisch'),
+    ("de", "Deutsch"),
+    ("de-DE@formal", "Deutsch formal"),
+    ("en", "Englisch"),
 ]
 
 # DATABASES
@@ -54,13 +54,11 @@ DATABASES = {
     ),
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
-DATABASES["default"]["ENGINE"] = 'django_tenants.postgresql_backend'
+DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DATABASE_ROUTERS = (
-    'django_tenants.routers.TenantSyncRouter',
-)
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -72,56 +70,58 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 SHARED_APPS = [
-    'django_tenants',
+    "django_tenants",
     "bakeup.core",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize",  # Handy template tags
     "django.forms",
     "crispy_forms",
     "crispy_bootstrap5",
     "django_tables2",
     "treebeard",
     "django_bootstrap5",
-    'modelcluster',
+    "modelcluster",
     "django_htmx",
-    'djmoney',
+    "djmoney",
 ]
 
 TENANT_APPS = [
     "django.contrib.contenttypes",
-    'taggit',
+    "taggit",
     "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",
-    'wagtail.contrib.modeladmin',
-    'wagtail.contrib.forms',
-    'wagtail.contrib.redirects',
-    'wagtail.contrib.settings',
-    'wagtail.embeds',
-    'wagtail.sites',
-    'wagtail.users',
-    'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
-    'wagtail.search',
-    'wagtail.admin',
-    'wagtail',
+    "wagtail.contrib.modeladmin",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.contrib.settings",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail",
     "django.contrib.admin",
     "bakeup.shop",
     "bakeup.workshop",
     "bakeup.users",
     "bakeup.contrib",
     "bakeup.pages",
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'wagtailmenus',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "wagtailmenus",
 ]
 
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+INSTALLED_APPS = list(SHARED_APPS) + [
+    app for app in TENANT_APPS if app not in SHARED_APPS
+]
 
 
 # MIGRATIONS
@@ -158,7 +158,9 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        )
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -169,12 +171,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    'django_tenants.middleware.main.TenantMainMiddleware',
-    'bakeup.core.middleware.TenantSettingsMiddleware',
+    "django_tenants.middleware.main.TenantMainMiddleware",
+    "bakeup.core.middleware.TenantSettingsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    'bakeup.core.middleware.LocaleMiddleware',
+    "bakeup.core.middleware.LocaleMiddleware",
     # "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -183,7 +185,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     # "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "bakeup.core.middleware.PersistentFiltersMiddleware",
 ]
 
@@ -230,8 +232,8 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "wagtailmenus.context_processors.wagtailmenus", 
-                'wagtail.contrib.settings.context_processors.settings',
+                "wagtailmenus.context_processors.wagtailmenus",
+                "wagtail.contrib.settings.context_processors.settings",
             ],
         },
     }
@@ -245,8 +247,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
 BOOTSTRAP5 = {
-    'field_renderers': {
-        'default': 'core.renderers.CustomFieldRenderer',
+    "field_renderers": {
+        "default": "core.renderers.CustomFieldRenderer",
     },
 }
 
@@ -295,8 +297,10 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+            "format": (
+                "%(levelname)s %(asctime)s %(module)s "
+                "%(process)d %(thread)d %(message)s"
+            )
         }
     },
     "handlers": {
@@ -313,7 +317,7 @@ LOGGING = {
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
 
 
-TENANT_MODEL = "core.Client" # app.Model
+TENANT_MODEL = "core.Client"  # app.Model
 
 TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
 
@@ -323,22 +327,22 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_SESSION_REMEMBER = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
 
-ACCOUNT_ADAPTER = 'bakeup.users.allauth.AccountAdapter'
+ACCOUNT_ADAPTER = "bakeup.users.allauth.AccountAdapter"
 ACCOUNT_FORMS = {
-    'signup': 'bakeup.users.forms.SignupForm',
-    'login': 'bakeup.users.forms.LoginForm',
-    'reset_password': 'bakeup.users.forms.CustomResetPasswordForm',
+    "signup": "bakeup.users.forms.SignupForm",
+    "login": "bakeup.users.forms.LoginForm",
+    "reset_password": "bakeup.users.forms.CustomResetPasswordForm",
 }
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()
+ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()  # noqa
 # ACCOUNT_SIGNUP_FORM_CLASS = 'bakeup.users.forms.UserFormMixin'
 
-META_PRODUCT_CATEGORY_NAME = 'META PRODUCTS'
+META_PRODUCT_CATEGORY_NAME = "META PRODUCTS"
 
 
 PERSISTENT_FILTERS_URLS = [
@@ -350,52 +354,50 @@ PERSISTENT_FILTERS_URLS = [
     reverse_lazy("workshop:customer-list"),
 ]
 
-PERSISTENT_FILTERS_EXCLUDE_QUERY_STRINGS = [
-    '_export=csv'
-]
+PERSISTENT_FILTERS_EXCLUDE_QUERY_STRINGS = ["_export=csv"]
 
 MESSAGE_TAGS = {
-    messages.ERROR: 'danger',
+    messages.ERROR: "danger",
 }
 USER_REGISTRATION_FORM_FIELDS = {
-    'first_name': {
-        'label': 'Vorname',
-        'required': True,
-        'max_length': 150,
+    "first_name": {
+        "label": "Vorname",
+        "required": True,
+        "max_length": 150,
     },
-    'last_name': {
-        'label': 'Nachname',
-        'required': True,
-        'max_length': 150,
+    "last_name": {
+        "label": "Nachname",
+        "required": True,
+        "max_length": 150,
     },
-    'point_of_sale': {
-        'label': 'Abholstation',
-        'required': True,
+    "point_of_sale": {
+        "label": "Abholstation",
+        "required": True,
     },
-    'street': {
-        'label': 'Straße',
-        'required': True,
-        'max_length': 100,
+    "street": {
+        "label": "Straße",
+        "required": True,
+        "max_length": 100,
     },
-    'street_number': {
-        'label': 'Hausnummer',
-        'required': True,
-        'max_length': 10,
+    "street_number": {
+        "label": "Hausnummer",
+        "required": True,
+        "max_length": 10,
     },
-    'postal_code': {
-        'label': 'PLZ',
-        'required': True,
-        'max_length': 10,
+    "postal_code": {
+        "label": "PLZ",
+        "required": True,
+        "max_length": 10,
     },
-    'city': {
-        'label': 'Stadt',
-        'required': True,
-        'max_length': 100,
+    "city": {
+        "label": "Stadt",
+        "required": True,
+        "max_length": 100,
     },
-    'telephone_number': {
-        'label': 'Telefonnummer',
-        'required': True,
-        'max_length': 20,
+    "telephone_number": {
+        "label": "Telefonnummer",
+        "required": True,
+        "max_length": 20,
     },
 }
 
@@ -403,33 +405,49 @@ USER_REGISTRATION_FORM_FIELDS = {
 
 # This is the human-readable name of your Wagtail install
 # which welcomes users upon login to the Wagtail admin.
-WAGTAIL_SITE_NAME = 'Bakeup'
+WAGTAIL_SITE_NAME = "Bakeup"
 
 # Wagtail email notification format
 WAGTAILADMIN_NOTIFICATION_USE_HTML = True
 
-WAGTAIL_ENABLE_UPDATE_CHECK = 'lts'
+WAGTAIL_ENABLE_UPDATE_CHECK = "lts"
 
 # Reverse the default case-sensitive handling of tags
 TAGGIT_CASE_INSENSITIVE = True
 
-WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (
-    ('footer', 'Footer'),
-)
+WAGTAILMENUS_FLAT_MENUS_HANDLE_CHOICES = (("footer", "Footer"),)
 
 WAGTAILADMIN_RICH_TEXT_EDITORS = {
-    'default': {
-        'WIDGET': 'wagtail.admin.rich_text.DraftailRichTextArea',
-        'OPTIONS': {
-            'features': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'bold', 'italic', 'ol', 'ul', 'hr', 'link', 'document-link', 'image', 'embed', 'code', 'blockquote']
-        }
+    "default": {
+        "WIDGET": "wagtail.admin.rich_text.DraftailRichTextArea",
+        "OPTIONS": {
+            "features": [
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "bold",
+                "italic",
+                "ol",
+                "ul",
+                "hr",
+                "link",
+                "document-link",
+                "image",
+                "embed",
+                "code",
+                "blockquote",
+            ]
+        },
     }
 }
 DJANGO_TABLES2_TABLE_ATTRS = {
-    'class': 'table table-light table-hover shadow',
-    'thead': {
-        'class': '',
+    "class": "table table-light table-hover shadow",
+    "thead": {
+        "class": "",
     },
 }
 
-CURRENCIES = ('EUR',)
+CURRENCIES = ("EUR",)

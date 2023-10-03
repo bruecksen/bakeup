@@ -17,7 +17,7 @@
             <a href="{% url 'workshop:category-update' pk=category.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit"></i></a>
             <a href="{% url 'workshop:category-delete' pk=category.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-trash-can"></i></a>
         </div>
-        
+
     </li>
     {% if category.get_children_count > 0 %}
     {% include "workshop/includes/category.html" with categories=category.get_children is_root=False %}

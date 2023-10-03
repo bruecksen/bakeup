@@ -10,8 +10,8 @@
             <h3 class="mb-4">{% trans 'Do you really want to close your account?' %}</h3>
             <form action="" method="post">
                 {% csrf_token %}
-                <input class="btn btn-link" 
-                       type="button" value="{% trans 'Cancel' %}" 
+                <input class="btn btn-link"
+                       type="button" value="{% trans 'Cancel' %}"
                        onclick="window.history.go(-1);"/>
                 <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
             </form>
