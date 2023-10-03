@@ -2,7 +2,6 @@
 import random
 import string
 
-from django.conf import settings
 from django.db import migrations
 
 def generate_token():

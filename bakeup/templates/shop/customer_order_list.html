@@ -40,7 +40,7 @@
         </div>
     </div>
     {% include "shop/includes/checkout_abo.html" with name='abo' display_all=True id=order.id customer_order=order products=order.positions.all %}
-    
+
     {% empty %}
     <p class="mt-4">Bisher liegen noch keine Abos vor.</p>
     {% endfor %}
@@ -105,7 +105,7 @@
             </div>
         </div>
     </div>
-    
+
     {% include "shop/includes/checkout.html" with name='checkout' display_all=True customer_order=order production_day=order.production_day id=order.id products=order.get_production_day_products_ordered_list next_url=next_url show_price=has_price %}
     {% endwith %}
     {% empty %}

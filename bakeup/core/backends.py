@@ -2,6 +2,7 @@ from django.contrib.auth.backends import ModelBackend
 
 from bakeup.users.models import Token
 
+
 class TokenBackend(ModelBackend):
     def authenticate(self, request, token=None):
         try:

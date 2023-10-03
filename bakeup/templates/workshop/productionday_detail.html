@@ -48,9 +48,9 @@
 <div class="tab-content">
   <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
     <p class="mt-4"><strong>{% trans "Description" %}: </strong> {{ object.description }}</p>
-    
+
     <h2 class="mt-4">{% trans "Summary" %}
-      
+
       <a href="{% url 'workshop:production-plans-finish' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
       <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
       <a href="{% url 'workshop:production-day-order-max-quantities' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-primary btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Order max. quantities" %}</a>
@@ -130,7 +130,7 @@
           <td class="text-center">
             <form method="POST">
               {% csrf_token %}
-              <input 
+              <input
               {% if order.is_picked_up %}checked {% endif %}
               class="form-check-input form-input-lg border-dark rounded-0"
               type="checkbox"
@@ -172,6 +172,6 @@
   </div>
 </div>
 
- 
+
 
 {% endblock %}

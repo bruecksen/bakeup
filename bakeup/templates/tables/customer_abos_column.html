@@ -1,7 +1,7 @@
 <ul class="list-unstyled">
     {% for order_template in record.order_templates.active.all %}
         {% for position in order_template.positions.all %}
-            <li>{{ position.quantity}} x {{ position.product }}</li>    
+            <li>{{ position.quantity}} x {{ position.product }}</li>
         {% endfor %}
     {% endfor %}
 </ul>

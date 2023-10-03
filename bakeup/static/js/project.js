@@ -17,7 +17,7 @@ $(document).ready(function() {
         console.log("preventLeaving", !$(this).hasClass('existing-order'));
         $(this).dirty({
             preventLeaving: $(this).hasClass('prevent-leaving'),
-            leavingMessage: 'Du hast deinen Brotkorb noch nicht abgeschickt. Willst du wirklich die Seite verlassen?', 
+            leavingMessage: 'Du hast deinen Brotkorb noch nicht abgeschickt. Willst du wirklich die Seite verlassen?',
         });
     });
 });
@@ -60,11 +60,11 @@ function addForm(e){
     newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, `${totalFormValue}`);
     console.log(form[0])
     container.insertBefore(newForm, form[0]);
-    
+
     totalForms.setAttribute('value', `${totalFormValue+1}`);
     var removeButtons = document.querySelectorAll(".remove-another-form");
     addRemoveButtonEvent(removeButtons);
-    
+
 }
 
 var removeButtons = document.querySelectorAll(".remove-another-form");
@@ -169,7 +169,7 @@ function setTotalBasketQuantity(modal) {
         basket.find('.plural').hide();
         basket.find('.empty').hide();
         basket.find('.current-order').hide();
-        
+
     } else if (totalBasketQuantity > 1) {
         basket.find('.plural').removeClass('d-none').show();
         basket.find('.single').hide();
@@ -270,7 +270,7 @@ function updateModal(modal, basketQuantity, totalQuantity) {
         } else {
             updateModalEmpty(modal);
         }
-    } 
+    }
 }
 
 function updateProduct(product, qty, maintainOrderedQty) {
@@ -367,7 +367,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
 {
     console.log('reset');
     var form = $(this);
-    setTimeout(function() { 
+    setTimeout(function() {
         console.log(form.find('tbody tr.product select'));
         $(this).parents('.modal').find('.modal-title span').hide();
         form.find('tbody tr.product select').change();
@@ -379,7 +379,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         form.find('table').show();
         form.find('.message-empty-checkout').addClass('d-none').hide();
         form.find('.message-abo-orders').addClass('d-none');
-        
+
         // var basket = $('#basket');
         // $('header .shopping-basket .order-quantity').hide();
         // var modal = form.parents('.modal-checkout');
@@ -433,7 +433,7 @@ $(function(){
     //     $('header .shopping-basket').removeClass('d-lg-block');
     // }
     var initdata = $('.modal-checkout form').serialize();
-    
+
     $('.modal-checkout form select').change(function(){
         // console.log('form select change');
         // var basketQty = this.value;
@@ -504,9 +504,9 @@ $(function(){
         } else {
             $('.alert.message-abo-orders').addClass('d-none');
         }
-        
+
     });
-    $('.modal-checkout form input, .modal-checkout form select.order-quantity, .modal-checkout form select.pos-select').change(function() { 
+    $('.modal-checkout form input, .modal-checkout form select.order-quantity, .modal-checkout form select.pos-select').change(function() {
         // Any changes in the checkout or order modal
         console.log('detect checkout/order modal form change');
         var form = $(this).parents('form');
@@ -581,7 +581,7 @@ if (myCollapsible) {
         } else {
             navbar.classList.remove("nav-bg-dark");
         }
-        
+
     })
 }
 $(function() {
