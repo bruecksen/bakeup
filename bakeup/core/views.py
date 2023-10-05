@@ -1,11 +1,9 @@
-
 from typing import Set
 
-from django.http import HttpResponseRedirect
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.shortcuts import render
 from django.contrib.auth.mixins import AccessMixin
+from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import RedirectView
 
 
@@ -17,10 +15,10 @@ class StaffPermissionsMixin(AccessMixin):
 
 
 class CustomerRequiredMixin(AccessMixin):
-    login_url = 'shop:login'
-    
+    login_url = "shop:login"
+
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated and hasattr(request.user, 'customer'):
+        if request.user.is_authenticated and hasattr(request.user, "customer"):
             return super().dispatch(request, *args, **kwargs)
         return self.handle_no_permission()
 
@@ -54,10 +52,9 @@ class GetNextPageMixin(SuccessURLAllowedHostsMixin):
 
 
 class NextUrlMixin(GetNextPageMixin):
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['next'] = self.request.GET.get('next', '')
+        context["next"] = self.request.GET.get("next", "")
         return context
 
     def form_valid(self, *args, **kwargs):
@@ -66,7 +63,7 @@ class NextUrlMixin(GetNextPageMixin):
         if next_page:
             return HttpResponseRedirect(next_page)
         return ret_val
-    
+
     def get_success_url(self, *args, **kwargs):
         ret_val = super().get_success_url(*args, **kwargs)
         next_page = self.get_next_page()
@@ -75,14 +72,12 @@ class NextUrlMixin(GetNextPageMixin):
         return ret_val
 
 
-
-
 class HomeView(RedirectView):
     def get_redirect_url(self, *args, **kwargs):
         if self.request.user.is_authenticated:
             if self.request.user.is_staff:
-                return reverse('workshop:workshop')
+                return reverse("workshop:workshop")
             else:
-                return '/shop/'
+                return "/shop/"
         else:
-            return '/shop/'
+            return "/shop/"

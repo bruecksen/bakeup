@@ -16,7 +16,7 @@
                   <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-save"></i></button>
                 </div>
               </form>
-              
+
             {% endif %}
           </div>
           <div class="col-7 col-sm-7 align-self-center fs-xs-6">
@@ -42,7 +42,7 @@
                 {% include "workshop/includes/product_children.html" with children=child.child.parents.with_weights parent=child.child is_root=False quantity=child.quantity|multiply:quantity show_baker_percentage=True %}
               {% endif %}
           </div>
-        </div>      
+        </div>
       </li>
   {% endfor %}
   {% if is_root %}
@@ -107,5 +107,3 @@
   </form>
   {% endif %}
   </ol>
-
-  

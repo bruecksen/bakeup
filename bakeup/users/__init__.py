@@ -1,1 +1,1 @@
-default_app_config = 'bakeup.users.apps.UsersConfig'
+default_app_config = "bakeup.users.apps.UsersConfig"

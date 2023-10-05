@@ -10,12 +10,11 @@
         <p>You're about to delete <strong>{{ object }}</strong>. Please confirm.</p>
         <form action="" method="post">
             {% csrf_token %}
-            <input class="btn btn-link" 
-                   type="button" value="Cancel" 
+            <input class="btn btn-link"
+                   type="button" value="Cancel"
                    onclick="window.history.go(-1);"/>
             <input class="btn btn-primary" type="submit" value="Confirm"/>
         </form>
     </div>
 </div>
 {% endblock %}
-

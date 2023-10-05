@@ -1,18 +1,16 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
-from django.contrib.auth import views as auth_views
-from django.views.generic import TemplateView
 from django.views.generic import RedirectView
-
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from bakeup.core.views import HomeView
-from bakeup.users.views import LoginView, TokenLoginView, SignupView
+from bakeup.users.views import LoginView, SignupView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -24,16 +22,18 @@ urlpatterns = [
     # User management
     path("accounts/login/", view=LoginView.as_view(), name="login"),
     path("accounts/signup/", view=SignupView.as_view(), name="signup"),
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include("allauth.urls")),
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
-    re_path(r'shop/', include(wagtail_urls)),
+    re_path(r"shop/", include(wagtail_urls)),
     # path("login/", LoginView.as_view(), name='login'),
-    path("logout/", auth_views.LogoutView.as_view(), name='logout'),
-    path('favicon.ico/', RedirectView.as_view(url='/static/images/favicons/favicon.ico')),
-    path('cms/', include(wagtailadmin_urls)),
-    path('documents/', include(wagtaildocs_urls)),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path(
+        "favicon.ico/", RedirectView.as_view(url="/static/images/favicons/favicon.ico")
+    ),
+    path("cms/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

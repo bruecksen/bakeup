@@ -10,12 +10,13 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/psf/black
-    rev: 22.1.0
+    rev: 23.9.1
     hooks:
       - id: black
+        args: [--preview]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
 

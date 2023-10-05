@@ -1,23 +1,17 @@
 import datetime
 import random
 import string
-import qrcode
-import qrcode.image.svg
 from io import BytesIO
 
-from django.utils.html import mark_safe
-from django.contrib.sites.shortcuts import get_current_site
+import qrcode
+import qrcode.image.svg
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField
 from django.db import models
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
-
-
+from django.utils.html import mark_safe
 
 
 class User(AbstractUser):
-
     def __str__(self):
         return self.get_full_name() or self.username
 
@@ -32,8 +26,8 @@ class User(AbstractUser):
 
     @property
     def is_customer(self):
-        return hasattr(self, 'customer')
-    
+        return hasattr(self, "customer")
+
     @property
     def short_name(self):
         if self.first_name and self.last_name:
@@ -57,7 +51,7 @@ class AbstractToken(models.Model):
     @classmethod
     def generate_token(cls):
         alphabet = string.ascii_lowercase + string.digits
-        return ''.join(random.choices(alphabet, k=8))
+        return "".join(random.choices(alphabet, k=8))
 
     @property
     def is_expired(self):
@@ -66,12 +60,11 @@ class AbstractToken(models.Model):
             return True
 
     def get_full_url(self, request):
-        return request.tenant.reverse(request, 'users:login-token', token=self.token)
+        return request.tenant.reverse(request, "users:login-token", token=self.token)
 
     def qr_code_svg(self, request):
         return mark_safe(self.generate_qr_code(request))
 
-    
     def token_url(self, request):
         full_url = self.get_full_url(request)
         return mark_safe("<a href='{}'>{}</a>".format(full_url, full_url))
@@ -82,36 +75,34 @@ class AbstractToken(models.Model):
         img = qrcode.make(full_url, image_factory=factory, box_size=20)
         stream = BytesIO()
         img.save(stream)
-        html = "<div style='background-color: white;display: inline-block;'>{}</div>".format(stream.getvalue().decode())
+        html = (
+            "<div style='background-color: white;display: inline-block;'>{}</div>"
+            .format(stream.getvalue().decode())
+        )
         return html
-
 
 
 class Token(AbstractToken):
     """Authentication token for user model"""
-    user = models.OneToOneField(
-        User,
-        related_name='token',
-        on_delete=models.CASCADE
-    )
+
+    user = models.OneToOneField(User, related_name="token", on_delete=models.CASCADE)
 
     def __str__(self):
         return "Token: {}".format(self.user)
-    
+
     def get_full_url(self, request):
-        return request.tenant.reverse(request, 'users:login-token', token=self.token)
+        return request.tenant.reverse(request, "users:login-token", token=self.token)
 
 
 class GroupToken(AbstractToken):
     """Authentication token for user model"""
+
     group = models.OneToOneField(
-        'auth.Group',
-        related_name='token',
-        on_delete=models.CASCADE
+        "auth.Group", related_name="token", on_delete=models.CASCADE
     )
 
     def __str__(self):
         return "Token: {}".format(self.group)
-    
+
     def get_full_url(self, request):
-        return request.tenant.reverse(request, 'shop:signup', token=self.token)
+        return request.tenant.reverse(request, "shop:signup", token=self.token)

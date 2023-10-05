@@ -1,7 +1,7 @@
 {% load wagtailcore_tags %}
 {% regroup products by category_name as categories %}
 <div class="accordion accordion-flush">
-    
+
     {% for category in categories %}
     <div class="accordion-item">
         <h2 class="accordion-header">
@@ -20,6 +20,6 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
     {% endfor %}
 </div>

@@ -20,7 +20,7 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["bakeup.org"])
 DATABASES["default"] = env.db("DATABASE_URL")  # noqa F405
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
-DATABASES["default"]["ENGINE"] = 'django_tenants.postgresql_backend'
+DATABASES["default"]["ENGINE"] = "django_tenants.postgresql_backend"  # noqa F405
 
 # CACHES
 # ------------------------------------------------------------------------------
@@ -39,9 +39,9 @@ DATABASES["default"]["ENGINE"] = 'django_tenants.postgresql_backend'
 
 CACHES = {
     "default": {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'KEY_FUNCTION': 'django_tenants.cache.make_key',
-        'REVERSE_KEY_FUNCTION': 'django_tenants.cache.reverse_key',
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "KEY_FUNCTION": "django_tenants.cache.make_key",
+        "REVERSE_KEY_FUNCTION": "django_tenants.cache.reverse_key",
     },
 }
 
@@ -118,8 +118,10 @@ LOGGING = {
     "disable_existing_loggers": True,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+            "format": (
+                "%(levelname)s %(asctime)s %(module)s "
+                "%(process)d %(thread)d %(message)s"
+            )
         }
     },
     "handlers": {
@@ -166,4 +168,4 @@ sentry_sdk.init(
 # Your stuff...
 # ------------------------------------------------------------------------------
 
-WAGTAILADMIN_BASE_URL = 'bakeup.org'
+WAGTAILADMIN_BASE_URL = "bakeup.org"

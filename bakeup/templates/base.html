@@ -6,29 +6,29 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}bakeup{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     {% if settings.pages.BrandSettings.logo %}
     {% image settings.pages.BrandSettings.logo fill-16x16 as favicon %}
     <link rel="icon" type="image/png" href="{{ favicon.url }}">
     {% else %}
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
     {% endif %}
-    
+
     <meta property="og:title" content="{% block og_title %}{{ request.tenant.name }}{% endblock og_title %}" />
     <meta name="description" content="{% block description %}{{ request.tenant.description }}{% endblock description %}">
     <meta property="og:description" content="{% block og_description %}{{ request.tenant.description }}{% endblock og_description %}" />
-    
+
     {% if settings.pages.BrandSettings.logo %}
     <meta property="og:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
     <meta name="twitter:image" content="https://bakeup.org{{ settings.pages.BrandSettings.logo.url }}" />
     {% endif %}
     <meta property="twitter:title" content="{{ request.tenant.name }}" />
     <meta name="twitter:card" content="summary_large_image" />
-    
+
 
     {% block css %}
     <!-- Latest compiled and minified Bootstrap CSS -->
-    
+
     <!-- Your stuff: Third-party CSS libraries go here -->
     <!-- This file stores project-specific CSS -->
     <link href="{% static 'css/project.min.css' %}" rel="stylesheet">
@@ -75,7 +75,7 @@
       </div>
     {% endblock messages %}
 
-    
+
     {% block content %}
       <p>Use this document as a way to quick start any new project.</p>
     {% endblock content %}
