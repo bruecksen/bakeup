@@ -29,4 +29,5 @@ django-htmx==1.14.0
 wagtail==4.2.*
 tablib==3.4.0
 wagtailmenus==3.1.7
+babel==2.9.1 # newer version fails because of langauge variants https://github.com/python-babel/babel/issues/454
 django-money==3.2.0
