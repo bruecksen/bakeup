@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="card-body">
-            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.get_display_name }} 
+            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.get_display_name }}
                 <span class="small text-muted fw-normal">{{ production_day_product.product.weight|floatformat:"0" }}{{ production_day_product.product.unit}}</span>
             </h2>
             <p>{{ production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
@@ -45,7 +45,7 @@
                 <p class="mt-3 mb-3 fs-5 fw-bold">{{ production_day_product.product.sale_price.price }}</p>
             {% endif %}
         </div>
-        
+
         {% if user.is_authenticated %}
         <div class="card-footer border-top-0 bg-transparent">
             {% if not production_day_product.is_sold_out and not production_day_product.is_locked %}

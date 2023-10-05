@@ -6,4 +6,4 @@ from bakeup.core.admin import ExcludeAdminMixin
 
 @admin.register(Address)
 class AddressAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ('address',)
+    list_display = ("address",)

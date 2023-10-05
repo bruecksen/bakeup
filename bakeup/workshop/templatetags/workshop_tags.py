@@ -1,5 +1,5 @@
-from django.db.models import Q
 from django import template
+from django.db.models import Q
 from django.template.defaultfilters import floatformat
 
 register = template.Library()
@@ -34,4 +34,4 @@ def ordered_quantity(order, product):
 @register.simple_tag(takes_context=True)
 def token_url(context, token):
     if token:
-        return token.token_url(context.get('request'))
+        return token.token_url(context.get("request"))

@@ -1,20 +1,13 @@
 import pytest
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.messages.middleware import MessageMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.test import RequestFactory
 from django.urls import reverse
 
 from bakeup.users.models import User
 from bakeup.users.tests.factories import UserFactory
-from bakeup.users.views import (
-    UserRedirectView,
-    UserUpdateView,
-    user_detail_view,
-)
+from bakeup.users.views import UserRedirectView, user_detail_view
 
 pytestmark = pytest.mark.django_db
 

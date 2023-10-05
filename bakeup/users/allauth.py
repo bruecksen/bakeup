@@ -1,44 +1,40 @@
-from django.utils.translation import gettext_lazy as _
-from django.contrib import messages
-from django.urls import reverse
-from django.contrib.sites.shortcuts import get_current_site
-from django.utils.encoding import force_str
-from django.template import Template, Context
-from django.template import TemplateDoesNotExist
-from django.template.loader import render_to_string
-from django.http import HttpResponseRedirect
-from django.core.mail import EmailMessage, EmailMultiAlternatives
-
 from allauth.account.adapter import DefaultAccountAdapter
+from django.contrib import messages
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.http import HttpResponseRedirect
+from django.template import Context, Template, TemplateDoesNotExist
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 
 from bakeup.pages.models import EmailSettings
 
 
 class AccountAdapter(DefaultAccountAdapter):
-
-    def pre_login(
-        self,
-        request,
-        user,
-        **kwargs
-    ):
+    def pre_login(self, request, user, **kwargs):
         if not user.is_active:
-            messages.add_message(self.request, messages.INFO, _("This account is closed. Login is not possible."))
-            return HttpResponseRedirect('/shop/')
+            messages.add_message(
+                self.request,
+                messages.INFO,
+                _("This account is closed. Login is not possible."),
+            )
+            return HttpResponseRedirect("/shop/")
         else:
             return super().pre_login(request, user, **kwargs)
 
     def get_signup_redirect_url(self, request):
         if request.user.is_staff:
-            return reverse('workshop:workshop')
+            return reverse("workshop:workshop")
         else:
-            return '/shop/'
-    
+            return "/shop/"
+
     def get_email_confirmation_redirect_url(self, request):
         if request.user.is_staff:
-            return reverse('workshop:workshop')
+            return reverse("workshop:workshop")
         else:
-            return '/shop/'
+            return "/shop/"
 
     def send_confirmation_mail(self, request, emailconfirmation, signup):
         current_site = get_current_site(request)
@@ -49,7 +45,9 @@ class AccountAdapter(DefaultAccountAdapter):
             "current_site": current_site,
             "key": emailconfirmation.key,
             "current_tenant": request.tenant,
-            "current_tenant_domain": request.tenant.get_absolute_primary_domain(request),
+            "current_tenant_domain": request.tenant.get_absolute_primary_domain(
+                request
+            ),
         }
         if signup:
             email_template = "account/email/email_confirmation_signup"
@@ -95,14 +93,13 @@ class AccountAdapter(DefaultAccountAdapter):
             msg = EmailMessage(subject, bodies["html"], from_email, to, headers=headers)
             msg.content_subtype = "html"  # Main content is now text/html
         return msg
-    
 
     def format_email_subject(self, subject):
         email_settings = EmailSettings.load(request_or_site=self.request)
-        prefix = ''
+        prefix = ""
         if email_settings.email_subject_prefix:
             prefix = email_settings.get_subject_with_prefix(subject)
             t = Template(prefix)
-            subject = t.render(Context({'site_name': self.request.tenant.name}))
+            subject = t.render(Context({"site_name": self.request.tenant.name}))
             return force_str(subject)
         return force_str(subject)

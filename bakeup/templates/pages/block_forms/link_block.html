@@ -6,7 +6,7 @@
         <div class="help">{{ help_text }}</div>
       </span>
     {% endif %}
-  
+
     {% for child in children.values %}
       <div class="w-field" data-contentpath="{{ child.block.name }}">
         {% if child.block.label %}
@@ -18,4 +18,3 @@
       </div>
     {% endfor %}
   </div>
-  

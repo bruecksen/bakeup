@@ -25,8 +25,8 @@
         {% endblocktranslate %}
         <form action="" method="post">
             {% csrf_token %}
-            <input class="btn btn-link" 
-                   type="button" value="{% trans 'Cancel' %}" 
+            <input class="btn btn-link"
+                   type="button" value="{% trans 'Cancel' %}"
                    onclick="window.history.go(-1);"/>
             <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
         </form>
@@ -34,4 +34,3 @@
     </div>
 </div>
 {% endblock %}
-
