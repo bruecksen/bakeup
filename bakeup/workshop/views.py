@@ -1056,7 +1056,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
                 messages.SUCCESS,
                 "Reminder message saved and send to selected orders.",
             )
-            self.object.send_messages()
+            self.object.set_state_to_planned_sending()
         else:
             messages.add_message(
                 self.request, messages.SUCCESS, "Reminder message saved."

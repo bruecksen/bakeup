@@ -612,6 +612,8 @@ class ReminderMessage(CommonBaseClass):
     class State(models.IntegerChoices):
         PLANNED = 0
         SENT = 1
+        PLANNED_SENDING = 2
+        SENDING = 3
 
     state = models.IntegerField(choices=State.choices, default=State.PLANNED)
     subject = models.TextField()
@@ -677,6 +679,22 @@ class ReminderMessage(CommonBaseClass):
             )
         )
         return message
+
+    def set_state_to_sending(self):
+        self.state = ReminderMessage.State.SENDING
+        self.save(
+            update_fields=[
+                "state",
+            ]
+        )
+
+    def set_state_to_planned_sending(self):
+        self.state = ReminderMessage.State.PLANNED_SENDING
+        self.save(
+            update_fields=[
+                "state",
+            ]
+        )
 
     def send_messages(self):
         user_successfull = []
