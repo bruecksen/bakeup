@@ -1001,6 +1001,13 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
         context["messages_sent"] = ReminderMessage.objects.filter(
             production_day=self.production_day, state=ReminderMessage.State.SENT
         )
+        context["messages_sending"] = ReminderMessage.objects.filter(
+            production_day=self.production_day,
+            state__in=(
+                ReminderMessage.State.PLANNED_SENDING,
+                ReminderMessage.State.SENDING,
+            ),
+        )
         return context
 
     def get_select_message_form(self):
@@ -1054,7 +1061,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
             messages.add_message(
                 self.request,
                 messages.SUCCESS,
-                "Reminder message saved and send to selected orders.",
+                "Reminder message saved and will be send to selected orders.",
             )
             self.object.set_state_to_planned_sending()
         else:
