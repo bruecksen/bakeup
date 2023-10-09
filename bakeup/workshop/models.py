@@ -650,6 +650,14 @@ class ReminderMessage(CommonBaseClass):
     def is_sent(self):
         return self.state == ReminderMessage.State.SENT
 
+    @property
+    def is_sending(self):
+        return self.state == ReminderMessage.State.SENDING
+
+    @property
+    def is_planned_sending(self):
+        return self.state == ReminderMessage.State.PLANNED_SENDING
+
     def get_orders(self):
         if self.point_of_sale:
             return self.production_day.customer_orders.filter(
