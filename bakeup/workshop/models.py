@@ -709,6 +709,11 @@ class ReminderMessage(CommonBaseClass):
         emails_error = {}
         orders = self.get_orders()
         client = connection.get_tenant()
+        DEFAULT_FROM = settings.DEFAULT_FROM_EMAIL
+        if hasattr(client, "clientsetting"):
+            # FIXME this is a duplicate of the overload settings midddleware
+            # because we excecute this function in a cron job the settings aren't overloaded
+            DEFAULT_FROM = client.clientsetting.default_from_email
         for order in orders:
             try:
                 user_email = order.customer.user.email
@@ -721,7 +726,7 @@ class ReminderMessage(CommonBaseClass):
                 send_mail(
                     subject,
                     user_body,
-                    settings.DEFAULT_FROM_EMAIL,
+                    DEFAULT_FROM,
                     [user_email],
                     fail_silently=False,
                 )
