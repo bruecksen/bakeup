@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django_tenants.models import DomainMixin, TenantMixin
 from wagtail.models import Site
+from wagtail.signal_handlers import disable_reference_index_auto_update
 
 from bakeup.contrib.fields import ChoiceArrayField
 
@@ -26,6 +27,7 @@ class Client(TenantMixin):
     description = models.TextField(blank=True, null=True)
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
+    wagtail_reference_index_ignore = True
 
     def get_absolute_primary_domain(self, request):
         site = Site.find_for_request(request)
@@ -53,9 +55,18 @@ class Client(TenantMixin):
 
         return url
 
+    def delete(self, force_drop=False, *args, **kwargs):
+        """
+        Deletes this row. Drops the tenant's schema if the attribute
+        auto_drop_schema set to True.
+        """
+        self._drop_schema(force_drop)
+        with disable_reference_index_auto_update():
+            super().delete(*args, **kwargs)
+
 
 class Domain(DomainMixin):
-    pass
+    wagtail_reference_index_ignore = True
 
 
 class RegistrationFieldOption(TextChoices):
@@ -100,6 +111,7 @@ class ClientSetting(models.Model):
     account_email_verification = models.CharField(
         max_length=12, choices=ACCOUNT_EMAIL_VERIFICATION_CHOICES, default="optional"
     )
+    wagtail_reference_index_ignore = True
 
 
 class ClientInfo(models.Model):
@@ -108,6 +120,7 @@ class ClientInfo(models.Model):
     contact_phone = models.CharField(max_length=255, blank=True, null=True)
     contact_instagram = models.CharField(max_length=255, blank=True, null=True)
     contact_text = models.TextField(blank=True, null=True)
+    wagtail_reference_index_ignore = True
 
 
 def get_production_day_reminder_body():
@@ -126,3 +139,4 @@ class ClientEmailTemplate(models.Model):
     production_day_reminder_body = models.TextField(
         default=get_production_day_reminder_body
     )
+    wagtail_reference_index_ignore = True
