@@ -65,6 +65,7 @@ class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
         "customer",
         "point_of_sale",
         "address",
+        "created",
     )
     inlines = (CustomerOrderPositionAdmin,)
 
