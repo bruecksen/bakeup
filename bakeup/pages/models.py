@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db import models
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
 from django.template.loader import render_to_string
@@ -90,22 +88,9 @@ class ShopPage(Page):
         FieldPanel("content"),
     ]
 
-    def get_production_day(self, *args, **kwargs):
-        today = datetime.now().date()
-        production_day_next = (
-            ProductionDayProduct.objects.filter(
-                is_published=True, production_day__day_of_sale__gte=today
-            )
-            .order_by("production_day__day_of_sale")
-            .first()
-        )
-        if production_day_next:
-            return production_day_next.production_day
-        return None
-
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        self.production_day = self.get_production_day(*args, **kwargs)
+        self.production_day = ProductionDay.get_next_production_day(request.user)
         customer = None if request.user.is_anonymous else request.user.customer
         context["production_days"] = ProductionDay.objects.upcoming().available_to_user(
             request.user

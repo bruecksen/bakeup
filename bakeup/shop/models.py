@@ -1,5 +1,6 @@
 import collections
 import logging
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -304,6 +305,20 @@ class ProductionDay(CommonBaseClass):
             order__production_day=self,
         )
         positions.update(product=production_plan_product)
+
+    @classmethod
+    def get_next_production_day(cls, user):
+        today = datetime.now().date()
+        production_day_next = ProductionDayProduct.objects.filter(
+            is_published=True, production_day__day_of_sale__gte=today
+        )
+        production_day_next = production_day_next.available_to_user(user)
+        production_day_next = production_day_next.order_by(
+            "production_day__day_of_sale"
+        ).first()
+        if production_day_next:
+            return production_day_next.production_day
+        return None
 
 
 class ProductionDayProductQuerySet(models.QuerySet):

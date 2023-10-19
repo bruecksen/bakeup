@@ -97,9 +97,15 @@
     .btn-white {
         --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
     }
+    .datepicker-cell.date-enabled {
+        color: {{ settings.pages.BrandSettings.primary_color }}!important;
+        font-weight: bold;
+    }
     .datepicker-cell.selected {
         background-color: {{ settings.pages.BrandSettings.primary_color }}!important;
+        color: #fff!important;
     }
+
     .form-control:focus {
         box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
     }
