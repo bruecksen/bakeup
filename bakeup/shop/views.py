@@ -249,24 +249,14 @@ class ShopView(TemplateView):
             return super().get_template_names()
 
     def setup(self, request, *args, **kwargs):
-        self.production_day = self.get_production_day(*args, **kwargs)
-        return super().setup(request, *args, **kwargs)
-
-    def get_production_day(self, *args, **kwargs):
         if kwargs.get("production_day", None):
-            return ProductionDay.objects.get(pk=kwargs.get("production_day"))
-        else:
-            today = timezone.now().date()
-            production_day_next = (
-                ProductionDayProduct.objects.filter(
-                    is_published=True, production_day__day_of_sale__gte=today
-                )
-                .order_by("production_day__day_of_sale")
-                .first()
+            self.production_day = ProductionDay.objects.get(
+                pk=kwargs.get("production_day")
             )
-            if production_day_next:
-                return production_day_next.production_day
-        return None
+        else:
+            self.production_day = ProductionDay.get_next_production_day(request.user)
+
+        return super().setup(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -347,14 +337,17 @@ class ShopView(TemplateView):
             id=self.production_day.pk
         )
         context["all_production_days"] = list(
-            ProductionDay.objects.annotate(
+            ProductionDay.objects.published()
+            .available_to_user(self.request.user)
+            .annotate(
                 formatted_date=Func(
                     F("day_of_sale"),
                     Value("dd.MM.yyyy"),
                     function="to_char",
                     output_field=CharField(),
                 )
-            ).values_list("formatted_date", flat=True)
+            )
+            .values_list("formatted_date", flat=True)
         )
         return context
 
