@@ -68,6 +68,11 @@ class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
         "created",
     )
     inlines = (CustomerOrderPositionAdmin,)
+    search_fields = (
+        "customer__user__email",
+        "customer__user__first_name",
+        "customer__user__last_name",
+    )
 
 
 class CustomerOrderTemplatePositionAdmin(ExcludeAdminMixin, admin.TabularInline):
