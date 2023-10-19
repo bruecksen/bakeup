@@ -159,6 +159,7 @@ sentry_logging = LoggingIntegration(
 )
 integrations = [sentry_logging, DjangoIntegration(), RedisIntegration()]
 sentry_sdk.init(
+    send_default_pii=True,
     dsn=SENTRY_DSN,
     integrations=integrations,
     environment=env("SENTRY_ENVIRONMENT", default="production"),

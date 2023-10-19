@@ -700,6 +700,9 @@ class CustomerOrder(CommonBaseClass):
                     ).delete()
 
             if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
+                logger.error(
+                    "Order #%s: order will be completely deleted!", customer_order
+                )
                 customer_order.delete()
                 return None, None
             return customer_order, created
