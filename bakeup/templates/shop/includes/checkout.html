@@ -116,12 +116,14 @@
                 </div>
                 {% endif %}
                 {% if not  customer_order %}
-                <button type="submit" class="btn btn-primary mt-3 mb-3">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
+                <button type="submit" class="btn btn-primary mt-3 mb-3" name="create">{{ settings.pages.CheckoutSettings.order_button_place }}</button>
                 <button class="btn btn-primary mt-3 mb-3 d-none" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
                 {% else %}
-                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none">
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none btn-update" name="update">
                     <span class="text-change">{{ settings.pages.CheckoutSettings.order_button_change }}</span>
-                    <span class="d-none text-cancel">{{ settings.pages.CheckoutSettings.order_button_cancel }}</span>
+                </button>
+                <button type="submit" class="btn btn-primary mt-3 mb-3 d-none btn-cancel" name="cancel">
+                    <span class="text-cancel">{{ settings.pages.CheckoutSettings.order_button_cancel }}</span>
                 </button>
                 <input type="reset" class="btn btn-outline-primary mt-3 mb-3 d-none" value="Änderungen verwerfen">
                 <button class="btn btn-primary mt-3 mb-3" data-bs-dismiss="modal" aria-label="Close">Schließen</button>
