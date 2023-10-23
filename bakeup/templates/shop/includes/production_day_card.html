@@ -6,7 +6,9 @@
             {% available_products production_day as products %}
             {% if products.with_pictures.count == 1 %}
                 {% thumbnail products.first.product.image "600x450" crop="center" as im %}
-                <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+                <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="">
+                    <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+                </a>
                 {% endthumbnail %}
             {% else %}
             <div id="carousel-production-day-{{ production_day.pk }}" class="carousel slide" data-bs-ride="true">
@@ -19,7 +21,9 @@
                     {% for production_day_product in products.with_pictures.all %}
                         <div class="carousel-item{% if forloop.first %} active{% endif %}">
                             {% thumbnail production_day_product.product.image "600x450" crop="center" as im %}
-                            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+                            <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="">
+                                <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
+                            </a>
                             {% endthumbnail %}
                         </div>
                     {% endfor %}
