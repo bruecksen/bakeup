@@ -362,14 +362,17 @@ def redirect_to_production_day_view(request):
         production_day_date = make_aware(
             datetime.strptime(request.POST.get("production_day_date", None), "%d.%m.%Y")
         ).date()
-        production_day = ProductionDay.objects.get(day_of_sale=production_day_date)
-        return HttpResponseRedirect(
-            reverse(
-                "shop:shop-production-day", kwargs={"production_day": production_day.pk}
+        production_day = ProductionDay.objects.filter(
+            day_of_sale=production_day_date
+        ).first()
+        if production_day:
+            return HttpResponseRedirect(
+                reverse(
+                    "shop:shop-production-day",
+                    kwargs={"production_day": production_day.pk},
+                )
             )
-        )
-    else:
-        return HttpResponseRedirect("/shop/")
+    return HttpResponseRedirect("/shop/")
 
 
 @login_required
