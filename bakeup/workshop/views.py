@@ -650,7 +650,7 @@ def order_max_quantities_view(request, pk):
         production_day,
         request.user.customer,
         products,
-        request.user.customer.point_of_sale.pk,
+        request.user.customer.point_of_sale and request.user.customer.point_of_sale.pk,
     )
     return HttpResponseRedirect(
         "{}#orders".format(reverse("workshop:production-day-detail", kwargs={"pk": pk}))
