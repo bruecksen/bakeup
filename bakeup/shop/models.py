@@ -626,7 +626,6 @@ class CustomerOrder(CommonBaseClass):
     def create_or_update_customer_order(
         cls, request, production_day, customer, products, point_of_sale=None
     ):
-        # TODO check quantity with availalbe quantity
         with transaction.atomic():
             point_of_sale = (
                 point_of_sale
@@ -698,13 +697,6 @@ class CustomerOrder(CommonBaseClass):
                         Q(product=product) | Q(product__product_template=product),
                         order=customer_order,
                     ).delete()
-
-            if CustomerOrderPosition.objects.filter(order=customer_order).count() == 0:
-                logger.error(
-                    "Order #%s: order will be completely deleted!", customer_order
-                )
-                customer_order.delete()
-                return None, None
             return customer_order, created
 
     def get_production_day_products_ordered_list(self):
@@ -825,6 +817,36 @@ class CustomerOrder(CommonBaseClass):
             message.send(fail_silently=False)
         except Exception:
             logger.exception("Sending order confirm email failed.", stack_info=True)
+
+    def send_order_cancellation_email(self, request):
+        from bakeup.pages.models import EmailSettings
+
+        try:
+            email_settings = EmailSettings.load(request_or_site=request)
+            user_email = self.customer.user.email
+            message_body = self.replace_message_tags(
+                email_settings.get_body_with_footer(
+                    email_settings.email_order_cancellation
+                ),
+                request,
+            )
+            message_subject = self.replace_message_tags(
+                email_settings.get_subject_with_prefix(
+                    email_settings.email_order_cancellation_subject
+                ),
+                request,
+            )
+            message = EmailMessage(
+                message_subject,
+                message_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user_email],
+            )
+            message.send(fail_silently=False)
+        except Exception:
+            logger.exception(
+                "Sending order cancellation email failed.", stack_info=True
+            )
 
 
 class CustomerOrderPositionQuerySet(models.QuerySet):

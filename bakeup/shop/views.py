@@ -124,6 +124,7 @@ def customer_order_add_or_update(request, production_day):
         next_url = request.POST.get("next_url", None)
         production_day = get_object_or_404(ProductionDay, pk=production_day)
         if "create" in request.POST or "update" in request.POST:
+            # create or update order
             products = {
                 Product.objects.get(pk=k.replace("product-", "")): int(v)
                 for k, v in request.POST.items()
@@ -168,16 +169,22 @@ def customer_order_add_or_update(request, production_day):
                     "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
                 )
         elif "cancel" in request.POST:
+            # cancellation of order
             customer_order = get_object_or_404(
                 CustomerOrder,
                 production_day=production_day,
                 customer=request.user.customer,
             )
             logger.error("Order #%s: order will be completely deleted!", customer_order)
+            if EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                customer_order.send_order_cancellation_email(request)
             customer_order.delete()
             messages.add_message(
-                request, messages.INFO, "Bestellung erfolgreich storniert."
+                request,
+                messages.INFO,
+                "Bestellung vom {} erfolgreich storniert.".format(production_day),
             )
+            return HttpResponseRedirect(reverse("shop:order-list"))
 
         if next_url:
             return HttpResponseRedirect(next_url)
