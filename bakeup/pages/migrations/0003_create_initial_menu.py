@@ -90,7 +90,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('pages', '0002_create_initial_pages'),
-        ('wagtailmenus', '0023_remove_use_specific'),
     ]
 
     operations = [
