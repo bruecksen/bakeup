@@ -389,6 +389,35 @@ class EmailSettings(BaseGenericSetting):
         related_name="+",
         verbose_name="Attachment",
     )
+    send_email_order_cancellation = models.BooleanField(
+        default=False,
+        help_text="Soll eine Storno E-Mail versendet werden?",
+        verbose_name="Storno E-Mail versenden?",
+    )
+    email_order_cancellation_subject = models.CharField(
+        default="Ihre Bestellung für den {{ production_day }} wurde storniert",
+        max_length=1024,
+        help_text=(
+            "Betreff Storno E-Mail. Mögliche Tags: {{ site_name }}, {{"
+            " first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{"
+            " production_day }}, {{ order_count }}, {{ order_link }}"
+        ),
+    )
+    email_order_cancellation = models.TextField(
+        default=(
+            "Sie haben soeben Ihre komplette Bestellung für den {{ production_day }}"
+            " gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten"
+            " Backwaren bitte wieder neu."
+        ),
+        blank=True,
+        null=True,
+        help_text=(
+            "Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name"
+            " }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{"
+            " production_day }}, {{ order_count }}, {{ order_link }}, {{"
+            " point_of_sale }}"
+        ),
+    )
     production_day_reminder_subject = models.CharField(
         default="Deine Bestellung ist abholbereit",
         max_length=1024,
@@ -418,6 +447,14 @@ class EmailSettings(BaseGenericSetting):
                 FieldPanel("email_order_confirm_attachment"),
             ],
             heading="Bestellbestätigung",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("send_email_order_cancellation"),
+                FieldPanel("email_order_cancellation_subject"),
+                FieldPanel("email_order_cancellation"),
+            ],
+            heading="Storno E-Mail",
         ),
         MultiFieldPanel(
             [

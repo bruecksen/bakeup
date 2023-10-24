@@ -216,7 +216,8 @@ function updateModalChange(modal){
     console.log('changed');
     form.find('.form-check.terms-conditions').removeClass('d-none').show();
     form.find('input[type="reset"]').removeClass('d-none').show();
-    form.find('button[type="submit"]').removeClass('d-none').show();
+    form.find('button.btn-update').removeClass('d-none').show();
+    form.find('button.btn-cancel').removeClass('d-none').hide();
     form.find('button[data-bs-dismiss="modal"]').hide();
     modal.find('.modal-title span').removeClass('d-none').show();
     form.find('table').show();
@@ -226,7 +227,8 @@ function updateModalUnchange(modal){
     var form = modal.find('form');
     console.log('unchanged');
     form.find('.form-check.terms-conditions').removeClass('d-none').hide();
-    form.find('button[type="submit"]').removeClass('d-none').hide();
+    form.find('button.btn-update').removeClass('d-none').hide();
+    form.find('button.btn-cancel').removeClass('d-none').hide();
     form.find('input[type="reset"]').removeClass('d-none').hide();
     form.find('button[data-bs-dismiss="modal"]').show();
     modal.find('.modal-title span').removeClass('d-none').hide();
@@ -234,11 +236,10 @@ function updateModalUnchange(modal){
 function updateModalStorno(modal) {
     console.log('storno');
     var form = modal.find('form');
-    modal.find('.text-cancel').removeClass('d-none').show();
-    modal.find('.text-change').hide();
     form.find('.form-check.terms-conditions').removeClass('d-none').hide();
     form.find('.form-check.terms-conditions input').attr("required", false);
-    form.find('button[type="submit"]').removeClass('d-none').show();
+    form.find('button.btn-update').removeClass('d-none').hide();
+    form.find('button.btn-cancel').removeClass('d-none').show();
     form.find('button[data-bs-dismiss="modal"]').hide();
     form.find('table').hide();
     form.find('.message-empty-checkout').removeClass('d-none').show();
@@ -246,14 +247,13 @@ function updateModalStorno(modal) {
 function updateModalEmpty(modal) {
     console.log('empty');
     var form = modal.find('form');
-    modal.find('.text-cancel').removeClass('d-none').show();
-    modal.find('.text-change').hide();
     form.find('.form-check.terms-conditions').removeClass('d-none').hide();
     // form.find('.form-check.terms-conditions input').attr("required", false);
     form.find('table').hide();
     form.find('.message-empty-checkout').removeClass('d-none').show();
     form.find('button[data-bs-dismiss="modal"]').removeClass('d-none').show();
-    form.find('button[type="submit"]').removeClass('d-none').hide();
+    form.find('button.btn-update').removeClass('d-none').hide();
+    form.find('button.btn-cancel').removeClass('d-none').hide();
 }
 
 function updateModal(modal, basketQuantity, totalQuantity) {

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any, List
 
@@ -25,6 +26,8 @@ from bakeup.shop.models import (
     ProductionDayProduct,
 )
 from bakeup.workshop.models import Product
+
+logger = logging.getLogger(__name__)
 
 # Limit orders in the future
 MAX_FUTURE_ORDER_YEARS = 2
@@ -120,47 +123,71 @@ def customer_order_add_or_update(request, production_day):
     if request.method == "POST":
         next_url = request.POST.get("next_url", None)
         production_day = get_object_or_404(ProductionDay, pk=production_day)
-        products = {
-            Product.objects.get(pk=k.replace("product-", "")): int(v)
-            for k, v in request.POST.items()
-            if k.startswith("product-")
-        }
-        order, created = CustomerOrder.create_or_update_customer_order(
-            request,
-            production_day,
-            request.user.customer,
-            products,
-            request.POST.get("point_of_sale", None),
-        )
-        products_recurring = {
-            Product.objects.get(pk=k.replace("productabo-", "")): int(
-                request.POST.get("product-{}".format(k.replace("productabo-", "")))
+        if "create" in request.POST or "update" in request.POST:
+            # create or update order
+            products = {
+                Product.objects.get(pk=k.replace("product-", "")): int(v)
+                for k, v in request.POST.items()
+                if k.startswith("product-")
+            }
+            order, created = CustomerOrder.create_or_update_customer_order(
+                request,
+                production_day,
+                request.user.customer,
+                products,
+                request.POST.get("point_of_sale", None),
             )
-            for k, v in request.POST.items()
-            if k.startswith("productabo-")
-        }
-        if products_recurring:
-            CustomerOrderTemplate.create_customer_order_template(
-                request, request.user.customer, products_recurring, production_day, True
+            products_recurring = {
+                Product.objects.get(pk=k.replace("productabo-", "")): int(
+                    request.POST.get("product-{}".format(k.replace("productabo-", "")))
+                )
+                for k, v in request.POST.items()
+                if k.startswith("productabo-")
+            }
+            if products_recurring:
+                CustomerOrderTemplate.create_customer_order_template(
+                    request,
+                    request.user.customer,
+                    products_recurring,
+                    production_day,
+                    True,
+                )
+            if order and created:
+                messages.add_message(
+                    request, messages.INFO, "Vielen Dank für die Bestellung."
+                )
+            elif order and not created:
+                messages.add_message(
+                    request,
+                    messages.INFO,
+                    "Vielen Dank, die Bestellung wurde geändert.",
+                )
+            if order:
+                if EmailSettings.load(request_or_site=request).send_email_order_confirm:
+                    order.send_order_confirm_email(request)
+                return HttpResponseRedirect(
+                    "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
+                )
+        elif "cancel" in request.POST:
+            # cancellation of order
+            customer_order = get_object_or_404(
+                CustomerOrder,
+                production_day=production_day,
+                customer=request.user.customer,
             )
-        if order and created:
+            logger.error("Order #%s: order will be completely deleted!", customer_order)
+            if EmailSettings.load(
+                request_or_site=request
+            ).send_email_order_cancellation:
+                customer_order.send_order_cancellation_email(request)
+            customer_order.delete()
             messages.add_message(
-                request, messages.INFO, "Vielen Dank für die Bestellung."
+                request,
+                messages.INFO,
+                "Bestellung vom {} erfolgreich storniert.".format(production_day),
             )
-        elif order and not created:
-            messages.add_message(
-                request, messages.INFO, "Vielen Dank, die Bestellung wurde geändert."
-            )
-        else:
-            messages.add_message(
-                request, messages.INFO, "Bestellung erfolgreich storniert."
-            )
-        if order:
-            if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-                order.send_order_confirm_email(request)
-            return HttpResponseRedirect(
-                "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
-            )
+            return HttpResponseRedirect(reverse("shop:order-list"))
+
         if next_url:
             return HttpResponseRedirect(next_url)
         else:
