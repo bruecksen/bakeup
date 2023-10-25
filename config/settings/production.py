@@ -94,8 +94,8 @@ EMAIL_SUBJECT_PREFIX = env(
 EMAIL_HOST = env("DJANGO_EMAIL_HOST", default=None)
 EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default=None)
 EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default=None)
-EMAIL_PORT = env("DJANGO_SERVER_EMAIL", default=587)
-EMAIL_USE_TLS = env("DJANGO_SERVER_EMAIL", default=True)
+EMAIL_PORT = env("DJANGO_EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env("DJANGO_EMAIL_USE_TLS", default=True)
 
 # ADMIN
 # ------------------------------------------------------------------------------
