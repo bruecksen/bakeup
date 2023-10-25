@@ -28,7 +28,7 @@ def remove_meta_category(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workshop', '0019_auto_20221212_1357'),
+        ('workshop', '0001_initial'),
     ]
 
     operations = [
