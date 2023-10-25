@@ -81,7 +81,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
-    default="bakeup <noreply@bakeup.org>",
+    default="bakeup.org <noreply@bakeup.org>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
@@ -90,6 +90,12 @@ EMAIL_SUBJECT_PREFIX = env(
     "DJANGO_EMAIL_SUBJECT_PREFIX",
     default="[bakeup]",
 )
+
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", default=None)
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default=None)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default=None)
+EMAIL_PORT = env("DJANGO_SERVER_EMAIL", default=587)
+EMAIL_USE_TLS = env("DJANGO_SERVER_EMAIL", default=True)
 
 # ADMIN
 # ------------------------------------------------------------------------------
