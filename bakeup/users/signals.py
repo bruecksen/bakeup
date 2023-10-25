@@ -28,7 +28,7 @@ def create_group_token(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def create_user_customer(sender, instance, created, **kwargs):
-    if not hasattr(instance, "customer"):
+    if not kwargs.get("raw", False) and not hasattr(instance, "customer"):
         point_of_sale = (
             PointOfSale.objects.all().count() == 1
             and PointOfSale.objects.first()

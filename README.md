@@ -45,11 +45,17 @@ In production add subdomain to nginx config and update letsencrypt certificate:
 
 It is important to set the proper --schema parameter to load the data into the right tenant. For local development this should be --schema=localhost
 
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/users/fixtures/demo-data.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/shop/fixtures/demo_customers.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/workshop/fixtures/categories.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/workshop/fixtures/demo-products.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/shop/fixtures/demo_baking_days.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/shop/fixtures/demo_point_of_sale.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/demo_users.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/categories.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo-products.json
+
+### Create initial CMS Pages
+
+This will create some default wagtail pages with demo content
+
+    python manage.py create_initial_wagtail_pages
+
 
 ### Type checks
 
