@@ -97,7 +97,7 @@ class ClientSetting(models.Model):
     email_host = models.CharField(max_length=1024, blank=True, null=True)
     email_host_password = models.CharField(max_length=1024, blank=True, null=True)
     email_host_user = models.CharField(max_length=1024, blank=True, null=True)
-    email_port = models.PositiveSmallIntegerField(default=25)
+    email_port = models.PositiveSmallIntegerField(blank=True, null=True)
     email_use_tls = models.BooleanField(default=False)
     show_full_name_delivery_bill = models.BooleanField(default=True)
     show_remaining_products = models.BooleanField(default=False)
