@@ -114,6 +114,7 @@ class ClientSetting(models.Model):
     wagtail_reference_index_ignore = True
 
 
+# TODO delete model, deprecated
 class ClientInfo(models.Model):
     client = models.OneToOneField("Client", on_delete=models.CASCADE)
     contact_email = models.EmailField(blank=True, null=True)

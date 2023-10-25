@@ -66,8 +66,34 @@ def create_initial_pages(apps, schema_editor):
     m = WagtailTreeMigrator(apps)
     site = m.site()
 
-    imprint = m.create_page(
+    shop = m.create_page(
         site.root_page,
+        "pages.ShopPage",
+        dict(
+            title="Shop",
+            slug="shop",
+        ),
+    )
+    site.root_page = shop
+    site.save(update_fields=["root_page"])
+    assortment = m.create_page(
+        shop,
+        "pages.ContentPage",
+        dict(
+            title="Sortiment",
+            slug="sortiment",
+        ),
+    )
+    production_days = m.create_page(
+        shop,
+        "pages.ContentPage",
+        dict(
+            title="Backtage",
+            slug="backtage",
+        ),
+    )
+    imprint = m.create_page(
+        shop,
         "pages.ContentPage",
         dict(
             title="Impressum",
@@ -75,19 +101,11 @@ def create_initial_pages(apps, schema_editor):
         ),
     )
     privacy = m.create_page(
-        site.root_page,
+        shop,
         "pages.ContentPage",
         dict(
             title="Datenschutz",
             slug="datenschutz",
-        ),
-    )
-    shop = m.create_page(
-        site.root_page,
-        "pages.ShopPage",
-        dict(
-            title="Shop",
-            slug="shop",
         ),
     )
 

@@ -13,16 +13,6 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ## Basic Commands
 
-### Setting Up Your Users
-
--   To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
-
--   To create an **superuser account**, use this command:
-
-        $ python manage.py createsuperuser
-
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
-
 ### Setting up tenants
 
     $ python manage.py migrate_schemas --shared
@@ -45,11 +35,19 @@ In production add subdomain to nginx config and update letsencrypt certificate:
 
 It is important to set the proper --schema parameter to load the data into the right tenant. For local development this should be --schema=localhost
 
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/users/fixtures/demo-data.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/shop/fixtures/demo_customers.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/workshop/fixtures/categories.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/workshop/fixtures/demo-products.json
-    $ python manage.py tenant_command loaddata --schema=schema_name bakeup/shop/fixtures/demo_baking_days.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/shop/fixtures/demo_point_of_sale.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/demo_users.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/categories.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo-products.json
+
+This will also create some demo users accounts to login. You can user username: admin, password: admin.
+
+### Create initial CMS Pages
+
+This will create some default wagtail pages with demo content
+
+    python manage.py create_initial_wagtail_pages
+
 
 ### Type checks
 
