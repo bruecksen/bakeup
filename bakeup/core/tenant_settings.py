@@ -10,9 +10,7 @@ class TenantSettings:
             if client_settings.default_from_email:
                 settings.DEFAULT_FROM_EMAIL = client_settings.default_from_email
             if client_settings.server_email:
-                settings.SERVER_EMAIL = client_settings.server_email
-            if client_settings.email_subject_prefix:
-                settings.EMAIL_SUBJECT_PREFIX = client_settings.email_subject_prefix
+                settings.SERVER_EMAIL = client_settings.default_from_email
             if client_settings.email_host:
                 settings.EMAIL_HOST = client_settings.email_host
             if client_settings.email_host_password:
