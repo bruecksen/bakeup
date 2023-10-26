@@ -5,9 +5,27 @@
 {% block title %}{% trans 'Close your account' %}{% endblock %}
 {% block page_content %}
 <div class="row">
-    <div class="col-lg-6 col">
+    <div class="col-lg-8 col">
         <div class="card px-3 py-3">
             <h3 class="mb-4">{% trans 'Do you really want to close your account?' %}</h3>
+            {% comment %}
+            {% if orders_deleted %}
+            <p>{% trans "The following planned orders will be deleted" %}:</p>
+            <ul>
+                {% for order in orders_deleted %}
+                <li>{{ order.production_day }} ({{ order.get_order_positions_string }})</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if orders_locked %}
+            <p>{% trans "The following orders are already in production and could not be deleted" %}:</p>
+            <ul>
+                {% for order in orders_locked %}
+                <li>{{ order.production_day }} ({{ order.get_order_positions_string }})</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endcomment %}
             <form action="" method="post">
                 {% csrf_token %}
                 <input class="btn btn-link"

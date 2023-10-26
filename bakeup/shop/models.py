@@ -508,6 +508,52 @@ class PointOfSaleOpeningHour(CommonBaseClass):
         return self.point_of_sale.name
 
 
+class CustomerOrderPositionQuerySet(models.QuerySet):
+    def produced(self):
+        return self.filter(production_plan__state=ProductionPlan.State.PRODUCED)
+
+
+class BasePositionClass(CommonBaseClass):
+    product = models.ForeignKey(
+        "workshop.Product",
+        on_delete=models.PROTECT,
+        related_name="%(class)s_positions",
+        verbose_name=_("Product"),
+    )
+    quantity = models.PositiveSmallIntegerField(verbose_name=_("Quantity"))
+    comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class CustomerOrderPosition(BasePositionClass):
+    order = models.ForeignKey(
+        "shop.CustomerOrder", on_delete=models.CASCADE, related_name="positions"
+    )
+    production_plan = models.ForeignKey(
+        "workshop.ProductionPlan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
+    is_paid = models.BooleanField(default=False)
+    is_picked_up = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
+    price = MoneyField(
+        blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
+    )
+    price_total = MoneyField(
+        blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
+    )
+
+    objects = CustomerOrderPositionQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["product"]
+
+
 class Customer(CommonBaseClass):
     user = models.OneToOneField("users.User", on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey(
@@ -540,6 +586,34 @@ class Customer(CommonBaseClass):
         return f"{self.street or ''} {self.street_number or ''}"
 
 
+class CustomerOrderQuerySet(models.QuerySet):
+    def upcoming(self):
+        today = timezone.now().date()
+        return self.filter(production_day__day_of_sale__gte=today)
+
+    def locked(self):
+        return self.filter(
+            Exists(
+                Subquery(
+                    CustomerOrderPosition.objects.filter(order=OuterRef("pk")).filter(
+                        production_plan__state__gt=0
+                    )
+                )
+            )
+        )
+
+    def planned(self):
+        return self.filter(
+            ~Exists(
+                Subquery(
+                    CustomerOrderPosition.objects.filter(order=OuterRef("pk")).filter(
+                        production_plan__state__gt=0
+                    )
+                )
+            )
+        )
+
+
 class CustomerOrder(CommonBaseClass):
     # order_nr = models.CharField(max_length=255)
     production_day = models.ForeignKey(
@@ -565,6 +639,8 @@ class CustomerOrder(CommonBaseClass):
         verbose_name=_("Point of Sale"),
     )
     address = models.TextField()
+
+    objects = CustomerOrderQuerySet.as_manager()
 
     class Meta:
         unique_together = ["production_day", "customer"]
@@ -847,52 +923,6 @@ class CustomerOrder(CommonBaseClass):
             logger.exception(
                 "Sending order cancellation email failed.", stack_info=True
             )
-
-
-class CustomerOrderPositionQuerySet(models.QuerySet):
-    def produced(self):
-        return self.filter(production_plan__state=ProductionPlan.State.PRODUCED)
-
-
-class BasePositionClass(CommonBaseClass):
-    product = models.ForeignKey(
-        "workshop.Product",
-        on_delete=models.PROTECT,
-        related_name="%(class)s_positions",
-        verbose_name=_("Product"),
-    )
-    quantity = models.PositiveSmallIntegerField(verbose_name=_("Quantity"))
-    comment = models.TextField(blank=True, null=True)
-
-    class Meta:
-        abstract = True
-
-
-class CustomerOrderPosition(BasePositionClass):
-    order = models.ForeignKey(
-        "shop.CustomerOrder", on_delete=models.CASCADE, related_name="positions"
-    )
-    production_plan = models.ForeignKey(
-        "workshop.ProductionPlan",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="orders",
-    )
-    is_paid = models.BooleanField(default=False)
-    is_picked_up = models.BooleanField(default=False)
-    is_locked = models.BooleanField(default=False)
-    price = MoneyField(
-        blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
-    )
-    price_total = MoneyField(
-        blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
-    )
-
-    objects = CustomerOrderPositionQuerySet.as_manager()
-
-    class Meta:
-        ordering = ["product"]
 
 
 class CustomerOrderTemplatePositionQuerySet(models.QuerySet):

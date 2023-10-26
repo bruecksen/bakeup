@@ -1,3 +1,5 @@
+from typing import Any
+
 from allauth.account import signals
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import AddEmailForm, ChangePasswordForm
@@ -238,6 +240,12 @@ class UserProfileDeleteView(DeleteView):
     model = User
     template_name = "users/user_profile_delete.html"
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["orders_deleted"] = self.request.user.customer.orders.planned()
+        context["orders_locked"] = self.request.user.customer.orders.upcoming().locked()
+        return context
+
     def get_success_url(self):
         return "/shop/"
 
@@ -248,6 +256,7 @@ class UserProfileDeleteView(DeleteView):
         self.object = self.get_object()
         success_url = self.get_success_url()
         try:
+            self.object.customer.orders.planned().delete()
             self.object.is_active = False
             self.object.save()
             logout(request)
