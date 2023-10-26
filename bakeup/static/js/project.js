@@ -287,10 +287,12 @@ function updateProduct(modal, product, qty, maintainOrderedQty) {
     }
     row.data('quantity', qty);
     row.find('select.order-quantity').val(qty);
+    console.log('qty', qty > 0);
     if (qty > 0) {
         row.css('display', '');
         row.removeClass('d-none');
         row.addClass('table-row');
+        console.log('show row');
     }
     //  else if (qty == 0) {
     //     row.addClass('d-none');
@@ -403,6 +405,7 @@ $(function(){
         if ($(this).hasClass('in-checkout')) {
             var basketQuantity = 0;
             var totalBasketQuantity = 0;
+            var modal = $(this);
             $('.product-card').each(function(){
                 var product = $(this).data('product');
                 var orderedQty = $(this).data('ordered-quantity');
@@ -410,15 +413,15 @@ $(function(){
                 totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
                 basketQuantity += basketQuantity + quantity;
                 console.log(product, quantity);
-                updateProduct($(this), product, quantity, true);
+                updateProduct(modal, product, quantity, true);
                 // totalBasketQuantity += quantity;
             });
-            setTotalPrice($(this));
+            setTotalPrice(modal);
             console.log('basketQuantity', basketQuantity);
             console.log('totalBasketQuantity', totalBasketQuantity);
-            updateModal($(this), basketQuantity, totalBasketQuantity);
+            updateModal(modal, basketQuantity, totalBasketQuantity);
         }
-        var productionDay = $(this).data('production-day');
+        var productionDay = modal.data('production-day');
         // TODO should not be a fix url
         $.get('/shop/api/production-day-abo-products/' + productionDay + '/' ,function(data, status){
             aboProductDays = data;
