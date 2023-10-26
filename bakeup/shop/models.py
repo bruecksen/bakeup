@@ -1114,7 +1114,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                     product=product,
                 ).first().cancel()
                 continue
-            if product.is_open_for_abo:
+            if product.is_open_for_abo and quantity > 0:
                 existing_abo_qty = 0
                 if exisitng_position.exists():
                     existing_abo_qty = exisitng_position.first().quantity

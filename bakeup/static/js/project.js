@@ -218,7 +218,7 @@ function updateModalChange(modal){
     form.find('input[type="reset"]').removeClass('d-none').show();
     form.find('button.btn-update').removeClass('d-none').show();
     form.find('button.btn-cancel').removeClass('d-none').hide();
-    form.find('button[data-bs-dismiss="modal"]').hide();
+    form.find('a[data-bs-dismiss="modal"]').hide();
     modal.find('.modal-title span').removeClass('d-none').show();
     form.find('table').show();
     form.find('.message-empty-checkout').addClass('d-none').hide();
@@ -230,7 +230,7 @@ function updateModalUnchange(modal){
     form.find('button.btn-update').removeClass('d-none').hide();
     form.find('button.btn-cancel').removeClass('d-none').hide();
     form.find('input[type="reset"]').removeClass('d-none').hide();
-    form.find('button[data-bs-dismiss="modal"]').show();
+    form.find('a[data-bs-dismiss="modal"]').show();
     modal.find('.modal-title span').removeClass('d-none').hide();
 }
 function updateModalStorno(modal) {
@@ -240,7 +240,7 @@ function updateModalStorno(modal) {
     form.find('.form-check.terms-conditions input').attr("required", false);
     form.find('button.btn-update').removeClass('d-none').hide();
     form.find('button.btn-cancel').removeClass('d-none').show();
-    form.find('button[data-bs-dismiss="modal"]').hide();
+    form.find('a[data-bs-dismiss="modal"]').hide();
     form.find('table').hide();
     form.find('.message-empty-checkout').removeClass('d-none').show();
 }
@@ -251,7 +251,7 @@ function updateModalEmpty(modal) {
     // form.find('.form-check.terms-conditions input').attr("required", false);
     form.find('table').hide();
     form.find('.message-empty-checkout').removeClass('d-none').show();
-    form.find('button[data-bs-dismiss="modal"]').removeClass('d-none').show();
+    form.find('a[data-bs-dismiss="modal"]').removeClass('d-none').show();
     form.find('button.btn-update').removeClass('d-none').hide();
     form.find('button.btn-cancel').removeClass('d-none').hide();
 }
@@ -273,12 +273,12 @@ function updateModal(modal, basketQuantity, totalQuantity) {
     }
 }
 
-function updateProduct(product, qty, maintainOrderedQty) {
+function updateProduct(modal, product, qty, maintainOrderedQty) {
     qty = parseInt(qty);
     console.log('Update product', product, qty, maintainOrderedQty);
     // basket.find('.summary').removeClass('d-none');
     // basket.find('.current-order').hide();
-    var row = $("tr[data-product='" + product + "']");
+    var row = modal.find("tr[data-product='" + product + "']");
     var orderedQuantity = row.data('ordered-quantity');
     // set current product basket qty
     row.data('basket-quantity', Math.max(0, qty));
@@ -287,10 +287,12 @@ function updateProduct(product, qty, maintainOrderedQty) {
     }
     row.data('quantity', qty);
     row.find('select.order-quantity').val(qty);
+    console.log('qty', qty > 0);
     if (qty > 0) {
         row.css('display', '');
         row.removeClass('d-none');
         row.addClass('table-row');
+        console.log('show row');
     }
     //  else if (qty == 0) {
     //     row.addClass('d-none');
@@ -374,7 +376,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         form.find('.form-check.terms-conditions').removeClass('d-none').hide();
         form.find('button[type="submit"]').removeClass('d-none').hide();
         form.find('input[type="reset"]').removeClass('d-none').hide();
-        form.find('button[data-bs-dismiss="modal"]').show();
+        form.find('a[data-bs-dismiss="modal"]').show();
         form.dirty("setAsClean");
         form.find('table').show();
         form.find('.message-empty-checkout').addClass('d-none').hide();
@@ -400,6 +402,7 @@ $(function(){
         $(this).find('form input[type="reset"]').click();
     })
     $('.modal-checkout').on('show.bs.modal', function() {
+        var modal = $(this);
         if ($(this).hasClass('in-checkout')) {
             var basketQuantity = 0;
             var totalBasketQuantity = 0;
@@ -410,15 +413,15 @@ $(function(){
                 totalBasketQuantity = totalBasketQuantity + orderedQty + quantity;
                 basketQuantity += basketQuantity + quantity;
                 console.log(product, quantity);
-                updateProduct(product, quantity, true);
+                updateProduct(modal, product, quantity, true);
                 // totalBasketQuantity += quantity;
             });
-            setTotalPrice($(this));
+            setTotalPrice(modal);
             console.log('basketQuantity', basketQuantity);
             console.log('totalBasketQuantity', totalBasketQuantity);
-            updateModal($(this), basketQuantity, totalBasketQuantity);
+            updateModal(modal, basketQuantity, totalBasketQuantity);
         }
-        var productionDay = $(this).data('production-day');
+        var productionDay = modal.data('production-day');
         // TODO should not be a fix url
         $.get('/shop/api/production-day-abo-products/' + productionDay + '/' ,function(data, status){
             aboProductDays = data;
@@ -459,7 +462,7 @@ $(function(){
         var product = $(this).parents('tr').data('product');
         console.log($(this).val());
         var qty = this.value;
-        updateProduct(product, qty, false);
+        updateProduct(modal, product, qty, false);
         var basketQuantity = 0;
         form.find('tr.product select').each(function(){
             var qty = parseInt($(this).val());
@@ -523,9 +526,9 @@ $(function(){
                 if (orderedQty) {
                     qty = qty - orderedQty;
                 }
-                updateProduct(product, qty, true);
+                updateProduct(modal, product, qty, true);
             } else {
-                updateProduct(product, qty, false);
+                updateProduct(modal, product, qty, false);
             }
             setTotalPrice(modal);
         }
