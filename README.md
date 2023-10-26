@@ -49,6 +49,12 @@ This will create some default wagtail pages with demo content
     python manage.py create_initial_wagtail_pages
 
 
+### Translation
+
+    python manage.py makemessages -l de_DE -l de_DE@formal
+    python manage.py compilemessages
+
+
 ### Type checks
 
 Running type checks with mypy:
