@@ -402,10 +402,10 @@ $(function(){
         $(this).find('form input[type="reset"]').click();
     })
     $('.modal-checkout').on('show.bs.modal', function() {
+        var modal = $(this);
         if ($(this).hasClass('in-checkout')) {
             var basketQuantity = 0;
             var totalBasketQuantity = 0;
-            var modal = $(this);
             $('.product-card').each(function(){
                 var product = $(this).data('product');
                 var orderedQty = $(this).data('ordered-quantity');
