@@ -1041,13 +1041,6 @@ class CustomerOrderTemplate(CommonBaseClass):
                     )
                     if not customer_order_position.exists() and production_day_product:
                         production_day_product = production_day_product.get()
-                        customer_order, created = CustomerOrder.objects.get_or_create(
-                            production_day=production_day,
-                            customer=customer,
-                            defaults={
-                                "point_of_sale": customer.point_of_sale,
-                            },
-                        )
                         max_quantity = production_day_product.calculate_max_quantity(
                             customer
                         )
@@ -1057,6 +1050,15 @@ class CustomerOrderTemplate(CommonBaseClass):
                         if not production_day_product.is_locked and quantity > 0:
                             print(
                                 "Create Abo order: ", production_day, product, quantity
+                            )
+                            customer_order, created = (
+                                CustomerOrder.objects.get_or_create(
+                                    production_day=production_day,
+                                    customer=customer,
+                                    defaults={
+                                        "point_of_sale": customer.point_of_sale,
+                                    },
+                                )
                             )
                             price = None
                             price_total = None
