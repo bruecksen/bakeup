@@ -13102,7 +13102,11 @@ nav .nav-link:hover, nav .nav-link:focus {
 
 .pos-select {
   width: 100%;
-  max-width: 150px;
+  max-width: 246px;
+}
+
+.min-w-75 {
+  min-width: 75px;
 }
 
 @media print {

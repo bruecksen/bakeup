@@ -16,14 +16,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-1">Backtag: <strong>{{ production_day }}</strong></p>
+                <p class="mb-1"><span class="min-w-75 d-inline-block">Backtag: </span><strong>{{ production_day }}</strong></p>
                 <form {% if id %}id="customer-order-form-{{ id }}"{% endif %} class="customer-order-form{%if customer_order%} has_order{% endif %}{% if not customer_order %} prevent-leaving{% endif %}" method="POST" action="{% url 'shop:customer-order-add' production_day=production_day.pk %}">
                     {% csrf_token %}
                     {% if next_url %}
                     <input type="hidden" name="next_url" value="{{ next_url }}">
                     {% endif %}
                 {% if point_of_sales %}
-                <p class="">Abholort: <select class="form-select form-select-xs d-inline pos-select pe-3 me-1" name="point_of_sale"{% if customer_order.is_locked %} disabled{% endif %}>
+                <p class=""><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect" name="point_of_sale"{% if customer_order.is_locked %} disabled{% endif %}>
                     {% for point_of_sale in point_of_sales %}
                     <option value="{{ point_of_sale.pk }}" {% if  customer_order.point_of_sale == point_of_sale or not customer_order and user.customer.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
                     {% endfor %}
