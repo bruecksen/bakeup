@@ -501,7 +501,9 @@ nav {
 
 .pos-select {
   width: 100%;
-  max-width: 246px;
+  @media (max-width: 768px) {
+    max-width: 246px;
+  }
 }
 
 .min-w-75 {
