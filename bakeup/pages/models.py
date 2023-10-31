@@ -93,7 +93,7 @@ class ShopPage(Page):
         context["production_days"] = ProductionDay.objects.upcoming().available_to_user(
             request.user
         )
-        if self.production_day:
+        if self.show_production_day and self.production_day:
             context["abo_product_days"] = (
                 ProductionDayProduct.get_available_abo_product_days(
                     self.production_day, customer
