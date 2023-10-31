@@ -1,4 +1,49 @@
+String.prototype.width = function(font) {
+    var f = font || '12px arial',
+        o = $('<div></div>')
+              .text(this)
+              .css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden', 'font': f})
+              .appendTo($('body')),
+        w = o.width();
+
+    o.remove();
+
+    return w;
+  }
+
+let arrowWidth = 30;
+$.fn.resizeselect = function(settings) {
+    return this.each(function() {
+        let maxWidth = 0;
+        $(this).find('option').each(function() {
+            let $this = $(this);
+            // get font-weight, font-size, and font-family
+            let style = window.getComputedStyle(this)
+            let { fontWeight, fontSize, fontFamily } = style
+
+            // create test element
+            let text = $this.text();
+            let $test = $('<div></div>')
+              .text(text)
+              .css({'position': 'absolute', 'float': 'left', 'white-space': 'nowrap', 'visibility': 'hidden', "font-size": fontSize, "font-weight": fontWeight, "font-family": fontFamily,})
+              .appendTo($('body'));
+
+            let width = $test.width();
+            if (width > maxWidth) {
+                maxWidth = width;
+            }
+            $test.remove();
+
+            // set select width
+            // $this.width(width + arrowWidth);
+        });
+        // console.log('maxWidth', maxWidth);
+        $(this).width(maxWidth + arrowWidth);
+    });
+  };
+
 $(document).ready(function() {
+    $("select.resizeselect").resizeselect();
     var toastElList = [].slice.call(document.querySelectorAll('.toast'))
     var toastList = toastElList.map(function(toastEl) {
     // Creates an array of toasts (it only initializes them)
