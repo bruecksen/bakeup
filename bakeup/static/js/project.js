@@ -11,7 +11,7 @@ String.prototype.width = function(font) {
     return w;
   }
 
-let arrowWidth = 30;
+let arrowWidth = 40;
 $.fn.resizeselect = function(settings) {
     return this.each(function() {
         let maxWidth = 0;
