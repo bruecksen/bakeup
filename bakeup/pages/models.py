@@ -255,6 +255,7 @@ class GeneralSettings(BaseGenericSetting):
         AUTOMATICALLY = "automatically", "Automatically"
 
     class FontStyle(models.TextChoices):
+        HIDDEN = "d-none", "Hidden"
         HANDWRITING = "font-handwriting", "Handwriting"
         SERIF = "font-quattrocento", "Serif (quattrocento)"
         SANS_SERIF = "font-sans-serif", "Sans Serif"
