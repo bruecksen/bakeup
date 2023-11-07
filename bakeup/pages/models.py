@@ -260,6 +260,11 @@ class GeneralSettings(BaseGenericSetting):
         SERIF = "font-quattrocento", "Serif (quattrocento)"
         SANS_SERIF = "font-sans-serif", "Sans Serif"
 
+    class Ordering(models.TextChoices):
+        ALPHA = "product__name", "Alphabetical"
+        RANDOM = "?", "Random"
+        CREATED = "pk", "Created"
+
     abo_menu_item = models.CharField(
         max_length=13,
         default=Visibility.AUTOMATICALLY,
@@ -285,11 +290,15 @@ class GeneralSettings(BaseGenericSetting):
             " slash e.g. /shop/"
         ),
     )
+    production_day_product_ordering = models.CharField(
+        max_length=255, choices=Ordering.choices, default=Ordering.ALPHA
+    )
 
     panels = [
         FieldPanel("legal_entity"),
         FieldPanel("login_redirect_url"),
         FieldPanel("abo_menu_item"),
+        FieldPanel("production_day_product_ordering"),
         MultiFieldPanel(
             [
                 FieldPanel("brand_font"),
