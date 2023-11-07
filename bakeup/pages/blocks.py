@@ -295,6 +295,9 @@ class ColumnBlocks(StreamBlock):
 
 class ProductionDaysBlock(StructBlock):
     production_day_limit = IntegerBlock(default=4, required=False)
+    cta_button_text = CharBlock(
+        default="Zum Backtag", required=False, label="Button Text (Zum Backtag)"
+    )
 
     class Meta:
         template = "blocks/production_days_block.html"

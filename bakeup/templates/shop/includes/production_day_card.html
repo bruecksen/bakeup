@@ -48,7 +48,7 @@
     </div>
     <div class="card-footer">
         <div class="d-grid">
-            <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="btn btn-primary">Zum Backtag</a>
+            <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="btn btn-primary">{{ cta_button_text|default:'Zum Backtag' }}</a>
         </div>
     </div>
 </div>
