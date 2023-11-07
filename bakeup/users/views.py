@@ -21,6 +21,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DeleteView, DetailView
 
 from bakeup.contrib.forms import MultiFormsView
+from bakeup.pages.models import GeneralSettings
 from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm
 from bakeup.users.models import Token
 
@@ -32,7 +33,11 @@ class LoginView(_LoginView):
         if self.request.user.is_staff:
             return reverse("workshop:workshop")
         else:
-            return "/shop/#backtag"
+            general_settings = GeneralSettings.load(request_or_site=self.request)
+            if general_settings.login_redirect_url:
+                return general_settings.login_redirect_url
+            else:
+                return "/shop/#backtag"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
