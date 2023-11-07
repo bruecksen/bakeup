@@ -276,9 +276,19 @@ class GeneralSettings(BaseGenericSetting):
         default=False, help_text="Brand name in Großbuchstaben"
     )
     legal_entity = models.CharField(max_length=1024, blank=True, null=True)
+    login_redirect_url = models.CharField(
+        max_length=1024,
+        blank=True,
+        null=True,
+        help_text=(
+            "URL to redirect to after login, should be a relative url starting with a"
+            " slash e.g. /shop/"
+        ),
+    )
 
     panels = [
         FieldPanel("legal_entity"),
+        FieldPanel("login_redirect_url"),
         FieldPanel("abo_menu_item"),
         MultiFieldPanel(
             [
