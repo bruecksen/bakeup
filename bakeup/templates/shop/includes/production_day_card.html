@@ -4,8 +4,8 @@
     <div class="position-relative">
         <div class="row g-0">
             {% available_products production_day as products %}
-            {% if products.with_pictures.count == 1 %}
-                {% thumbnail products.first.product.image "600x450" crop="center" as im %}
+            {% if products.with_pictures.all.count == 1 %}
+                {% thumbnail products.with_pictures.first.product.image "600x450" crop="center" as im %}
                 <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="">
                     <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
                 </a>
@@ -13,12 +13,15 @@
             {% else %}
             <div id="carousel-production-day-{{ production_day.pk }}" class="carousel slide" data-bs-ride="true">
                 <div class="carousel-indicators">
-                    {% for production_day_product in products.with_pictures.all %}
+                    {% for production_day_product in products %}
+                        {% if production_day_product.has_picture %}
                         <button type="button" data-bs-target="#carousel-production-day-{{ production_day.pk }}" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-current="true" aria-label="Slide {{ forloop.counter }}"></button>
+                        {% endif %}
                     {% endfor %}
                 </div>
                 <div class="carousel-inner">
-                    {% for production_day_product in products.with_pictures.all %}
+                    {% for production_day_product in products %}
+                    {% if production_day_product.has_picture %}
                         <div class="carousel-item{% if forloop.first %} active{% endif %}">
                             {% thumbnail production_day_product.product.image "600x450" crop="center" as im %}
                             <a href="{% url 'shop:shop-production-day' production_day=production_day.pk %}" class="">
@@ -26,6 +29,7 @@
                             </a>
                             {% endthumbnail %}
                         </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#carousel-production-day-{{ production_day.pk }}" data-bs-slide="prev">

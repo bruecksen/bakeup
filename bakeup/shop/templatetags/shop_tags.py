@@ -1,6 +1,7 @@
 from django import template
 from django.db.models import Q
 
+from bakeup.pages.models import GeneralSettings
 from bakeup.shop.models import CustomerOrderPosition, ProductionDayProduct
 
 register = template.Library()
@@ -29,14 +30,17 @@ def upcoming_available_production_days(context, product):
 @register.simple_tag(takes_context=True)
 def available_products(context, production_day):
     user = context["request"].user
+    general_settings = GeneralSettings.load(request_or_site=context["request"])
+    ordering = general_settings.production_day_product_ordering
     if user.is_authenticated:
-        return (
+        qs = (
             production_day.production_day_products.published()
             .upcoming()
             .available_to_user(user)
         )
     else:
-        return production_day.production_day_products.published().upcoming().available()
+        qs = production_day.production_day_products.published().upcoming().available()
+    return qs.order_by(ordering)
 
 
 @register.simple_tag(takes_context=True)

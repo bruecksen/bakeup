@@ -420,6 +420,12 @@ class ProductionDayProduct(CommonBaseClass):
         return result
 
     @property
+    def has_picture(self):
+        if self.product.image:
+            return True
+        return False
+
+    @property
     def is_sold_out(self):
         return self.calculate_max_quantity() <= 0
 
