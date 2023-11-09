@@ -633,6 +633,10 @@ if (myCollapsible) {
     })
 }
 $(function() {
+    // open external links and documents in a new tab
+    $('a[href^="http"], a[href^="/documents/"]').attr({'target': '_blank', 'rel': 'nofollow noopener'});
+    $('a[href^="/documents/"]').attr({'target': '_blank'});
+
     $('#id_message').change(function(){
         this.closest('form').submit();
     });
