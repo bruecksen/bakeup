@@ -105,8 +105,9 @@
     <table class="table" style="table-layout: fixed;">
       <tr>
           <th width="" class="align-middle">{% trans "User" %}</th>
-          <th width="60%" class="align-middle">{% trans "Products" %}</th>
+          <th width="30%" class="align-middle">{% trans "Products" %}</th>
           {% if object.has_products_with_price %}<th width="10%">{% trans "Price" %}</th>{% endif %}
+          <th width="30%" class="align-middle">{% trans "Note" %}</th>
           <th width="15%" class="text-center align-middle">
             <nobr>{% trans "Picked" %} <button class="btn btn-link d-print-none btn-sm py-0"
             hx-get="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
@@ -127,6 +128,7 @@
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </td>
           {% if object.has_products_with_price %}<td>{% if order.price_total %}{{ order.price_total }} €{% endif %}</td>{% endif %}
+          <td>{{ order.notes.first.content|default:''}}</td>
           <td class="text-center">
             <form method="POST">
               {% csrf_token %}
