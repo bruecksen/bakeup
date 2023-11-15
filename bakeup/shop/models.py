@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMessage
 from django.db import models, transaction
 from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
@@ -14,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
+from bakeup.contrib.models import Note
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.models import Product, ProductionPlan
 
@@ -645,6 +647,7 @@ class CustomerOrder(CommonBaseClass):
         verbose_name=_("Point of Sale"),
     )
     address = models.TextField()
+    notes = GenericRelation(Note, related_query_name="notes")
 
     objects = CustomerOrderQuerySet.as_manager()
 

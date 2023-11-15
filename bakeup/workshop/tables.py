@@ -146,6 +146,10 @@ class CustomerOrderTable(tables.Table):
         verbose_name="",
         exclude_from_export=True,
     )
+    note = tables.TemplateColumn(
+        "{{ record.notes.first.content|default:'' }}",
+        verbose_name=_("Note"),
+    )
 
     class Meta:
         model = CustomerOrder
@@ -157,6 +161,7 @@ class CustomerOrderTable(tables.Table):
             "point_of_sale",
             "positions",
             "price_total",
+            "note",
         )
 
     def value_positions(self, value):

@@ -28,6 +28,8 @@ from django_tables2 import SingleTableMixin, SingleTableView
 from django_tables2.export import ExportMixin as TableExportMixin
 from treebeard.forms import movenodeform_factory
 
+from bakeup.contrib.forms import NoteForm
+from bakeup.contrib.models import Note
 from bakeup.core.utils import get_deleted_objects
 from bakeup.core.views import NextUrlMixin, StaffPermissionsMixin
 from bakeup.pages.models import EmailSettings
@@ -718,7 +720,11 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        note = Note.objects.filter(
+            content_type__model="customerorder", object_id=self.object.id
+        ).first()
         if self.request.POST:
+            context["note_form"] = NoteForm(self.request.POST, instance=note)
             context["formset"] = CustomerOrderPositionFormSet(
                 self.request.POST,
                 form_kwargs={
@@ -728,6 +734,7 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
                 },
             )
         else:
+            context["note_form"] = NoteForm(instance=note)
             context["formset"] = CustomerOrderPositionFormSet(
                 queryset=self.object.positions.all(),
                 form_kwargs={
@@ -741,15 +748,28 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         formset = CustomerOrderPositionFormSet(request.POST)
+        note = Note.objects.filter(
+            content_type__model="customerorder", object_id=self.object.id
+        ).first()
+        note_form = NoteForm(request.POST, instance=note)
         form = self.get_form()
-        if formset.is_valid() and form.is_valid():
-            return self.form_valid(form, formset)
+        if formset.is_valid() and form.is_valid() and note_form.is_valid():
+            return self.form_valid(form, formset, note_form)
         else:
-            return self.form_invalid(form, formset)
+            return self.form_invalid(form, formset, note_form)
 
-    def form_valid(self, form, formset):
+    def form_valid(self, form, formset, note_form):
         with transaction.atomic():
             form.save()
+            if note_form.instance.pk:  # Check if the note already exists
+                # If the note exists, update it
+                note = note_form.save()
+            else:
+                # If the note doesn't exist, create a new one
+                note = note_form.save(commit=False)
+                note.user = self.request.user
+                note.content_object = self.object
+                note.save()
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 obj.delete()
@@ -1409,7 +1429,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     def get_data(self):
         column_count = (
-            5 + self.production_day.production_day_products.published().count()
+            6 + self.production_day.production_day_products.published().count()
         )
         rows = []
         top_header = [""] * column_count
@@ -1424,6 +1444,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
         for product in production_day_products:
             headers.append(product.product.get_short_name())
         headers.append("Abholstelle")
+        headers.append("Anmerkung")
         rows.append(headers)
         for order in self.object_list.all():
             row = []
@@ -1443,6 +1464,9 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
                 row.append(order_position and order_position.quantity or 0)
             pos = order.point_of_sale and order.point_of_sale.get_short_name() or ""
             row.append(pos)
+            row.append(
+                order.notes.first() and order.notes.first().content or "",
+            )
             rows.append(row)
         # add footer
 
@@ -1452,8 +1476,10 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
             "",
             "",
             "",
+            "",
         ]
         footer2 = [
+            "",
             "",
             "",
             "",
