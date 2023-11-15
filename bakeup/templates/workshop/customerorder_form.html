@@ -10,13 +10,14 @@
 {% block page_content %}
 <form class="form-horizontal" method="post">
 <div class="row mb-4">
-  <div class="col-3">
+  <div class="col-6">
     <div class="card p-3 mb-3">
       <ul class="list-unstyled mt-3 mb-3">
         <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ object.production_day }}</li>
         <li><i class="fa-solid fa-user fa-fw"></i>{{ object.customer }}</li>
       </ul>
       {% bootstrap_field form.point_of_sale %}
+      {% bootstrap_form note_form %}
     </div>
   </div>
 </div>

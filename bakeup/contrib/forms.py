@@ -1,7 +1,10 @@
+from django import forms
 from django.http.response import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.generic.edit import ProcessFormView
+
+from bakeup.contrib.models import Note
 
 
 class MultiFormMixin(ContextMixin):
@@ -156,3 +159,16 @@ def handler404(request, *args, **argv):
 
 def handler500(request, template_name="500.html"):
     return render(request, template_name, status=500)
+
+
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        fields = ["content"]  # Adjust based on your Note model fields
+        widgets = {
+            "content": forms.Textarea(attrs={"rows": 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(NoteForm, self).__init__(*args, **kwargs)
+        # Customize the form if needed
