@@ -330,6 +330,8 @@ ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
 
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 14
+
 ACCOUNT_ADAPTER = "bakeup.users.allauth.AccountAdapter"
 ACCOUNT_FORMS = {
     "signup": "bakeup.users.forms.SignupForm",
