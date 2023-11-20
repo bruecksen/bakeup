@@ -412,9 +412,12 @@ class ProductionDayProduct(CommonBaseClass):
                 production_day=production_day,
             )
             .filter(has_order=False)
-            .available_to_user(customer.user)
             .distinct()
         )
+        if customer and customer.user:
+            production_day_products = production_day_products.available_to_user(
+                customer.user
+            )
         result = collections.defaultdict(dict)
         for production_day_product in production_day_products:
             production_days = result[production_day_product.product.pk]
