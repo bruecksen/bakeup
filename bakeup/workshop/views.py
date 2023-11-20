@@ -947,6 +947,9 @@ class ProductionDayAddView(NextUrlMixin, ProductionDayMixin, CreateView):
     model = ProductionDay
     form_class = ProductionDayForm
 
+    def get_next_page(self):
+        return reverse("workshop:production-day-detail", kwargs={"pk": self.object.pk})
+
     def get_object(self, queryset=None):
         return None
 
