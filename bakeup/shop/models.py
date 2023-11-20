@@ -247,17 +247,18 @@ class ProductionDay(CommonBaseClass):
         return plans
 
     def create_template_orders(self, request):
-        production_day_products = (
-            self.production_day_products.published()
-            .available()
-            .values_list("product", flat=True)
+        production_day_products = self.production_day_products.published().values_list(
+            "product", flat=True
         )
         order_templates = CustomerOrderTemplate.objects.active().filter(
             positions__product__in=production_day_products
         )
         for order_template in order_templates:
+            available_products = production_day_products.available_to_user(
+                order_template.customer.user
+            )
             customer_order_template_positions = order_template.positions.filter(
-                product__in=production_day_products
+                product__in=available_products
             )
             CustomerOrderTemplate.create_abo_orders_for_production_days(
                 order_template.customer,
@@ -411,6 +412,7 @@ class ProductionDayProduct(CommonBaseClass):
                 production_day=production_day,
             )
             .filter(has_order=False)
+            .available_to_user(customer.user)
             .distinct()
         )
         result = collections.defaultdict(dict)
