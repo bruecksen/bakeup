@@ -778,8 +778,13 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
                 instance.save()
         return HttpResponseRedirect(reverse("workshop:order-list"))
 
-    def form_invalid(self, form, formset):
-        raise Exception(form.errors, formset.errors)
+    def form_invalid(self, form, formset, note_form):
+        if form.errors:
+            messages.error(self.request, form.errors)
+        if formset.errors:
+            messages.error(self.request, formset.errors)
+        if note_form.errors:
+            messages.error(self.request, note_form.errors)
         return self.render_to_response(self.get_context_data())
 
 

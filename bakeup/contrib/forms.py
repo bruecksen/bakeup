@@ -162,6 +162,8 @@ def handler500(request, template_name="500.html"):
 
 
 class NoteForm(forms.ModelForm):
+    content = forms.CharField(required=False)
+
     class Meta:
         model = Note
         fields = ["content"]  # Adjust based on your Note model fields
