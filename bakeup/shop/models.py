@@ -169,7 +169,7 @@ class ProductionDay(CommonBaseClass):
             )
         elif production_plan.exists():
             # plan is locked no update
-            print("plan exists: {}".format(product_template))
+            print("plan is locked: {}".format(product_template))
             return production_plan.first()
         print("plan create: {}".format(product_template))
         # this needs to happen before duplicating!
@@ -565,6 +565,12 @@ class CustomerOrderPosition(BasePositionClass):
 
     class Meta:
         ordering = ["product"]
+
+    def get_product(self):
+        if self.product.product_template:
+            return self.product.product_template
+        else:
+            return self.product
 
 
 class Customer(CommonBaseClass):

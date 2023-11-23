@@ -149,6 +149,10 @@ class CustomerOrderPositionForm(forms.ModelForm):
         self.production_day_products = kwargs.pop(
             "production_day_products", Product.objects.all()
         )
+        if "instance" in kwargs:
+            initial = kwargs.get("initial", {})
+            initial["product"] = kwargs["instance"].get_product()
+            kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = self.production_day_products
 
