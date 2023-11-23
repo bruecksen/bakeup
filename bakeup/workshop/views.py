@@ -533,19 +533,17 @@ def production_plans_start_view(request, production_day):
         state=ProductionPlan.State.PLANNED,
         parent_plan__isnull=True,
     )
+    production_plans_updated = []
     for production_plan in production_plans:
-        production_plan.production_day.create_or_update_production_plan(
-            product=production_plan.product.product_template,
-            state=ProductionPlan.State.IN_PRODUCTION,
-            create_max_quantity=False,
+        production_plans_updated.append(
+            production_plan.production_day.create_or_update_production_plan(
+                product=production_plan.product.product_template,
+                state=ProductionPlan.State.IN_PRODUCTION,
+                create_max_quantity=False,
+            )
         )
-    production_plans = ProductionPlan.objects.filter(
-        production_day=production_day,
-        state=ProductionPlan.State.PLANNED,
-        parent_plan__isnull=True,
-    )
-    for production_plan in production_plans:
-        production_plan.set_production()
+    # raise Exception(production_plans)
+    for production_plan in production_plans_updated:
         production_plan.production_day.update_order_positions_product(
             production_plan.product
         )
@@ -770,12 +768,15 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
                 note.user = self.request.user
                 note.content_object = self.object
                 note.save()
-            instances = formset.save(commit=False)
-            for obj in formset.deleted_objects:
-                obj.delete()
-            for instance in instances:
-                instance.order = self.object
-                instance.save()
+            if formset.has_changed():
+                instances = formset.save(commit=False)
+                for obj in formset.deleted_objects:
+                    obj.delete()
+                for instance in instances:
+                    instance.order = self.object
+                    if instance.production_plan:
+                        instance.product = instance.production_plan.product
+                    instance.save()
         return HttpResponseRedirect(reverse("workshop:order-list"))
 
     def form_invalid(self, form, formset, note_form):
