@@ -798,16 +798,16 @@ def production_day_redirect_view(request):
                 "workshop:production-day-detail",
                 kwargs={"pk": form.cleaned_data["production_day"].pk},
             )
+            return HttpResponseRedirect(url)
+    production_day = ProductionDay.objects.upcoming().first()
+    if not production_day:
+        production_day = ProductionDay.objects.all().first()
+    if production_day:
+        url = reverse(
+            "workshop:production-day-detail", kwargs={"pk": production_day.pk}
+        )
     else:
-        production_day = ProductionDay.objects.upcoming().first()
-        if not production_day:
-            production_day = ProductionDay.objects.all().first()
-        if production_day:
-            url = reverse(
-                "workshop:production-day-detail", kwargs={"pk": production_day.pk}
-            )
-        else:
-            url = reverse("workshop:production-day-add")
+        url = reverse("workshop:production-day-add")
     return HttpResponseRedirect(url)
 
 
