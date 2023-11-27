@@ -17,7 +17,8 @@ class DataExport:
     YAML = "yaml"
 
     FORMATS = {
-        CSV: "text/csv; charset=iso-8859-1",
+        # CSV: "text/csv; charset=iso-8859-1",
+        CSV: "text/csv; charset=cp1252",
         JSON: "application/json",
         LATEX: "text/plain",
         ODS: "application/vnd.oasis.opendocument.spreadsheet",
