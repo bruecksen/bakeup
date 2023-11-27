@@ -77,7 +77,7 @@ class DataExport:
                 filename
             )
 
-        response.write(self.export())
+        response.write(self.export().encode("latin-1", "ignore"))
         return response
 
 
