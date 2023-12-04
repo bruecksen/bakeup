@@ -15,6 +15,7 @@ from bakeup.workshop.views import (
     CustomerOrderListView,
     CustomerOrderUpdateView,
     CustomerReady2OrderExportView,
+    CustomerSevdeskExportView,
     CustomerUpdateView,
     GroupCreateView,
     GroupDeleteView,
@@ -287,6 +288,11 @@ urlpatterns = [
         "customers/export/ready2order/",
         view=CustomerReady2OrderExportView.as_view(),
         name="customer-export-ready-2-order",
+    ),
+    path(
+        "customers/export/sevdesk/",
+        view=CustomerSevdeskExportView.as_view(),
+        name="customer-export-sevdesk",
     ),
     path(
         "customers/<int:pk>/", view=CustomerDetailView.as_view(), name="customer-detail"
