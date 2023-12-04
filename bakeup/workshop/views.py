@@ -1428,6 +1428,104 @@ class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterVi
         return "ready2order-{}".format(now().strftime("%d-%m-%Y"))
 
 
+class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
+    filterset_class = CustomerOrderFilter
+    model = Customer
+
+    def get_headers(self):
+        headers = [
+            "Kunden-Nr.",
+            "Anrede",
+            "Titel",
+            "Nachname",
+            "Vorname",
+            "Organisation",
+            "Namenszusatz",
+            "Position",
+            "Kategorie",
+            "IBAN",
+            "BIC",
+            "Umsatzsteuer-ID",
+            "Strasse",
+            "PLZ",
+            "Ort",
+            "Land",
+            "Adress-Kategorie",
+            "Telefon",
+            "Telefon-Kategorie",
+            "Mobil",
+            "Fax",
+            "E-Mail",
+            "E-Mail-Kategorie",
+            "Webseite",
+            "Webseiten-Kategorie",
+            "Beschreibung",
+            "Geburtstag",
+            "Tags",
+            "Debitoren-Nr",
+            "Kreditoren-Nr.",
+            "Leitweg-ID / Leitwegsnummer",
+            "Steuernummer",
+            "Skonto Tage",
+            "Skonto Prozent",
+            "Zahlungsziel Tage",
+            "Kundenrabatt",
+            "Ist Kundenrabatt prozentual",
+        ]
+        return headers
+
+    def get_data(self):
+        customers = self.object_list.order_by("pk")
+        rows = []
+        for customer in customers:
+            rows.append(
+                [
+                    customer.id,
+                    "",
+                    "",
+                    customer.user.last_name,
+                    customer.user.first_name,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    customer.address_line,
+                    customer.postal_code,
+                    customer.city,
+                    "Deutschland",
+                    "",
+                    customer.telephone_number,
+                    "",
+                    "",
+                    "",
+                    customer.user.email,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+        return rows
+
+    @property
+    def export_name(self):
+        return "sevDesk-{}".format(now().strftime("%d-%m-%Y"))
+
+
 class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
     model = CustomerOrder
     template_name = "workshop/order_list.html"
