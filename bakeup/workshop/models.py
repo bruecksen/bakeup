@@ -159,6 +159,10 @@ class Product(CommonBaseClass):
         )
 
     @property
+    def abo_count(self):
+        return self.customerordertemplateposition_positions.active().count()
+
+    @property
     def available_abo_quantity(self):
         if self.max_recurring_order_qty:
             return self.max_recurring_order_qty - self.abo_sum

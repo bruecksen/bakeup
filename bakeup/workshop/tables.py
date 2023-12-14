@@ -3,7 +3,7 @@ import django_tables2 as tables
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from django_tables2.utils import A
@@ -316,3 +316,33 @@ class PointOfSaleTable(tables.Table):
         model = PointOfSale
         order_by = "production_day"
         fields = ("name", "short_name", "is_primary", "customers", "actions")
+
+
+class CustomerOrderTemplateTable(tables.Table):
+    # token = tables.TemplateColumn(
+    #     "{% load workshop_tags %}{% token_url record.token %}",
+    #     verbose_name=_("Signup url"),
+    # )
+    user_count = tables.TemplateColumn(
+        "<a href='{% url 'workshop:order-list' %}'>{{record.abo_count}}</a>",
+        verbose_name=_("Subscriptions"),
+    )
+    abo_count = tables.Column(empty_values=(), verbose_name=_("Quantity"))
+    # actions = tables.TemplateColumn(
+    #     template_name="tables/group_actions_column.html", verbose_name=""
+    # )
+
+    class Meta:
+        model = Product
+        fields = ("name",)
+
+    # def render_user_count(self, value, record):
+    #     return record.customerorderposition_positions.count()
+
+    def render_abo_count(self, value, record):
+        return (
+            record.customerorderposition_positions.aggregate(Sum("quantity"))[
+                "quantity__sum"
+            ]
+            or 0
+        )

@@ -10,6 +10,7 @@
 {% block page_heading_action %}
 <div class="btn-group float-end" role="group" aria-label="Basic example">
   <a href="{% url 'workshop:group-list' %}" class="btn btn-primary btn-sm"><i class="fas fa-users"></i> {% trans "Groups" %}</a>
+  <a href="{% url 'workshop:customer-order-template-overview' %}" class="btn btn-primary btn-sm">{% trans "Customer abo overview" %}</a>
   <a href="{% url 'workshop:customer-abo' %}" class="btn btn-primary btn-sm">{% trans "Customer abos" %}</a>
   <div class="btn-group">
     <a class="btn btn-sm btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
