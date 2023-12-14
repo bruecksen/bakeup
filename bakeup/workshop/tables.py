@@ -11,6 +11,7 @@ from django_tables2.utils import A
 from bakeup.shop.models import (
     Customer,
     CustomerOrder,
+    CustomerOrderTemplatePosition,
     PointOfSale,
     ProductionDay,
     ProductionDayProduct,
@@ -253,12 +254,17 @@ class CustomerTable(tables.Table):
 
 
 class CustomerFilter(django_filters.FilterSet):
-    abos = django_filters.ModelChoiceFilter(
-        method="filter_abos",
+    meta_product = django_filters.ModelChoiceFilter(
+        method="filter_meta_products",
         queryset=Product.objects.filter(
             category__name__iexact=settings.META_PRODUCT_CATEGORY_NAME
         ),
-        empty_label="Select abo",
+        empty_label="Select Meta Product",
+    )
+    abo_product = django_filters.ModelChoiceFilter(
+        method="filter_abo_products",
+        queryset=Product.objects.filter(is_recurring=True, is_sellable=True),
+        empty_label="Select Abo Product",
     )
     point_of_sale = django_filters.ModelChoiceFilter(
         queryset=PointOfSale.objects.all(), empty_label=_("Select a point of sale")
@@ -274,8 +280,16 @@ class CustomerFilter(django_filters.FilterSet):
         model = Customer
         fields = ("point_of_sale",)
 
-    def filter_abos(self, queryset, name, value):
-        return queryset.filter(order_templates__product=value)
+    # def filter_meta_products(self, queryset, name, value):
+    #     return queryset.filter(order_templates__positions__product=value)
+
+    def filter_abo_products(self, queryset, name, value):
+        return queryset.filter(
+            pk__in=CustomerOrderTemplatePosition.objects.active()
+            .filter(product=value)
+            .values_list("order_template__customer", flat=True)
+            .distinct()
+        )
 
     def filter_group(self, queryset, name, value):
         return queryset.filter(user__groups=value)
@@ -324,7 +338,8 @@ class CustomerOrderTemplateTable(tables.Table):
     #     verbose_name=_("Signup url"),
     # )
     user_count = tables.TemplateColumn(
-        "<a href='{% url 'workshop:order-list' %}'>{{record.abo_count}}</a>",
+        "<a href='{% url 'workshop:customer-list'"
+        " %}?abo_product={{record.pk}}'>{{record.abo_count}}</a>",
         verbose_name=_("Subscriptions"),
     )
     abo_count = tables.Column(empty_values=(), verbose_name=_("Quantity"))
