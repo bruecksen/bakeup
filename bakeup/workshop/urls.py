@@ -13,6 +13,7 @@ from bakeup.workshop.views import (
     CustomerOrderAddView,
     CustomerOrderDeleteView,
     CustomerOrderListView,
+    CustomerOrderTemplateOverview,
     CustomerOrderUpdateView,
     CustomerReady2OrderExportView,
     CustomerSevdeskExportView,
@@ -327,5 +328,10 @@ urlpatterns = [
         "points-of-sale/<int:pk>/delete/",
         view=PointOfSaleDeleteView.as_view(),
         name="point-of-sale-delete",
+    ),
+    path(
+        "subscriptions/",
+        view=CustomerOrderTemplateOverview.as_view(),
+        name="customer-order-template-overview",
     ),
 ]

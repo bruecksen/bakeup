@@ -1,0 +1,17 @@
+{% extends "workshop/base.html" %}
+{% load django_bootstrap5 %}
+{% load export_url from django_tables2 %}
+{% load render_table from django_tables2 %}
+{% load i18n %}
+
+{% block title %}{% endblock %}
+{% block page_heading %}{% trans "Subscriptions" %}{% endblock %}
+
+{% block page_heading_action %}
+{% endblock %}
+
+{% block page_content %}
+  {% render_table table %}
+
+
+{% endblock %}
