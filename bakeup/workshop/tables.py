@@ -3,7 +3,7 @@ import django_tables2 as tables
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.db.models import Q, Sum
+from django.db.models import Q
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from django_tables2.utils import A
@@ -340,9 +340,4 @@ class CustomerOrderTemplateTable(tables.Table):
     #     return record.customerorderposition_positions.count()
 
     def render_abo_count(self, value, record):
-        return (
-            record.customerorderposition_positions.aggregate(Sum("quantity"))[
-                "quantity__sum"
-            ]
-            or 0
-        )
+        return record.abo_sum
