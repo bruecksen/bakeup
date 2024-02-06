@@ -1277,6 +1277,11 @@ class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+
+        for protected_object in protected:
+            protected_object.force_delete = True
+            protected_object.delete()
         success_url = self.get_success_url()
         try:
             self.object.delete()

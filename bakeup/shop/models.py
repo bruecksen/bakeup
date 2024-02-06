@@ -667,7 +667,7 @@ class CustomerOrder(CommonBaseClass):
         ordering = ["production_day", "-created"]
 
     def __str__(self):
-        return "{} {}".format(self.production_day, self.customer)
+        return "Customer order: {} {}".format(self.production_day, self.customer)
 
     def get_order_positions_string(self):
         positions_string = ""
@@ -997,6 +997,9 @@ class CustomerOrderTemplate(CommonBaseClass):
     is_locked = models.BooleanField(default=False)
 
     objects = CustomerOrderTemplateQuerySet.as_manager()
+
+    def __str__(self):
+        return "Customer abo: #{}".format(self.pk)
 
     @property
     def is_running(self):
