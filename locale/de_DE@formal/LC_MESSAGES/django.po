@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-14 11:44+0100\n"
+"POT-Creation-Date: 2024-02-07 00:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -174,11 +174,11 @@ msgstr "Kunden"
 msgid "Point of Sale"
 msgstr "Abholstellen"
 
-#: bakeup/shop/models.py:1010
+#: bakeup/shop/models.py:1013
 msgid "running"
 msgstr ""
 
-#: bakeup/shop/models.py:1011
+#: bakeup/shop/models.py:1014
 msgid "finished"
 msgstr ""
 
@@ -240,6 +240,7 @@ msgstr ""
 #: bakeup/templates/account/email_confirm.html:29
 #: bakeup/templates/users/user_profile_delete.html:35
 #: bakeup/templates/workshop/category_confirm_delete.html:31
+#: bakeup/templates/workshop/customer_confirm_delete.html:23
 #: bakeup/templates/workshop/customerorder_confirm_delete.html:17
 #: bakeup/templates/workshop/group_confirm_delete.html:19
 #: bakeup/templates/workshop/product_confirm_delete.html:19
@@ -496,6 +497,7 @@ msgstr "Wollen Sie wirklich Ihr Konto schließen?"
 #: bakeup/templates/workshop/batch_customerorder_form.html:69
 #: bakeup/templates/workshop/category_confirm_delete.html:29
 #: bakeup/templates/workshop/category_form.html:21
+#: bakeup/templates/workshop/customer_confirm_delete.html:21
 #: bakeup/templates/workshop/customerorder_confirm_delete.html:15
 #: bakeup/templates/workshop/customerorder_form.html:57
 #: bakeup/templates/workshop/group_confirm_delete.html:17
@@ -589,6 +591,18 @@ msgstr "Hinzufügen"
 #: bakeup/templates/workshop/includes/sidebar.html:16
 msgid "Categories"
 msgstr "Kategorien"
+
+#: bakeup/templates/workshop/customer_confirm_delete.html:10
+msgid ""
+"<p>You're about to delete the following customer: <strong>%(object)s</"
+"strong> and all the related objects. Please confirm!</p>"
+msgstr ""
+"<p>Bitte bestätige Sie das Löschen des folgenden Kunden: <strong>%(object)s</"
+"strong> und alle abhängigen Objekte.</p>"
+
+#: bakeup/templates/workshop/customer_confirm_delete.html:17
+msgid "<p class=\"fw-bold\">This action cannot be reversed.</p>"
+msgstr "<p class=\"fw-bold\">Dieser Vorgang kann nicht rückgängig gemacht werden.</p>"
 
 #: bakeup/templates/workshop/customer_detail.html:21
 #, fuzzy
@@ -1456,7 +1470,7 @@ msgstr "Registrieren"
 msgid "Select a group"
 msgstr "Gruppe auswählen"
 
-#: bakeup/workshop/views.py:1614
+#: bakeup/workshop/views.py:1619
 #, fuzzy
 #| msgid "Production days"
 msgid "productionday-{}"
