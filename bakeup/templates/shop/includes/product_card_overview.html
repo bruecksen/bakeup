@@ -37,7 +37,7 @@
             <div class="d-grid gap-2">
                 {% upcoming_available_production_days product as production_days %}
                 {% for production_day in production_days %}
-                <a href="{% url 'shop:shop-production-day' production_day=production_day.production_day.pk %}#product-{{production_day.pk}}" class="btn btn-primary"><span class="fw-bold">{{ production_day.production_day.day_of_sale|date:'d.m.Y' }}</span> ({{ production_day.calculate_max_quantity }} verfügbar)</a>
+                <a href="{% url 'shop:shop-production-day' production_day=production_day.production_day.pk %}#product-{{production_day.pk}}" class="btn btn-primary"><span class="fw-bold">{{ production_day.production_day.day_of_sale|date:'d.m.Y' }}</span> {% if production_day.is_locked %}(0 verfügbar){% else %}({{ production_day.calculate_max_quantity }} verfügbar){% endif %}</a>
                 {% endfor %}
             </div>
             {% else %}
