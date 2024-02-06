@@ -23,6 +23,8 @@ def update_production_plan(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=CustomerOrder)
 def protect_customer_orders(sender, instance, using, **kwargs):
+    if hasattr(instance, "force_delete") and instance.force_delete:
+        return
     if instance.positions.filter(production_plan__state__gt=0):
         raise ProtectedError(
             "Only orders with unstarted production plans can be deleted.", instance
