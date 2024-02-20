@@ -921,6 +921,8 @@ class ProductionDayMixin(object):
             instances = formset.save(commit=False)
             for obj in formset.deleted_objects:
                 try:
+                    if obj.production_plan:
+                        obj.production_plan.delete()
                     obj.delete()
                 except ProtectedError as e:
                     messages.error(self.request, e)
