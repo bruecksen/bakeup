@@ -102,7 +102,9 @@ function addForm(e){
     var formRegex = RegExp(`form-(\\d){1}-`,'g');
 
     newForm.classList.remove('d-none');
+    console.log(newForm);
     newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, `${totalFormValue}`);
+    newForm.querySelector(`#id_form-${totalFormValue}-weight`).required = true;
     console.log(form[0])
     container.insertBefore(newForm, form[0]);
 
