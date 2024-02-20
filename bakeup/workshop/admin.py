@@ -2,7 +2,7 @@ from django.contrib import admin
 from treebeard.admin import TreeAdmin
 from treebeard.forms import movenodeform_factory
 
-from bakeup.core.admin import ExcludeAdminMixin
+from bakeup.core.admin import BaseAdmin
 from bakeup.workshop.models import (
     Category,
     Product,
@@ -25,28 +25,36 @@ class CategoryAdmin(TreeAdmin):
 
 
 @admin.register(ProductHierarchy)
-class ProductHierarchyAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductHierarchyAdmin(BaseAdmin):
     list_display = ("parent", "child", "quantity")
 
 
 @admin.register(Product)
-class ProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "description", "product_template")
+class ProductAdmin(BaseAdmin):
+    list_display = ("name", "description", "product_template", "is_archived")
+    list_filter = ("is_archived", "product_template")
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+            | self.model.objects.archived()
+            | self.model.objects.templates()
+        )
 
 
 @admin.register(ProductPrice)
-class ProductPriceAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductPriceAdmin(admin.ModelAdmin):
     list_display = ("product", "price")
 
 
 @admin.register(ProductionPlan)
-class ProductionPlanAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductionPlanAdmin(admin.ModelAdmin):
     list_display = ("parent_plan", "product", "start_date", "quantity")
     list_filter = ("state", "production_day")
 
 
 @admin.register(ProductMapping)
-class ProductMappingAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductMappingAdmin(admin.ModelAdmin):
     list_display = (
         "source_product",
         "target_product",

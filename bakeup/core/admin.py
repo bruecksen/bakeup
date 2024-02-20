@@ -14,8 +14,9 @@ from bakeup.core.models import (
 # Register your models here.
 
 
-class ExcludeAdminMixin(object):
-    exclude = ("is_archived",)
+class BaseAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request) | self.model.objects.archived()
 
 
 class ClientEmailTemplateInline(admin.StackedInline):

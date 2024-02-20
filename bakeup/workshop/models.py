@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import connection, models
-from django.db.models import F, Q, Sum
+from django.db.models import F, ProtectedError, Q, Sum
 from django.template import Context, Template
 from django.urls import reverse
 from django.utils import timezone
@@ -104,6 +104,13 @@ class Product(CommonBaseClass):
 
     class Meta:
         ordering = ("name",)
+
+    def delete(self, *args, **kwargs):
+        try:
+            super().delete(*args, **kwargs)
+        except ProtectedError:
+            self.is_archived = True
+            self.save()
 
     @classmethod
     def delete_product_tree(self, product):
