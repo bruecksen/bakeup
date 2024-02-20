@@ -192,6 +192,14 @@ def product_add_inline_view(request, pk):
                         is_composable=form.cleaned_data.get("is_composable", False),
                     )
                     quantity = form.cleaned_data.get("weight", 1000) / product.weight
+                elif form.cleaned_data.get(
+                    "product_new", None
+                ) and not form.cleaned_data.get("category", None):
+                    messages.add_message(
+                        request,
+                        messages.WARNING,
+                        "Bitte eine Kategorie für das neue Produkt auswählen.",
+                    )
                 if product and quantity:
                     parent_product.add_child(product, quantity)
         else:
