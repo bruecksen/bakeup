@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from bakeup.core.admin import ExcludeAdminMixin
+from bakeup.core.admin import BaseAdmin
 
 from .models import (
     Customer,
@@ -16,19 +16,19 @@ from .models import (
 )
 
 
-class PointOfSaleOpeningHourInline(ExcludeAdminMixin, admin.StackedInline):
+class PointOfSaleOpeningHourInline(admin.StackedInline):
     model = PointOfSaleOpeningHour
     extra = 0
 
 
 @admin.register(PointOfSale)
-class PointOfSaleAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class PointOfSaleAdmin(BaseAdmin):
     list_display = ("name", "is_primary", "address")
     inlines = (PointOfSaleOpeningHourInline,)
 
 
 @admin.register(Customer)
-class CustomerAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class CustomerAdmin(BaseAdmin):
     list_display = (
         "user",
         "point_of_sale",
@@ -38,27 +38,27 @@ class CustomerAdmin(ExcludeAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(ProductionDayProduct)
-class ProductionDayProductAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductionDayProductAdmin(BaseAdmin):
     list_display = ("production_day", "product", "max_quantity")
 
 
 @admin.register(ProductionDay)
-class ProductionDayAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductionDayAdmin(BaseAdmin):
     list_display = ("day_of_sale",)
 
 
 @admin.register(ProductionDayTemplate)
-class ProductionDayTemplateAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class ProductionDayTemplateAdmin(BaseAdmin):
     list_display = ("day_of_the_week", "calendar_week", "product", "quantity")
 
 
-class CustomerOrderPositionAdmin(ExcludeAdminMixin, admin.TabularInline):
+class CustomerOrderPositionAdmin(admin.TabularInline):
     model = CustomerOrderPosition
     extra = 0
 
 
 @admin.register(CustomerOrder)
-class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class CustomerOrderAdmin(BaseAdmin):
     list_display = (
         "order_nr",
         "production_day",
@@ -75,12 +75,12 @@ class CustomerOrderAdmin(ExcludeAdminMixin, admin.ModelAdmin):
     )
 
 
-class CustomerOrderTemplatePositionAdmin(ExcludeAdminMixin, admin.TabularInline):
+class CustomerOrderTemplatePositionAdmin(admin.TabularInline):
     model = CustomerOrderTemplatePosition
     extra = 0
 
 
 @admin.register(CustomerOrderTemplate)
-class CustomerOrderTemplateAdmin(ExcludeAdminMixin, admin.ModelAdmin):
+class CustomerOrderTemplateAdmin(BaseAdmin):
     list_display = ("customer", "start_date", "end_date", "is_locked")
     inlines = (CustomerOrderTemplatePositionAdmin,)

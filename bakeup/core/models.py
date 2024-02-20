@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import models
+from django.db.models import Manager
 from django.db.models.enums import TextChoices
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -11,10 +12,20 @@ from wagtail.signal_handlers import disable_reference_index_auto_update
 from bakeup.contrib.fields import ChoiceArrayField
 
 
+class AbstractBaseManager(Manager):
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(is_archived=False)
+
+    def archived(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(is_archived=True)
+
+
 class CommonBaseClass(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     is_archived = models.BooleanField(default=False)
+
+    objects = AbstractBaseManager()
 
     class Meta:
         abstract = True
