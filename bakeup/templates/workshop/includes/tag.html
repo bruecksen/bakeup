@@ -1,0 +1,22 @@
+{% load i18n %}
+<ol class="list-group{% if is_root %} list-group-root card{% endif %}">
+{% for tag in tags %}
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+            <a href="{% url 'workshop:tag-update' pk=tag.pk %}" class="fs-4">{{ tag.name }}</a>
+            <a href="{% url 'workshop:product-list' %}?tag={{ tag.pk }}" class="ms-2"><span class="badge bg-primary rounded-pill">
+            {% blocktranslate count counter=tag.num_times trimmed %}
+                {{ counter }} Product
+            {% plural %}
+                {{ counter }} Products
+            {% endblocktranslate %}</span></a>
+            <div class="fw-bold"></div>
+        </div>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Column action links">
+            <a href="{% url 'workshop:tag-update' pk=tag.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit"></i></a>
+            <a href="{% url 'workshop:tag-delete' pk=tag.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-trash-can"></i></a>
+        </div>
+
+    </li>
+{% endfor %}
+</ol>

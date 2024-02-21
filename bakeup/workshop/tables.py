@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from django_tables2.utils import A
+from taggit.models import Tag
 
 from bakeup.shop.models import (
     Customer,
@@ -25,6 +26,11 @@ class ProductFilter(django_filters.FilterSet):
         method="category_filter",
         empty_label=_("Select category"),
     )
+    tag = django_filters.ModelChoiceFilter(
+        queryset=Tag.objects.all(),
+        method="tag_filter",
+        empty_label=_("Select tag"),
+    )
     search = django_filters.filters.CharFilter(
         method="filter_search", label=_("Search")
     )
@@ -35,6 +41,9 @@ class ProductFilter(django_filters.FilterSet):
 
     def category_filter(self, queryset, name, value):
         return queryset.filter(category__path__startswith=value.path)
+
+    def tag_filter(self, queryset, name, value):
+        return queryset.filter(tags__name__in=[value])
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(

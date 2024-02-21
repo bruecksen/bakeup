@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-07 00:01+0100\n"
+"POT-Creation-Date: 2024-02-21 01:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: bakeup/contrib/models.py:22
 #: bakeup/templates/workshop/productionday_detail.html:110
-#: bakeup/workshop/tables.py:152
+#: bakeup/workshop/tables.py:161
 msgid "Note"
 msgstr ""
 
@@ -68,7 +68,7 @@ msgid "Image carousel"
 msgstr "Bildkarusell"
 
 #: bakeup/pages/blocks.py:304
-#: bakeup/templates/workshop/includes/sidebar.html:25
+#: bakeup/templates/workshop/includes/sidebar.html:28
 msgid "Production Days"
 msgstr "Produktionstage"
 
@@ -81,7 +81,7 @@ msgid "No production days planned"
 msgstr "Keine Produktionstage geplant"
 
 #: bakeup/pages/models.py:84 bakeup/shop/models.py:642
-#: bakeup/workshop/tables.py:124
+#: bakeup/workshop/tables.py:133
 msgid "Production Day"
 msgstr "Produktionstag"
 
@@ -91,7 +91,7 @@ msgstr ""
 
 #: bakeup/shop/forms.py:21 bakeup/shop/forms.py:58 bakeup/shop/forms.py:93
 #: bakeup/shop/forms.py:209 bakeup/shop/forms.py:274 bakeup/shop/models.py:536
-#: bakeup/workshop/tables.py:345
+#: bakeup/workshop/tables.py:354
 msgid "Quantity"
 msgstr "Menge"
 
@@ -154,7 +154,7 @@ msgstr "Gruppe"
 
 #: bakeup/shop/models.py:650
 #: bakeup/templates/workshop/batch_customerorder_form.html:39
-#: bakeup/workshop/tables.py:127
+#: bakeup/workshop/tables.py:136
 msgid "Customer"
 msgstr "Kunden"
 
@@ -174,7 +174,7 @@ msgstr "beendet"
 msgid "Productionday"
 msgstr "Produktionstag"
 
-#: bakeup/shop/tables.py:13 bakeup/workshop/tables.py:134
+#: bakeup/shop/tables.py:13 bakeup/workshop/tables.py:143
 msgid "Positions"
 msgstr "Positionen"
 
@@ -231,6 +231,7 @@ msgstr ""
 #: bakeup/templates/workshop/group_confirm_delete.html:19
 #: bakeup/templates/workshop/product_confirm_delete.html:19
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:19
+#: bakeup/templates/workshop/tag_confirm_delete.html:31
 msgid "Confirm"
 msgstr "Bestätigen"
 
@@ -391,7 +392,7 @@ msgstr ""
 
 #: bakeup/templates/shop/includes/dashboard.html:23
 #: bakeup/templates/workshop/includes/dashboard.html:15
-#: bakeup/templates/workshop/includes/sidebar.html:31
+#: bakeup/templates/workshop/includes/sidebar.html:34
 #: bakeup/templates/workshop/order_list.html:8
 msgid "Orders"
 msgstr "Bestellungen"
@@ -422,7 +423,7 @@ msgstr ""
 "\"text-white fw-bold\">registrieren</a>."
 
 #: bakeup/templates/shop/weekly.html:9
-#: bakeup/templates/workshop/includes/sidebar.html:44
+#: bakeup/templates/workshop/includes/sidebar.html:47
 #: bakeup/templates/workshop/product_detail.html:25
 msgid "Shop"
 msgstr ""
@@ -495,9 +496,11 @@ msgstr "Willst du wirklich dein Konto schließen?"
 #: bakeup/templates/workshop/group_form.html:23
 #: bakeup/templates/workshop/includes/production_plan_table.html:38
 #: bakeup/templates/workshop/product_confirm_delete.html:17
-#: bakeup/templates/workshop/product_form.html:22
+#: bakeup/templates/workshop/product_form.html:23
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:17
 #: bakeup/templates/workshop/productionday_form.html:56
+#: bakeup/templates/workshop/tag_confirm_delete.html:29
+#: bakeup/templates/workshop/tag_form.html:21
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -516,6 +519,7 @@ msgid "Delete category"
 msgstr "Lösche Kategorie"
 
 #: bakeup/templates/workshop/category_confirm_delete.html:11
+#: bakeup/templates/workshop/tag_confirm_delete.html:11
 #, python-format
 msgid ""
 "<p>The deletion of the selected object: <strong>%(object)s</strong> would "
@@ -529,6 +533,7 @@ msgstr ""
 #: bakeup/templates/workshop/group_confirm_delete.html:10
 #: bakeup/templates/workshop/product_confirm_delete.html:10
 #: bakeup/templates/workshop/producthierarchy_confirm_delete.html:10
+#: bakeup/templates/workshop/tag_confirm_delete.html:22
 msgid "Are you sure?"
 msgstr "Bist du dir sicher?"
 
@@ -544,6 +549,7 @@ msgstr ""
 #: bakeup/templates/workshop/category_form.html:5
 #: bakeup/templates/workshop/category_form.html:10
 #: bakeup/templates/workshop/category_list.html:10
+#: bakeup/templates/workshop/tag_form.html:5
 msgid "Add new category"
 msgstr "Neue Kategorie hinzufügen"
 
@@ -556,7 +562,8 @@ msgstr "Ändere Kategorie"
 #: bakeup/templates/workshop/instruction_form.html:18
 #: bakeup/templates/workshop/point_of_sale_form.html:8
 #: bakeup/templates/workshop/point_of_sale_form.html:24
-#: bakeup/templates/workshop/product_form.html:24
+#: bakeup/templates/workshop/product_form.html:25
+#: bakeup/templates/workshop/tag_form.html:23
 msgid "Update"
 msgstr "Ändern"
 
@@ -564,7 +571,8 @@ msgstr "Ändern"
 #: bakeup/templates/workshop/group_form.html:25
 #: bakeup/templates/workshop/instruction_form.html:18
 #: bakeup/templates/workshop/point_of_sale_form.html:24
-#: bakeup/templates/workshop/product_form.html:24
+#: bakeup/templates/workshop/product_form.html:25
+#: bakeup/templates/workshop/tag_form.html:23
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -586,7 +594,8 @@ msgstr ""
 
 #: bakeup/templates/workshop/customer_confirm_delete.html:17
 msgid "<p class=\"fw-bold\">This action cannot be reversed.</p>"
-msgstr "<p class=\"fw-bold\">Dieser Vorgang kann nicht rückgängig gemacht werden.</p>"
+msgstr ""
+"<p class=\"fw-bold\">Dieser Vorgang kann nicht rückgängig gemacht werden.</p>"
 
 #: bakeup/templates/workshop/customer_detail.html:21
 msgid "Account"
@@ -605,7 +614,7 @@ msgid "Last name"
 msgstr "Nachname"
 
 #: bakeup/templates/workshop/customer_detail.html:48
-#: bakeup/workshop/forms.py:273 bakeup/workshop/forms.py:296
+#: bakeup/workshop/forms.py:275 bakeup/workshop/forms.py:298
 msgid "Point of sale"
 msgstr "Abholstelle"
 
@@ -622,13 +631,13 @@ msgid "Telephone"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:86
-#: bakeup/workshop/forms.py:212
+#: bakeup/workshop/forms.py:214
 msgid "active"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:94
 #: bakeup/templates/workshop/customer_list.html:12
-#: bakeup/templates/workshop/group_list.html:8 bakeup/workshop/forms.py:222
+#: bakeup/templates/workshop/group_list.html:8 bakeup/workshop/forms.py:224
 msgid "Groups"
 msgstr ""
 
@@ -644,7 +653,7 @@ msgstr "anmelden/"
 
 #: bakeup/templates/workshop/customer_list.html:8
 #: bakeup/templates/workshop/includes/dashboard.html:6
-#: bakeup/templates/workshop/includes/sidebar.html:34
+#: bakeup/templates/workshop/includes/sidebar.html:37
 msgid "Customers"
 msgstr "Kunden"
 
@@ -716,7 +725,7 @@ msgid "Add another product"
 msgstr "Neues Produkt hinzufügen"
 
 #: bakeup/templates/workshop/customerorder_template_overview.html:8
-#: bakeup/workshop/tables.py:343
+#: bakeup/workshop/tables.py:352
 msgid "Subscriptions"
 msgstr "Abos"
 
@@ -744,6 +753,7 @@ msgid "Update group"
 msgstr "Gruppe ändern"
 
 #: bakeup/templates/workshop/includes/category.html:8
+#: bakeup/templates/workshop/includes/tag.html:8
 #, python-format
 msgid "%(counter)s Product"
 msgid_plural "%(counter)s Products"
@@ -767,7 +777,7 @@ msgid "Go to categories"
 msgstr "Zu den Kategorien"
 
 #: bakeup/templates/workshop/includes/dashboard.html:44
-#: bakeup/templates/workshop/includes/sidebar.html:19
+#: bakeup/templates/workshop/includes/sidebar.html:22
 #: bakeup/templates/workshop/recipe_detail.html:11
 msgid "Recipes"
 msgstr "Rezepte"
@@ -777,7 +787,7 @@ msgid "Go to recipies"
 msgstr "Zu den Rezepten"
 
 #: bakeup/templates/workshop/includes/dashboard.html:53
-#: bakeup/templates/workshop/includes/sidebar.html:22
+#: bakeup/templates/workshop/includes/sidebar.html:25
 #: bakeup/templates/workshop/product_list.html:6
 #: bakeup/templates/workshop/product_list.html:7
 #: bakeup/templates/workshop/productionday_detail.html:108
@@ -854,27 +864,33 @@ msgstr "Plan ändern"
 msgid "Dashboard"
 msgstr "Übersicht"
 
-#: bakeup/templates/workshop/includes/sidebar.html:28
+#: bakeup/templates/workshop/includes/sidebar.html:19
+#: bakeup/templates/workshop/tag_list.html:6
+#: bakeup/templates/workshop/tag_list.html:7
+msgid "Tags"
+msgstr ""
+
+#: bakeup/templates/workshop/includes/sidebar.html:31
 msgid "Production Plans"
 msgstr "Produktionspläne"
 
-#: bakeup/templates/workshop/includes/sidebar.html:37
+#: bakeup/templates/workshop/includes/sidebar.html:40
 msgid "Points of sale"
 msgstr "Abholstellen"
 
-#: bakeup/templates/workshop/includes/sidebar.html:49
+#: bakeup/templates/workshop/includes/sidebar.html:52
 msgid "CMS"
 msgstr ""
 
-#: bakeup/templates/workshop/includes/sidebar.html:52
+#: bakeup/templates/workshop/includes/sidebar.html:55
 msgid "Profile"
 msgstr "Profil"
 
-#: bakeup/templates/workshop/includes/sidebar.html:55
+#: bakeup/templates/workshop/includes/sidebar.html:58
 msgid "Logout"
 msgstr "Ausloggen"
 
-#: bakeup/templates/workshop/includes/sidebar.html:59
+#: bakeup/templates/workshop/includes/sidebar.html:62
 msgid "Login"
 msgstr "Einloggen"
 
@@ -935,7 +951,7 @@ msgstr "kombinierbar"
 
 #: bakeup/templates/workshop/product_detail.html:33
 #: bakeup/templates/workshop/productionday_detail.html:109
-#: bakeup/workshop/forms.py:26 bakeup/workshop/models.py:380
+#: bakeup/workshop/forms.py:27 bakeup/workshop/models.py:387
 msgid "Price"
 msgstr "Preis"
 
@@ -949,7 +965,7 @@ msgstr "maximal abonierbare Menge"
 
 #: bakeup/templates/workshop/product_detail.html:70
 #: bakeup/templates/workshop/product_detail.html:73
-#: bakeup/workshop/forms.py:139
+#: bakeup/workshop/forms.py:141
 msgid "Fermentation Loss"
 msgstr "Gärverlust"
 
@@ -970,7 +986,7 @@ msgstr "Noch keine Anweisungen vorhanden!"
 msgid "Update product"
 msgstr "Ändere Produkt"
 
-#: bakeup/templates/workshop/product_list.html:26
+#: bakeup/templates/workshop/product_list.html:29
 #: bakeup/templates/workshop/productionplan_list.html:35
 msgid "Reset filters"
 msgstr "Filter zurücksetzen"
@@ -1002,7 +1018,7 @@ msgstr "Erinnerungen"
 
 #: bakeup/templates/workshop/productionday_detail.html:39
 #: bakeup/templates/workshop/productionday_detail.html:52
-#: bakeup/workshop/tables.py:81
+#: bakeup/workshop/tables.py:90
 msgid "Summary"
 msgstr "Zusammenfassung"
 
@@ -1064,12 +1080,12 @@ msgid "Product Mapping"
 msgstr "Produktvorlagen"
 
 #: bakeup/templates/workshop/productionday_detail.html:83
-#: bakeup/workshop/forms.py:243 bakeup/workshop/forms.py:245
+#: bakeup/workshop/forms.py:245 bakeup/workshop/forms.py:247
 msgid "Source Product"
 msgstr "Ursprüngliches Produkt"
 
 #: bakeup/templates/workshop/productionday_detail.html:84
-#: bakeup/workshop/forms.py:252
+#: bakeup/workshop/forms.py:254
 msgid "Target Product"
 msgstr "Zielprodukt"
 
@@ -1128,6 +1144,33 @@ msgstr "Neues Produkt hinzufügen"
 msgid "Delete relation"
 msgstr "Lösche Hierarchie"
 
+#: bakeup/templates/workshop/tag_confirm_delete.html:5
+#| msgid "Delete"
+msgid "Delete tag"
+msgstr "Schlagwort löschen"
+
+#: bakeup/templates/workshop/tag_confirm_delete.html:23
+#| msgid ""
+#| "<p>You're about to delete the following category: <strong>%(object)s</"
+#| "strong>. Please confirm.</p>"
+msgid ""
+"<p>You're about to delete the following tag: <strong>%(object)s</strong>. "
+"Please confirm.</p>"
+msgstr ""
+"<p>Du löscht gerade folgendes Schlagwort: <strong>%(object)s</strong>. Bitte "
+"bestätige, dass du das Schlagwort löschen willst.</p>"
+
+#: bakeup/templates/workshop/tag_form.html:8
+#| msgid "Update plan"
+msgid "Update tag"
+msgstr "Schlagwort aktualisieren"
+
+#: bakeup/templates/workshop/tag_form.html:10
+#: bakeup/templates/workshop/tag_list.html:10
+#| msgid "Add new category"
+msgid "Add new tag"
+msgstr "Neues Schlagwort hinzufügen"
+
 #: bakeup/templates/workshop/workshop.html:10
 #, python-format
 msgid "Hi %(user)s, welcome to bakeup!"
@@ -1137,7 +1180,7 @@ msgstr "Hallo %(user)s, willkommen in Bakeup!"
 msgid "This account is closed. Login is not possible."
 msgstr "Dies ist ein geschlossener Account. Anmelden ist nicht mehr möglich."
 
-#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:205
+#: bakeup/users/apps.py:7 bakeup/workshop/tables.py:214
 msgid "Users"
 msgstr "Benutzer"
 
@@ -1159,81 +1202,81 @@ msgstr "Dieser Benutzername ist schon vergeben."
 msgid "Your account is closed."
 msgstr "Dein Konto ist jetzt geschlossen."
 
-#: bakeup/workshop/forms.py:65
+#: bakeup/workshop/forms.py:67
 msgid "A product with the SKU already exists"
 msgstr "Ein Produkt mit dieser SKU besteht bereits"
 
-#: bakeup/workshop/forms.py:70 bakeup/workshop/models.py:90
+#: bakeup/workshop/forms.py:72 bakeup/workshop/models.py:90
 msgid "Weight"
 msgstr "Gewicht"
 
-#: bakeup/workshop/forms.py:74
+#: bakeup/workshop/forms.py:76
 msgid "Select existing product"
 msgstr "Bestehendes Produkt auswählen"
 
-#: bakeup/workshop/forms.py:76
+#: bakeup/workshop/forms.py:78
 msgid "New product name"
 msgstr "Neuer Produktname"
 
-#: bakeup/workshop/forms.py:80
+#: bakeup/workshop/forms.py:82
 msgid "Select a category"
 msgstr "Wähle Kategorie"
 
-#: bakeup/workshop/forms.py:82
+#: bakeup/workshop/forms.py:84
 msgid "Sellable?"
 msgstr "verkaufbar?"
 
-#: bakeup/workshop/forms.py:83
+#: bakeup/workshop/forms.py:85
 msgid "Buyable?"
 msgstr "kaufbar?"
 
-#: bakeup/workshop/forms.py:84
+#: bakeup/workshop/forms.py:86
 msgid "Composable?"
 msgstr "kombinierbar?"
 
-#: bakeup/workshop/forms.py:143
+#: bakeup/workshop/forms.py:145
 msgid "Hydration"
 msgstr "TA"
 
-#: bakeup/workshop/forms.py:149
+#: bakeup/workshop/forms.py:151
 msgid "Salt"
 msgstr "Salz"
 
-#: bakeup/workshop/forms.py:158
+#: bakeup/workshop/forms.py:160
 msgid "Starter"
 msgstr ""
 
-#: bakeup/workshop/forms.py:170
+#: bakeup/workshop/forms.py:172
 msgid "Flour"
 msgstr "Mehl"
 
-#: bakeup/workshop/forms.py:179
+#: bakeup/workshop/forms.py:181
 msgid "Fermented Flour"
 msgstr "ferm. Mehlmenge"
 
-#: bakeup/workshop/forms.py:187
+#: bakeup/workshop/forms.py:189
 msgid "Dough Weight"
 msgstr "Teiggewicht"
 
-#: bakeup/workshop/forms.py:203
+#: bakeup/workshop/forms.py:205
 msgid "Select production day"
 msgstr "Wähle Produktionstag"
 
-#: bakeup/workshop/forms.py:214
+#: bakeup/workshop/forms.py:216
 msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 msgstr ""
 
-#: bakeup/workshop/forms.py:223
+#: bakeup/workshop/forms.py:225
 msgid "This user belongs to the following groups."
 msgstr "Dieser Benutzer ist Mitglied folgender Gruppen."
 
-#: bakeup/workshop/forms.py:270
+#: bakeup/workshop/forms.py:272
 msgid "All"
 msgstr "Alle"
 
-#: bakeup/workshop/forms.py:275
+#: bakeup/workshop/forms.py:277
 msgid ""
 "Send emails to orders of specific point of sale, leave empty to send to all "
 "point of sales."
@@ -1241,11 +1284,11 @@ msgstr ""
 "Sende E-Mails an spezifische Abholstellen, leer lassen um an alle "
 "Abholstellen zu senden."
 
-#: bakeup/workshop/forms.py:316
+#: bakeup/workshop/forms.py:318
 msgid "Create a new message or select a saved one"
 msgstr "Erstelle eine neue Nachricht oder wähle eine gespeicherte aus"
 
-#: bakeup/workshop/forms.py:317
+#: bakeup/workshop/forms.py:319
 msgid "Create a new message"
 msgstr "Erstelle eine neue Nachricht"
 
@@ -1297,64 +1340,69 @@ msgstr "Aboprodukt"
 msgid "Max abo quantity?"
 msgstr "Maximal abonierbare Stückzahl"
 
-#: bakeup/workshop/models.py:389
+#: bakeup/workshop/models.py:396
 msgid "Instruction"
 msgstr "Anweisung"
 
-#: bakeup/workshop/tables.py:26
+#: bakeup/workshop/tables.py:27
 msgid "Select category"
 msgstr "Wähle Kategorie"
 
-#: bakeup/workshop/tables.py:29
+#: bakeup/workshop/tables.py:32
+#| msgid "Select a group"
+msgid "Select tag"
+msgstr "Wähle eine Schlagwort"
+
+#: bakeup/workshop/tables.py:35
 msgid "Search"
 msgstr "Suche"
 
-#: bakeup/workshop/tables.py:96
+#: bakeup/workshop/tables.py:105
 msgid "Select a customer"
 msgstr "Wähle einen Kunden"
 
-#: bakeup/workshop/tables.py:99 bakeup/workshop/tables.py:310
+#: bakeup/workshop/tables.py:108 bakeup/workshop/tables.py:319
 msgid "Select a production day"
 msgstr "Wähle einen Produktionstag"
 
-#: bakeup/workshop/tables.py:102 bakeup/workshop/tables.py:270
+#: bakeup/workshop/tables.py:111 bakeup/workshop/tables.py:279
 msgid "Select a point of sale"
 msgstr "Wähle eine Abholstelle"
 
-#: bakeup/workshop/tables.py:130 bakeup/workshop/tables.py:189
-#: bakeup/workshop/tables.py:223
+#: bakeup/workshop/tables.py:139 bakeup/workshop/tables.py:198
+#: bakeup/workshop/tables.py:232
 msgid "eMail"
 msgstr "E-Mail"
 
-#: bakeup/workshop/tables.py:138
+#: bakeup/workshop/tables.py:147
 msgid "Sum"
 msgstr "Summe"
 
-#: bakeup/workshop/tables.py:142
+#: bakeup/workshop/tables.py:151
 msgid "Collected"
 msgstr "Abgeholt"
 
-#: bakeup/workshop/tables.py:183
+#: bakeup/workshop/tables.py:192
 msgid "Last Name"
 msgstr ""
 
-#: bakeup/workshop/tables.py:186
+#: bakeup/workshop/tables.py:195
 msgid "First Name"
 msgstr ""
 
-#: bakeup/workshop/tables.py:192
+#: bakeup/workshop/tables.py:201
 msgid "phone"
 msgstr ""
 
-#: bakeup/workshop/tables.py:203
+#: bakeup/workshop/tables.py:212
 msgid "Signup url"
 msgstr "Registrieren"
 
-#: bakeup/workshop/tables.py:276
+#: bakeup/workshop/tables.py:285
 msgid "Select a group"
 msgstr "Wähle eine Gruppe"
 
-#: bakeup/workshop/views.py:1619
+#: bakeup/workshop/views.py:1670
 msgid "productionday-{}"
 msgstr "produktionstag-{}"
 

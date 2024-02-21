@@ -1,14 +1,13 @@
 {% extends "workshop/base.html" %}
 {% load i18n %}
-
 {% load crispy_forms_tags %}
 
-{% block title %}Add new product{% endblock %}
+{% block title %}{% trans "Add new category" %}{% endblock %}
 {% block page_heading %}
 {% if object %}
-<h1>{% trans "Update product" %}: {{ object.name }}</h1>
+<h1>{% trans "Update tag" %}: {{ object.name }}</h1>
 {% else %}
-<h2>{% trans "Add new product" %}</h2>
+<h2>{% trans "Add new tag" %}</h2>
 {% endif %}
 {% endblock %}
 
@@ -16,7 +15,6 @@
 
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.media }}
     {{ form|crispy }}
     <div class="control-group">
       <div class="controls">

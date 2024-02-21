@@ -89,6 +89,8 @@ SHARED_APPS = [
 TENANT_APPS = [
     "django.contrib.contenttypes",
     "taggit",
+    "dal",
+    "dal_select2",
     "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",

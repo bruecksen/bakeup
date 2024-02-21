@@ -1,3 +1,4 @@
+from dal import autocomplete
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -44,6 +45,7 @@ class ProductForm(ModelForm):
             "is_recurring",
             "max_recurring_order_qty",
         ]
+        widgets = {"tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete")}
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get("instance", None)

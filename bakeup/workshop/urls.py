@@ -1,5 +1,6 @@
 from django.urls import path
 
+from bakeup.core.views import TagAutocomplete
 from bakeup.workshop.views import (
     BatchCustomerTemplateView,
     CategoryAddView,
@@ -49,6 +50,10 @@ from bakeup.workshop.views import (
     ProductUpdateView,
     RecipeDetailView,
     RecipeListView,
+    TagAddView,
+    TagDeleteView,
+    TagListView,
+    TagUpdateView,
     WorkshopView,
     customer_order_all_picked_up_view,
     customer_order_toggle_picked_up_view,
@@ -122,6 +127,18 @@ urlpatterns = [
         "categories/<int:pk>/delete/",
         view=CategoryDeleteView.as_view(),
         name="category-delete",
+    ),
+    path("tags/", view=TagListView.as_view(), name="tag-list"),
+    path("tags/add/", view=TagAddView.as_view(), name="tag-add"),
+    path(
+        "tags/<int:pk>/update/",
+        view=TagUpdateView.as_view(),
+        name="tag-update",
+    ),
+    path(
+        "tags/<int:pk>/delete/",
+        view=TagDeleteView.as_view(),
+        name="tag-delete",
     ),
     path(
         "production-plans/",
@@ -333,5 +350,10 @@ urlpatterns = [
         "subscriptions/",
         view=CustomerOrderTemplateOverview.as_view(),
         name="customer-order-template-overview",
+    ),
+    path(
+        "tag-autocomplete/",
+        TagAutocomplete.as_view(),
+        name="tag-autocomplete",
     ),
 ]
