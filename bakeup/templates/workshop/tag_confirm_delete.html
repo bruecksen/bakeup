@@ -1,0 +1,36 @@
+{% extends "workshop/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block page_heading %}{% trans "Delete tag" %}:  {{ object }}{% endblock page_heading %}
+
+{% block page_content %}
+<div id="content-container" class="container p-none">
+    <div class="side-p">
+        {% if protected %}
+        {% blocktranslate trimmed %}
+        <p>The deletion of the selected object: <strong>{{ object }}</strong> would require first the deletion of the protected related objects:</p>
+        {% endblocktranslate %}
+            <p>
+                <ul>
+                    {% for item in protected %}
+                    <li>{{ item|verbose_name }}: <a href="{% url 'workshop:product-detail' pk=item.pk %}">{{ item }}</a></li>
+                    {% endfor %}
+                </ul>
+            </p>
+        {% else %}
+        <h3>{% trans "Are you sure?" %}</h3>
+        {% blocktranslate trimmed %}
+        <p>You're about to delete the following tag: <strong>{{ object }}</strong>. Please confirm.</p>
+        {% endblocktranslate %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <input class="btn btn-link"
+                   type="button" value="{% trans 'Cancel' %}"
+                   onclick="window.history.go(-1);"/>
+            <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

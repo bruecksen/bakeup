@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import Group
 from django.db import transaction
-from django.db.models import ProtectedError, Q, Sum
+from django.db.models import Count, ProtectedError, Q, Sum
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -26,6 +26,7 @@ from django_filters.views import FilterView
 from django_htmx.http import HttpResponseClientRefresh
 from django_tables2 import SingleTableMixin, SingleTableView
 from django_tables2.export import ExportMixin as TableExportMixin
+from taggit.models import Tag
 from treebeard.forms import movenodeform_factory
 
 from bakeup.contrib.forms import NoteForm
@@ -709,6 +710,46 @@ class CategoryUpdateView(StaffPermissionsMixin, UpdateView):
 class CategoryDeleteView(StaffPermissionsMixin, DeleteView):
     model = Category
     success_url = reverse_lazy("workshop:category-list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deletable_objects, model_count, protected = get_deleted_objects([self.object])
+        context["deletable_objects"] = deletable_objects
+        context["model_count"] = dict(model_count).items()
+        context["protected"] = protected
+        return context
+
+
+class TagListView(StaffPermissionsMixin, ListView):
+    model = Tag
+    template_name = "workshop/tag_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["tags"] = self.get_queryset().annotate(
+            num_times=Count("taggit_taggeditem_items")
+        )
+        return context
+
+
+class TagAddView(StaffPermissionsMixin, CreateView):
+    model = Tag
+    success_url = reverse_lazy("workshop:tag-list")
+    fields = ["name", "slug"]
+    template_name = "workshop/tag_form.html"
+
+
+class TagUpdateView(StaffPermissionsMixin, UpdateView):
+    model = Tag
+    success_url = reverse_lazy("workshop:tag-list")
+    fields = ["name", "slug"]
+    template_name = "workshop/tag_form.html"
+
+
+class TagDeleteView(StaffPermissionsMixin, DeleteView):
+    model = Tag
+    success_url = reverse_lazy("workshop:tag-list")
+    template_name = "workshop/tag_confirm_delete.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

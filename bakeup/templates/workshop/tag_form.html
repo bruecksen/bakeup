@@ -1,0 +1,29 @@
+{% extends "workshop/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Add new category" %}{% endblock %}
+{% block page_heading %}
+{% if object %}
+<h1>{% trans "Update tag" %}: {{ object.name }}</h1>
+{% else %}
+<h2>{% trans "Add new tag" %}</h2>
+{% endif %}
+{% endblock %}
+
+{% block page_content %}
+
+  <form class="form-horizontal" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>
+        <button type="submit" class="btn btn-primary" name="add-new">
+          {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+
+{% endblock %}
