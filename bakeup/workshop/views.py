@@ -6,6 +6,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q, Sum
+from django.db.models.functions import Lower
+from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -724,12 +726,14 @@ class TagListView(StaffPermissionsMixin, ListView):
     model = Tag
     template_name = "workshop/tag_list.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["tags"] = self.get_queryset().annotate(
-            num_times=Count("taggit_taggeditem_items")
+    def get_queryset(self) -> QuerySet[Any]:
+        qs = (
+            super()
+            .get_queryset()
+            .annotate(num_times=Count("taggit_taggeditem_items"))
+            .order_by(Lower("name"))
         )
-        return context
+        return qs
 
 
 class TagAddView(StaffPermissionsMixin, CreateView):
