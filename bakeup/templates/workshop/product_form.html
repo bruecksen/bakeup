@@ -16,6 +16,7 @@
 
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {{ form.media }}
     {{ form|crispy }}
     <div class="control-group">
       <div class="controls">

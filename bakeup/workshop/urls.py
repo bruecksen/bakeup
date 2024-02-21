@@ -1,5 +1,6 @@
 from django.urls import path
 
+from bakeup.core.views import TagAutocomplete
 from bakeup.workshop.views import (
     BatchCustomerTemplateView,
     CategoryAddView,
@@ -333,5 +334,10 @@ urlpatterns = [
         "subscriptions/",
         view=CustomerOrderTemplateOverview.as_view(),
         name="customer-order-template-overview",
+    ),
+    path(
+        "tag-autocomplete/",
+        TagAutocomplete.as_view(),
+        name="tag-autocomplete",
     ),
 ]

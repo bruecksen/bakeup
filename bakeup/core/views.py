@@ -1,10 +1,12 @@
 from typing import Set
 
+from dal import autocomplete
 from django.contrib.auth.mixins import AccessMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import RedirectView
+from taggit.models import Tag
 
 
 class StaffPermissionsMixin(AccessMixin):
@@ -81,3 +83,20 @@ class HomeView(RedirectView):
                 return "/shop/"
         else:
             return "/shop/"
+
+
+class TagAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated:
+            return Tag.objects.none()
+
+        qs = Tag.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__istartswith=self.q)
+
+        return qs
+
+    def get_create_option(self, context, q):
+        return []
