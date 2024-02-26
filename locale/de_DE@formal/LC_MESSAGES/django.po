@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-21 01:40+0100\n"
+"POT-Creation-Date: 2024-02-26 01:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -432,7 +432,7 @@ msgstr ""
 "class=\"text-white fw-bold\">registrieren</a>."
 
 #: bakeup/templates/shop/weekly.html:9
-#: bakeup/templates/workshop/includes/sidebar.html:47
+#: bakeup/templates/workshop/includes/sidebar.html:50
 #: bakeup/templates/workshop/product_detail.html:25
 msgid "Shop"
 msgstr ""
@@ -674,7 +674,7 @@ msgstr "anmelden/"
 
 #: bakeup/templates/workshop/customer_list.html:8
 #: bakeup/templates/workshop/includes/dashboard.html:6
-#: bakeup/templates/workshop/includes/sidebar.html:37
+#: bakeup/templates/workshop/includes/sidebar.html:40
 msgid "Customers"
 msgstr "Kunden"
 
@@ -760,11 +760,10 @@ msgid "Add another product"
 msgstr "Neue Kategorie hinzufügen"
 
 #: bakeup/templates/workshop/customerorder_template_overview.html:8
+#: bakeup/templates/workshop/includes/sidebar.html:37
 #: bakeup/workshop/tables.py:352
-#, fuzzy
-#| msgid "Duration"
 msgid "Subscriptions"
-msgstr "Dauer"
+msgstr "Abos"
 
 #: bakeup/templates/workshop/group_confirm_delete.html:5
 msgid "Delete group"
@@ -917,23 +916,23 @@ msgstr ""
 msgid "Production Plans"
 msgstr "Produktionspläne"
 
-#: bakeup/templates/workshop/includes/sidebar.html:40
+#: bakeup/templates/workshop/includes/sidebar.html:43
 msgid "Points of sale"
 msgstr "Abholstellen"
 
-#: bakeup/templates/workshop/includes/sidebar.html:52
+#: bakeup/templates/workshop/includes/sidebar.html:55
 msgid "CMS"
 msgstr ""
 
-#: bakeup/templates/workshop/includes/sidebar.html:55
+#: bakeup/templates/workshop/includes/sidebar.html:58
 msgid "Profile"
 msgstr "Profil"
 
-#: bakeup/templates/workshop/includes/sidebar.html:58
+#: bakeup/templates/workshop/includes/sidebar.html:61
 msgid "Logout"
 msgstr "Ausloggen"
 
-#: bakeup/templates/workshop/includes/sidebar.html:62
+#: bakeup/templates/workshop/includes/sidebar.html:65
 msgid "Login"
 msgstr "Einloggen"
 
@@ -1525,11 +1524,16 @@ msgstr "Registrieren"
 msgid "Select a group"
 msgstr "Gruppe auswählen"
 
-#: bakeup/workshop/views.py:1670
+#: bakeup/workshop/views.py:1674
 #, fuzzy
 #| msgid "Production days"
 msgid "productionday-{}"
 msgstr "Produktionstage"
+
+#, fuzzy
+#~| msgid "Duration"
+#~ msgid "Subscription"
+#~ msgstr "Dauer"
 
 #~ msgid "The following planned orders will be deleted"
 #~ msgstr "Die folgenden offenen Bestellungen werden storniert"
