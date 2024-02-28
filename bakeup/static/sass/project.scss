@@ -393,7 +393,7 @@ nav {
     &.active {
       .nav-link {
         position: relative;
-        &:after {
+        &:before {
           content: '';
           position: absolute;
           left: 0;

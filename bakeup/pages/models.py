@@ -22,7 +22,7 @@ from bakeup.shop.models import (
 class ContentPage(Page):
     content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
 
-    parent_page_types = ["pages.ShopPage"]
+    parent_page_types = ["pages.ShopPage", "pages.ContentPage"]
     show_in_menus_default = True
     content_panels = Page.content_panels + [
         FieldPanel("content"),
