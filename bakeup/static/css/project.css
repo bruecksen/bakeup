@@ -12994,7 +12994,7 @@ nav .nav-item .nav-link {
 nav .nav-item.active .nav-link {
   position: relative;
 }
-nav .nav-item.active .nav-link:after {
+nav .nav-item.active .nav-link:before {
   content: "";
   position: absolute;
   left: 0;
