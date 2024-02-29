@@ -1,4 +1,6 @@
+from datetime import date, timedelta
 from pathlib import Path
+from random import randint
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +14,8 @@ from wagtailmenus.conf import settings as wagtailmenu_settings
 
 from bakeup.core.models import ClientSetting
 from bakeup.pages.models import BrandSettings, ContentPage, ShopPage
+from bakeup.shop.models import ProductionDay, ProductionDayProduct
+from bakeup.workshop.models import Product, ProductionPlan
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
 FIXTURES_DIR = APP_DIR.joinpath("fixtures")
@@ -420,6 +424,27 @@ class Command(InteractiveTenantOption, BaseCommand):
         ]
         client_setting.save()
 
+    def _create_future_production_day(self):
+        production_day, created = ProductionDay.objects.get_or_create(
+            day_of_sale=date.today() + timedelta(days=10),
+            defaults={
+                "description": (
+                    "Unser nächster Demo Backtag kommt schon bald. Wir freuen uns wenn"
+                    " du dabei bist!"
+                )
+            },
+        )
+        for product in Product.objects.filter(pk__in=[835, 23, 1390]):
+            ProductionDayProduct.objects.create(
+                product=product,
+                max_quantity=randint(10, 20),
+                production_day=production_day,
+                is_published=True,
+            )
+        production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+
     def handle(self, *args, **options):
         tenant = self.get_tenant_from_options_or_interactive(**options)
         self.set_options(**options)
@@ -440,6 +465,7 @@ class Command(InteractiveTenantOption, BaseCommand):
         self._create_flat_menus()
         self._create_branding()
         self._create_settings(tenant)
+        self._create_future_production_day()
 
         self.stdout.write(
             self.style.SUCCESS("All pages created for tenant {}".format(tenant))
