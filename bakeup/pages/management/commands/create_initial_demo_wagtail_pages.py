@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
@@ -9,6 +10,7 @@ from wagtail.images.models import Image
 from wagtail.models import Page, Site
 from wagtailmenus.conf import settings as wagtailmenu_settings
 
+from bakeup.core.models import ClientSetting
 from bakeup.pages.models import BrandSettings, ContentPage, ShopPage
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
@@ -396,6 +398,28 @@ class Command(InteractiveTenantOption, BaseCommand):
         )
         brand_settings.save()
 
+    def _create_settings(self, tenant):
+        client_setting, created = ClientSetting.objects.get_or_create(client=tenant)
+        client_setting.default_from_email = settings.DEFAULT_FROM_EMAIL
+        client_setting.email_host = settings.EMAIL_HOST
+        client_setting.email_host_password = settings.EMAIL_HOST_PASSWORD
+        client_setting.email_host_user = settings.EMAIL_HOST_USER
+        client_setting.email_port = settings.EMAIL_PORT
+        client_setting.email_use_tls = True
+        client_setting.show_full_name_delivery_bill = True
+        client_setting.show_remaining_products = True
+        client_setting.user_registration_fields = [
+            "first_name",
+            "last_name",
+            "point_of_sale",
+            "street",
+            "street_number",
+            "postal_code",
+            "city",
+            "telephone_number",
+        ]
+        client_setting.save()
+
     def handle(self, *args, **options):
         tenant = self.get_tenant_from_options_or_interactive(**options)
         self.set_options(**options)
@@ -415,6 +439,7 @@ class Command(InteractiveTenantOption, BaseCommand):
         self._create_main_menu()
         self._create_flat_menus()
         self._create_branding()
+        self._create_settings(tenant)
 
         self.stdout.write(
             self.style.SUCCESS("All pages created for tenant {}".format(tenant))
