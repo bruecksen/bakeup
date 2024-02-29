@@ -133,6 +133,7 @@ class LinkTargetBlock(StreamBlock):
     page = PageChooserBlock(label=_("Page"), icon="doc-empty-inverse")
     document = DocumentChooserBlock(label=_("Document"), icon="doc-full")
     image = ImageChooserBlock(label=_("Image"))
+    link = CharBlock(label=_("Internal link"))
     url = URLBlock(label=_("External link"))
     anchor = CharBlock(
         label=_("Anchor link"),
@@ -160,6 +161,8 @@ class LinkValue(StructValue):
             return None
         if hasattr(child_value, "file") and hasattr(child_value.file, "url"):
             href = child_value.file.url
+        elif hasattr(child_value, "link"):
+            href = child_value.link
         elif hasattr(child_value, "url"):
             href = child_value.url
         else:

@@ -60,3 +60,4 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+AUTH_PASSWORD_VALIDATORS = []

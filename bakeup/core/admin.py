@@ -16,7 +16,7 @@ from bakeup.core.models import (
 
 class BaseAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
-        return super().get_queryset(request) | self.model.objects.archived()
+        return super().get_queryset(request)
 
 
 class ClientEmailTemplateInline(admin.StackedInline):

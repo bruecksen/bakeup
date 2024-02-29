@@ -37,8 +37,8 @@ It is important to set the proper --schema parameter to load the data into the r
 
     python manage.py tenant_command loaddata --schema=localhost bakeup/shop/fixtures/demo_point_of_sale.json
     python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/demo_users.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/categories.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo-products.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_categories.json
+    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_products.json
 
 This will also create some demo users accounts to login. You can user username: admin, password: admin.
 

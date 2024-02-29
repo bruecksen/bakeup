@@ -39,6 +39,7 @@ class Client(TenantMixin):
     # default true, schema will be automatically created and synced when it is saved
     auto_create_schema = True
     wagtail_reference_index_ignore = True
+    is_demo = models.BooleanField(default=False)
 
     def get_absolute_primary_domain(self, request):
         site = Site.find_for_request(request)
