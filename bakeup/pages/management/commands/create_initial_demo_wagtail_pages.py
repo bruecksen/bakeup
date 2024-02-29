@@ -409,11 +409,11 @@ class Command(InteractiveTenantOption, BaseCommand):
             if not do_create:
                 raise CommandError("Collecting static files cancelled.")
 
-        # self._setup_root(tenant)
-        # self._setup_default_pages(tenant)
-        # # finally, create the menus
-        # self._create_main_menu()
-        # self._create_flat_menus()
+        self._setup_root(tenant)
+        self._setup_default_pages(tenant)
+        # finally, create the menus
+        self._create_main_menu()
+        self._create_flat_menus()
         self._create_branding()
 
         self.stdout.write(
