@@ -6,6 +6,7 @@
         --bs-primary-rgb: {{ settings.pages.BrandSettings.primary_color|hex_to_rgb }};
         --bs-link-color: {{ settings.pages.BrandSettings.primary_color }};
         --bs-link-hover-color: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-dropdown-link-active-bg: {{ settings.pages.BrandSettings.primary_color }};
         {% endif %}
         {% if settings.pages.BrandSettings.secondary_color %}
         --bs-secondary: {{ settings.pages.BrandSettings.secondary_color }};
@@ -108,6 +109,9 @@
 
     .form-control:focus {
         box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
+    }
+    .dropdown-menu {
+        --bs-dropdown-link-active-bg: {{ settings.pages.BrandSettings.primary_color }};
     }
 
 </style>
