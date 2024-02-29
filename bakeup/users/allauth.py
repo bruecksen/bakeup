@@ -9,10 +9,20 @@ from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 
-from bakeup.pages.models import EmailSettings
+from bakeup.pages.models import EmailSettings, GeneralSettings
 
 
 class AccountAdapter(DefaultAccountAdapter):
+    def get_login_redirect_url(self, request):
+        if request.user.is_staff:
+            return reverse("workshop:workshop")
+        else:
+            general_settings = GeneralSettings.load(request_or_site=self.request)
+            if general_settings.login_redirect_url:
+                return general_settings.login_redirect_url
+            else:
+                return "/shop/#backtag"
+
     def pre_login(self, request, user, **kwargs):
         if not user.is_active:
             messages.add_message(

@@ -1,6 +1,5 @@
 #!/bin/sh
-python manage.py dumpdata --all users > bakeup/users/fixtures/demo-data.json
-python manage.py dumpdata --all shop.Customer shop.PointOfSale core.Address > bakeup/shop/fixtures/demo_customers.json
-python manage.py dumpdata --all workshop.Category > bakeup/workshop/fixtures/categories.json
-python manage.py dumpdata --all workshop.Product workshop.ProductHierarchy workshop.Instruction> bakeup/workshop/fixtures/demo-products.json
-python manage.py dumpdata --all shop.CustomerOrder shop.CustomerOrderPosition shop.ProductionDay shop.ProductionDayProduct workshop.ProductionPlan > bakeup/shop/fixtures/demo_baking_days.json
+python manage.py tenant_command dumpdata --all --schema=localhost shop.PointOfSale > bakeup/shop/fixtures/demo_point_of_sale.json
+python manage.py tenant_command dumpdata --all --schema=localhost users auth shop.Customer > bakeup/users/fixtures/demo_users.json
+python manage.py tenant_command dumpdata --all --schema=localhost workshop.Category > bakeup/workshop/fixtures/demo_categories.json
+python manage.py tenant_command dumpdata --all --schema=localhost workshop.Product workshop.ProductHierarchy workshop.Instruction taggit.Tag taggit.TaggedItem > bakeup/workshop/fixtures/demo_products.json
