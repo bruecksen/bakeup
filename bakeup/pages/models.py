@@ -273,7 +273,7 @@ class GeneralSettings(BaseGenericSetting):
     )
     brand_font = models.CharField(
         max_length=17,
-        default=FontStyle.HANDWRITING,
+        default=FontStyle.HIDDEN,
         choices=FontStyle.choices,
         help_text="Welche Schriftart soll der brand name in der Mobilen ansicht haben?",
     )

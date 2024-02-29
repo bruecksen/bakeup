@@ -12557,6 +12557,11 @@ body.shop .jumbotron {
   margin-bottom: 64px;
   margin-bottom: 4rem;
 }
+@media screen and (max-width: 768px) {
+  body.shop .jumbotron {
+    margin-top: 0px;
+  }
+}
 body.shop .product-card h2, body.shop .product-card .h2,
 body.shop .production-day-card h2,
 body.shop .production-day-card .h2 {

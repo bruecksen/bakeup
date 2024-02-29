@@ -8,8 +8,9 @@
     {% image client_logo height-80 as logo80 %}
     <img src="{{ logo40.url }}" width="{{ logo40.width }}" height="{{ logo40.height }}" class="img-fluid" srcset="{{ logo80.url }} 2x">
     {% else %}
-        {% image client_logo height-150 as logo %}
-        <img src="{{ logo.url }}" width="{{ logo.width }}" height="{{ logo.height }}" class="img-fluid">
+        {% image client_logo height-150 as logo150 %}
+        {% image client_logo height-300 as logo300 %}
+        <img src="{{ logo150.url }}" width="{{ logo150.width }}" height="{{ logo150.height }}" class="img-fluid" srcset="{{ logo300.url }} 2x">
     {% endif %}
 </a>
 {% else %}
