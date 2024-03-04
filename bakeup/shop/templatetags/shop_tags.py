@@ -1,10 +1,19 @@
 from django import template
 from django.db.models import Q
+from django.template.defaultfilters import floatformat
 
 from bakeup.pages.models import GeneralSettings
 from bakeup.shop.models import CustomerOrderPosition, ProductionDayProduct
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def base_price(context, product):
+    if product.weight >= 1000:
+        return f"{product.sale_price.price / (product.weight / 1000) } / 1 kg"
+    else:
+        return f"{product.sale_price.price / product.weight * 100} / 100 g"
 
 
 @register.simple_tag(takes_context=True)
@@ -56,3 +65,12 @@ def max_quantity(context, production_day, product):
 @register.filter(name="times")
 def times(number):
     return range(number + 1)
+
+
+@register.filter(name="clever_weight")
+def clever_weight(weight):
+    if weight >= 1000:
+        return f"{floatformat(weight / 1000)} kg"
+        # return f"{formats.localize(Decimal(round(weight / 1000, 1)).normalize(), use_l10n=True)}kg"
+    else:
+        return f"{weight:.0f} g"
