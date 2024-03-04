@@ -19,7 +19,7 @@
         </div>
         <div class="card-body">
             <h2 class="card-title hyphens-auto fw-bold">{{ product.get_display_name }}
-                <span class="small text-muted fw-normal">{{ production_day_product.product.weight|clever_weight|localize }}</span>
+                <span class="small text-muted fw-normal">{{ product.weight|clever_weight|localize }}</span>
             </h2>
             <p>{{ product.description|safe|linebreaksbr|urlize }}</p>
             {% with ingredients=product.get_full_ingredient_list %}
