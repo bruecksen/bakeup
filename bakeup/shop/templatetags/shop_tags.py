@@ -10,6 +10,8 @@ register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def base_price(context, product):
+    if not product.weight or not product.sale_price:
+        return ""
     if product.weight >= 1000:
         return f"{product.sale_price.price / (product.weight / 1000) } / 1 kg"
     else:
@@ -69,6 +71,8 @@ def times(number):
 
 @register.filter(name="clever_weight")
 def clever_weight(weight):
+    if not weight:
+        return ""
     if weight >= 1000:
         return f"{floatformat(weight / 1000)} kg"
         # return f"{formats.localize(Decimal(round(weight / 1000, 1)).normalize(), use_l10n=True)}kg"
