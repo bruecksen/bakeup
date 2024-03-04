@@ -28,7 +28,7 @@
             {% endif %}
             {% endwith %}
             {% if product.sale_price %}
-                <p class="mt-3 mb-3 fs-5 fw-bold">{{ product.sale_price.price }} <small class="text-muted fw-normal">({% base_price production_day_product.product %})</small></p>
+                <p class="mt-3 mb-3 fs-5 fw-bold">{{ product.sale_price.price }} <small class="text-muted fw-normal">({% base_price product %})</small></p>
             {% endif %}
         </div>
 
