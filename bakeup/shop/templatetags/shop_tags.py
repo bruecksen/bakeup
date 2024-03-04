@@ -12,7 +12,7 @@ register = template.Library()
 def base_price(context, product):
     if not product.weight or not product.sale_price:
         return ""
-    if product.weight >= 1000:
+    if product.weight >= 500:
         return f"{product.sale_price.price / (product.weight / 1000) } / 1 kg"
     else:
         return f"{product.sale_price.price / product.weight * 100} / 100 g"
