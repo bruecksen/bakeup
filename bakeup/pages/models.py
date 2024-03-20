@@ -228,6 +228,12 @@ class BrandSettings(BaseGenericSetting):
         blank=True,
         null=True,
     )
+    custom_css = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Custom CSS",
+        help_text="Add custom CSS to the brand theme",
+    )
 
     panels = [
         FieldPanel("logo"),
@@ -238,6 +244,7 @@ class BrandSettings(BaseGenericSetting):
                 FieldPanel("secondary_color"),
                 FieldPanel("light_color"),
                 FieldPanel("dark_color"),
+                FieldPanel("custom_css"),
             ],
             heading="Theme",
         ),

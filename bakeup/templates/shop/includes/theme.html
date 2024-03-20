@@ -113,6 +113,9 @@
     .dropdown-menu {
         --bs-dropdown-link-active-bg: {{ settings.pages.BrandSettings.primary_color }};
     }
+    {% if settings.pages.BrandSettings.custom_css %}
+    {{ settings.pages.BrandSettings.custom_css|safe }}
+    {% endif %}
 
 </style>
 {% endif %}

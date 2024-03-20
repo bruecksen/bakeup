@@ -224,6 +224,12 @@ TEMPLATES = [
         # https://docs.djangoproject.com/en/dev/ref/settings/#app-dirs
         "APP_DIRS": True,
         "OPTIONS": {
+            # # https://django-tenants.readthedocs.io/en/latest/files.html#configuring-the-template-loaders
+            # "loaders": [
+            #     "django_tenants.template.loaders.filesystem.Loader",  # Must be first
+            #     "django.template.loaders.filesystem.Loader",
+            #     "django.template.loaders.app_directories.Loader",
+            # ],
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -240,6 +246,10 @@ TEMPLATES = [
         },
     }
 ]
+
+# MULTITENANT_TEMPLATE_DIRS = [
+#     'tenant_templates',
+# ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
