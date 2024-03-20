@@ -35,14 +35,10 @@ class TokenAdmin(admin.ModelAdmin):
         self.request = request
         return super().change_view(request, object_id, form_url, extra_context)
 
+    @admin.display(description="Token URL")
     def token_url(self, obj):
         return obj.token_url(self.request)
 
-    token_url.short_description = "Token URL"
-    token_url.allow_tags = True
-
+    @admin.display(description="QR Code")
     def qr_code_svg(self, obj):
         return obj.qr_code_svg(self.request)
-
-    qr_code_svg.short_description = "QR Code"
-    qr_code_svg.allow_tags = True

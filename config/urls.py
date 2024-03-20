@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path, re_path
+from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import RedirectView
 from wagtail import urls as wagtail_urls
@@ -26,7 +26,7 @@ urlpatterns = [
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
-    re_path(r"shop/", include(wagtail_urls)),
+    path("shop/", include(wagtail_urls)),
     # path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path(
