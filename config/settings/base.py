@@ -94,7 +94,6 @@ TENANT_APPS = [
     "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",
-    "wagtail.contrib.modeladmin",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.settings",
