@@ -31,9 +31,8 @@
 
             {% else %}
 
-            {% url 'account_email' as email_url %}
-
-            <p>{% blocktrans %}This e-mail confirmation link expired or is invalid. Please <a href="{{ email_url }}">issue a new e-mail confirmation request</a>.{% endblocktrans %}</p>
+            {% url 'shop:user-profile' as email_url %}
+            <p>{% blocktrans %}This e-mail confirmation link expired or is invalid. Please <a href="{{ email_url }}#email">issue a new e-mail confirmation request</a>.{% endblocktrans %}</p>
 
             {% endif %}
             <a href="/shop/">zurück zum Shop</a>
