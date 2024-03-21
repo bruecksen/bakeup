@@ -1,5 +1,5 @@
 from django.contrib.admin.utils import NestedObjects
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.text import capfirst
 
 
@@ -10,7 +10,7 @@ def get_deleted_objects(objs):
     #
     def format_callback(obj):
         opts = obj._meta
-        no_edit_link = "%s: %s" % (capfirst(opts.verbose_name), force_text(obj))
+        no_edit_link = "%s: %s" % (capfirst(opts.verbose_name), force_str(obj))
         return no_edit_link
 
     #

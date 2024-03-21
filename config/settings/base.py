@@ -31,7 +31,6 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
-USE_L10N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
@@ -94,7 +93,6 @@ TENANT_APPS = [
     "sorl.thumbnail",
     "django.contrib.auth",
     "django.contrib.sessions",
-    "wagtail.contrib.modeladmin",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.settings",
@@ -189,6 +187,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "bakeup.core.middleware.PersistentFiltersMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 # STATIC
