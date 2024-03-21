@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 01:07+0100\n"
+"POT-Creation-Date: 2024-03-21 04:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,43 +36,47 @@ msgid "Image"
 msgstr ""
 
 #: bakeup/pages/blocks.py:136
+msgid "Internal link"
+msgstr ""
+
+#: bakeup/pages/blocks.py:137
 msgid "External link"
 msgstr ""
 
-#: bakeup/pages/blocks.py:138
+#: bakeup/pages/blocks.py:139
 msgid "Anchor link"
 msgstr ""
 
-#: bakeup/pages/blocks.py:140
+#: bakeup/pages/blocks.py:141
 msgid "An anchor in the current page, for example: <code>#target-id</code>."
 msgstr ""
 
-#: bakeup/pages/blocks.py:177
+#: bakeup/pages/blocks.py:180
 msgid "Link"
 msgstr ""
 
-#: bakeup/pages/blocks.py:200
+#: bakeup/pages/blocks.py:203
 msgid "Text"
 msgstr ""
 
-#: bakeup/pages/blocks.py:205
+#: bakeup/pages/blocks.py:208
 msgid "Button"
 msgstr ""
 
-#: bakeup/pages/blocks.py:212
+#: bakeup/pages/blocks.py:215
 msgid "Horizontal Rule"
 msgstr ""
 
-#: bakeup/pages/blocks.py:226
+#: bakeup/pages/blocks.py:229
 msgid "Image carousel"
 msgstr ""
 
-#: bakeup/pages/blocks.py:304
+#: bakeup/pages/blocks.py:307
 #: bakeup/templates/workshop/includes/sidebar.html:28
 msgid "Production Days"
 msgstr "Produktionstage"
 
-#: bakeup/pages/blocks.py:332
+#: bakeup/pages/blocks.py:335
 msgid "Product Assortment"
 msgstr ""
 
@@ -249,11 +253,11 @@ msgstr ""
 msgid "Confirm"
 msgstr "Bestätigen"
 
-#: bakeup/templates/account/email_confirm.html:36
+#: bakeup/templates/account/email_confirm.html:35
 #, python-format
 msgid ""
 "This e-mail confirmation link expired or is invalid. Please <a href="
-"\"%(email_url)s\">issue a new e-mail confirmation request</a>."
+"\"%(email_url)s#email\">issue a new e-mail confirmation request</a>."
 msgstr ""
 
 #: bakeup/templates/account/login.html:19
@@ -1267,7 +1271,7 @@ msgstr "Neue Kategorie hinzufügen"
 msgid "Hi %(user)s, welcome to bakeup!"
 msgstr "Hallo %(request.user)s, willkommen in Bakeup!"
 
-#: bakeup/users/allauth.py:21
+#: bakeup/users/allauth.py:31
 msgid "This account is closed. Login is not possible."
 msgstr "Dies ist ein geschlossener Account. Anmelden ist nicht mehr möglich."
 
@@ -1289,7 +1293,7 @@ msgstr "E-Mail-Adresse bestätigen"
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
 
-#: bakeup/users/views.py:283
+#: bakeup/users/views.py:281
 msgid "Your account is closed."
 msgstr "Ihr Konto ist jetzt geschlossen."
 
