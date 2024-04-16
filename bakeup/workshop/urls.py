@@ -33,6 +33,7 @@ from bakeup.workshop.views import (
     ProductHierarchyDeleteView,
     ProductHierarchyUpdateView,
     ProductionDayAddView,
+    ProductionDayCopyView,
     ProductionDayDeleteView,
     ProductionDayDetailView,
     ProductionDayExportView,
@@ -214,6 +215,11 @@ urlpatterns = [
         "production-days/add/",
         view=ProductionDayAddView.as_view(),
         name="production-day-add",
+    ),
+    path(
+        "production-days/<int:pk>/copy/",
+        view=ProductionDayCopyView.as_view(),
+        name="production-day-copy",
     ),
     path(
         "production-days/<int:pk>/",
