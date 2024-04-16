@@ -939,6 +939,14 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
 
 #
 class ProductionDayMixin(object):
+    extra_formset = 1
+
+    def get_data(self):
+        return self.request.POST
+
+    def get_formset_initial(self):
+        return []
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.POST:
@@ -947,20 +955,19 @@ class ProductionDayMixin(object):
                 instance=self.object, data=self.request.POST
             )
         else:
-            production_day_products = ProductionDayProduct.objects.filter(
-                production_day=self.object
-            )
+            production_day_products = self.get_production_day_products()
             context["formset"] = ProductionDayProductFormSet(
-                queryset=production_day_products
+                queryset=production_day_products, initial=self.get_formset_initial()
             )
-            if self.object and production_day_products.count() > 0:
-                context["formset"].extra = 0
-            context["form"] = ProductionDayForm(instance=self.object)
+            context["formset"].extra = self.extra_formset
+            context["form"] = ProductionDayForm(
+                instance=self.object, initial=self.get_initial()
+            )
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        formset = ProductionDayProductFormSet(request.POST)
+        formset = ProductionDayProductFormSet(self.get_data())
         production_day_form = ProductionDayForm(instance=self.object, data=request.POST)
         if formset.is_valid() and production_day_form.is_valid():
             return self.form_valid(formset, production_day_form)
@@ -972,6 +979,7 @@ class ProductionDayMixin(object):
             production_day = production_day_form.save()
             self.object = production_day
             instances = formset.save(commit=False)
+            # raise Exception(instances)
             for obj in formset.deleted_objects:
                 try:
                     if obj.production_plan:
@@ -1009,6 +1017,65 @@ class ProductionDayAddView(NextUrlMixin, ProductionDayMixin, CreateView):
     model = ProductionDay
     form_class = ProductionDayForm
 
+    def get_production_day_products(self):
+        return ProductionDayProduct.objects.filter(production_day=self.object)
+
+    def get_next_page(self):
+        return reverse("workshop:production-day-detail", kwargs={"pk": self.object.pk})
+
+    def get_object(self, queryset=None):
+        return None
+
+
+class ProductionDayCopyView(NextUrlMixin, ProductionDayMixin, CreateView):
+    template_name = "workshop/productionday_form.html"
+    model = ProductionDay
+    form_class = ProductionDayForm
+    copy_from = None
+
+    @property
+    def extra_formset(self):
+        return self.copy_from.production_day_products.count()
+
+    def get_data(self):
+        post = self.request.POST
+        # post._mutable = True
+        # for key in post:
+        #     if key.endswith("-id"):
+        #         post[key] = None
+        # post._mutable = False
+        return post
+
+    def get(self, request, *args, **kwargs):
+        self.copy_from = ProductionDay.objects.get(pk=kwargs.get("pk"))
+        return super().get(request, *args, **kwargs)
+
+    def get_formset_initial(self):
+        initial = []
+        for product in self.copy_from.production_day_products.all():
+            initial.append(
+                {
+                    "product": product.product,
+                    "max_quantity": product.max_quantity,
+                    "is_published": product.is_published,
+                    "group": product.group,
+                }
+            )
+        return initial
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.copy_from:
+            initial.update(
+                {
+                    "description": self.copy_from.description,
+                }
+            )
+        return initial
+
+    def get_production_day_products(self):
+        return ProductionDayProduct.objects.none()
+
     def get_next_page(self):
         return reverse("workshop:production-day-detail", kwargs={"pk": self.object.pk})
 
@@ -1020,6 +1087,10 @@ class ProductionDayUpdateView(NextUrlMixin, ProductionDayMixin, UpdateView):
     template_name = "workshop/productionday_form.html"
     model = ProductionDay
     form_class = ProductionDayForm
+    extra_formset = 0
+
+    def get_production_day_products(self):
+        return ProductionDayProduct.objects.filter(production_day=self.object)
 
 
 class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):

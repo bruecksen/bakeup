@@ -26,6 +26,7 @@
     <div class="btn-group btn-group-sm float-end d-print-none" role="group" aria-label="Basic example">
       <a href="{% url 'workshop:production-day-update' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>{% trans "Edit" %}</a>
       <a href="{% url 'workshop:production-day-delete' pk=object.pk %}" class="btn btn-sm btn-primary{% if object.is_locked %} disabled{% endif %}"><i class="fas fa-trash-can"></i> {% trans "Delete" %}</a>
+      <a href="{% url 'workshop:production-day-copy' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-copy"></i> {% trans "Copy" %}</a>
       <a href="{% url 'workshop:order-list' %}?production_day={{ object.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-shopping-basket"></i> {% trans "Show orders" %}</a>
       <a href="{% url 'workshop:production-plan-production-day' pk=object.pk %}" class="btn btn-sm btn-primary{% if not object.production_plans.exists %} disabled{% endif %}"><i class="fas fa-sliders"></i> {% trans "Show plans" %}</a>
       <a href="{% url 'workshop:production-day-meta-product' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary"><i class="fas fa-retweet"></i> {% trans "Abos" %}</a>
