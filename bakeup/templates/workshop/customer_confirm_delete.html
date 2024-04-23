@@ -7,12 +7,19 @@
 {% block page_content %}
 <div id="content-container" class="container">
     <div>
+        {% if protected %}
+        {% blocktranslate trimmed %}
+        <p>The following customer cannot be deleted, because it is referenced by other objects. Please delete the following objects first:</p>
+        {% endblocktranslate %}
+        <ul>
+            {{ protected|unordered_list }}
+        </ul>
+        {% else %}
         {% blocktranslate trimmed %}
         <p>You're about to delete the following customer: <strong>{{ object }}</strong> and all the related objects. Please confirm!</p>
         {% endblocktranslate %}
             <ul>
             {{ deletable_objects|unordered_list }}
-            {{ protected|unordered_list }}
             </ul>
             {% blocktranslate %}<p class="fw-bold">This action cannot be reversed.</p>{% endblocktranslate %}
             <form action="" method="post">
@@ -22,6 +29,7 @@
                     onclick="window.history.go(-1);"/>
                 <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
             </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
