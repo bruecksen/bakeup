@@ -1401,10 +1401,12 @@ class CustomerDeleteView(StaffPermissionsMixin, DeleteView):
         context["protected"] = protected
         return context
 
+    def post(self, request, *args, **kwargs):
+        return self.delete(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         deletable_objects, model_count, protected = get_deleted_objects([self.object])
-
         for protected_object in protected:
             protected_object.force_delete = True
             protected_object.delete()
@@ -1465,7 +1467,7 @@ class CustomerOrderListView(
         return context
 
 
-class GroupDeleteView(DeleteView):
+class GroupDeleteView(StaffPermissionsMixin, DeleteView):
     model = Group
     template_name = "workshop/group_confirm_delete.html"
 
@@ -1875,7 +1877,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         return self.render_to_response(self.get_context_data())
 
 
-class CustomerOrderDeleteView(DeleteView):
+class CustomerOrderDeleteView(StaffPermissionsMixin, DeleteView):
     model = CustomerOrder
     template_name = "workshop/customerorder_confirm_delete.html"
 
