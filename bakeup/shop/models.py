@@ -310,7 +310,7 @@ class ProductionDay(CommonBaseClass):
         positions.update(product=production_plan_product)
 
     @classmethod
-    def get_next_production_day(cls, user):
+    def get_production_day(cls, user):
         today = datetime.now().date()
         production_day_next = ProductionDayProduct.objects.filter(
             is_published=True, production_day__day_of_sale__gte=today
@@ -318,6 +318,30 @@ class ProductionDay(CommonBaseClass):
         production_day_next = production_day_next.available_to_user(user)
         production_day_next = production_day_next.order_by(
             "production_day__day_of_sale"
+        ).first()
+        if production_day_next:
+            return production_day_next.production_day
+        return None
+
+    def get_next_production_day(self, user):
+        production_day_next = ProductionDayProduct.objects.filter(
+            is_published=True, production_day__day_of_sale__gt=self.day_of_sale
+        )
+        production_day_next = production_day_next.available_to_user(user)
+        production_day_next = production_day_next.order_by(
+            "production_day__day_of_sale"
+        ).first()
+        if production_day_next:
+            return production_day_next.production_day
+        return None
+
+    def get_prev_production_day(self, user):
+        production_day_next = ProductionDayProduct.objects.filter(
+            is_published=True, production_day__day_of_sale__lt=self.day_of_sale
+        )
+        production_day_next = production_day_next.available_to_user(user)
+        production_day_next = production_day_next.order_by(
+            "-production_day__day_of_sale"
         ).first()
         if production_day_next:
             return production_day_next.production_day

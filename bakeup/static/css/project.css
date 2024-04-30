@@ -13226,6 +13226,15 @@ nav .nav-link:hover, nav .nav-link:focus {
   padding: 0.25rem 0.5rem;
 }
 
+.input-group-calendar {
+  width: 250px;
+}
+@media (max-width: 768px) {
+  .input-group-calendar {
+    width: 100%;
+  }
+}
+
 textarea {
   margin-bottom: 8px;
   margin-bottom: 0.5rem;

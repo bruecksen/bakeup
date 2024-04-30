@@ -317,9 +317,9 @@ class ProductionDaysBlock(StructBlock):
             )
         else:
             production_days = ProductionDay.objects.published().upcoming().available()
-        if parent_context and "production_day_next" in parent_context:
+        if parent_context and "production_day" in parent_context:
             production_days = production_days.exclude(
-                id=parent_context["production_day_next"].pk
+                id=parent_context["production_day"].pk
             )
         if value.get("production_day_limit"):
             production_days = production_days[: value.get("production_day_limit")]
