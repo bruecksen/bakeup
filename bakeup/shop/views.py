@@ -281,7 +281,7 @@ class ShopView(TemplateView):
                 pk=kwargs.get("production_day")
             )
         else:
-            self.production_day = ProductionDay.get_next_production_day(request.user)
+            self.production_day = ProductionDay.get_production_day(request.user)
 
         return super().setup(request, *args, **kwargs)
 
@@ -296,7 +296,13 @@ class ShopView(TemplateView):
                     self.production_day, customer
                 )
             )
-            context["production_day_next"] = self.production_day
+            context["production_day"] = self.production_day
+            context["production_day_next"] = (
+                self.production_day.get_next_production_day(self.request.user)
+            )
+            context["production_day_prev"] = (
+                self.production_day.get_prev_production_day(self.request.user)
+            )
             production_day_products = self.production_day.production_day_products.published().available_to_user(
                 self.request.user
             )
