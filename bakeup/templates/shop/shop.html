@@ -23,7 +23,7 @@
 {% endblock jumbotron %}
 
 {% block page_content %}
-{% if not production_day_next %}
+{% if not production_day %}
 <div class="row">
   <div class="col">
     <div class="alert alert-warning" role="alert">
@@ -33,7 +33,7 @@
   </div>
 </div>
 {% else %}
-  {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
+  {% include "shop/includes/production_day_order.html" with production_day=production_day production_day_products=production_day_products %}
 {% endif %}
 <div class="row">
   <div class="col">

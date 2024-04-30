@@ -32,7 +32,7 @@
 
 {% block page_content %}
 {% if page.show_production_day %}
-  {% if not production_day_next %}
+  {% if not production_day %}
   <div class="row mb-10">
     <div class="col">
       <div class="card p-4">
@@ -41,7 +41,7 @@
     </div>
   </div>
   {% else %}
-    {% include "shop/includes/production_day_order.html" with production_day=production_day_next production_day_products=production_day_products %}
+    {% include "shop/includes/production_day_order.html" with production_day=production_day production_day_products=production_day_products %}
   {% endif %}
 {% endif %}
   {% for block in self.content %}

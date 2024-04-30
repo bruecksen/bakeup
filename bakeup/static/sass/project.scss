@@ -566,6 +566,12 @@ nav {
   font-size: .875rem;
   padding: 0.25rem 0.5rem;
 }
+.input-group-calendar {
+  width: 250px;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
 
 textarea {
   margin-bottom: .5rem;

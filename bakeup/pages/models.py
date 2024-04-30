@@ -88,7 +88,7 @@ class ShopPage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        self.production_day = ProductionDay.get_next_production_day(request.user)
+        self.production_day = ProductionDay.get_production_day(request.user)
         customer = None if request.user.is_anonymous else request.user.customer
         context["production_days"] = ProductionDay.objects.upcoming().available_to_user(
             request.user
@@ -102,7 +102,13 @@ class ShopPage(Page):
             context["production_days"] = context["production_days"].exclude(
                 id=self.production_day.pk
             )
-            context["production_day_next"] = self.production_day
+            context["production_day"] = self.production_day
+            context["production_day_next"] = (
+                self.production_day.get_next_production_day(request.user)
+            )
+            context["production_day_prev"] = (
+                self.production_day.get_prev_production_day(request.user)
+            )
             current_customer_order = CustomerOrder.objects.filter(
                 customer=customer, production_day=self.production_day
             ).first()

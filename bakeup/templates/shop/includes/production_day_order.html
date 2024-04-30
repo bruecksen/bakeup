@@ -12,14 +12,16 @@
             <div class="row align-items-start">
                 <div class="col-12 col-lg-8">
                     <div class="row">
-                        <div class="col-6 col-md-auto">
+                        <div class="col-auto align-self-center">
                             <label for="select-production-day-date" class="fs-3 fw-bold anchor">Backtag: </label>
                         </div>
-                        <div class="col-6 col-md-auto">
+                        <div class="col">
                             {% csrf_token %}
-                            <div class="input-group">
+                            <div class="input-group input-group-calendar">
+                                <a class="btn bg-white fs-4 border-0 fw-bold{% if not production_day_prev %} disabled{% endif %}" type="button" href="{% if production_day_prev %}{% url 'shop:shop-production-day' production_day=production_day_prev.pk %}{% endif %}"><i class="fas fa-chevron-left"></i></a>
                                 <input id="select-production-day-date" inputmode="none" class="form-control fs-4 fw-bold border-0" data-date="{{ production_day.day_of_sale|date:'d.m.Y' }}'" name="production_day_date">
-                                <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white"><i class="fa-solid fa-calendar-days"></i></span>
+                                <span class="input-group-text fs-3 fw-bold border-0 l-h1 bg-white ps-1"><i class="fa-solid fa-calendar-days"></i></span>
+                                <a class="btn bg-white fs-4 fw-bold border-0{% if not production_day_next %} disabled{% endif %}" type="button" href="{% if production_day_next %}{% url 'shop:shop-production-day' production_day=production_day_next.pk %}{% endif %}"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
                     </div>
