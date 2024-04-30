@@ -2,14 +2,14 @@
 {% load wagtailcore_tags %}
 {% load wagtailimages_tags %}
 {% if client_logo %}
-<a class="d-flex logo me-3 align-self-center" href="{% if home_url %}{% url home_url %}{% else %}/shop/{% endif %}">
+<a class="d-flex logo{% if logo_size == 'small' %} me-3{% endif %} align-self-center" href="{% if home_url %}{% url home_url %}{% else %}/shop/{% endif %}">
     {% if logo_size == 'small' %}
     {% image client_logo height-40 as logo40 %}
     {% image client_logo height-80 as logo80 %}
     <img src="{{ logo40.url }}" width="{{ logo40.width }}" height="{{ logo40.height }}" class="img-fluid" srcset="{{ logo80.url }} 2x">
     {% else %}
-        {% image client_logo height-150 as logo150 %}
-        {% image client_logo height-300 as logo300 %}
+        {% image client_logo height-100 as logo150 %}
+        {% image client_logo height-200 as logo300 %}
         <img src="{{ logo150.url }}" width="{{ logo150.width }}" height="{{ logo150.height }}" class="img-fluid" srcset="{{ logo300.url }} 2x">
     {% endif %}
 </a>
