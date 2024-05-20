@@ -153,3 +153,21 @@ class ClientEmailTemplate(models.Model):
         default=get_production_day_reminder_body
     )
     wagtail_reference_index_ignore = True
+
+
+class UOM(models.Model):
+    name = models.CharField(max_length=50)
+    abbreviation = models.CharField(max_length=10)
+    base_unit = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="units"
+    )
+    conversion_factor = models.FloatField(default=1.0)  # Factor to convert to base unit
+
+    def __str__(self):
+        return f"{self.name} ({self.abbreviation})"
+
+    def to_base_unit(self, value):
+        return value * self.conversion_factor
+
+    def from_base_unit(self, value):
+        return value / self.conversion_factor

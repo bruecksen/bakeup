@@ -39,6 +39,7 @@ class ProductForm(ModelForm):
             "category",
             "tags",
             "weight",
+            "uom",
             "is_sellable",
             "is_buyable",
             "is_composable",

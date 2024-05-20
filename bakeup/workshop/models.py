@@ -89,6 +89,9 @@ class Product(CommonBaseClass):
     weight = models.FloatField(
         help_text=_("weight in grams"), default=1000, verbose_name=_("Weight")
     )
+    uom = models.ForeignKey(
+        "core.UOM", on_delete=models.SET_NULL, blank=True, null=True
+    )
     # data in database normalized in milliliter
     is_sellable = models.BooleanField(default=False, verbose_name=_("Is sellable"))
     is_buyable = models.BooleanField(default=False, verbose_name=_("Is buyable"))
