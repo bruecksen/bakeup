@@ -6,9 +6,9 @@ from django.db import migrations
 
 def create_uom(apps, schema_editor):
     UOM = apps.get_model('core', 'UOM')
-    kg = UOM.objects.create(name='Kilogram', abbreviation='kg', conversion_factor=1.0)
-    g = UOM.objects.create(name='Gram', abbreviation='g', base_unit=kg, conversion_factor=0.001)
-    lb = UOM.objects.create(name='Pound', abbreviation='lb', base_unit=kg, conversion_factor=0.453592)
+    g = UOM.objects.create(name='Gram', abbreviation='g', conversion_factor=1)
+    kg = UOM.objects.create(name='Kilogram', abbreviation='kg', base_unit=g, conversion_factor=1000)
+    lb = UOM.objects.create(name='Pound', abbreviation='lb', base_unit=g, conversion_factor=453.592)
 
 def delete_uom(apps, schema_editor):
     UOM = apps.get_model('core', 'UOM')

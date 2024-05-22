@@ -12,7 +12,7 @@ register = template.Library()
 def base_price(context, product):
     if not product.weight or not product.sale_price:
         return ""
-    return f"{product.sale_price.price / (product.weight / 1000) } / 1 kg"
+    return f"{product.sale_price.price / (product.weight_in_base_unit / 1000) } / 1 kg"
 
 
 @register.simple_tag(takes_context=True)

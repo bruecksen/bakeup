@@ -17,7 +17,31 @@
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.media }}
-    {{ form|crispy }}
+    {{ form.name|as_crispy_field }}
+    {{ form.display_name|as_crispy_field }}
+    {{ form.sku|as_crispy_field }}
+    {{ form.description|as_crispy_field }}
+    {{ form.image|as_crispy_field }}
+    {{ form.image_secondary|as_crispy_field }}
+    {{ form.category|as_crispy_field }}
+    {{ form.tags|as_crispy_field }}
+    <div class="row">
+      <div class="col col-md-6 col-lg-4">
+        <div id="div_id_weight" class="mb-3">
+          <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
+          <div class="input-group">{{ form.weight }}
+            <div class="input-group-append">
+              {{ form.uom }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{ form.is_sellable|as_crispy_field }}
+    {{ form.is_buyable|as_crispy_field }}
+    {{ form.is_composable|as_crispy_field }}
+    {{ form.is_recurring|as_crispy_field }}
+    {{ form.max_recurring_order_qty|as_crispy_field }}
     <div class="control-group">
       <div class="controls">
         <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>

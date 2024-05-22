@@ -151,6 +151,14 @@ class Product(CommonBaseClass):
         return "g"
 
     @property
+    def weight_in_base_unit(self):
+        return self.uom.to_base_unit(self.weight)
+
+    def convert_weight(self, target_uom):
+        base_weight = self.weight_in_base_unit
+        return target_uom.from_base_unit(base_weight)
+
+    @property
     def is_open_for_abo(self):
         if self.is_recurring:
             if self.max_recurring_order_qty:
@@ -223,7 +231,7 @@ class Product(CommonBaseClass):
 
     @property
     def total_weight(self):
-        return Product.calculate_total_weight(self) or self.weight
+        return Product.calculate_total_weight(self) or self.weight_in_base_unit
 
     @classmethod
     def calculate_total_weight(cls, product, quantity=1):
@@ -363,12 +371,14 @@ class Product(CommonBaseClass):
 
     def get_fermentation_loss(self):
         total_weight = self.total_weight
-        if total_weight and self.weight:
-            return round(1 - (self.weight / self.total_weight), 4) * 100
+        if total_weight and self.weight_in_base_unit:
+            return round(1 - (self.weight_in_base_unit / self.total_weight), 4) * 100
 
     def normalize(self, fermentation_loss):
-        if self.total_weight and self.weight:
-            current_fermantation_loss = round(1 - (self.weight / self.total_weight), 4)
+        if self.total_weight and self.weight_in_base_unit:
+            current_fermantation_loss = round(
+                1 - (self.weight_in_base_unit / self.total_weight), 4
+            )
             fermentation_loss = fermentation_loss / Decimal(100)
             delta_weight_addon = (1 - Decimal(current_fermantation_loss)) / (
                 1 - fermentation_loss
@@ -448,8 +458,8 @@ class ProductHierarchy(CommonBaseClass):
 
     @property
     def weight(self):
-        if self.child.weight:
-            return self.child.weight * self.quantity
+        if self.child.weight_in_base_unit:
+            return self.child.weight_in_base_unit * self.quantity
         else:
             return "-"
 

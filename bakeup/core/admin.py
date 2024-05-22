@@ -46,4 +46,4 @@ class ClientAdminDomain(admin.ModelAdmin):
 
 @admin.register(UOM)
 class UOMAdmin(admin.ModelAdmin):
-    list_display = ("name", "abbreviation", "conversion_factor")
+    list_display = ("name", "abbreviation", "conversion_factor", "base_unit")

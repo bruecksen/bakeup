@@ -166,6 +166,12 @@ class UOM(models.Model):
     def __str__(self):
         return f"{self.name} ({self.abbreviation})"
 
+    @property
+    def base_abbr(self):
+        if self.base_unit:
+            return self.base_unit.abbreviation
+        return self.abbreviation
+
     def to_base_unit(self, value):
         return value * self.conversion_factor
 
