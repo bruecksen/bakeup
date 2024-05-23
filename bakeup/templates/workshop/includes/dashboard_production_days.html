@@ -1,0 +1,23 @@
+{% load i18n %}
+<table class="table table-sm table-striped">
+    <tr>
+        <th>{% trans 'Date' %}</th>
+        <th>{% trans 'Sold out' %}</th>
+        {% if production_days.first.has_products_with_price %}<th>{% trans 'Sales' %}</th>{% endif %}
+        {% if show_production %}<th>{% trans 'Production' %}</th>{% endif %}
+    </tr>
+  {% for production_day in production_days %}
+    <tr>
+      <td><a href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">{{ production_day }}</a></td>
+      <td class="align-middle">
+        <div class="progress">
+          <div class="progress-bar bg-success" role="progressbar" style="width: {{ production_day.sold_percentage }}%" aria-valuenow="{{ production_day.sold_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ production_day.sold_percentage }}%</div>
+        </div>
+      </td>
+      {% if production_day.has_products_with_price %}<td class="align-middle">
+        {{ production_day.total_sales|floatformat:2 }}€
+      </td>{% endif %}
+      {% if show_production %}<td>{% for state in production_day.get_production_state %}{% include "workshop/includes/production_plan_state.html" with state_css_class=state.css_class label=state.label %}{% endfor %}</td>{% endif %}
+    </tr>
+    {% endfor %}
+</table>

@@ -109,6 +109,8 @@ class WorkshopView(StaffPermissionsMixin, TemplateView):
         context["recurring_orders_count"] = (
             CustomerOrderTemplate.objects.active().count()
         )
+        context["upcoming_production_days"] = ProductionDay.objects.upcoming()[:5]
+        context["past_production_days"] = ProductionDay.objects.past()[:5]
         return context
 
 
