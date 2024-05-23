@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMessage
 from django.db import models, transaction
-from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
+from django.db.models import Count, Exists, F, OuterRef, Q, Subquery, Sum
 from django.template import Context, Template
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -57,6 +57,10 @@ class ProductionDayQuerySet(models.QuerySet):
     def upcoming(self):
         today = timezone.now().date()
         return self.filter(day_of_sale__gte=today).order_by("day_of_sale")
+
+    def past(self):
+        today = timezone.now().date()
+        return self.filter(day_of_sale__lt=today).order_by("day_of_sale")
 
     def available_to_user(self, user):
         return self.filter(
@@ -114,6 +118,19 @@ class ProductionDay(CommonBaseClass):
         if product:
             return product.product.image
 
+    def get_production_state(self):
+        states = (
+            self.production_plans.filter(parent_plan__isnull=True)
+            .values("state")
+            .annotate(count=Count("id"))
+        )
+        for state in states:
+            state["label"] = (
+                f'#{state["count"]} {ProductionPlan.state_display_value(state["state"])}'
+            )
+            state["css_class"] = ProductionPlan.state_css_class(state["state"])
+        return states
+
     @property
     def calendar_week(self):
         return self.day_of_sale.isocalendar()[1]
@@ -128,18 +145,52 @@ class ProductionDay(CommonBaseClass):
 
     @property
     def total_ordered_quantity(self):
-        return CustomerOrderPosition.objects.filter(
-            order__production_day=self
-        ).aggregate(Sum("quantity"))["quantity__sum"]
+        return (
+            CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(
+                Sum("quantity")
+            )["quantity__sum"]
+            or 0
+        )
+
+    @property
+    def total_published_quantity(self):
+        return (
+            self.production_day_products.filter(is_published=True).aggregate(
+                Sum("max_quantity")
+            )["max_quantity__sum"]
+            or 0
+        )
+
+    @property
+    def sold_percentage(self):
+        if self.total_published_quantity == 0:
+            return 0
+        return int(self.total_ordered_quantity / self.total_published_quantity * 100)
+
+    @property
+    def total_orders(self):
+        return self.customer_orders.count()
 
     @property
     def total_published_ordered_quantity(self):
-        return CustomerOrderPosition.objects.filter(
-            order__production_day=self,
-            product__in=self.production_day_products.filter(
-                is_published=True
-            ).values_list("product", flat=True),
-        ).aggregate(Sum("quantity"))["quantity__sum"]
+        return (
+            CustomerOrderPosition.objects.filter(
+                order__production_day=self,
+                product__in=self.production_day_products.filter(
+                    is_published=True
+                ).values_list("product", flat=True),
+            ).aggregate(Sum("quantity"))["quantity__sum"]
+            or 0
+        )
+
+    @property
+    def total_sales(self):
+        return (
+            CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(
+                Sum("price_total")
+            )["price_total__sum"]
+            or 0
+        )
 
     def update_production_plan(self, product, quantity, state, create_max_quantity):
         ProductionPlan.objects.filter(

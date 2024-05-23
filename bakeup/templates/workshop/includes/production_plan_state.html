@@ -1,1 +1,1 @@
-<span class="badge rounded-pill {% if css_class %}{{ css_class }}{% else %}{{ production_plan.get_state_css_class }}{% endif %}">{{ production_plan.get_state_display_value }}</span>
+<span class="badge rounded-pill me-1 {% if css_class %}{{ css_class }}{% else %}{{ state_css_class }}{% endif %}">{{ label }}</span>
