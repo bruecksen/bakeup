@@ -25,7 +25,11 @@ from bakeup.workshop.models import Category, Product, ProductionPlan, ReminderMe
 
 class ProductForm(ModelForm):
     price = DecimalField(
-        max_digits=14, decimal_places=2, required=False, label=_("Price")
+        max_digits=14,
+        decimal_places=2,
+        required=False,
+        label=_("Price"),
+        widget=forms.NumberInput(attrs={"class": "form-control numberinput"}),
     )
     uom = ModelChoiceField(
         queryset=UOM.objects,
