@@ -109,8 +109,15 @@ class WorkshopView(StaffPermissionsMixin, TemplateView):
         context["recurring_orders_count"] = (
             CustomerOrderTemplate.objects.active().count()
         )
-        context["upcoming_production_days"] = ProductionDay.objects.upcoming()[:5]
+        upcoming_production_days = ProductionDay.objects.upcoming()
+        context["upcoming_production_days"] = upcoming_production_days[:5]
+        context["upcoming_production_days_count"] = upcoming_production_days.count()
         context["past_production_days"] = ProductionDay.objects.past()[:5]
+        context["past_production_days_count"] = ProductionDay.objects.past().count()
+        context["production_plans"] = ProductionPlan.objects.filter(
+            production_day=upcoming_production_days.first(), parent_plan__isnull=True
+        )
+        context["points_of_sale"] = PointOfSale.objects.all()
         return context
 
 
@@ -538,6 +545,8 @@ def production_plan_update(
             state=ProductionPlan.State.PLANNED,
             create_max_quantity=True,
         )
+    if "next" in request.GET:
+        return HttpResponseRedirect(request.GET.get("next"))
     return HttpResponseRedirect(
         reverse(
             "workshop:production-plan-production-day", kwargs={"pk": production_day.pk}
@@ -624,6 +633,8 @@ def production_plan_finish_view(request, pk):
 def production_plan_cancel_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_plan.set_state(ProductionPlan.State.CANCELED)
+    if "next" in request.GET:
+        return HttpResponseRedirect(request.GET.get("next"))
     return HttpResponseRedirect(
         reverse(
             "workshop:production-plan-production-day",

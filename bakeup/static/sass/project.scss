@@ -8,6 +8,11 @@
 @import 'shop';
 @import 'colors';
 
+.btn-xs {
+  padding: .25rem .5rem;
+  font-size: .75rem;
+}
+
 html {
   scroll-padding-top: 80px; /* height of sticky header */
 }
