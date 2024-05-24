@@ -3,7 +3,7 @@
 <div class="row mt-4 mb-4">
     <div class="col-12 col-lg-6 offset-lg-1 mb-lg-0 mb-4">
         <div class="card h-100">
-            <h4 class="card-header">{% trans "Next production days" %} <small class="text-muted">{{ upcoming_production_days_count }}</small></h4>
+            <h4 class="card-header"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Next production days" %} <small class="text-muted">{{ upcoming_production_days_count }}</small></h4>
             <div class="card-body">
               {% include "workshop/includes/dashboard_production_days.html" with show_production=True production_days=upcoming_production_days %}
             </div>
@@ -15,7 +15,7 @@
     </div>
     <div class="col-12 col-lg-4 mb-lg-0 mb-4">
         <div class="card h-100">
-          <h4 class="card-header">{% trans "Past production days" %} <small class="text-muted">{{ past_production_days_count }}</small></h4>
+          <h4 class="card-header"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Past production days" %} <small class="text-muted">{{ past_production_days_count }}</small></h4>
             <div class="card-body">
               {% include "workshop/includes/dashboard_production_days.html" with production_days=past_production_days %}
             </div>
@@ -25,7 +25,7 @@
 <div class="row mt-4 mb-4">
   <div class="col-12 col-lg-6 offset-lg-1 mb-lg-0 mb-4">
       <div class="card">
-        <h4 class="card-header">{% trans "Production Plans" %}</h4>
+        <h4 class="card-header"><i class="fa-solid fa-sliders fa-sm"></i> {% trans "Production Plans" %}</h4>
           <div class="card-body">
             <table class="table table-sm table-striped m-0">
               <tr>
@@ -51,7 +51,7 @@
   </div>
   <div class="col-12 col-lg-4 mb-lg-0 mb-4">
     <div class="card h-100">
-      <h4 class="card-header">{% trans "Points of sale" %} <small class="text-muted">{{ points_of_sale.count }}</small></h4>
+      <h4 class="card-header"><i class="fas fa-warehouse fa-sm"></i> {% trans "Points of sale" %} <small class="text-muted">{{ points_of_sale.count }}</small></h4>
         <div class="card-body">
           <table class="table table-sm table-striped m-0">
             <tr>
