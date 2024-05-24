@@ -579,6 +579,9 @@ class PointOfSale(CommonBaseClass):
     def get_customer_count(self):
         return self.customers.count()
 
+    def get_orders_count(self):
+        return CustomerOrder.objects.filter(point_of_sale=self).count()
+
 
 # TODO how to handle public holidays, exceptional closing days, etc.
 class PointOfSaleOpeningHour(CommonBaseClass):

@@ -1,8 +1,8 @@
 {% load i18n %}
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped m-0">
     <tr>
         <th>{% trans 'Date' %}</th>
-        <th>{% trans 'Sold out' %}</th>
+        <th>{% trans 'Sold (%)' %}</th>
         {% if production_days.first.has_products_with_price %}<th>{% trans 'Sales' %}</th>{% endif %}
         {% if show_production %}<th>{% trans 'Production' %}</th>{% endif %}
     </tr>
