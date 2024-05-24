@@ -17,7 +17,7 @@
 </form>
 {% endblock %}
 {% block page_heading_action %}
-<a href="{% url 'workshop:production-day-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add new production day" %}</a>
+<a href="{% url 'workshop:production-day-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add production day" %}</a>
 {% endblock %}
 
 {% block page_content %}
@@ -66,7 +66,7 @@
       </tr>
       {% for product in object.production_day_products.all %}
       <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
-          <td><a href="{{ product.product.get_absolute_url }}">{{ product.product }}</a> {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
+          <td><a href="{{ product.product.get_absolute_url }}">{{ product.product }}</a> {% include "workshop/includes/production_plan_state.html" with state_css_class=product.production_plan.get_state_css_class label=product.production_plan.get_state_display_value %}</td>
           <td>{% if product.group %}<span class="badge text-bg-dark">{{ product.group }}</span>{% endif %}</td>
           <td>{% if  product.is_published %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}</td>
           <td>{{ product.get_order_quantity }}</td>
@@ -124,7 +124,6 @@
             {% else %}
             {{ order.customer.user.short_name }}
             {% endif %}
-            {% include "workshop/includes/production_plan_state.html" with production_plan=product.production_plan %}</td>
           <td>
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </td>

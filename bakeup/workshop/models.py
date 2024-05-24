@@ -575,15 +575,19 @@ class ProductionPlan(CommonBaseClass):
     def get_state_display_value(self):
         return ProductionPlan.state_display_value(self.state)
 
-    def get_state_css_class(self):
-        if self.is_planned:
+    @classmethod
+    def state_css_class(self, value):
+        if value == self.State.PLANNED:
             return "bg-secondary"
-        elif self.is_production:
+        elif value == self.State.IN_PRODUCTION:
             return "bg-warning"
-        elif self.is_produced:
+        elif value == self.State.PRODUCED:
             return "bg-success"
-        elif self.is_canceled:
+        elif value == self.State.CANCELED:
             return "bg-dark"
+
+    def get_state_css_class(self):
+        return ProductionPlan.state_css_class(self.state)
 
     def get_next_state(self):
         if self.is_planned:
