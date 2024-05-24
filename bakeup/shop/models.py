@@ -60,7 +60,7 @@ class ProductionDayQuerySet(models.QuerySet):
 
     def past(self):
         today = timezone.now().date()
-        return self.filter(day_of_sale__lt=today).order_by("day_of_sale")
+        return self.filter(day_of_sale__lt=today).order_by("-day_of_sale")
 
     def available_to_user(self, user):
         return self.filter(
