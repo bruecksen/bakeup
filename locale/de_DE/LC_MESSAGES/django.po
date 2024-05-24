@@ -779,10 +779,9 @@ msgstr "Alle Produktionstage"
 
 #: bakeup/templates/workshop/includes/dashboard.html:12
 #: bakeup/templates/workshop/productionday_detail.html:20
-#, fuzzy
 #| msgid "Add new production day"
 msgid "Add production day"
-msgstr "Neuen Produktionstag hinzufügen"
+msgstr "Produktionstag hinzufügen"
 
 #: bakeup/templates/workshop/includes/dashboard.html:18
 msgid "Past production days"
