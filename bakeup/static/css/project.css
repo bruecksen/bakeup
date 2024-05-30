@@ -12630,6 +12630,13 @@ body.shop .production-day-card .card-footer {
   --bs-btn-hover-color: var(--bs-white);
 }
 
+.btn-xs {
+  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  font-size: 0.75rem;
+}
+
 html {
   scroll-padding-top: 80px; /* height of sticky header */
 }

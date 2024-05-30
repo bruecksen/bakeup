@@ -1,0 +1,11 @@
+{% load i18n %}
+{% if production_plan.is_planned %}
+<a href="{% url "workshop:production-plan-start" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-warning {{ btn_css }} d-print-none">{% trans "Start" %}</a>
+{% elif production_plan.is_production %}
+<a href="{% url "workshop:production-plan-finish" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-success {{ btn_css }} d-print-none">{% trans "Finish" %}</a>
+{% endif %}
+{% if production_plan.is_canceled %}
+<a href="{% url "workshop:production-plan-update" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-outline-primary {{ btn_css }} d-print-none">{% trans "Reset" %}</a>
+{% else %}
+<a href="{% url "workshop:production-plan-cancel" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-outline-primary {{ btn_css }} d-print-none">{% trans "Cancel" %}</a>
+{% endif %}

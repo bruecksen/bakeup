@@ -88,7 +88,7 @@
                                 </div>
                                 {% else %}
                                 <div class="col text-end">
-                                    {% include "workshop/includes/production_plan_state.html" with production_plan=position.production_plan css_class='bg-light text-dark' %}
+                                    {% include "workshop/includes/production_plan_state.html" with state_css_class=position.production_plan.get_state_css_class label=position.production_plan.get_state_display_value css_class='bg-light text-dark' %}
                                 </div>
                                 {% endif %}
                             </td>
