@@ -152,7 +152,7 @@ class Product(CommonBaseClass):
 
     @property
     def weight_in_base_unit(self):
-        return self.uom.to_base_unit(self.weight)
+        return self.uom and self.uom.to_base_unit(self.weight) or self.weight
 
     def convert_weight(self, target_uom):
         base_weight = self.weight_in_base_unit
