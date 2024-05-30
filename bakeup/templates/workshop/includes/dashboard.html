@@ -3,9 +3,9 @@
 <div class="row mt-4 mb-4">
     <div class="col-12 col-lg-6 offset-lg-1 mb-lg-0 mb-4">
         <div class="card h-100">
-            <h4 class="card-header"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Next production days" %} <small class="text-muted">{{ upcoming_production_days_count }}</small></h4>
-            <div class="card-body">
-              {% include "workshop/includes/dashboard_production_days.html" with show_production=True production_days=upcoming_production_days %}
+            <h4 class="card-header text-bg-dark"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Next production days" %} <small class="text-muted">{{ upcoming_production_days_count }}</small></h4>
+            <div class="card-body p-0">
+              {% include "workshop/includes/dashboard_production_days.html" with production_days=upcoming_production_days %}
             </div>
             <div class="card-footer">
               <a href="{% url 'workshop:production-day-next' %}" class="btn btn-sm btn-outline-primary">{% trans "All production days" %}</a>
@@ -15,8 +15,8 @@
     </div>
     <div class="col-12 col-lg-4 mb-lg-0 mb-4">
         <div class="card h-100">
-          <h4 class="card-header"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Past production days" %} <small class="text-muted">{{ past_production_days_count }}</small></h4>
-            <div class="card-body">
+          <h4 class="card-header text-bg-dark"><i class="fa-solid fa-calendar-day fa-sm"></i> {% trans "Past production days" %} <small class="text-muted">{{ past_production_days_count }}</small></h4>
+            <div class="card-body p-0">
               {% include "workshop/includes/dashboard_production_days.html" with production_days=past_production_days %}
             </div>
         </div>
@@ -25,21 +25,19 @@
 <div class="row mt-4 mb-4">
   <div class="col-12 col-lg-6 offset-lg-1 mb-lg-0 mb-4">
       <div class="card h-100">
-        <h4 class="card-header"><i class="fa-solid fa-sliders fa-sm"></i> {% trans "Production Plans" %}</h4>
-          <div class="card-body">
-            <table class="table table-sm table-striped m-0">
+        <h4 class="card-header text-bg-dark"><i class="fa-solid fa-sliders fa-sm"></i> {% trans "Production Plans" %}</h4>
+          <div class="card-body p-0">
+            <table class="table table-hover table-sm table-striped m-0">
               <tr>
                 <th>{% trans "Day" %}</th>
                 <th>{% trans "Qty" %}</th>
                 <th>{% trans "Product" %}</th>
-                <th></th>
               </tr>
             {% for production_plan in production_plans %}
-              <tr>
+              <tr style="transform: rotate(0);">
                 <td>{{ production_plan.production_day.day_of_sale|date:'d.m.' }}</td>
                 <td>{{ production_plan.quantity|floatformat }}x</td>
-                <td><a href="{% url 'workshop:product-detail' pk=production_plan.product.product_template.pk %}">{{ production_plan.product }}</a></span> ({{ production_plan.quantity|multiply:production_plan.product.weight|floatformat:0 }} g) {% include "workshop/includes/production_plan_state.html" with state_css_class=production_plan.get_state_css_class label=production_plan.get_state_display_value %}</td>
-                <td>{% include "workshop/includes/production_plan_actions.html" with production_plan=production_plan btn_css="btn-xs" next_url=request.path %}</td>
+                <td><a class="stretched-link" href="{% url 'workshop:production-plan-production-day' pk=production_plan.production_day.pk %}#production-plan-{{ production_plan.pk }}">{{ production_plan.product }}</a></span> ({{ production_plan.quantity|multiply:production_plan.product.weight|floatformat:0 }} g) {% include "workshop/includes/production_plan_state.html" with state_css_class=production_plan.get_state_css_class label=production_plan.get_state_display_value %}</td>
               </tr>
               {% endfor %}
           </table>
@@ -51,8 +49,8 @@
   </div>
   <div class="col-12 col-lg-4 mb-lg-0 mb-4">
     <div class="card h-100">
-      <h4 class="card-header"><i class="fas fa-warehouse fa-sm"></i> {% trans "Points of sale" %} <small class="text-muted">{{ points_of_sale.count }}</small></h4>
-        <div class="card-body">
+      <h4 class="card-header text-bg-dark"><i class="fas fa-warehouse fa-sm"></i> {% trans "Points of sale" %} <small class="text-muted">{{ points_of_sale.count }}</small></h4>
+        <div class="card-body p-0">
           <table class="table table-sm table-striped m-0">
             <tr>
               <th>{% trans "Point of sale" %}</th>
@@ -62,7 +60,7 @@
             </tr>
           {% for point_of_sale in points_of_sale %}
             <tr>
-              <td><a href="">{{ point_of_sale }}</a></td>
+              <td>{{ point_of_sale }}</td>
               <td>{{ point_of_sale.get_customer_count }}</td>
               <td>{{ point_of_sale.get_orders_count }}</td>
               <td></td>

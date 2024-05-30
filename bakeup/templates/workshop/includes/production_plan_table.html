@@ -15,7 +15,7 @@
         </tr>
     </thead>
     {% for production_plan in production_plans %}
-        <tbody>
+        <tbody id="production-plan-{{ production_plan.root.pk }}">
             <tr class="tr-no-border-bottom">
                 <td class="align-middle" width="2%">
                     <button class="btn btn-xs btn-outline-primary rounded-circle d-print-none" type="button" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" aria-expanded="true" aria-controls="collapseExample">

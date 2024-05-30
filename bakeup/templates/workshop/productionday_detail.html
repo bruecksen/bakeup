@@ -56,7 +56,7 @@
       <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
       <a href="{% url 'workshop:production-day-order-max-quantities' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-primary btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Order max. quantities" %}</a>
     </h2>
-    <table class="table">
+    <table class="table table-hover">
       <tr>
           <th>{% trans "Product" %}</th>
           <th>{% trans "Group" %}</th>
@@ -65,13 +65,13 @@
           <th>{% trans "Max qty." %}</th>
       </tr>
       {% for product in object.production_day_products.all %}
-      <tr{% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
-          <td><a href="{{ product.product.get_absolute_url }}">{{ product.product }}</a> {% include "workshop/includes/production_plan_state.html" with state_css_class=product.production_plan.get_state_css_class label=product.production_plan.get_state_display_value %}</td>
+      <tr style="transform: rotate(0);" {% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
+          <td><a class="stretched-link" href="{% url 'workshop:production-plan-production-day' pk=object.pk %}#production-plan-{{ product.production_plan.pk }}">{{ product.product }}</a> {% include "workshop/includes/production_plan_state.html" with state_css_class=product.production_plan.get_state_css_class label=product.production_plan.get_state_display_value %}</td>
           <td>{% if product.group %}<span class="badge text-bg-dark">{{ product.group }}</span>{% endif %}</td>
           <td>{% if  product.is_published %}<i class="fa-regular fa-circle-check"></i>{% else %}<i class="far fa-times-circle"></i>{% endif %}</td>
           <td>{{ product.get_order_quantity }}</td>
           <td>{{ product.max_quantity }}</td>
-      </tr>
+    </tr>
       {% endfor %}
     </table>
     <a href="{% url 'workshop:order-add' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">{% trans "Edit orders" %}</a>
