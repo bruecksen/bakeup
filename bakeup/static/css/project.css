@@ -12672,6 +12672,10 @@ body {
   font-family: sans-serif;
 }
 
+.progress {
+  background-color: #ced4da;
+}
+
 .cart-badge {
   position: absolute;
   top: -15px;
