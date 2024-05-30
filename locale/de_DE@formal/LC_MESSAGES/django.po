@@ -850,7 +850,7 @@ msgstr "Tag"
 #: bakeup/templates/workshop/includes/dashboard.html:33
 #: bakeup/templates/workshop/includes/production_plan_table.html:12
 msgid "Qty"
-msgstr "Menge"
+msgstr "Qty"
 
 #: bakeup/templates/workshop/includes/dashboard.html:46
 msgid "Go to production plans"
