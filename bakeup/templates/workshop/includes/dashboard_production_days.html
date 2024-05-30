@@ -1,5 +1,5 @@
 {% load i18n %}
-<table class="table table-sm table-striped m-0">
+<table class="table table-hover table-sm table-stripedx m-0">
     <tr>
         <th>{% trans 'Date' %}</th>
         <th>{% trans 'Sold (%)' %}</th>
@@ -7,8 +7,8 @@
         {% if show_production %}<th>{% trans 'Production' %}</th>{% endif %}
     </tr>
   {% for production_day in production_days %}
-    <tr>
-      <td><a href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">{{ production_day }}</a></td>
+    <tr style="transform: rotate(0);">
+      <td><a class="stretched-link" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">{{ production_day }}</a></td>
       <td class="align-middle">
         <div class="progress">
           <div class="progress-bar bg-success" role="progressbar" style="width: {{ production_day.sold_percentage }}%" aria-valuenow="{{ production_day.sold_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ production_day.sold_percentage }}%</div>
