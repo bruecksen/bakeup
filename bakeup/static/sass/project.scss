@@ -542,6 +542,17 @@ nav {
   border-bottom-width: 0;
   background-color: var(--bs-table-bg);
 }
+.table-white>:not(caption)>*>*  {
+  background-color: $white;
+}
+.table-hover>tbody>tr:hover>* {
+  background-color: $gray-200;
+  --bs-table-accent-bg: $gray-200;
+}
+.tab-pane {
+  padding: .75rem;
+  background-color: $white;
+}
 .list-group.list-group-root {
   // padding: 0;
   // overflow: hidden;
