@@ -325,7 +325,14 @@ LOGGING = {
 }
 
 
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
+# DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap.html"
+
+# DJANGO_TABLES2_TABLE_ATTRS = {
+#     'class': 'table table-hover',
+#     'thead': {
+#         'class': 'table-light',
+#     },
+# }
 
 
 TENANT_MODEL = "core.Client"  # app.Model
@@ -458,7 +465,7 @@ WAGTAILADMIN_RICH_TEXT_EDITORS = {
     }
 }
 DJANGO_TABLES2_TABLE_ATTRS = {
-    "class": "table table-light table-hover shadow",
+    "class": "table table-white table-hover shadow",
     "thead": {
         "class": "",
     },
