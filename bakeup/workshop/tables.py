@@ -110,7 +110,9 @@ class CustomerOrderFilter(django_filters.FilterSet):
     point_of_sale = django_filters.ModelChoiceFilter(
         queryset=PointOfSale.objects.all(), empty_label=_("Select a point of sale")
     )
-    search = django_filters.filters.CharFilter(method="filter_search", label="Search")
+    search = django_filters.filters.CharFilter(
+        method="filter_search", label=_("Search")
+    )
 
     class Meta:
         model = CustomerOrder
@@ -278,7 +280,9 @@ class CustomerFilter(django_filters.FilterSet):
     point_of_sale = django_filters.ModelChoiceFilter(
         queryset=PointOfSale.objects.all(), empty_label=_("Select a point of sale")
     )
-    search = django_filters.filters.CharFilter(method="filter_search", label="Search")
+    search = django_filters.filters.CharFilter(
+        method="filter_search", label=_("Search")
+    )
     group = django_filters.ModelChoiceFilter(
         method="filter_group",
         queryset=Group.objects.all(),
@@ -327,7 +331,7 @@ class ProductionPlanFilter(django_filters.FilterSet):
 class PointOfSaleTable(tables.Table):
     name = tables.LinkColumn("workshop:point-of-sale-update", args=[A("pk")])
     customers = tables.TemplateColumn(
-        "{{ record.get_customer_count }}", verbose_name="Customers"
+        "{{ record.get_customer_count }}", verbose_name=_("Customers")
     )
     actions = tables.TemplateColumn(
         template_name="tables/point_of_sale_actions_column.html",
