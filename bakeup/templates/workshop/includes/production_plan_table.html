@@ -26,39 +26,36 @@
                 <td class="align-middle" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.production_day.day_of_sale|date:'d.m.' }}</td>
                 <td class="align-middle" data-bs-toggle="collapse" data-bs-target="#pb-{{ production_plan.root.pk }}" width="5%">{{ production_plan.root.quantity|floatformat }}x</td>
                 <td class="accordion-toggle align-middle"><span class="text-uppercase fw-bold"><a href="{% url 'workshop:product-detail' pk=production_plan.root.product.product_template.pk %}">{{ production_plan.root.product }}</a></span> ({{ production_plan.root.quantity|multiply:production_plan.root.product.weight|floatformat:0 }} g) {% include "workshop/includes/production_plan_state.html" with state_css_class=production_plan.root.get_state_css_class label=production_plan.root.get_state_display_value %}</td>
-                <td class="text-end">
-                    {% include "workshop/includes/production_plan_actions.html" with production_plan=production_plan.root btn_css="btn-sm" %}
-                </td>
+                <td class="text-end">{% include "workshop/includes/production_plan_actions.html" with production_plan=production_plan.root btn_css="btn-sm" %}</td>
             </tr>
             <tr class="tr-collapsed">
                 <td></td>
                 <td colspan="4">
                     <div class="collapse d-print-block{% if expand_all %} show{% endif %}" id="pb-{{ production_plan.root.pk }}">
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <tr>
-                                    <td width=33%">{% for child_plan in production_plan|get_item:'Hauptteig' %}
-                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                        {% endfor %}
-                                    </td>
-                                    <td width="33%">{% for child_plan in production_plan|get_item:'Vorteig' %}
-                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                        {% endfor %}
-                                    </td>
-                                    <td width="33%">{% for child_plan in production_plan|get_item:'Zubereitungen' %}
-                                        {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        {% if not production_plan.root.is_locked %}
-                                        <a href="{% url 'workshop:production-plan-update' pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none"><i class="fas fa-sync-alt"></i> {% trans "Update plan" %}</a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="row">
+                            <div class="col-12 col-sm-6 col-lg-4">
+                                {% for child_plan in production_plan|get_item:'Hauptteig' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-4">
+                                {% for child_plan in production_plan|get_item:'Vorteig' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-12 col-sm-6 col-lg-4">
+                                {% for child_plan in production_plan|get_item:'Zubereitungen' %}
+                                    {% include "workshop/includes/production_plan_ingredients.html" with plan=child_plan %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col">
+                                {% if not production_plan.root.is_locked %}
+                                <a href="{% url 'workshop:production-plan-update' pk=production_plan.root.pk %}" class="btn btn-outline-primary btn-sm d-print-none"><i class="fas fa-sync-alt"></i> {% trans "Update plan" %}</a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </td>
             </tr>
