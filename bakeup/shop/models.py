@@ -563,12 +563,14 @@ class ProductionDayProduct(CommonBaseClass):
 
 
 class PointOfSale(CommonBaseClass):
-    name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    short_name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_("Short Name")
+    )
     address = models.OneToOneField(
         "contrib.Address", on_delete=models.PROTECT, blank=True, null=True
     )
-    is_primary = models.BooleanField(default=False)
+    is_primary = models.BooleanField(default=False, verbose_name=_("Primary?"))
 
     def __str__(self):
         return self.name
