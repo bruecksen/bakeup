@@ -4,6 +4,7 @@ from django_tenants.admin import TenantAdminMixin
 
 from bakeup.contrib.fields import ChoiceArrayField
 from bakeup.core.models import (
+    UOM,
     Client,
     ClientEmailTemplate,
     ClientInfo,
@@ -41,3 +42,8 @@ class ClientAdmin(TenantAdminMixin, admin.ModelAdmin):
 @admin.register(Domain)
 class ClientAdminDomain(admin.ModelAdmin):
     list_display = ("domain", "tenant", "is_primary")
+
+
+@admin.register(UOM)
+class UOMAdmin(admin.ModelAdmin):
+    list_display = ("name", "abbreviation", "conversion_factor", "base_unit")

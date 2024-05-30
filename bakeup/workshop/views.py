@@ -191,7 +191,10 @@ def product_add_inline_view(request, pk):
                             "You cannot add the parent product as a child product"
                             " again",
                         )
-                    quantity = form.cleaned_data.get("weight", 1000) / product.weight
+                    quantity = (
+                        form.cleaned_data.get("weight", 1000)
+                        / product.weight_in_base_unit
+                    )
                 if form.cleaned_data.get("product_new", None) and form.cleaned_data.get(
                     "category", None
                 ):
@@ -203,7 +206,10 @@ def product_add_inline_view(request, pk):
                         is_buyable=form.cleaned_data.get("is_buyable", False),
                         is_composable=form.cleaned_data.get("is_composable", False),
                     )
-                    quantity = form.cleaned_data.get("weight", 1000) / product.weight
+                    quantity = (
+                        form.cleaned_data.get("weight", 1000)
+                        / product.weight_in_base_unit
+                    )
                 elif form.cleaned_data.get(
                     "product_new", None
                 ) and not form.cleaned_data.get("category", None):
@@ -263,8 +269,8 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
 
     def form_valid(self, form):
         amount = form.cleaned_data["amount"]
-        if amount and self.object.child.weight:
-            self.object.quantity = amount / self.object.child.weight
+        if amount and self.object.child.weight_in_base_unit:
+            self.object.quantity = amount / self.object.child.weight_in_base_unit
             self.object.save()
         return super().form_valid(form)
 
