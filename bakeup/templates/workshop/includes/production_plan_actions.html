@@ -1,11 +1,59 @@
 {% load i18n %}
-{% if production_plan.is_planned %}
-<a href="{% url "workshop:production-plan-start" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-warning {{ btn_css }} d-print-none">{% trans "Start" %}</a>
-{% elif production_plan.is_production %}
-<a href="{% url "workshop:production-plan-finish" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-success {{ btn_css }} d-print-none">{% trans "Finish" %}</a>
-{% endif %}
-{% if production_plan.is_canceled %}
-<a href="{% url "workshop:production-plan-update" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-outline-primary {{ btn_css }} d-print-none">{% trans "Reset" %}</a>
+<div class="d-none d-sm-block">
+{% if production_plan.is_planned or production_plan.is_production %}
+<div class="btn-group btn-group-sm">
+    {% if production_plan.is_planned %}
+    <a role="button" class="btn btn-warning {{ btn_css }} d-print-none" href="{% url "workshop:production-plan-start" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Start" %}</a>
+    <a role="button" class="btn btn-warning dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+      <span class="visually-hidden">Toggle Dropdown</span>
+    </a>
+    {% elif production_plan.is_production %}
+    <a role="button" class="btn btn-success {{ btn_css }} d-print-none" href="{% url "workshop:production-plan-finish" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Finish" %}</a>
+    <a role="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+      <span class="visually-hidden">Toggle Dropdown</span>
+    </a>
+    {% endif %}
+    <ul class="dropdown-menu">
+        {% if production_plan.is_canceled %}
+        <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-update" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Reset" %}</a></li>
+        {% else %}
+        <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-cancel" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Cancel" %}</a></li>
+        {% endif %}
+    </ul>
+</div>
 {% else %}
-<a href="{% url "workshop:production-plan-cancel" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}" class="btn btn-outline-primary {{ btn_css }} d-print-none">{% trans "Cancel" %}</a>
+<div class="dropdown">
+    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+        <span class="visually-hidden">Toggle Dropdown</span>
+      </button>
+      <ul class="dropdown-menu">
+        {% if production_plan.is_canceled %}
+        <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-update" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Reset" %}</a></li>
+        {% else %}
+        <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-cancel" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Cancel" %}</a></li>
+        {% endif %}
+      </ul>
+</div>
 {% endif %}
+</div>
+<div class="d-block d-sm-none">
+    <div class="dropdown">
+        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+            <span class="visually-hidden">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu">
+            {% if production_plan.is_planned %}
+            <li><a role="button" class="dropdown-item btn-warning {{ btn_css }} d-print-none" href="{% url "workshop:production-plan-start" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Start" %}</a></li>
+            {% elif production_plan.is_production %}
+            <li><a role="button" class="dropdown-item btn-success {{ btn_css }} d-print-none" href="{% url "workshop:production-plan-finish" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Finish" %}</a></li>
+            {% endif %}
+            {% if production_plan.is_canceled %}
+            <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-update" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Reset" %}</a></li>
+            {% else %}
+            <li><a class="dropdown-item d-print-none" href="{% url "workshop:production-plan-cancel" pk=production_plan.pk %}{% if next_url%}?next={{ next_url }}{% endif %}">{% trans "Cancel" %}</a></li>
+            {% endif %}
+          </ul>
+    </div>
+</div>
