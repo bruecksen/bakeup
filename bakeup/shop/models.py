@@ -339,13 +339,13 @@ class ProductionDay(CommonBaseClass):
                     product_quantity = category.setdefault(product.product_template, 0)
                     category_sum = category.setdefault("sum", 0)
                     product_quantity = product_quantity + (
-                        product.weight * child.quantity * quantity
+                        product.weight_in_base_unit * child.quantity * quantity
                     )
                     # if product.name == 'Salz':
                     # print(product.name, product.weight, child.quantity, quantity, product_quantity)
                     category[product.product_template] = product_quantity
                     category_sum = category_sum + (
-                        product.weight * child.quantity * quantity
+                        product.weight_in_base_unit * child.quantity * quantity
                     )
                     category["sum"] = category_sum
         return collections.OrderedDict(

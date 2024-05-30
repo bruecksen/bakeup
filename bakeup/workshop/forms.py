@@ -18,13 +18,23 @@ from django.forms import (
 )
 from django.utils.translation import gettext_lazy as _
 
+from bakeup.core.models import UOM
 from bakeup.shop.models import Customer, PointOfSale, ProductionDay
 from bakeup.workshop.models import Category, Product, ProductionPlan, ReminderMessage
 
 
 class ProductForm(ModelForm):
     price = DecimalField(
-        max_digits=14, decimal_places=2, required=False, label=_("Price")
+        max_digits=14,
+        decimal_places=2,
+        required=False,
+        label=_("Price"),
+        widget=forms.NumberInput(attrs={"class": "form-control numberinput"}),
+    )
+    uom = ModelChoiceField(
+        queryset=UOM.objects,
+        empty_label=None,
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     class Meta:
@@ -39,13 +49,18 @@ class ProductForm(ModelForm):
             "category",
             "tags",
             "weight",
+            "uom",
             "is_sellable",
             "is_buyable",
             "is_composable",
             "is_recurring",
             "max_recurring_order_qty",
         ]
-        widgets = {"tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete")}
+        widgets = {
+            "tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete"),
+            "uom": forms.Select(attrs={"class": "form-select"}),
+            "weight": forms.NumberInput(attrs={"class": "form-control numberinput"}),
+        }
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get("instance", None)
