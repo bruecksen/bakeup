@@ -1,4 +1,5 @@
 {% extends "workshop/base.html" %}
+{% load i18n %}
 {% load django_bootstrap5 %}
 {% load export_url from django_tables2 %}
 {% load render_table from django_tables2 %}
@@ -8,7 +9,7 @@
 
 {% block page_heading_action %}
 <div class="btn-group float-end" role="group">
-  <a href="{% url 'workshop:point-of-sale-add' %}" class="btn btn-primary btn-sm"><i class="fas fa-circle-plus"></i> Add point of sale</a>
+  <a href="{% url 'workshop:point-of-sale-add' %}" class="btn btn-primary btn-sm"><i class="fas fa-circle-plus"></i> {% trans "Add point of sale" %}</a>
 </div>
 {% endblock %}
 
