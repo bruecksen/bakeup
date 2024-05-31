@@ -1,0 +1,44 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "main", "staging" ]
+  pull_request:
+    branches: [ "main", "staging" ]
+
+jobs:
+  build:
+    environment: ${{ github.ref_name }}
+    name: "Deploy to ${{ github.ref_name }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/server.key
+          chmod 600 ~/.ssh/server.key
+          cat >>~/.ssh/config <<END
+          Host server
+            HostName $SSH_HOST
+            User $SSH_USER
+            IdentityFile ~/.ssh/server.key
+            StrictHostKeyChecking no
+          END
+      - name: Deploy to Server
+        env:
+          ROOT_DIR: ${{ vars.ROOT_DIR }}
+          ENV_DIR: ${{ vars.ENV_DIR }}
+        run: |
+          ssh server "
+            cd $ROOT_DIR &&
+            git pull origin main &&
+            source $ENV_DIR &&
+            pip install -r requirements/production.txt &&
+            python manage.py migrate --settings=config.settings.production &&
+            python manage.py collectstatic --noinput --settings=config.settings.production &&
+            supervisorctl restart django
+          "
