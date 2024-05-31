@@ -32,10 +32,11 @@ jobs:
         env:
           ROOT_DIR: ${{ vars.ROOT_DIR }}
           ENV_DIR: ${{ vars.ENV_DIR }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           ssh server "
             cd $ROOT_DIR &&
-            git pull origin main &&
+            git pull origin $BRANCH &&
             source $ENV_DIR &&
             pip install -r requirements/production.txt &&
             python manage.py migrate --settings=config.settings.production &&
