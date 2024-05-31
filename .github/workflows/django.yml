@@ -25,7 +25,7 @@ jobs:
           Host production
             HostName $SSH_HOST
             User $SSH_USER
-            IdentityFile ~/.ssh/staging.key
+            IdentityFile ~/.ssh/production.key
             StrictHostKeyChecking no
           END
       - name: Deploy to Server
