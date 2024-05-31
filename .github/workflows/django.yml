@@ -31,9 +31,9 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh server '
-            cd /home/django/bakeup/ &&
+            cd ${{ ROOT_DIR }} &&
             git pull origin main &&
-            source /home/django/djangoenv/bin/activate &&
+            source ${{ ENV_DIR }}bin/activate &&
             pip install -r requirements/production.txt &&
             python manage.py migrate --settings=config.settings.production &&
             python manage.py collectstatic --noinput --settings=config.settings.production &&
