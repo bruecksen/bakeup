@@ -14,11 +14,15 @@
 </form>
 {% endblock %}
 {% block page_heading_action %}
-<a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
-<a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
 {% endblock%}
 
 {% block page_content %}
+<div class="row justify-content-end mb-3">
+  <div class="col-auto">
+    <a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
+    <a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
+  </div>
+</div>
 <div class="row">
   <div class="col">
     {% include "workshop/includes/production_plan_table.html" with production_plans=production_plans expand_all=True %}
