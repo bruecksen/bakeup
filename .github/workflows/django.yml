@@ -33,7 +33,7 @@ jobs:
           ROOT_DIR: ${{ vars.ROOT_DIR }}
           ENV_DIR: ${{ vars.ENV_DIR }}
         run: |
-          ssh server '
+          ssh server "
             cd $ROOT_DIR &&
             git pull origin main &&
             source $ENV_DIRbin/activate &&
@@ -41,4 +41,4 @@ jobs:
             python manage.py migrate --settings=config.settings.production &&
             python manage.py collectstatic --noinput --settings=config.settings.production &&
             supervisorctl restart django
-          '
+          "
