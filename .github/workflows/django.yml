@@ -33,6 +33,7 @@ jobs:
           ROOT_DIR: ${{ vars.ROOT_DIR }}
           ENV_DIR: ${{ vars.ENV_DIR }}
           BRANCH: ${{ github.ref_name }}
+          APP_NAME: ${{ vars.APP_NAME }}
         run: |
           ssh server "
             cd $ROOT_DIR &&
@@ -41,5 +42,5 @@ jobs:
             pip install -r requirements/production.txt &&
             python manage.py migrate --settings=config.settings.production &&
             python manage.py collectstatic --noinput --settings=config.settings.production &&
-            supervisorctl restart django
+            supervisorctl restart $APP_NAME
           "
