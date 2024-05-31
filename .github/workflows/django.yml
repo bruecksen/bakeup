@@ -2,13 +2,13 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "staging" ]
 
 jobs:
   build:
-    environment: production
+    environment: ${{ github.ref_name }}
     name: "Deploy to production"
     runs-on: ubuntu-latest
     steps:
@@ -19,18 +19,18 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
         run: |
           mkdir -p ~/.ssh/
-          echo "$SSH_KEY" > ~/.ssh/production.key
-          chmod 600 ~/.ssh/production.key
+          echo "$SSH_KEY" > ~/.ssh/server.key
+          chmod 600 ~/.ssh/server.key
           cat >>~/.ssh/config <<END
-          Host production
+          Host server
             HostName $SSH_HOST
             User $SSH_USER
-            IdentityFile ~/.ssh/production.key
+            IdentityFile ~/.ssh/server.key
             StrictHostKeyChecking no
           END
       - name: Deploy to Server
         run: |
-          ssh production '
+          ssh server '
             cd /home/django/bakeup/ &&
             git pull origin main &&
             source /home/django/djangoenv/bin/activate &&
