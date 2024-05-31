@@ -34,6 +34,7 @@ jobs:
         SSH_HOST: ${{ secrets.SSH_HOST }}
         SSH_USERNAME: ${{ secrets.SSH_USER }}
       run: |
+        eval `ssh-agent -s`
         echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
         ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
         ssh $SSH_USERNAME@$SSH_HOST '
