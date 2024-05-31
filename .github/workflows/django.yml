@@ -34,12 +34,4 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
       - name: Deploy to Server
         run: |
-          ssh production '
-            cd /home/django/bakeup/ &&
-            git pull origin main &&
-            source /home/django/djangoenv/bin/activate &&
-            pip install -r requirements/production.txt &&
-            python manage.py migrate &&
-            python collectstatic --noinput &&
-            supervisorctl restart django
-          '
+          ssh production 'cd /home/django/bakeup/'
