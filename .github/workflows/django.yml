@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     environment: ${{ github.ref_name }}
-    name: "Deploy to production"
+    name: "Deploy to ${{ github.ref_name }}"
     runs-on: ubuntu-latest
     steps:
       - name: Configure SSH
