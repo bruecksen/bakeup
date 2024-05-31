@@ -35,7 +35,7 @@ jobs:
             git pull origin main &&
             source /home/django/djangoenv/bin/activate &&
             pip install -r requirements/production.txt &&
-            python manage.py migrate &&
-            python collectstatic --noinput &&
+            python manage.py migrate --settings=config.settings.production &&
+            python collectstatic --noinput --settings=config.settings.production &&
             supervisorctl restart django
           '
