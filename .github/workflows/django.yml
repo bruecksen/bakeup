@@ -36,7 +36,7 @@ jobs:
           ssh server "
             cd $ROOT_DIR &&
             git pull origin main &&
-            source $ENV_DIRbin/activate &&
+            source $ENV_DIR &&
             pip install -r requirements/production.txt &&
             python manage.py migrate --settings=config.settings.production &&
             python manage.py collectstatic --noinput --settings=config.settings.production &&
