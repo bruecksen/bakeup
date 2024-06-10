@@ -13203,6 +13203,21 @@ nav .nav-link:hover, nav .nav-link:focus {
   background-color: var(--bs-table-bg);
 }
 
+.table-white > :not(caption) > * > * {
+  background-color: #fff;
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: #e9ecef;
+  --bs-table-accent-bg: $gray-200;
+}
+
+.tab-pane {
+  padding: 12px;
+  padding: 0.75rem;
+  background-color: #fff;
+}
+
 .list-group.list-group-root .list-group {
   margin-bottom: 0;
   border: 0;

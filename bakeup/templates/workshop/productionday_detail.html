@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="row">
+<div class="row mb-3">
   <div class="col">
     <div class="btn-group btn-group-sm float-end d-print-none" role="group" aria-label="Basic example">
       <a href="{% url 'workshop:production-day-update' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i>{% trans "Edit" %}</a>
@@ -56,14 +56,16 @@
       <a href="{% url 'workshop:production-plans-start' production_day=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
       <a href="{% url 'workshop:production-day-order-max-quantities' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-primary btn-sm d-print-none btn-sm float-end me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Order max. quantities" %}</a>
     </h2>
-    <table class="table table-hover">
-      <tr>
-          <th>{% trans "Product" %}</th>
-          <th>{% trans "Group" %}</th>
-          <th>{% trans "Published" %}</th>
-          <th>{% trans "Ordered qty." %}</th>
-          <th>{% trans "Max qty." %}</th>
-      </tr>
+    <table class="table table-white table-hover">
+      <thead>
+        <tr>
+            <th>{% trans "Product" %}</th>
+            <th>{% trans "Group" %}</th>
+            <th>{% trans "Published" %}</th>
+            <th>{% trans "Ordered qty." %}</th>
+            <th>{% trans "Max qty." %}</th>
+        </tr>
+      </thead>
       {% for product in object.production_day_products.all %}
       <tr style="transform: rotate(0);" {% if product.get_order_quantity > product.max_quantity %} class="table-danger"{% endif %}>
           <td><a class="stretched-link" href="{% url 'workshop:production-plan-production-day' pk=object.pk %}#production-plan-{{ product.production_plan.pk }}">{{ product.product }}</a> {% include "workshop/includes/production_plan_state.html" with state_css_class=product.production_plan.get_state_css_class label=product.production_plan.get_state_display_value %}</td>
