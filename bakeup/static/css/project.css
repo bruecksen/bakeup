@@ -12630,6 +12630,19 @@ body.shop .production-day-card .card-footer {
   --bs-btn-hover-color: var(--bs-white);
 }
 
+.select2-container .select2-selection--single {
+  height: 38px !important;
+  border: 1px solid #ced4da !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: inherit !important;
+}
+
+.select2-selection__arrow {
+  display: none !important;
+}
+
 .btn-xs {
   padding: 4px 8px;
   padding: 0.25rem 0.5rem;

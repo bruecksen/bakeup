@@ -1,6 +1,7 @@
 from django import forms
 from django.http.response import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.generic.edit import ProcessFormView
 
@@ -162,7 +163,7 @@ def handler500(request, template_name="500.html"):
 
 
 class NoteForm(forms.ModelForm):
-    content = forms.CharField(required=False)
+    content = forms.CharField(required=False, label=_("Note"))
 
     class Meta:
         model = Note

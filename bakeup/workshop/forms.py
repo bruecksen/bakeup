@@ -19,7 +19,7 @@ from django.forms import (
 from django.utils.translation import gettext_lazy as _
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import Customer, PointOfSale, ProductionDay
+from bakeup.shop.models import Customer, CustomerOrder, PointOfSale, ProductionDay
 from bakeup.workshop.models import Category, Product, ProductionPlan, ReminderMessage
 
 
@@ -254,6 +254,21 @@ class CustomerForm(ModelForm):
             "telephone_number",
             "groups",
         ]
+
+
+class CustomerOrderForm(ModelForm):
+    class Meta:
+        model = CustomerOrder
+        fields = ["customer", "point_of_sale"]
+        widgets = {
+            "customer": autocomplete.ModelSelect2(url="workshop:customer-autocomplete"),
+        }
+        help_texts = {
+            "point_of_sale": _(
+                "If you leave this empty, it uses the default point of sale for the"
+                " customer."
+            ),
+        }
 
 
 class ProductionDayMetaProductForm(forms.Form):
