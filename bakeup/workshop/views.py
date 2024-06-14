@@ -1,5 +1,6 @@
 from typing import Any, OrderedDict
 
+from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -58,6 +59,7 @@ from bakeup.workshop.export import ExportMixin
 from bakeup.workshop.forms import (
     AddProductFormSet,
     CustomerForm,
+    CustomerOrderForm,
     ProductForm,
     ProductHierarchyForm,
     ProductionDayMetaProductformSet,
@@ -783,45 +785,51 @@ class TagDeleteView(StaffPermissionsMixin, DeleteView):
         return context
 
 
-class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
-    model = CustomerOrder
-    fields = ["point_of_sale"]
-    template_name = "workshop/customerorder_form.html"
-    success_url = reverse_lazy("workshop:order-list")
+class CustomerOrderCreationMixin(object):
+    extra_formset = 0
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        note = Note.objects.filter(
-            content_type__model="customerorder", object_id=self.object.id
-        ).first()
+        note = self.get_object_note()
         if self.request.POST:
             context["note_form"] = NoteForm(self.request.POST, instance=note)
             context["formset"] = CustomerOrderPositionFormSet(
                 self.request.POST,
                 form_kwargs={
                     "production_day_products": Product.objects.filter(
-                        production_days__production_day=self.object.production_day
+                        production_days__production_day=self.get_production_day()
                     )
                 },
             )
         else:
             context["note_form"] = NoteForm(instance=note)
             context["formset"] = CustomerOrderPositionFormSet(
-                queryset=self.object.positions.all(),
+                queryset=self.get_object_positions(),
                 form_kwargs={
                     "production_day_products": Product.objects.filter(
-                        production_days__production_day=self.object.production_day
+                        production_days__production_day=self.get_production_day()
                     )
                 },
             )
+            context["formset"].extra = self.extra_formset
+        context["production_day"] = self.get_production_day()
         return context
+
+    def get_production_day(self):
+        return self.object.production_day
+
+    def get_object_positions(self):
+        return self.object.positions.all()
+
+    def get_object_note(self):
+        return Note.objects.filter(
+            content_type__model="customerorder", object_id=self.object.id
+        ).first()
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         formset = CustomerOrderPositionFormSet(request.POST)
-        note = Note.objects.filter(
-            content_type__model="customerorder", object_id=self.object.id
-        ).first()
+        note = self.get_object_note()
         note_form = NoteForm(request.POST, instance=note)
         form = self.get_form()
         if formset.is_valid() and form.is_valid() and note_form.is_valid():
@@ -831,7 +839,9 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
 
     def form_valid(self, form, formset, note_form):
         with transaction.atomic():
-            form.save()
+            customer_order = form.save(commit=False)
+            customer_order.production_day = self.get_production_day()
+            customer_order.save()
             if note_form.instance.pk:  # Check if the note already exists
                 # If the note exists, update it
                 note = note_form.save()
@@ -839,18 +849,61 @@ class CustomerOrderUpdateView(StaffPermissionsMixin, UpdateView):
                 # If the note doesn't exist, create a new one
                 note = note_form.save(commit=False)
                 note.user = self.request.user
-                note.content_object = self.object
+                note.content_object = customer_order
                 note.save()
             if formset.has_changed():
                 instances = formset.save(commit=False)
                 for obj in formset.deleted_objects:
                     obj.delete()
                 for instance in instances:
-                    instance.order = self.object
+                    instance.order = customer_order
                     if instance.production_plan:
                         instance.product = instance.production_plan.product
                     instance.save()
         return HttpResponseRedirect(reverse("workshop:order-list"))
+
+
+class CustomerOrderUpdateView(
+    StaffPermissionsMixin, CustomerOrderCreationMixin, UpdateView
+):
+    model = CustomerOrder
+    fields = ["point_of_sale"]
+    template_name = "workshop/customerorder_form.html"
+    success_url = reverse_lazy("workshop:order-list")
+    extra_formset = 1
+
+    def form_invalid(self, form, formset, note_form):
+        if form.errors:
+            messages.error(self.request, form.errors)
+        if formset.errors:
+            messages.error(self.request, formset.errors)
+        if note_form.errors:
+            messages.error(self.request, note_form.errors)
+        return self.render_to_response(self.get_context_data())
+
+
+class CustomerOrderCreateView(
+    StaffPermissionsMixin, CustomerOrderCreationMixin, CreateView
+):
+    model = CustomerOrder
+    form_class = CustomerOrderForm
+    template_name = "workshop/customerorder_form.html"
+    success_url = reverse_lazy("workshop:order-list")
+    extra_formset = 1
+
+    def get_object(self, queryset=None):
+        return None
+
+    def get_object_note(self):
+        return None
+
+    def get_object_positions(self):
+        return CustomerOrderPosition.objects.none()
+
+    def get_production_day(self):
+        if "production_day" in self.request.GET:
+            return ProductionDay.objects.get(pk=self.request.GET.get("production_day"))
+        return None
 
     def form_invalid(self, form, formset, note_form):
         if form.errors:
@@ -1768,7 +1821,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
         )
 
 
-class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
+class CustomerOrderBatchView(StaffPermissionsMixin, NextUrlMixin, CreateView):
     model = CustomerOrder
     fields = [
         "customer",
@@ -1783,7 +1836,7 @@ class CustomerOrderAddView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         if "pk" not in kwargs:
             return HttpResponseRedirect(
                 reverse(
-                    "workshop:order-add",
+                    "workshop:order-batch",
                     kwargs={"pk": request.POST.get("select_production_day")},
                 )
             )
@@ -2060,3 +2113,23 @@ class CustomerOrderTemplateOverview(StaffPermissionsMixin, SingleTableView):
         qs = super().get_queryset()
         qs = qs.filter(is_recurring=True, is_sellable=True)
         return qs
+
+
+class CustomerAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        if not self.request.user.is_authenticated and not self.request.user.is_staff:
+            return Customer.objects.none()
+
+        qs = Customer.objects.all()
+
+        if self.q:
+            qs = qs.filter(
+                Q(user__first_name__istartswith=self.q)
+                | Q(user__last_name__istartswith=self.q)
+            )
+
+        return qs
+
+    def get_create_option(self, context, q):
+        return []

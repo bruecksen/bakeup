@@ -8,7 +8,7 @@
 {% block page_heading %}{% trans "Groups" %}{% endblock %}
 
 {% block page_heading_action %}
-<form action="{% url 'workshop:order-add' %}" method="post">
+<form action="{% url 'workshop:order-batch' %}" method="post">
   {% csrf_token %}
   <div class="row justify-content-end">
     <div class="col-10 text-end">

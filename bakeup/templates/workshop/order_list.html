@@ -8,10 +8,11 @@
 {% block page_heading %}{% trans "Orders" %}{% endblock %}
 
 {% block page_heading_action %}
-<form action="{% url 'workshop:order-add' %}" method="post">
+<form action="{% url 'workshop:order-batch' %}" method="post">
   {% csrf_token %}
   <div class="row justify-content-end">
     <div class="col-10 text-end">
+      <a href="{% url 'workshop:order-add' %}?{{ request.GET.urlencode }}" class="btn btn-primary btn-sm"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
       <a href="{% export_url "csv" %}" class="btn btn-primary btn-sm"><i class="fas fa-file-download"></i> {% trans "Export as CSV" %}</a>
     </div>
   </div>
