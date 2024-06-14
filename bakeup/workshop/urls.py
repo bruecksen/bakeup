@@ -301,7 +301,7 @@ urlpatterns = [
         name="order-update",
     ),
     path(
-        "orders/add/",
+        "orders/add/<int:production_day>/",
         view=CustomerOrderCreateView.as_view(),
         name="order-add",
     ),

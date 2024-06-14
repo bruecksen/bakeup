@@ -901,8 +901,8 @@ class CustomerOrderCreateView(
         return CustomerOrderPosition.objects.none()
 
     def get_production_day(self):
-        if "production_day" in self.request.GET:
-            return ProductionDay.objects.get(pk=self.request.GET.get("production_day"))
+        if "production_day" in self.kwargs:
+            return ProductionDay.objects.get(pk=self.kwargs.get("production_day"))
         return None
 
     def form_invalid(self, form, formset, note_form):

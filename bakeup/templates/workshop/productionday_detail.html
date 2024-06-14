@@ -77,6 +77,7 @@
       {% endfor %}
     </table>
     <a href="{% url 'workshop:order-batch' pk=object.pk %}?next={{ object.get_absolute_url }}" class="btn btn-primary btn-sm float-end">{% trans "Edit orders" %}</a>
+    <a href="{% url 'workshop:order-add' production_day=object.pk %}" class="btn btn-primary btn-sm float-end me-2"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
     <p>{% trans "Customer ordered quantity" %}: <strong>{{ object.total_published_ordered_quantity }}</strong> ({% blocktranslate count counter=object.customer_orders.count %}from {{ counter }} order {% plural %}from {{ counter }} orders{% endblocktranslate %})  <br>
       {% trans "Total ordered quantity" %}: <strong>{{ object.total_ordered_quantity }}</strong>
     </p>
