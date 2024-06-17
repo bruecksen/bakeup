@@ -2174,8 +2174,8 @@ class CustomerAutocomplete(CustomSelect2QuerySetView):
 
     def get_result_label(self, item):
         if self.is_disabled_choice(item):
-            return f"{item.user.get_full_name()} (Bestellung existiert bereits)"
-        return item.user.get_full_name()
+            return f"{item.user} (Bestellung existiert bereits)"
+        return f"{item.user}"
 
     def is_disabled_choice(self, item):
         production_day = self.forwarded.get("production_day", None)
