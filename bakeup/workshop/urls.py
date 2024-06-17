@@ -8,10 +8,12 @@ from bakeup.workshop.views import (
     CategoryListView,
     CategoryUpdateView,
     CreateUpdateInstructionsView,
+    CustomerAutocomplete,
     CustomerDeleteView,
     CustomerDetailView,
     CustomerListView,
-    CustomerOrderAddView,
+    CustomerOrderBatchView,
+    CustomerOrderCreateView,
     CustomerOrderDeleteView,
     CustomerOrderListView,
     CustomerOrderTemplateOverview,
@@ -282,8 +284,12 @@ urlpatterns = [
         name="pos-all-picked-up",
     ),
     path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
-    path("orders/add/", view=CustomerOrderAddView.as_view(), name="order-add"),
-    path("orders/add/<int:pk>/", view=CustomerOrderAddView.as_view(), name="order-add"),
+    path("orders/batch/", view=CustomerOrderBatchView.as_view(), name="order-batch"),
+    path(
+        "orders/batch/<int:pk>/",
+        view=CustomerOrderBatchView.as_view(),
+        name="order-batch",
+    ),
     path(
         "orders/<int:pk>/delete/",
         view=CustomerOrderDeleteView.as_view(),
@@ -293,6 +299,11 @@ urlpatterns = [
         "orders/<int:pk>/update/",
         view=CustomerOrderUpdateView.as_view(),
         name="order-update",
+    ),
+    path(
+        "orders/add/<int:production_day>/",
+        view=CustomerOrderCreateView.as_view(),
+        name="order-add",
     ),
     path(
         "orders/<int:pk>/is-picked-up/",
@@ -361,5 +372,10 @@ urlpatterns = [
         "tag-autocomplete/",
         TagAutocomplete.as_view(),
         name="tag-autocomplete",
+    ),
+    path(
+        "customer-autocomplete/",
+        CustomerAutocomplete.as_view(),
+        name="customer-autocomplete",
     ),
 ]

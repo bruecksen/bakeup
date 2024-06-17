@@ -165,7 +165,7 @@ class CustomerOrderTable(tables.Table):
 
     class Meta:
         model = CustomerOrder
-        order_by = "production_day"
+        order_by = "production_day, -created"
         fields = (
             "production_day",
             "customer",

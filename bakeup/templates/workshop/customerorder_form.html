@@ -2,20 +2,31 @@
 {% load i18n %}
 {% load django_bootstrap5 %}
 
-{% block title %}{% trans "Add new production day" %}{% endblock %}
+{% block title %}{% trans "Add neworder" %}{% endblock %}
 {% block page_heading %}
-{% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
+{% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add order" %}{% endif %}
 {% endblock %}
 
 {% block page_content %}
 <form class="form-horizontal" method="post">
+  {{ form.media }}
 <div class="row mb-4">
   <div class="col-6">
     <div class="card p-3 mb-3">
       <ul class="list-unstyled mt-3 mb-3">
-        <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ object.production_day }}</li>
+      {% if 'production_day' not in form.fields %}
+        <li><i class="fa-solid fa-calendar-day fa-fw"></i>{{ production_day }}</li>
+      {% endif %}
+      {% if 'customer' not in form.fields %}
         <li><i class="fa-solid fa-user fa-fw"></i>{{ object.customer }}</li>
+      {% endif %}
       </ul>
+      {% if 'production_day' in form.fields %}
+      {% bootstrap_field form.production_day %}
+      {% endif %}
+      {% if 'customer' in form.fields %}
+      {% bootstrap_field form.customer %}
+      {% endif %}
       {% bootstrap_field form.point_of_sale %}
       {% bootstrap_form note_form %}
     </div>
@@ -30,10 +41,10 @@
         <div class="formset">
           <div class="row">
             <div class="col">
-              {% bootstrap_field form.product layout='horizontal'  horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+              {% bootstrap_field form.product layout='horizontal'  horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' required_css_class='required' %}
             </div>
             <div class="col">
-              {% bootstrap_field form.quantity layout='horizontal' horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
+              {% bootstrap_field form.quantity layout='horizontal' horizontal_label_class='col-md-3' horizontal_field_class='col-md-9' required_css_class='required' %}
             </div>
             <div class="col">
               {% bootstrap_field form.DELETE layout='horizontal' whorizontal_label_class='col-md-3' horizontal_field_class='col-md-9' %}
@@ -56,7 +67,7 @@
             <div class="controls">
               <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>
               <button type="submit" class="btn btn-primary" name="add-new">
-                {% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new production day" %}{% endif %}
+                {% if object %}{% trans "Update customer order" %}{% else %}{% trans "Add new order" %}{% endif %}
               </button>
             </div>
           </div>
