@@ -257,12 +257,19 @@ class CustomerForm(ModelForm):
 
 
 class CustomerOrderForm(ModelForm):
+    production_day = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    customer = forms.ModelChoiceField(
+        label=_("Customer"),
+        required=True,
+        widget=autocomplete.ModelSelect2(
+            url="workshop:customer-autocomplete", forward=["production_day"]
+        ),
+        queryset=Customer.objects.all(),
+    )
+
     class Meta:
         model = CustomerOrder
         fields = ["customer", "point_of_sale"]
-        widgets = {
-            "customer": autocomplete.ModelSelect2(url="workshop:customer-autocomplete"),
-        }
         help_texts = {
             "point_of_sale": _(
                 "If you leave this empty, it uses the default point of sale for the"

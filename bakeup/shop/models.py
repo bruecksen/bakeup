@@ -144,6 +144,12 @@ class ProductionDay(CommonBaseClass):
         return self.customer_orders.exists()
 
     @property
+    def has_production_plan_started(self):
+        return self.production_plans.filter(
+            parent_plan__isnull=True, state__gt=0
+        ).exists()
+
+    @property
     def total_ordered_quantity(self):
         return (
             CustomerOrderPosition.objects.filter(order__production_day=self).aggregate(
