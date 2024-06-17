@@ -1,6 +1,7 @@
 from typing import Any, OrderedDict
 
-from dal import autocomplete
+from dal.views import BaseQuerySetView
+from dal_select2.views import Select2ViewMixin
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -788,6 +789,19 @@ class TagDeleteView(StaffPermissionsMixin, DeleteView):
 class CustomerOrderCreationMixin(object):
     extra_formset = 0
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.get_production_day().has_production_plan_started:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                _(
+                    "At least one of the production plans for this day has already"
+                    " started. You might change a already running production!"
+                ),
+            )
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         note = self.get_object_note()
@@ -840,6 +854,8 @@ class CustomerOrderCreationMixin(object):
     def form_valid(self, form, formset, note_form):
         with transaction.atomic():
             customer_order = form.save(commit=False)
+            if not customer_order.point_of_sale:
+                customer_order.point_of_sale = self.request.user.customer.point_of_sale
             customer_order.production_day = self.get_production_day()
             customer_order.save()
             if note_form.instance.pk:  # Check if the note already exists
@@ -904,6 +920,11 @@ class CustomerOrderCreateView(
         if "production_day" in self.kwargs:
             return ProductionDay.objects.get(pk=self.kwargs.get("production_day"))
         return None
+
+    def get_initial(self) -> dict[str, Any]:
+        initial = super().get_initial()
+        initial["production_day"] = self.get_production_day().pk
+        return initial
 
     def form_invalid(self, form, formset, note_form):
         if form.errors:
@@ -2115,7 +2136,24 @@ class CustomerOrderTemplateOverview(StaffPermissionsMixin, SingleTableView):
         return qs
 
 
-class CustomerAutocomplete(autocomplete.Select2QuerySetView):
+class CustomSelect2ViewMixin(Select2ViewMixin):
+    def get_results(self, context):
+        return [
+            {
+                "id": self.get_result_value(result),
+                "text": self.get_result_label(result),
+                "selected_text": self.get_selected_result_label(result),
+                "disabled": self.is_disabled_choice(result),
+            }
+            for result in context["object_list"]
+        ]
+
+
+class CustomSelect2QuerySetView(CustomSelect2ViewMixin, BaseQuerySetView):
+    """Adds ability to pass a disabled property to a choice."""
+
+
+class CustomerAutocomplete(CustomSelect2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
         if not self.request.user.is_authenticated and not self.request.user.is_staff:
@@ -2133,3 +2171,14 @@ class CustomerAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_create_option(self, context, q):
         return []
+
+    def get_result_label(self, item):
+        if self.is_disabled_choice(item):
+            return f"{item.user.get_full_name()} (Bestellung existiert bereits)"
+        return item.user.get_full_name()
+
+    def is_disabled_choice(self, item):
+        production_day = self.forwarded.get("production_day", None)
+        if item and production_day:
+            return item.orders.filter(production_day=production_day).exists()
+        return False
