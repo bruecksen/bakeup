@@ -413,8 +413,7 @@ Gesamtpreis: {{ price_total }}
 
 Ihre ausgewählte Abholstelle: {{ point_of_sale }}
 
-Sie können Ihre Bestellung vor dem Backtag jederzeit
-in Ihrem Account unter {{ order_link }} anpassen oder stornieren.""",
+Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ order_link }} anpassen oder stornieren.""",  # noqa: E501
         blank=True,
         null=True,
         help_text=(
