@@ -404,6 +404,7 @@ class EmailSettings(BaseGenericSetting):
     )
     email_order_confirm = models.TextField(
         default="""Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!
+
 Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:
 
 {{ order }}
