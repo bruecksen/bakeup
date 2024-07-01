@@ -111,10 +111,14 @@ TENANT_APPS = [
     "bakeup.users",
     "bakeup.contrib",
     "bakeup.pages",
+    "bakeup.newsletter",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "wagtailmenus",
+    "wagtail_newsletter",
+    "wagtail_newsletter_simple_smtp",
+    "djangoql",
 ]
 
 
@@ -474,3 +478,6 @@ DJANGO_TABLES2_TABLE_ATTRS = {
 CURRENCIES = ("EUR",)
 DEMO_LOGIN_USER = "demo"
 DEMO_LOGIN_PASSWORD = "demo"
+WAGTAIL_NEWSLETTER_RECIPIENTS_MODEL = (
+    "wagtail_newsletter_simple_smtp.NewsletterRecipients"
+)
