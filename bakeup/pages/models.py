@@ -403,6 +403,17 @@ class EmailSettings(BaseGenericSetting):
         ),
     )
     email_order_confirm = models.TextField(
+        default="""Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!
+Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:
+
+{{ order }}
+
+Gesamtpreis: {{ price_total }}
+
+Ihre ausgewählte Abholstelle: {{ point_of_sale }}
+
+Sie können Ihre Bestellung vor dem Backtag jederzeit
+in Ihrem Account unter {{ order_link }} anpassen oder stornieren.""",
         blank=True,
         null=True,
         help_text=(
