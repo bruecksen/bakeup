@@ -13,7 +13,13 @@ from wagtail.models import Page, Site
 from wagtailmenus.conf import settings as wagtailmenu_settings
 
 from bakeup.core.models import ClientSetting
-from bakeup.pages.models import BrandSettings, ContentPage, ShopPage
+from bakeup.pages.models import (
+    BrandSettings,
+    CheckoutSettings,
+    ContentPage,
+    EmailSettings,
+    ShopPage,
+)
 from bakeup.shop.models import ProductionDay, ProductionDayProduct
 from bakeup.workshop.models import Product, ProductionPlan
 
@@ -402,6 +408,25 @@ class Command(InteractiveTenantOption, BaseCommand):
         )
         brand_settings.save()
 
+    def _create_checkout_settings(self):
+        settings = CheckoutSettings._get_or_create()
+        settings.terms_and_conditions_show = True
+        settings.terms_and_conditions_text = (
+            "Ich habe die AGB gelesen. Alle Preise inkl. 7% Umsatzsteuer."
+        )
+        settings.save()
+
+    def _create_email_settings(self):
+        settings = EmailSettings._get_or_create()
+        settings.send_email_order_confirm = True
+        settings.send_email_order_cancellation = True
+        settings.email_footer = (
+            "--- \n\nMit freundlichen Grüßen, Ihr Team von"
+            " Musterbackstube\n\nMusterstraße 123\n12345 Musterstadt\n\nTelefon: +49"
+            " 123 4567890"
+        )
+        settings.save()
+
     def _create_settings(self, tenant):
         client_setting, created = ClientSetting.objects.get_or_create(client=tenant)
         client_setting.default_from_email = settings.DEFAULT_FROM_EMAIL
@@ -464,6 +489,8 @@ class Command(InteractiveTenantOption, BaseCommand):
         self._create_main_menu()
         self._create_flat_menus()
         self._create_branding()
+        self._create_checkout_settings()
+        self._create_email_settings()
         self._create_settings(tenant)
         self._create_future_production_day()
 
