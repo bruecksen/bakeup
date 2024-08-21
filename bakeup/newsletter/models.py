@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Q, UniqueConstraint
+from django.db.models import Exists, OuterRef, Q, UniqueConstraint
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from djangoql.queryset import DjangoQLQuerySet
-from djangoql.schema import DjangoQLSchema
+from djangoql.schema import BoolField, DjangoQLSchema
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, ObjectList, TabbedInterface
 from wagtail.models import Page
@@ -24,6 +24,8 @@ from bakeup.contrib.utils import html_to_plaintext
 from bakeup.core.fields import StreamField
 from bakeup.newsletter.panels import NewsletterPanel
 from bakeup.pages.models import BrandSettings, EmailSettings
+from bakeup.shop.models import Customer
+from bakeup.users.models import User
 
 from .blocks import StoryBlock
 
@@ -284,7 +286,10 @@ class Segment(models.Model):
     def members(self):
         members = Contact.objects.filter(audience=self.audience)
         if self.filter_query:
-            members = members.djangoql(self.filter_query)
+            members = members.annotate(
+                is_customer=Exists(Customer.objects.filter(user=OuterRef("user")))
+            )
+            members = members.djangoql(self.filter_query, ContactSchema)
         return members
 
 
@@ -327,30 +332,29 @@ class NewsletterRecipients(models.Model, index.Indexed):
         return None
 
 
-class ContactSchema(DjangoQLSchema):
-    pass
-    # include = (Contact, User, Customer)
-    # suggest_options = {
-    #     User: ['email', 'first_name', 'last_name'],
-    # }
+class Receipt(models.Model):
+    campaign = models.ForeignKey(NewsletterPage, on_delete=models.CASCADE)
+    contact = models.ForeignKey("newsletter.Contact", on_delete=models.CASCADE)
+    sent_date = models.DateTimeField(auto_now=True)
+    # Probably not necessary, but might come in useful later
+    success = models.BooleanField(default=True)
 
 
 class ContactQuerySet(DjangoQLQuerySet):
-    djangoql_schema = ContactSchema
-
     def active(self):
         return self.filter(is_active=True)
 
 
 class ContactManager(models.Manager):
     def get_queryset(self):
-        return ContactQuerySet(self.model, using=self._db).active()
+        contacts = ContactQuerySet(self.model, using=self._db).active()
+        return contacts
 
     def all(self):
         return super().get_queryset()
 
-    def djangoql(self):
-        return self.get_queryset().djangoql()
+    def djangoql(self, search, schema=None):
+        return self.get_queryset().djangoql(search, schema=schema)
 
 
 class Contact(ClusterableModel):
@@ -440,35 +444,26 @@ class ContactActivationTokenGenerator(PasswordResetTokenGenerator):
         return str(bool(contact.is_active)) + str(contact.pk) + str(timestamp)
 
 
-class Receipt(models.Model):
-    campaign = models.ForeignKey(NewsletterPage, on_delete=models.CASCADE)
-    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
-    sent_date = models.DateTimeField(auto_now=True)
-    # Probably not necessary, but might come in useful later
-    success = models.BooleanField(default=True)
+class ContactSchema(DjangoQLSchema):
+    exclude = (NewsletterPage, Receipt)
 
-
-# @register_setting(icon="mail")
-# class NewsletterSettings(BaseGenericSetting):
-#     activation_email_subject = models.CharField(
-#         max_length=1024,
-#         default="Bitte bestätige Deine E-Mail-Adresse",
-#         help_text="E-Mail-Betreff für die Aktivierungsmail."
-#     )
-#     activation_email_text = RichTextField(
-#         blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt."
-#     )
-#     send_email_order_confirm = models.BooleanField(
-#         default=False,
-#         help_text="Soll eine Bestellbestätigungsmail versendet werden?",
-#         verbose_name="Bestellbestätigung versenden?",
-#     )
-#     email_order_confirm_subject = models.CharField(
-#         default="Vielen Dank für Deine Bestellung",
-#         max_length=1024,
-#         help_text=(
-#             "Betreff Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{"
-#             " first_name }}, {{ last_name }}, {{ email }}, {{ order }}, {{"
-#             " production_day }}, {{ order_count }}, {{ order_link }}"
-#         ),
-#     )
+    def get_fields(self, model):
+        if model == Contact:
+            return [
+                BoolField(name="is_customer"),
+                "first_name",
+                "last_name",
+                "email",
+                "user",
+            ]
+        if model == User:
+            return ["first_name", "last_name", "email", "customer"]
+        if model == Customer:
+            return [
+                "street",
+                "street_number",
+                "postal_code",
+                "city",
+                "telephone_number",
+            ]
+        return super().get_fields(model)

@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.db import close_old_connections, connection, transaction
+from django.utils import timezone
 from django_tenants.utils import schema_context
 from wagtail.models import Page
 
@@ -64,13 +65,13 @@ class SendCampaignThread(Thread):
                 send_mass_html_mail(self.messages)
                 logger.info("Emails finished sending")
                 with transaction.atomic():
-                    # campaign.status = CampaignStatus.SENT
-                    # campaign.sent_date = timezone.now()
-                    # campaign.locked = True
-                    # campaign.locked_by = campaign.owner
-                    # campaign.locked_at = timezone.now()
-                    # campaign.save_revision().publish()
-                    # campaign.save()
+                    campaign.status = CampaignStatus.SENT
+                    campaign.sent_date = timezone.now()
+                    campaign.locked = True
+                    campaign.locked_by = campaign.owner
+                    campaign.locked_at = timezone.now()
+                    campaign.save_revision().publish()
+                    campaign.save()
                     fresh_contacts = Contact.objects.filter(pk__in=self.contact_pks)
                     campaign.receipts.add(*fresh_contacts)
             except SMTPException:

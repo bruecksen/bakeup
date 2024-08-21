@@ -224,7 +224,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         user.first_name = first_name
         user.last_name = last_name
         user.save(update_fields=["first_name", "last_name"])
-        form.update_customer(user)
+        form.update_customer(user, self.request)
         messages.add_message(
             self.request, messages.INFO, "Daten erfolgreich aktualisiert"
         )
