@@ -1,0 +1,14 @@
+{% extends "newsletter/mail/base_email.html" %}
+
+{% block email_body %}
+<mj-section>
+    <mj-column>
+        <mj-text>
+            Bitte aktivieren Sie Ihr Abonnement für die Mailingliste von {{ site_name }}, indem Sie auf den folgenden Link klicken:
+        </mj-text>
+        <mj-text>
+            <a href="{{ activate_url }}">{{ activate_url }}</a>
+        </mj-text>
+    </mj-column>
+</mj-section>
+{% endblock email_body %}

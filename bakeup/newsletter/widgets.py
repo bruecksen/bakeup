@@ -1,17 +1,22 @@
-from django.forms import Media, TextInput
+import json
+
+from django.forms import Media, Textarea
 
 
-class DjangoQLWidget(TextInput):
+class DjangoQLWidget(Textarea):
     """ """
 
-    def __init__(self, attrs=None):
-        super().__init__(attrs=attrs)
+    def __init__(self, attrs=None, introspections=None):
+        self.introspections = introspections
+        default_attrs = {"class": "djangoql-textarea"}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
 
     def build_attrs(self, *args, **kwargs):
         attrs = super().build_attrs(*args, **kwargs)
-        # attrs['data-controller'] = 'color'
-        # attrs['data-color-theme-value'] = self.theme
-        # attrs['data-color-swatches-value'] = json.dumps(swatches)
+        attrs["data-controller"] = "djangoql"
+        attrs["data-djangoql-introspections-value"] = json.dumps(self.introspections)
         return attrs
 
     @property
@@ -19,13 +24,13 @@ class DjangoQLWidget(TextInput):
         return Media(
             js=[
                 # load the UI library
-                "js/",
+                "js/djangoql.js",
                 # load controller JS
-                "js/color-controller.js",
+                "js/djangoql-controler.js",
             ],
             css={
                 "all": [
-                    "https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"
+                    "css/djangoql.css",
                 ]
             },
         )

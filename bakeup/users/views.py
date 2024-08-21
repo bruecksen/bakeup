@@ -21,6 +21,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DeleteView, DetailView
 
 from bakeup.contrib.forms import MultiFormsView
+from bakeup.newsletter.forms import NewsletterForm
+from bakeup.newsletter.models import Audience, Contact
 from bakeup.users.forms import TokenAuthenticationForm, UserProfileForm
 from bakeup.users.models import Token
 
@@ -134,6 +136,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         "user_profile": UserProfileForm,
         "add_email": AddEmailForm,
         "change_password": ChangePasswordForm,
+        "newsletter": NewsletterForm,
     }
 
     success_message = "Daten erfolgreich aktualisiert"
@@ -158,6 +161,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
             "postal_code": self.request.user.customer.postal_code,
             "city": self.request.user.customer.city,
             "telephone_number": self.request.user.customer.telephone_number,
+            "newsletter": False,  # we use the initial data to hide the newsletter field
         }
 
     def get_context_data(self, **kwargs):
@@ -176,6 +180,26 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
         elif form_name == "user_profile":
             kwargs.update({"request": self.request})
         return kwargs
+
+    def newsletter_form_valid(self, form, *args, **kwargs):
+        if form.cleaned_data["is_subscribed"]:
+            contact, created = Contact.objects.get_or_create(
+                email__iexact=self.request.user.email,
+                defaults={
+                    "email": self.request.user.email,
+                    "first_name": self.request.user.first_name,
+                    "last_name": self.request.user.last_name,
+                    "audience": Audience.objects.get(is_default=True),
+                    "user": self.request.user,
+                },
+            )
+            if not contact.is_active:
+                contact.send_activation_email(self.request)
+        else:
+            contact = Contact.objects.filter(email__iexact=self.request.user.email)
+            if contact.exists():
+                contact.delete()
+        return HttpResponseRedirect(self.get_success_url())
 
     def add_email_form_valid(self, form, *args, **kwargs):
         email_address = form.save(self.request)

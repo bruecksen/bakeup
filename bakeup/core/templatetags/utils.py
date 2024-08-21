@@ -1,6 +1,9 @@
 import subprocess
+from urllib.parse import urljoin
 
 from django.template.defaulttags import register
+from django.urls import reverse
+from wagtail.models import Site
 
 
 @register.filter
@@ -48,3 +51,40 @@ def hex_to_rgb(hex, format_string="{r},{g},{b}"):
     hex = hex.replace("#", "")
     out = {"r": int(hex[0:2], 16), "g": int(hex[2:4], 16), "b": int(hex[4:6], 16)}
     return format_string.format(**out)
+
+
+@register.simple_tag(takes_context=True)
+def fullurl(context, url):
+    """Converts relative URL to absolute.
+
+    For example:
+
+        {% fullurl article.get_absolute_url %}
+
+    or:
+
+        {% fullurl "/custom-url/" %}
+
+    """
+    site = Site.objects.get(is_default_site=True)
+    root_url = site.root_url
+    return urljoin(root_url, url)
+
+
+@register.simple_tag(takes_context=True)
+def reverse_fullurl(context, view_name, *args, **kwargs):
+    """Converts relative URL to absolute.
+
+    For example:
+
+        {% reverse_fullurl article.get_absolute_url %}
+
+    or:
+
+        {% fullurl "/custom-url/" %}
+
+    """
+    site = Site.objects.get(is_default_site=True)
+    root_url = site.root_url
+    path = reverse(view_name, args=args, kwargs=kwargs)
+    return urljoin(root_url, path)

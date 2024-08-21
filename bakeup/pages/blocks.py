@@ -21,39 +21,14 @@ from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.embeds.blocks import EmbedBlock as _EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 
+from bakeup.contrib.blocks import ImageAlignmentChoiceBlock, RichTextBlock
+from bakeup.newsletter.blocks import NewsletterBlocks
 from bakeup.shop.models import Product, ProductionDay
 
 
 class EmbedBlock(_EmbedBlock):
     class Meta:
         template = "blocks/embed_block.html"
-
-
-class TextAlignmentChoiceBlock(ChoiceBlock):
-    choices = [
-        ("start", "Left"),
-        ("center", "Centre"),
-        ("end", "Right"),
-        ("justify", "Justified"),
-    ]
-
-
-class ImageAlignmentChoiceBlock(ChoiceBlock):
-    choices = [
-        ("start", "Left"),
-        ("center", "Centre"),
-        ("end", "Right"),
-    ]
-
-
-class RichTextBlock(StructBlock):
-    alignment = TextAlignmentChoiceBlock(default="start", label="Text Alignment")
-    text = _RichTextBlock()
-
-    class Meta:
-        template = "blocks/richtext_block.html"
-        label = "Text"
-        icon = "pilcrow"
 
 
 class ColourThemeChoiceBlock(ChoiceBlock):
@@ -356,5 +331,5 @@ class ContentBlocks(CommonBlocks, ColumnBlocks):
     pass
 
 
-class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks):
+class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks, NewsletterBlocks):
     pass
