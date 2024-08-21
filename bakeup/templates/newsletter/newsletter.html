@@ -5,9 +5,11 @@
     <mjml>
         <mj-head>
             <mj-style>
+                {% if  brand_settings.is_brand_theme_activated and brand_settings.primary_color %}
                 a {
                 color: {{ brand_settings.primary_color }};
                 }
+                {% endif %}
                 p {
                     line-height: 25px;
                     font-size: 16px;
@@ -23,7 +25,7 @@
                 <mj-all font-family="Georgia, Times, 'Times New Roman'" />
             </mj-attributes>
         </mj-head>
-        <mj-body background-color="{% if brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
+        <mj-body background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
             <mj-wrapper padding-top="0" padding-bottom="0" css-class="body-section">
                 <mj-section padding="25px 0">
                     <mj-column>
