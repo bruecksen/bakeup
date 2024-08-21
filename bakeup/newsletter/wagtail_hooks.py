@@ -53,7 +53,6 @@ def register_admin_viewset():
         viewsets.newsletter_viewset_group,
         viewsets.audience_chooser_viewset,
         viewsets.audience_segment_chooser_viewset,
-        viewsets.newsletter_recipients_viewset,
         viewsets.recipients_chooser_viewset,
     ]
     return register_viewsets

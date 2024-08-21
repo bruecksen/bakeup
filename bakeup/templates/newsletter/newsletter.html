@@ -10,8 +10,8 @@
                 color: {{ brand_settings.primary_color }};
                 }
                 {% endif %}
+
                 p {
-                    line-height: 25px;
                     font-size: 16px;
                 }
                 .body-section {
@@ -22,7 +22,7 @@
             </mj-style>
             <mj-attributes>
                 <mj-section background-color="#fff" />
-                <mj-all font-family="Georgia, Times, 'Times New Roman'" />
+                <mj-all font-family="Georgia, Times, 'Times New Roman'" line-height="1.5"/>
             </mj-attributes>
         </mj-head>
         <mj-body background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
