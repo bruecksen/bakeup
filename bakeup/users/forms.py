@@ -119,7 +119,7 @@ class UserFormMixin:
                     defaults={
                         "first_name": user.first_name,
                         "last_name": user.last_name,
-                        "audience": Audience.objects.get(is_default=True),
+                        "audience": Audience.objects.filter(is_default=True).first(),
                     },
                 )
                 if not contact.is_active:

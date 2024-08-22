@@ -127,7 +127,9 @@ def subscribe_api(request):
                             defaults={
                                 "first_name": form.cleaned_data.get("first_name", ""),
                                 "last_name": form.cleaned_data.get("last_name", ""),
-                                "audience": Audience.objects.get(is_default=True),
+                                "audience": Audience.objects.filter(
+                                    is_default=True
+                                ).first(),
                             },
                         )  # create a new contact instance
                         msg = settings.NEWSLETTER_SUBSCRIBE_FORM_MSG_SUCCESS
@@ -333,11 +335,14 @@ def create_contacts_from_dataset(dataset, config):
 
         with transaction.atomic():
             try:
-                contact = Contact.objects.create(**data)
-                user = User.objects.filter(email__iexact=contact.email).first()
-                if user:
-                    contact.user = user
-                    contact.save()
+                contact = Contact.objects.get_or_create(
+                    email__iexact=row[config["email"]], defaults=data
+                )
+                if not contact.user:
+                    user = User.objects.filter(email__iexact=contact.email).first()
+                    if user:
+                        contact.user = user
+                        contact.save()
                 log(instance=contact, action="wagtail.create")
             except IntegrityError as e:
                 errors.append([row[config["email"]], str(e)])

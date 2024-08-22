@@ -3,6 +3,7 @@ from typing import Any, Optional
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db import models
@@ -13,9 +14,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
+from djangoql.exceptions import DjangoQLParserError
+from djangoql.parser import DjangoQLParser
 from djangoql.queryset import DjangoQLQuerySet
 from djangoql.schema import BoolField, DjangoQLSchema
 from modelcluster.models import ClusterableModel
+from wagtail.admin.forms import WagtailAdminPageForm
 from wagtail.admin.panels import FieldPanel, ObjectList, TabbedInterface
 from wagtail.models import Page
 from wagtail.permission_policies.base import ModelPermissionPolicy
@@ -272,12 +276,27 @@ class Audience(models.Model, index.Indexed):
         return members
 
 
+class SegmentForm(WagtailAdminPageForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        filter_query = cleaned_data.get("filter_query")
+        if filter_query:
+            try:
+                DjangoQLParser().parse(filter_query)
+            except DjangoQLParserError as e:
+                self.add_error("filter_query", e)
+
+        return cleaned_data
+
+
 class Segment(models.Model):
     filter_query = models.TextField(blank=True, null=True)
     audience = models.ForeignKey(
         "newsletter.Audience", on_delete=models.PROTECT, related_name="segments"
     )  # noqa: DJ001
     name = models.CharField()
+
+    base_form_class = SegmentForm
 
     class Meta:
         verbose_name = "Segment"
@@ -354,17 +373,13 @@ class Receipt(models.Model):
 
 
 class ContactQuerySet(DjangoQLQuerySet):
-    def active(self):
-        return self.filter(is_active=True)
+    pass
 
 
 class ContactManager(models.Manager):
-    def get_queryset(self):
+    def contacts(self):
         contacts = ContactQuerySet(self.model, using=self._db).active()
         return contacts
-
-    def all(self):
-        return super().get_queryset()
 
     def djangoql(self, search, schema=None):
         return self.get_queryset().djangoql(search, schema=schema)
@@ -382,14 +397,17 @@ class Contact(ClusterableModel):
     last_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(unique=True)
     audience = models.ForeignKey(
-        "newsletter.Audience", on_delete=models.PROTECT, related_name="contacts"
+        "newsletter.Audience",
+        on_delete=models.PROTECT,
+        related_name="contacts",
+        blank=True,
+        null=True,
     )
     is_active = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
-    objects = ContactManager()
-    all_objects = models.Manager()
+    objects = ContactQuerySet.as_manager()
 
     def __str__(self):
         return self.email
@@ -417,6 +435,7 @@ class Contact(ClusterableModel):
     def send_activation_email(self, request):
         """Sends activation email to the contact."""
         root_url = request.tenant.default_site.root_url
+        email_settings = EmailSettings.load(request)
         context = {
             "absolute_url": root_url,
             "salutation": f"{self.first_name} {self.last_name}",
@@ -428,14 +447,18 @@ class Contact(ClusterableModel):
                     kwargs={"contact_pk": self.pk, "token": self.make_token()},
                 ),
             ),
-            "email_settings": EmailSettings.load(request),
+            "email_settings": email_settings,
             "brand_settings": BrandSettings.load(request),
         }
         html_message = render_to_string(
             "newsletter/mail/activation_email.html", context
         )
+        subject = settings.NEWSLETTER_ACTIVATION_EMAIL_SUBJECT
+        if email_settings.email_subject_prefix:
+            subject = f"{email_settings.email_subject_prefix} {subject}"
+
         return send_mail(
-            settings.NEWSLETTER_ACTIVATION_EMAIL_SUBJECT,
+            subject,
             html_to_plaintext(html_message),
             settings.DEFAULT_FROM_EMAIL,
             [self.email],
@@ -473,9 +496,12 @@ class ContactSchema(DjangoQLSchema):
                 "last_name",
                 "email",
                 "user",
+                "is_active",
             ]
+        if model == Group:
+            return ["name"]
         if model == User:
-            return ["first_name", "last_name", "email", "customer"]
+            return ["first_name", "last_name", "email", "customer", "groups"]
         if model == Customer:
             return [
                 "street",

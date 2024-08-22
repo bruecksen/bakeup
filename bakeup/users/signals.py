@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from bakeup.newsletter.models import Audience, Contact
 from bakeup.shop.models import Customer, PointOfSale
 from bakeup.users.models import GroupToken, Token, User
 
@@ -37,6 +38,17 @@ def create_user_customer(sender, instance, created, **kwargs):
         Customer.objects.create(
             user=instance,
             point_of_sale=point_of_sale,
+        )
+    if not hasattr(instance, "contact"):
+        contact, created = Contact.objects.get_or_create(
+            email__iexact=instance.email,
+            defaults={
+                "first_name": instance.first_name,
+                "last_name": instance.last_name,
+                "email": instance.email,
+                "audience": Audience.objects.filter(is_default=True).first(),
+                "user": instance,
+            },
         )
 
 

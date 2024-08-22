@@ -103,6 +103,19 @@ class SignupView(_SignupView):
         if self.group and self.user:
             # add user to group if group available
             self.user.groups.add(self.group)
+        if "newsletter" in form.cleaned_data and form.cleaned_data["newsletter"]:
+            contact, created = Contact.objects.get_or_create(
+                email__iexact=self.user.email,
+                defaults={
+                    "email": self.user.email,
+                    "first_name": self.user.first_name,
+                    "last_name": self.user.last_name,
+                    "audience": Audience.objects.filter(is_default=True).first(),
+                    "user": self.user,
+                },
+            )
+            if not contact.is_active:
+                contact.send_activation_email(self.request)
         return response
 
 
@@ -189,7 +202,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
                     "email": self.request.user.email,
                     "first_name": self.request.user.first_name,
                     "last_name": self.request.user.last_name,
-                    "audience": Audience.objects.get(is_default=True),
+                    "audience": Audience.objects.filter(is_default=True).first(),
                     "user": self.request.user,
                 },
             )
