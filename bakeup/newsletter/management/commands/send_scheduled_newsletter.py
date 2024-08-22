@@ -31,6 +31,4 @@ class Command(BaseCommand):
                 tenant,
                 newsletter,
             )
-            self.stdout.write(
-                self.style.SUCCESS("Successfully send all reminder messages")
-            )
+            self.stdout.write(self.style.SUCCESS("Successfully send all newsletters"))

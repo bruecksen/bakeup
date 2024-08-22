@@ -292,6 +292,11 @@ class Segment(models.Model):
             members = members.djangoql(self.filter_query, ContactSchema)
         return members
 
+    def clean(self):
+        # TODO: Validate filter_query
+        if self.filter_query:
+            pass
+
 
 class NewsletterRecipients(models.Model, index.Indexed):
     name = models.CharField(max_length=1000)
