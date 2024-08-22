@@ -5,6 +5,9 @@
 {% block page_header %}{{ page.title }}{% endblock %}
 
 {% block page_content %}
+{% for block in page.content %}
+    {% include_block block %}
+{% endfor %}
 <div class="list-group">
     <!-- Newsletter Item 1 -->
      {% for newsletter in page.get_newsletter_archive %}
