@@ -23,9 +23,12 @@ qrcode==7.4.2
 django-taggit==4.0.0
 django-persistent-filters==1.0
 django-htmx==1.17.3
-wagtail==5.2.*
+wagtail==6.1.*
 tablib==3.5.0
 wagtailmenus==4.0
 babel==2.9.1 # newer version fails because of langauge variants https://github.com/python-babel/babel/issues/454
 django-money==3.4.1
 django-autocomplete-light==3.11.0
+mjml-python==1.3.3
+mrml==0.1.14
+djangoql==0.18.1

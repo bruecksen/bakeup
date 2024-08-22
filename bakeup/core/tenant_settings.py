@@ -30,4 +30,4 @@ class TenantSettings:
                 )
 
         if request:
-            settings.WAGTAILADMIN_BASE_URL = tenant.get_absolute_primary_domain(request)
+            settings.WAGTAILADMIN_BASE_URL = tenant.default_full_url

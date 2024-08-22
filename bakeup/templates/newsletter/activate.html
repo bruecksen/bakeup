@@ -1,0 +1,17 @@
+{% extends "shop/base_page.html" %}
+{% load i18n %}
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block page_content %}
+<div class="row g-4">
+    <div class="col-12 col-sm-8">
+      <div class="card px-3 py-3">
+        <div class="card-body">
+            <h3 class="card-title mb-3">{% trans "E-Mail-Adresse erfolgreich bestätigt!" %}</h3>
+            <p class="card-text">{% trans "Vielen Dank, dass du deine E-Mail-Adresse bestätigt hast. Du wirst nun regelmäßig unseren Newsletter erhalten." %}</p>
+            <a href="/" class="btn btn-primary">{% trans "Zur Startseite" %}</a>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock page_content %}

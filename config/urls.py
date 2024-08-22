@@ -26,6 +26,7 @@ urlpatterns = [
     path("users/", include("bakeup.users.urls", namespace="users")),
     path("workshop/", include("bakeup.workshop.urls", namespace="workshop")),
     path("shop/", include("bakeup.shop.urls", namespace="shop")),
+    path("newsletter/", include("bakeup.newsletter.urls", namespace="newsletter")),
     path("shop/", include(wagtail_urls)),
     # path("login/", LoginView.as_view(), name='login'),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),

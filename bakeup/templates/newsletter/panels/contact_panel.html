@@ -1,0 +1,16 @@
+{% load wagtailadmin_tags %}
+
+<div
+    class="wn-panel"
+    data-controller="wn-panel"
+>
+    <ul>
+        {% for contact in members %}
+            <li>
+                <a href="{% url 'contact:edit' contact.pk %}">
+                    {{ contact.email }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

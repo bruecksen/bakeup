@@ -48,3 +48,7 @@ def update_user_email(sender, request, email_address, **kwargs):
     email_address.set_as_primary()
     # Get rid of old email addresses
     EmailAddress.objects.filter(user=email_address.user).exclude(primary=True).delete()
+    # Update users newsletter contact email
+    if hasattr(email_address.user, "contact"):
+        email_address.user.contact.email = email_address.email
+        email_address.user.contact.save(update_fields=["email"])

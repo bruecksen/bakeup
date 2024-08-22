@@ -111,10 +111,12 @@ TENANT_APPS = [
     "bakeup.users",
     "bakeup.contrib",
     "bakeup.pages",
+    "bakeup.newsletter",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "wagtailmenus",
+    "djangoql",
 ]
 
 
@@ -221,14 +223,14 @@ TEMPLATES = [
         # https://docs.djangoproject.com/en/dev/ref/settings/#dirs
         "DIRS": [str(APPS_DIR / "templates")],
         # https://docs.djangoproject.com/en/dev/ref/settings/#app-dirs
-        "APP_DIRS": True,
+        # "APP_DIRS": True,
         "OPTIONS": {
-            # # https://django-tenants.readthedocs.io/en/latest/files.html#configuring-the-template-loaders
-            # "loaders": [
-            #     "django_tenants.template.loaders.filesystem.Loader",  # Must be first
-            #     "django.template.loaders.filesystem.Loader",
-            #     "django.template.loaders.app_directories.Loader",
-            # ],
+            # https://django-tenants.readthedocs.io/en/latest/files.html#configuring-the-template-loaders
+            "loaders": [
+                "django_tenants.template.loaders.filesystem.Loader",  # Must be first
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+            ],
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -246,9 +248,9 @@ TEMPLATES = [
     }
 ]
 
-# MULTITENANT_TEMPLATE_DIRS = [
-#     'tenant_templates',
-# ]
+MULTITENANT_TEMPLATE_DIRS = [
+    str(APPS_DIR / "tenant_templates/%s/"),
+]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
@@ -474,3 +476,25 @@ DJANGO_TABLES2_TABLE_ATTRS = {
 CURRENCIES = ("EUR",)
 DEMO_LOGIN_USER = "demo"
 DEMO_LOGIN_PASSWORD = "demo"
+WAGTAIL_NEWSLETTER_AUDIENCESEGMENT_MODEL = "newsletter.Segment"
+WAGTAIL_NEWSLETTER_RECIPIENTS_MODEL = "newsletter.NewsletterRecipients"
+
+WAGTAIL_NEWSLETTER_BACKEND = "newsletter.backend.SMTPEmailBackend"
+WAGTAIL_NEWSLETTER_FROM_EMAIL = env(
+    "WAGTAIL_NEWSLETTER_FROM_EMAIL", default="hi@bakeup.org"
+)
+WAGTAIL_NEWSLETTER_FROM_NAME = env(
+    "WAGTAIL_NEWSLETTER_FROM_NAME", default="Matthias Brück"
+)
+WAGTAIL_NEWSLETTER_REPLY_TO = env(
+    "WAGTAIL_NEWSLETTER_REPLY_TO", default="hi@bakeup.org"
+)
+
+WAGTAILADMIN_GLOBAL_EDIT_LOCK = True
+
+NEWSLETTER_SUBSCRIBE_FORM_MSG_SUCCESS = "Vielen Dank für Ihre Anmeldung!"
+NEWSLETTER_ACTIVATION_EMAIL_SUBJECT = "Aktiviere deinen Newsletter"
+NEWSLETTER_ACTIVATION_REQUIRED_MSG = "Bitte bestätige deine Anmeldung"
+NEWSLETTER_SUBSCRIBE_FORM_MSG_FAILURE = (
+    "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."
+)

@@ -1,0 +1,22 @@
+{% extends "shop/base_page.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ page.title }}{% endblock %}
+{% block page_header %}{{ page.title }}{% endblock %}
+
+{% block page_content %}
+<div class="list-group">
+    <!-- Newsletter Item 1 -->
+     {% for newsletter in page.get_newsletter_archive %}
+    <a href="{{ newsletter.url }}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ newsletter.title}}</h5>
+            <small>{{ newsletter.date }}</small>
+        </div>
+        {% if newsletter.author %}<p class="mb-1">Autor: {{ newsletter.author }}</p>{% endif %}
+        <small>Klicken Sie hier, um die Webansicht zu öffnen.</small>
+    </a>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "shop/base_page.html" %}
+{% load i18n %}
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block page_content %}
+<div class="row g-4">
+    <div class="col-12 col-sm-8">
+      <div class="card px-3 py-3">
+        <div class="card-body">
+            <h1 class="card-title">Abmeldung erfolgreich</h1>
+            <p class="card-text">Die E-Mail-Adresse <strong>{{ contact.email }}</strong> wurde von der Mailingliste <strong>{{ list }}</strong> abgemeldet.<br>
+            <p>Wenn dies ein Fehler war, gehen Sie zurück zum <a href="{{ site.root_page.full_url }}">Profil</a>, um sich erneut anzumelden.</p>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock page_content %}

@@ -45,6 +45,14 @@ class Client(TenantMixin):
         site = Site.find_for_request(request)
         return site.root_url
 
+    @property
+    def default_site(self):
+        return Site.objects.get(is_default_site=True)
+
+    @property
+    def default_full_url(self):
+        return self.default_site.root_url
+
     def reverse(self, request, view_name, **kwargs):
         """
         Returns the URL of this tenant.
@@ -123,6 +131,7 @@ class ClientSetting(models.Model):
     account_email_verification = models.CharField(
         max_length=12, choices=ACCOUNT_EMAIL_VERIFICATION_CHOICES, default="optional"
     )
+    is_newsletter_enabled = models.BooleanField(default=False)
     wagtail_reference_index_ignore = True
 
 

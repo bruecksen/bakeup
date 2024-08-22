@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from bakeup.newsletter.models import Audience, Contact
 from bakeup.shop.models import PointOfSale
 
 User = get_user_model()
@@ -63,6 +64,17 @@ class UserFormMixin:
             del self.fields["point_of_sale"]
         if hasattr(self, "field_order"):
             set_form_field_order(self, self.field_order)
+        if (
+            "newsletter" not in kwargs.get("initial")
+            and request.tenant.clientsetting.is_newsletter_enabled
+        ):
+            self.fields["newsletter"] = forms.BooleanField(
+                label=_(
+                    "Ich möchte den Newsletter abonnieren und regelmäßig über"
+                    " Neuigkeiten informiert werden."
+                ),
+                required=False,
+            )
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = False
@@ -83,9 +95,10 @@ class UserFormMixin:
                 css_class="form-row",
             ),
             "telephone_number",
+            "newsletter",
         )
 
-    def update_customer(self, user):
+    def update_customer(self, user, request):
         if "point_of_sale" in self.cleaned_data:
             user.customer.point_of_sale = self.cleaned_data["point_of_sale"]
         if "street" in self.cleaned_data:
@@ -99,13 +112,25 @@ class UserFormMixin:
         if "telephone_number" in self.cleaned_data:
             user.customer.telephone_number = self.cleaned_data["telephone_number"]
         user.customer.save()
+        if "newsletter" in self.cleaned_data:
+            if self.cleaned_data["newsletter"]:
+                contact, created = Contact.objects.get_or_create(
+                    email=user.email,
+                    defaults={
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "audience": Audience.objects.get(is_default=True),
+                    },
+                )
+                if not contact.is_active:
+                    contact.send_activation_email(request)
 
     def save(self, request):
         user = super().save(request)
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.save(update_fields=["first_name", "last_name"])
-        self.update_customer(user)
+        self.update_customer(user, request)
         return user
 
 

@@ -201,7 +201,7 @@ class BrandSettings(BaseGenericSetting):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="+",
-        verbose_name="Image",
+        verbose_name="Logo",
     )
     is_brand_theme_activated = models.BooleanField(
         default=False, verbose_name="Theme activated?"
@@ -385,7 +385,7 @@ class EmailSettings(BaseGenericSetting):
         default="[{{site_name}}]",
         help_text="E-Mail-Betreff Präfix, kann {{site_name}} enthalten.",
     )
-    email_footer = models.TextField(
+    email_footer = RichTextField(
         blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt."
     )
     send_email_order_confirm = models.BooleanField(
