@@ -23,6 +23,7 @@ from wagtail.search import index
 from bakeup.contrib.utils import html_to_plaintext
 from bakeup.core.fields import StreamField
 from bakeup.newsletter.panels import NewsletterPanel
+from bakeup.pages.blocks import AllBlocks
 from bakeup.pages.models import BrandSettings, EmailSettings
 from bakeup.shop.models import Customer
 from bakeup.users.models import User
@@ -41,7 +42,13 @@ class CampaignStatus(models.IntegerChoices):
 class NewsletterListPage(Page):
     parent_page_types = ["pages.ShopPage", "pages.ContentPage"]
 
+    content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
+
     template = "newsletter/newsletter_archive.html"
+
+    content_panels = Page.content_panels + [
+        FieldPanel("content"),
+    ]
 
     def get_newsletter_archive(self):
         return (
