@@ -22,7 +22,7 @@ from wagtail.embeds.blocks import EmbedBlock as _EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 
 from bakeup.contrib.blocks import ImageAlignmentChoiceBlock, RichTextBlock
-from bakeup.newsletter.blocks import NewsletterBlocks
+from bakeup.newsletter.blocks import NewsletterSubscribeBlock
 from bakeup.shop.models import Product, ProductionDay
 
 
@@ -223,6 +223,7 @@ class CommonBlocks(StreamBlock):
     card = SimpleCard(group="Common")
     hr = HorizontalRuleBlock(group="Common")
     carousel = CarouselBlock(group="Common")
+    newsletter = NewsletterSubscribeBlock(group="Common")
     # accordion = AccordionBlock(child_block=AccordionElement(), group="Common")
     # tile = TileBlock(group="Common")
 
@@ -331,5 +332,5 @@ class ContentBlocks(CommonBlocks, ColumnBlocks):
     pass
 
 
-class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks, NewsletterBlocks):
+class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks):
     pass
