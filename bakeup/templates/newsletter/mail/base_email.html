@@ -1,14 +1,64 @@
-{% load newsletter_tags %}
+{% load newsletter_tags wagtailimages_tags %}
 
 {% mrml %}
+    {% if brand_settings.logo_wide %}
+        {% image brand_settings.logo_wide width-600 as logo %}
+    {% else %}
+        {% image brand_settings.logo width-600 as logo %}
+    {% endif %}
     <mjml>
     <mj-head>
+        <mj-style>
+            {% if  brand_settings.is_brand_theme_activated and brand_settings.primary_color %}
+            a {
+            color: {{ brand_settings.primary_color }};
+            }
+            {% endif %}
+
+            p {
+                font-size: 16px;
+            }
+            .body-section {
+                -webkit-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+                -moz-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+                box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+            }
+        </mj-style>
+        <mj-attributes>
+            <mj-section background-color="#fff" />
+            <mj-text font-size="16px" />
+            <mj-all font-family="Georgia, Times, 'Times New Roman'" line-height="1.5"/>
+        </mj-attributes>
         {% block email_head %}
         {% endblock email_head %}
     </mj-head>
-    <mj-body>
-        {% block email_body %}
-        {% endblock email_body %}
+    <mj-body background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
+        <mj-wrapper padding-top="0" padding-bottom="0" css-class="body-section">
+            <mj-section padding="25px 0">
+                <mj-column>
+                    <mj-image
+                    src="{{ absolute_url }}{{ logo.url }}"
+                    padding="0 25px"
+                    />
+                </mj-column>
+            </mj-section>
+            {% block email_body %}
+            {% endblock email_body %}
+        </mj-wrapper>
+        <mj-section padding="50px 0" background-color="transparent">
+            <mj-column>
+                <mj-text padding="0 25px" align="center">
+                    {{ email_settings.email_footer|newsletter_richtext }}
+                </mj-text>
+                {% if contact %}
+                    <mj-text padding="10px 25px" align="center">
+                        Möchten Sie ändern, wie Sie diese E-Mails erhalten? Sie können<br>
+                        <a href="{{ absolute_url }}{% url 'shop:user-profile' %}">Ihre Einstellungen aktualisieren</a> oder
+                        <a href="{{ absolute_url }}{% url 'newsletter:unsubscribe' contact.id page.get_parent.specific.pk %}">den Newsletter abbestellen</a>.
+                    </mj-text>
+                {% endif %}
+            </mj-column>
+        </mj-section>
     </mj-body>
     </mjml>
 {% endmrml %}

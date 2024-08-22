@@ -18,6 +18,8 @@
     let form = document.querySelector(FORM_SELECTOR)
     console.log(form)
     let input_field_email = form.querySelector('input[name="email"]')
+    let input_field_first_name = form.querySelector('input[name="first_name"]')
+    let input_field_last_name = form.querySelector('input[name="last_name"]')
     input_field_email.classList.add(FORM_CONTROL)
     resetForm()
 
@@ -57,12 +59,15 @@
     }
 
     document.querySelector(FORM_SELECTOR).addEventListener("submit", function(e) {
-        console.log('submit');
         resetForm()
 
         let input_field_csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')
         let csrf_token = input_field_csrf.value
-        let body = JSON.stringify({"email": input_field_email.value})
+        let body = JSON.stringify({
+            "email": input_field_email.value,
+            "first_name": input_field_first_name.value,
+            "last_name": input_field_last_name.value}
+        )
 
         fetch("{{ subscribe_api_url }}", {
             method: form.method,

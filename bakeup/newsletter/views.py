@@ -124,7 +124,11 @@ def subscribe_api(request):
                     with transaction.atomic():
                         contact, created = Contact.objects.get_or_create(
                             email=form.cleaned_data["email"],
-                            audience=Audience.objects.get(is_default=True),
+                            defaults={
+                                "first_name": form.cleaned_data.get("first_name", ""),
+                                "last_name": form.cleaned_data.get("last_name", ""),
+                                "audience": Audience.objects.get(is_default=True),
+                            },
                         )  # create a new contact instance
                         msg = settings.NEWSLETTER_SUBSCRIBE_FORM_MSG_SUCCESS
                         if not contact.is_active:

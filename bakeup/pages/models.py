@@ -203,6 +203,15 @@ class BrandSettings(BaseGenericSetting):
         related_name="+",
         verbose_name="Logo",
     )
+    logo_wide = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Logo wide",
+        help_text="Logo for wide screens used in newsletter and emails.",
+    )
     is_brand_theme_activated = models.BooleanField(
         default=False, verbose_name="Theme activated?"
     )
@@ -243,6 +252,7 @@ class BrandSettings(BaseGenericSetting):
 
     panels = [
         FieldPanel("logo"),
+        FieldPanel("logo_wide"),
         MultiFieldPanel(
             [
                 FieldPanel("is_brand_theme_activated"),

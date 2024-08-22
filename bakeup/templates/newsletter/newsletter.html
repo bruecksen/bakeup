@@ -1,84 +1,34 @@
+{% extends "newsletter/mail/base_email.html" %}
 {% load wagtailcore_tags wagtailimages_tags static wagtailimages_tags newsletter_tags %}
 
-{% image brand_settings.logo width-600 as logo %}
-{% mrml %}
-    <mjml>
-        <mj-head>
-            <mj-style>
-                {% if  brand_settings.is_brand_theme_activated and brand_settings.primary_color %}
-                a {
-                color: {{ brand_settings.primary_color }};
-                }
-                {% endif %}
 
-                p {
-                    font-size: 16px;
-                }
-                .body-section {
-                    -webkit-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
-                    -moz-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
-                    box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
-                }
-            </mj-style>
-            <mj-attributes>
-                <mj-section background-color="#fff" />
-                <mj-all font-family="Georgia, Times, 'Times New Roman'" line-height="1.5"/>
-            </mj-attributes>
-        </mj-head>
-        <mj-body background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
-            <mj-wrapper padding-top="0" padding-bottom="0" css-class="body-section">
-                <mj-section padding="25px 0">
-                    <mj-column>
-                        <mj-image
-                            src="{{ absolute_url }}{{ logo.url }}"
-                            padding="0 25px"
-                        />
-                    </mj-column>
-                </mj-section>
-                {% for block in page.body %}
-                    <mj-section padding="0">
-                        <mj-column>
-                                {% if block.block_type == "rich_text" %}
-                                <mj-text align="{{ block.value.alignment }}">
-                                    {{ block.value.text|newsletter_richtext }}
-                                </mj-text>
-                                {% elif block.block_type == "image" %}
-                                    {% image block.value.image width-1200 as image %}
-                                    <mj-image src="{{ absolute_url }}{{ image.full_url }}" />
-                                {% else %}
-                                    {% include_block block %}
-                                {% endif %}
-                        </mj-column>
-                    </mj-section>
-                {% endfor %}
-                {% if page.author %}
-                    <mj-section padding="25px 0">
-                        <mj-column>
-                            <mj-text padding="0 25px">
-                                —
-                            </mj-text>
-                            <mj-text padding="0 25px">
-                                {{ page.author }}
-                            </mj-text>
-                        </mj-column>
-                    </mj-section>
-                {% endif %}
-            </mj-wrapper>
-
-            <mj-section padding="50px 0" background-color="transparent">
-                <mj-column>
-                    <mj-text padding="0 25px" align="center">
-                        {{ email_settings.email_footer|newsletter_richtext }}
+{% block email_body %}
+    {% for block in page.body %}
+        <mj-section padding="0">
+            <mj-column>
+                    {% if block.block_type == "rich_text" %}
+                    <mj-text align="{{ block.value.alignment }}">
+                        {{ block.value.text|newsletter_richtext }}
                     </mj-text>
-                    {% if contact %}
-                    <mj-text padding="10px 25px" align="center">
-                        Möchten Sie ändern, wie Sie diese E-Mails erhalten? Sie können<br>
-                        <a href="{{ absolute_url }}{% url 'shop:user-profile' %}">Ihre Einstellungen aktualisieren</a> oder
-                        <a href="{{ absolute_url }}{% url 'newsletter:unsubscribe' contact.id page.get_parent.specific.pk %}">den Newsletter abbestellen</a>.
-                    </mj-text>
+                    {% elif block.block_type == "image" %}
+                        {% image block.value.image width-1200 as image %}
+                        <mj-image src="{{ absolute_url }}{{ image.full_url }}" />
+                    {% else %}
+                        {% include_block block %}
                     {% endif %}
-                </mj-column>
-            </mj-section>
-        </mj-body>
-    </mjml>
-{% endmrml %}
+            </mj-column>
+        </mj-section>
+    {% endfor %}
+    {% if page.author %}
+        <mj-section padding="25px 0">
+            <mj-column>
+                <mj-text padding="0 25px">
+                    —
+                </mj-text>
+                <mj-text padding="0 25px">
+                    {{ page.author }}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    {% endif %}
+{% endblock email_body %}

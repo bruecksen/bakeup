@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Any, Optional
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -415,15 +416,20 @@ class Contact(ClusterableModel):
 
     def send_activation_email(self, request):
         """Sends activation email to the contact."""
+        root_url = request.tenant.default_site.root_url
         context = {
-            "site_name": settings.WAGTAIL_SITE_NAME,
-            "contact": self,
-            "activate_url": request.build_absolute_uri(
+            "absolute_url": root_url,
+            "salutation": f"{self.first_name} {self.last_name}",
+            "site_name": request.tenant.default_site.site_name,
+            "activate_url": urljoin(
+                root_url,
                 reverse(
                     "birdsong:activate",
                     kwargs={"contact_pk": self.pk, "token": self.make_token()},
-                )
+                ),
             ),
+            "email_settings": EmailSettings.load(request),
+            "brand_settings": BrandSettings.load(request),
         }
         html_message = render_to_string(
             "newsletter/mail/activation_email.html", context
