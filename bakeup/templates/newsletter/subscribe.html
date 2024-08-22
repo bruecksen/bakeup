@@ -1,7 +1,7 @@
 {% load crispy_forms_tags %}
-<form id="subscribe-form" action="{{ form_action }}" method="post">
+<form id="subscribe-form" action="{{ subscribe_api_url }}" method="post">
     {% csrf_token %}
-    {% crispy form %}
+    {{ form|crispy }}
     <input type="submit" value="Anmelden" class="btn btn-primary">
 </form>
 
@@ -16,6 +16,7 @@
     const FORM_UNEXPECTED_ERROR = "{{FORM_UNEXPECTED_ERROR}}"
 
     let form = document.querySelector(FORM_SELECTOR)
+    console.log(form)
     let input_field_email = form.querySelector('input[name="email"]')
     input_field_email.classList.add(FORM_CONTROL)
     resetForm()
@@ -56,7 +57,7 @@
     }
 
     document.querySelector(FORM_SELECTOR).addEventListener("submit", function(e) {
-
+        console.log('submit');
         resetForm()
 
         let input_field_csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')
@@ -90,4 +91,5 @@
 
         e.preventDefault()  // prevent form HTTP submit action
     });
+    console.log('script loaded');
 </script>

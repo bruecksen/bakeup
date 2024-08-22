@@ -77,9 +77,6 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 })
 
 
-var form = document.querySelectorAll(".form-container");
-var container = document.querySelector(".form-add-inline");
-var addAnotherContainer = document.querySelector(".add-another-container");
 var addButton = document.querySelector(".add-another-form");
 var totalForms = document.querySelector("#id_form-TOTAL_FORMS");
 var saveButton = document.querySelector(".save-another-form");
