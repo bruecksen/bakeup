@@ -24,13 +24,6 @@ class MembersPanel(Panel):
     class BoundPanel(Panel.BoundPanel):
         template_name = "newsletter/panels/contact_panel.html"
 
-        # instance = "models.NewsletterPageMixin"
-
-        class Media:
-            js = [
-                "wagtail_newsletter/js/wagtail_newsletter.js",
-            ]
-
         def __init__(self, panel, instance, request, form, prefix):
             super().__init__(panel, instance, request, form, prefix)
             if self.instance.pk:
