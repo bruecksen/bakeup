@@ -22,7 +22,7 @@ def create_contacts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("newsletter", "0002_newsletterlistpage_content"),
+        ("newsletter", "0003_alter_contact_audience"),
     ]
 
     operations = [
