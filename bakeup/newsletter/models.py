@@ -30,7 +30,7 @@ from bakeup.core.fields import StreamField
 from bakeup.newsletter.panels import NewsletterPanel
 from bakeup.pages.blocks import AllBlocks
 from bakeup.pages.models import BrandSettings, EmailSettings
-from bakeup.shop.models import Customer
+from bakeup.shop.models import Customer, PointOfSale
 from bakeup.users.models import User
 
 from .blocks import StoryBlock
@@ -509,5 +509,8 @@ class ContactSchema(DjangoQLSchema):
                 "postal_code",
                 "city",
                 "telephone_number",
+                "point_of_sale",
             ]
+        if model == PointOfSale:
+            return ["name"]
         return super().get_fields(model)

@@ -97,10 +97,10 @@ class SMTPEmailBackend:
     def send_test_email(self, tenant, page: Page, user: AbstractUser, email) -> None:
         try:
             messages = []
-            from_email = _require_setting("WAGTAIL_NEWSLETTER_FROM_EMAIL")
-            from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
-            from_string = f"{from_name} <{from_email}>"
-            reply_to = _require_setting("WAGTAIL_NEWSLETTER_REPLY_TO")
+            from_email = tenant.clientsetting.default_from_email
+            # from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
+            # from_string = f"{from_name} <{from_email}>"
+            reply_to = tenant.clientsetting.default_from_email
             revision = cast(NewsletterPage, page.latest_revision.as_object())
             subject = revision.newsletter_subject or revision.title
             site = tenant.default_site
@@ -112,7 +112,7 @@ class SMTPEmailBackend:
             )
             message_data = {
                 "subject": subject,
-                "from_email": from_string,
+                "from_email": from_email,
                 "to": [email],
                 "reply_to": [reply_to],
             }
@@ -126,10 +126,10 @@ class SMTPEmailBackend:
     def send_campaign(self, tenant, page: Page) -> None:
         try:
             messages = []
-            from_email = _require_setting("WAGTAIL_NEWSLETTER_FROM_EMAIL")
-            from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
-            from_string = f"{from_name} <{from_email}>"
-            reply_to = _require_setting("WAGTAIL_NEWSLETTER_REPLY_TO")
+            from_email = tenant.clientsetting.default_from_email
+            # from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
+            # from_string = f"{from_name} <{from_email}>"
+            reply_to = tenant.clientsetting.default_from_email
             revision = cast(NewsletterPage, page.latest_revision.as_object())
             subject = revision.newsletter_subject or revision.title
             recipients = revision.newsletter_recipients
@@ -143,7 +143,7 @@ class SMTPEmailBackend:
                 )
                 message_data = {
                     "subject": subject,
-                    "from_email": from_string,
+                    "from_email": from_email,
                     "to": [contact.email],
                     "reply_to": [reply_to],
                 }
