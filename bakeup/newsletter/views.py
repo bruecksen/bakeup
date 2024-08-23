@@ -55,7 +55,7 @@ def recipients(request):
 
 def unsubscribe_user(request, user_id, list_id=None):
     contact = get_object_or_404(Contact, id=user_id)
-    # contact.delete()
+    contact.delete()
     list_page = None
     if list_id:
         list_page = get_object_or_404(NewsletterListPage, id=list_id)
