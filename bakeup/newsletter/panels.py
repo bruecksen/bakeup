@@ -69,15 +69,23 @@ class NewsletterPanel(Panel):
 
         @cached_property
         def permissions(self):
+            # return frozenset(
+            #     action
+            #     for action in [
+            #         "save_campaign",
+            #         "send_test_email",
+            #         "send_campaign",
+            #         "get_report",
+            #     ]
+            #     if self.instance.has_newsletter_permission(self.request.user, action)
+            # )
             return frozenset(
-                action
-                for action in [
+                [
                     "save_campaign",
                     "send_test_email",
                     "send_campaign",
                     "get_report",
                 ]
-                if self.instance.has_newsletter_permission(self.request.user, action)
             )
 
         def get_context_data(self, parent_context=None):
