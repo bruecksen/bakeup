@@ -105,7 +105,7 @@ class SMTPEmailBackend:
             subject = revision.newsletter_subject or revision.title
             site = tenant.default_site
             html = revision.get_newsletter_html(
-                user,
+                user.contact,
                 BrandSettings.load(site),
                 EmailSettings.load(site),
                 tenant.default_full_url,
