@@ -54,7 +54,7 @@
                     <mj-text padding="10px 25px" align="center">
                         Möchten Sie ändern, wie Sie diese E-Mails erhalten? Sie können<br>
                         <a href="{{ absolute_url }}{% url 'shop:user-profile' %}">Ihre Einstellungen aktualisieren</a> oder
-                        <a href="{{ absolute_url }}{% url 'newsletter:unsubscribe' contact.id page.get_parent.specific.pk %}">den Newsletter abbestellen</a>.
+                        <a href="{{ absolute_url }}{% url 'newsletter:unsubscribe' contact.uuid page.get_parent.specific.pk %}">den Newsletter abbestellen</a>.
                     </mj-text>
                 {% endif %}
             </mj-column>
