@@ -12,23 +12,12 @@
                     </mj-text>
                     {% elif block.block_type == "image" %}
                         {% image block.value.image width-1200 as image %}
-                        <mj-image src="{{ image.full_url }}" />
+                        <mj-image src="{{ image.full_url }}" padding="0"/>
+                        {% if block.value.caption %}<mj-text font-size="13px" align="center" padding="0">{{ block.value.caption }}</mj-text>{% endif %}
                     {% else %}
                         {% include_block block %}
                     {% endif %}
             </mj-column>
         </mj-section>
     {% endfor %}
-    {% if page.author %}
-        <mj-section padding="25px 0">
-            <mj-column>
-                <mj-text padding="0 25px">
-                    —
-                </mj-text>
-                <mj-text padding="0 25px">
-                    {{ page.author }}
-                </mj-text>
-            </mj-column>
-        </mj-section>
-    {% endif %}
 {% endblock email_body %}
