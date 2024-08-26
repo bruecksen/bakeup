@@ -114,6 +114,7 @@ ACCOUNT_EMAIL_VERIFICATION_CHOICES = [
 class ClientSetting(models.Model):
     client = models.OneToOneField("Client", on_delete=models.CASCADE)
     default_from_email = models.EmailField(blank=True, null=True)
+    email_name = models.CharField(max_length=1024, blank=True, null=True)
     email_host = models.CharField(max_length=1024, blank=True, null=True)
     email_host_password = models.CharField(max_length=1024, blank=True, null=True)
     email_host_user = models.CharField(max_length=1024, blank=True, null=True)
