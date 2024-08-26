@@ -7,9 +7,11 @@
     <div class="col-12 col-sm-8">
       <div class="card px-3 py-3">
         <div class="card-body">
-            <h1 class="card-title">Abmeldung erfolgreich</h1>
-            <p class="card-text">Die E-Mail-Adresse <strong>{{ contact.email }}</strong> wurde von der Mailingliste <strong>{{ list }}</strong> abgemeldet.<br>
-            <p>Wenn dies ein Fehler war, gehen Sie zurück zum <a href="{{ site.root_page.full_url }}">Profil</a>, um sich erneut anzumelden.</p>
+            <h1 class="card-title">{% trans 'Unsubscription successful' %}</h1>
+            {% blocktrans %}
+            <p class="card-text">The email address <strong>{{ contact.email }}</strong> has been unsubscribed from the mailing list <strong>{{ list }}</strong>.<br>
+            <p>If this was a mistake, please go back to your <a href="{{ site.root_page.full_url }}">profile</a> to subscribe again.</p>
+            {% endblocktrans %}
         </div>
       </div>
     </div>
