@@ -53,8 +53,8 @@ def recipients(request):
     )
 
 
-def unsubscribe_user(request, user_id, list_id=None):
-    contact = get_object_or_404(Contact, id=user_id)
+def unsubscribe_user(request, uuid, list_id=None):
+    contact = get_object_or_404(Contact, uuid=uuid)
     contact.delete()
     list_page = None
     if list_id:
@@ -70,7 +70,7 @@ def unsubscribe_user(request, user_id, list_id=None):
     )
 
 
-def activate(request, contact_pk, token):
+def activate(request, uuid, token):
     """Subscription activation endpoint
     :param request: Request sent to this endpoint
     :type request: class:`requests.models.Request`
@@ -82,7 +82,7 @@ def activate(request, contact_pk, token):
     :rtype: class:`django.http.HttpResponse`
     """
     try:
-        contact = get_object_or_404(Contact, pk=contact_pk)
+        contact = get_object_or_404(Contact, uuid=uuid)
     except Contact.DoesNotExist:
         raise Http404  # unable to identify contact, let's pretend this endpoint doesn't exist
 

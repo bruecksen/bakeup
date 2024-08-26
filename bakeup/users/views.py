@@ -120,6 +120,7 @@ class SignupView(_SignupView):
 
 
 class UserProfileView(LoginRequiredMixin, DetailView):
+    login_url = "shop:login"
     model = User
 
     def get_object(self):
@@ -260,6 +261,8 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
 
 
 class ShopUserUpdateView(UserUpdateView):
+    login_url = "shop:login"
+
     def get_success_url(self):
         return reverse("shop:user-profile")
 

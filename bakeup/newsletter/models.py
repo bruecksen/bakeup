@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import Any, Optional
 from urllib.parse import urljoin
@@ -386,6 +387,7 @@ class ContactManager(models.Manager):
 
 
 class Contact(ClusterableModel):
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
         "users.User",
         on_delete=models.CASCADE,
@@ -411,6 +413,13 @@ class Contact(ClusterableModel):
 
     def __str__(self):
         return self.email
+
+    def get_full_name(self):
+        """
+        Return the first_name plus the last_name, with a space in between.
+        """
+        full_name = "%s %s" % (self.first_name, self.last_name)
+        return full_name.strip()
 
     def clean(self) -> None:
         super().clean()
@@ -444,7 +453,7 @@ class Contact(ClusterableModel):
                 root_url,
                 reverse(
                     "birdsong:activate",
-                    kwargs={"contact_pk": self.pk, "token": self.make_token()},
+                    kwargs={"uuid": self.uuid, "token": self.make_token()},
                 ),
             ),
             "email_settings": email_settings,

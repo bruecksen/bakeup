@@ -1,7 +1,8 @@
 from wagtail import blocks
+from wagtail.blocks.field_block import RichTextBlock as _RichTextBlock
 from wagtail.images.blocks import ImageChooserBlock
 
-from bakeup.contrib.blocks import RichTextBlock
+from bakeup.contrib.blocks import TextAlignmentChoiceBlock
 
 
 class ImageBlock(blocks.StructBlock):
@@ -10,6 +11,30 @@ class ImageBlock(blocks.StructBlock):
 
     class Meta:  # type: ignore
         template = "blocks/image_block.html"
+
+
+class RichTextBlock(blocks.StructBlock):
+    alignment = TextAlignmentChoiceBlock(default="start", label="Text Alignment")
+    text = _RichTextBlock(
+        features=[
+            "h1",
+            "h2",
+            "h3",
+            "bold",
+            "italic",
+            "link",
+            "hr",
+            "ol",
+            "ul",
+            "blockquote",
+            "code",
+        ]
+    )
+
+    class Meta:
+        template = "blocks/richtext_block.html"
+        label = "Text"
+        icon = "pilcrow"
 
 
 class StoryBlock(blocks.StreamBlock):

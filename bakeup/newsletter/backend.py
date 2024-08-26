@@ -8,6 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.db import close_old_connections, connection, transaction
+from django.template import Context, Template
 from django.utils import timezone
 from django_tenants.utils import schema_context
 from wagtail.models import Page
@@ -94,25 +95,52 @@ class SMTPEmailBackend:
     def get_campaign(self, campaign_id: str) -> Optional[NewsletterPage]:
         return NewsletterPage.objects.get(pk=campaign_id)
 
+    def replace_message_tags(self, subject, client, contact):
+        t = Template(subject)
+        subject = t.render(
+            Context(
+                {
+                    "site_name": client.name,
+                    "user": contact.get_full_name(),
+                    "first_name": contact.first_name,
+                    "last_name": contact.last_name,
+                    "email": contact.email,
+                }
+            )
+        )
+        return subject
+
     def send_test_email(self, tenant, page: Page, user: AbstractUser, email) -> None:
         try:
             messages = []
-            from_email = tenant.clientsetting.default_from_email
-            # from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
-            # from_string = f"{from_name} <{from_email}>"
-            reply_to = tenant.clientsetting.default_from_email
             revision = cast(NewsletterPage, page.latest_revision.as_object())
-            subject = revision.newsletter_subject or revision.title
             site = tenant.default_site
-            html = revision.get_newsletter_html(
+
+            from_string = tenant.clientsetting.default_from_email
+            from_name = tenant.clientsetting.email_name
+            if from_name:
+                from_string = f"{from_name} <{from_string}>"
+            reply_to = tenant.clientsetting.default_from_email
+            email_settings = EmailSettings.load(site)
+            subject = revision.newsletter_subject or revision.title
+            if email_settings.email_subject_prefix:
+                subject = (
+                    f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
+                )
+            subject = self.replace_message_tags(subject, tenant, user.contact)
+            html = self.replace_message_tags(
+                revision.get_newsletter_html(
+                    user.contact,
+                    BrandSettings.load(site),
+                    email_settings,
+                    tenant.default_full_url,
+                ),
+                tenant,
                 user.contact,
-                BrandSettings.load(site),
-                EmailSettings.load(site),
-                tenant.default_full_url,
             )
             message_data = {
                 "subject": subject,
-                "from_email": from_email,
+                "from_email": from_string,
                 "to": [email],
                 "reply_to": [reply_to],
             }
@@ -126,24 +154,42 @@ class SMTPEmailBackend:
     def send_campaign(self, tenant, page: Page) -> None:
         try:
             messages = []
-            from_email = tenant.clientsetting.default_from_email
-            # from_name = _require_setting("WAGTAIL_NEWSLETTER_FROM_NAME")
-            # from_string = f"{from_name} <{from_email}>"
-            reply_to = tenant.clientsetting.default_from_email
             revision = cast(NewsletterPage, page.latest_revision.as_object())
-            subject = revision.newsletter_subject or revision.title
-            recipients = revision.newsletter_recipients
             site = tenant.default_site
+
+            from_string = tenant.clientsetting.default_from_email
+            from_name = tenant.clientsetting.email_name
+            if from_name:
+                from_string = f"{from_name} <{from_string}>"
+            reply_to = tenant.clientsetting.default_from_email
+            recipients = revision.newsletter_recipients
+            email_settings = EmailSettings.load(site)
             for contact in recipients.members.all():
+                subject = revision.newsletter_subject or revision.title
+                if email_settings.email_subject_prefix:
+                    subject = (
+                        f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
+                    )
+                subject = self.replace_message_tags(subject, tenant, contact)
+                html = self.replace_message_tags(
+                    revision.get_newsletter_html(
+                        contact,
+                        BrandSettings.load(site),
+                        email_settings,
+                        tenant.default_full_url,
+                    ),
+                    tenant,
+                    contact,
+                )
                 html = revision.get_newsletter_html(
                     contact,
                     BrandSettings.load(site),
-                    EmailSettings.load(site),
+                    email_settings,
                     tenant.default_full_url,
                 )
                 message_data = {
                     "subject": subject,
-                    "from_email": from_email,
+                    "from_email": from_string,
                     "to": [contact.email],
                     "reply_to": [reply_to],
                 }
