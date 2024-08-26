@@ -12,7 +12,7 @@
                     </mj-text>
                     {% elif block.block_type == "image" %}
                         {% image block.value.image width-1200 as image %}
-                        <mj-image src="{{ absolute_url }}{{ image.full_url }}" />
+                        <mj-image src="{{ image.full_url }}" />
                     {% else %}
                         {% include_block block %}
                     {% endif %}
