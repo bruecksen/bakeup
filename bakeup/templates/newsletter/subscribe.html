@@ -34,11 +34,11 @@
         if (is_valid) {
             input_field_email.classList.add(FORM_CONTROL)
             input_field_email.classList.add(FORM_FEEDBACK_IS_VALID)
-            form.appendChild(createFormMessage(FORM_FEEDBACK_VALID, message))
+            input_field_email.parentNode.appendChild(createFormMessage(FORM_FEEDBACK_VALID, message))
         } else {
             input_field_email.classList.add(FORM_CONTROL)
             input_field_email.classList.add(FORM_FEEDBACK_IS_INVALID)
-            form.appendChild(createFormMessage(FORM_FEEDBACK_INVALID, message))
+            input_field_email.parentNode.appendChild(createFormMessage(FORM_FEEDBACK_INVALID, message))
         }
     }
 

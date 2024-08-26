@@ -494,7 +494,9 @@ WAGTAILADMIN_GLOBAL_EDIT_LOCK = True
 
 NEWSLETTER_SUBSCRIBE_FORM_MSG_SUCCESS = "Vielen Dank für Ihre Anmeldung!"
 NEWSLETTER_ACTIVATION_EMAIL_SUBJECT = "Aktiviere deinen Newsletter"
-NEWSLETTER_ACTIVATION_REQUIRED_MSG = "Bitte bestätige deine Anmeldung"
+NEWSLETTER_ACTIVATION_REQUIRED_MSG = (
+    " Wir haben Ihnen eine Email mit Bestätigungslink zugeschickt."
+)
 NEWSLETTER_SUBSCRIBE_FORM_MSG_FAILURE = (
     "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."
 )
