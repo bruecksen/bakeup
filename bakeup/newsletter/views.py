@@ -335,7 +335,7 @@ def create_contacts_from_dataset(dataset, config):
 
         with transaction.atomic():
             try:
-                contact = Contact.objects.get_or_create(
+                contact, created = Contact.objects.get_or_create(
                     email__iexact=row[config["email"]], defaults=data
                 )
                 if not contact.user:
@@ -343,6 +343,9 @@ def create_contacts_from_dataset(dataset, config):
                     if user:
                         contact.user = user
                         contact.save()
+                if config["is_active"]:
+                    contact.is_active = True
+                    contact.save()
                 log(instance=contact, action="wagtail.create")
             except IntegrityError as e:
                 errors.append([row[config["email"]], str(e)])
