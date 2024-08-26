@@ -9,7 +9,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import Exists, OuterRef, Q, UniqueConstraint
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -94,6 +94,12 @@ class NewsletterPageMixin(Page):
 
     class Meta:  # type: ignore
         abstract = True
+
+    def serve(self, request, *args, **kwargs):
+        if self.web_version:
+            return super().serve(request, *args, **kwargs)
+        else:
+            return HttpResponseNotFound()
 
     @classmethod
     def get_newsletter_panels(cls):
