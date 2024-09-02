@@ -6,7 +6,8 @@ def make_many_audiences(apps, schema_editor):
     Contact = apps.get_model('newsletter', 'Contact')
 
     for contact in Contact.objects.all():
-        contact.audiences.add(contact.audience)
+        if contact.audience:
+            contact.audiences.add(contact.audience)
 
 
 class Migration(migrations.Migration):
