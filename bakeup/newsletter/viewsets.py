@@ -47,7 +47,7 @@ class AudienceViewSet(ModelViewSet):
     panels = [
         FieldPanel("name"),
         FieldPanel("is_default"),
-        # MembersPanel(heading="Members"),
+        MembersPanel(heading="Members"),
     ]
 
 
@@ -117,6 +117,7 @@ class ContactViewSet(ModelViewSet):
     icon = "user"
     list_display = ["email", "first_name", "last_name", "is_active"]
     search_fields = ["email", "first_name", "last_name"]
+    list_filter = ["audience", "is_active"]
 
     form_fields = [
         "email",
