@@ -46,10 +46,10 @@ def create_user_customer(sender, instance, created, **kwargs):
                 "first_name": instance.first_name,
                 "last_name": instance.last_name,
                 "email": instance.email,
-                "audience": Audience.objects.filter(is_default=True).first(),
                 "user": instance,
             },
         )
+        contact.audiences.add(Audience.objects.filter(is_default=True).first())
 
 
 @receiver(email_confirmed)

@@ -119,9 +119,9 @@ class UserFormMixin:
                     defaults={
                         "first_name": user.first_name,
                         "last_name": user.last_name,
-                        "audience": Audience.objects.filter(is_default=True).first(),
                     },
                 )
+                contact.audiences.add(Audience.objects.filter(is_default=True).first())
                 if not contact.is_active:
                     contact.send_activation_email(request)
 

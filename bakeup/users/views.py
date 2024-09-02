@@ -110,10 +110,10 @@ class SignupView(_SignupView):
                     "email": self.user.email,
                     "first_name": self.user.first_name,
                     "last_name": self.user.last_name,
-                    "audience": Audience.objects.filter(is_default=True).first(),
                     "user": self.user,
                 },
             )
+            contact.audiences.add(Audience.objects.filter(is_default=True).first())
             if not contact.is_active:
                 contact.send_activation_email(self.request)
         return response
@@ -203,10 +203,10 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
                     "email": self.request.user.email,
                     "first_name": self.request.user.first_name,
                     "last_name": self.request.user.last_name,
-                    "audience": Audience.objects.filter(is_default=True).first(),
                     "user": self.request.user,
                 },
             )
+            contact.audiences.add(Audience.objects.filter(is_default=True).first())
             if not contact.is_active:
                 contact.send_activation_email(self.request)
         else:
