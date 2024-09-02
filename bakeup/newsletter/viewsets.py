@@ -1,3 +1,4 @@
+from django import forms
 from django.urls import reverse
 from django.utils.functional import cached_property
 from djangoql.serializers import DjangoQLSchemaSerializer
@@ -117,11 +118,11 @@ class ContactViewSet(ModelViewSet):
     icon = "user"
     list_display = ["email", "first_name", "last_name", "is_active"]
     search_fields = ["email", "first_name", "last_name"]
-    list_filter = ["audience", "is_active"]
+    list_filter = ["audiences", "is_active"]
 
     form_fields = [
         "email",
-        "audience",
+        "audiences",
         "segments",
         "user",
         "is_active",
@@ -131,7 +132,7 @@ class ContactViewSet(ModelViewSet):
         FieldPanel("email"),
         FieldPanel("first_name"),
         FieldPanel("last_name"),
-        FieldPanel("audience", widget=audience_chooser_viewset.widget_class),
+        FieldPanel("audiences", widget=forms.CheckboxSelectMultiple),
         FieldPanel("user"),
         FieldPanel("is_active"),
     ]

@@ -279,7 +279,7 @@ class Audience(models.Model, index.Indexed):
 
     @property
     def members(self):
-        members = Contact.objects.filter(audience=self)
+        members = self.contacts.all()
         return members
 
 
@@ -318,7 +318,7 @@ class Segment(models.Model):
 
     @property
     def members(self):
-        members = Contact.objects.filter(audience=self.audience)
+        members = self.audience.contacts.all()
         if self.filter_query:
             members = members.annotate(
                 is_customer=Exists(Customer.objects.filter(user=OuterRef("user")))
@@ -359,7 +359,7 @@ class NewsletterRecipients(models.Model, index.Indexed):
         if self.segment:
             return self.segment.member_count
         elif self.audience:
-            return self.audience.contacts.count()
+            return self.audience.member_count
         return None
 
     @property
@@ -404,12 +404,9 @@ class Contact(ClusterableModel):
     first_name = models.CharField(max_length=255, blank=True, null=True)
     last_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(unique=True)
-    audience = models.ForeignKey(
+    audiences = models.ManyToManyField(
         "newsletter.Audience",
-        on_delete=models.PROTECT,
         related_name="contacts",
-        blank=True,
-        null=True,
     )
     is_active = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)

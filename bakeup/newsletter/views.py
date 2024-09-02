@@ -127,11 +127,11 @@ def subscribe_api(request):
                             defaults={
                                 "first_name": form.cleaned_data.get("first_name", ""),
                                 "last_name": form.cleaned_data.get("last_name", ""),
-                                "audience": Audience.objects.filter(
-                                    is_default=True
-                                ).first(),
                             },
                         )  # create a new contact instance
+                        contact.audiences.add(
+                            Audience.objects.filter(is_default=True).first()
+                        )
                         msg = settings.NEWSLETTER_SUBSCRIBE_FORM_MSG_SUCCESS
                         if not contact.is_active:
                             contact.send_activation_email(request)
@@ -338,6 +338,7 @@ def create_contacts_from_dataset(dataset, config):
                 contact, created = Contact.objects.get_or_create(
                     email__iexact=row[config["email"]], defaults=data
                 )
+                contact.audiences.add(config["audience"])
                 if not contact.user:
                     user = User.objects.filter(email__iexact=contact.email).first()
                     if user:
