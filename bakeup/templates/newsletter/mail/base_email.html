@@ -8,12 +8,17 @@
     {% endif %}
     <mjml>
     <mj-head>
+        <mj-font name="Quattrocento" href="https://fonts.googleapis.com/css?family=Quattrocento" />
         <mj-style>
             {% if  brand_settings.is_brand_theme_activated and brand_settings.primary_color %}
             a {
             color: {{ brand_settings.primary_color }};
             }
             {% endif %}
+
+            p {
+                font-size: 15px;
+            }
 
             ul, ol {
                 display: inline-block;
@@ -50,9 +55,7 @@
                 margin-top: 1em;
               }
 
-            p {
-                font-size: 16px;
-            }
+
             .body-section {
                 -webkit-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
                 -moz-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
@@ -61,19 +64,19 @@
         </mj-style>
         <mj-attributes>
             <mj-section background-color="#fff" />
-            <mj-text font-size="16px" />
-            <mj-all font-family="Georgia, Times, 'Times New Roman'" line-height="1.5"/>
+            <mj-text font-size="15px" />
+            <mj-all font-family="Quattrocento, Times, 'Times New Roman'" line-height="1.5"/>
         </mj-attributes>
         {% block email_head %}
         {% endblock email_head %}
     </mj-head>
-    <mj-body background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
+    <mj-body css-class="body" background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.light_color %}{{ brand_settings.light_color }}{% else %}#ececeb{% endif %}">
         <mj-wrapper padding-top="0" padding-bottom="0" css-class="body-section">
             <mj-section padding="25px 0">
                 <mj-column>
                     <mj-image
                     src="{{ absolute_url }}{{ logo.url }}"
-                    padding="0 25px"
+                    padding="0 100px"
                     />
                 </mj-column>
             </mj-section>
