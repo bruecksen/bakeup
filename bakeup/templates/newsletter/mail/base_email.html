@@ -8,7 +8,7 @@
     {% endif %}
     <mjml>
     <mj-head>
-        <mj-font name="Quattrocento" href="https://fonts.googleapis.com/css?family=Quattrocento" />
+        <mj-font name="Quattrocento" href="https://fonts.googleapis.com/css?family=Quattrocento:400,700" />
         <mj-style>
             {% if  brand_settings.is_brand_theme_activated and brand_settings.primary_color %}
             a {
@@ -17,7 +17,7 @@
             {% endif %}
 
             p {
-                font-size: 15px;
+                font-size: 16px;
             }
 
             ul, ol {
@@ -64,7 +64,7 @@
         </mj-style>
         <mj-attributes>
             <mj-section background-color="#fff" />
-            <mj-text font-size="15px" />
+            <mj-text font-size="16px" />
             <mj-all font-family="Quattrocento, Times, 'Times New Roman'" line-height="1.5"/>
         </mj-attributes>
         {% block email_head %}
