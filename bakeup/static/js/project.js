@@ -94,16 +94,18 @@ function addRemoveButtonEvent(removeButtons) {
 function addForm(e){
     e.preventDefault();
     saveButton.classList.remove('d-none');
+    var form = document.querySelector(".form-container");
+    var container = document.querySelector(".form-add-inline");
     var totalFormValue = parseInt(totalForms.value);
-    var newForm = form[0].cloneNode(true);
+    var newForm = form.cloneNode(true);
     var formRegex = RegExp(`form-(\\d){1}-`,'g');
 
     newForm.classList.remove('d-none');
     console.log(newForm);
     newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, `${totalFormValue}`);
     newForm.querySelector(`#id_form-${totalFormValue}-weight`).required = true;
-    console.log(form[0])
-    container.insertBefore(newForm, form[0]);
+    console.log(form)
+    container.insertBefore(newForm, form);
 
     totalForms.setAttribute('value', `${totalFormValue+1}`);
     var removeButtons = document.querySelectorAll(".remove-another-form");
