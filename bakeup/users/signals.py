@@ -1,6 +1,7 @@
 from allauth.account.models import EmailAddress
 from allauth.account.signals import email_confirmed
 from django.contrib.auth.models import Group
+from django.db import connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -39,7 +40,8 @@ def create_user_customer(sender, instance, created, **kwargs):
             user=instance,
             point_of_sale=point_of_sale,
         )
-    if not hasattr(instance, "contact"):
+    client = connection.get_tenant()
+    if not hasattr(instance, "contact") and client.clientsetting.is_newsletter_enabled:
         contact, created = Contact.objects.get_or_create(
             email__iexact=instance.email,
             defaults={
