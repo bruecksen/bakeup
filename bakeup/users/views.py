@@ -103,7 +103,11 @@ class SignupView(_SignupView):
         if self.group and self.user:
             # add user to group if group available
             self.user.groups.add(self.group)
-        if "newsletter" in form.cleaned_data and form.cleaned_data["newsletter"]:
+        if (
+            self.user
+            and "newsletter" in form.cleaned_data
+            and form.cleaned_data["newsletter"]
+        ):
             contact, created = Contact.objects.get_or_create(
                 email__iexact=self.user.email,
                 defaults={
