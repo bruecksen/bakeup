@@ -202,6 +202,10 @@ class NewsletterPage(NewsletterPageMixin):  # type: ignore
     def scheduled(self):
         return self.status == CampaignStatus.SCHEDULED
 
+    @property
+    def sending(self):
+        return self.status == CampaignStatus.SENDING
+
     def get_report(self):
         return {
             "send_time": self.sent_date,
