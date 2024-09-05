@@ -12,7 +12,7 @@
                     </mj-text>
                     {% elif block.block_type == "image" %}
                         {% image block.value.image width-1200 as image %}
-                        <mj-image src="{{ image.full_url }}" padding="0"/>
+                        <mj-image src="{{ absolute_url }}{{ image.url }}" padding="0"/>
                         {% if block.value.caption %}<mj-text font-size="13px" align="center" padding="0">{{ block.value.caption }}</mj-text>{% endif %}
                     {% else %}
                         {% include_block block %}
