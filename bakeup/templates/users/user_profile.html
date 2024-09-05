@@ -42,7 +42,7 @@
     {% if request.tenant.clientsetting.is_newsletter_enabled %}
     <div class="col-12">
       <div class="card px-3 py-3">
-        <h4 class="" id="email">Newsletter:</h4>
+        <h4 class="" id="newsletter">Newsletter:</h4>
         <p class="mt-2">Verwalten Sie Ihr Newsletter-Abonnement. Sie können sich jederzeit an- oder abmelden. Wenn Sie sich anmelden, erhalten Sie eine E-Mail zur Bestätigung Ihres Abonnements.</p>
         <form class="form-horizontal w-50" method="POST" id="newsletter">
           {% csrf_token %}

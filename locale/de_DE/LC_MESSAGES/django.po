@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-26 10:35+0200\n"
+"POT-Creation-Date: 2024-09-05 20:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,31 +72,31 @@ msgstr ""
 msgid "scheduled"
 msgstr ""
 
-#: bakeup/newsletter/models.py:115
+#: bakeup/newsletter/models.py:121
 msgid "Default"
 msgstr ""
 
-#: bakeup/newsletter/models.py:116 bakeup/newsletter/models.py:130
+#: bakeup/newsletter/models.py:122 bakeup/newsletter/models.py:136
 msgid "Newsletter"
 msgstr ""
 
-#: bakeup/newsletter/models.py:124
+#: bakeup/newsletter/models.py:130
 msgid "Content"
 msgstr ""
 
-#: bakeup/newsletter/models.py:126
+#: bakeup/newsletter/models.py:132
 msgid "Promote"
 msgstr ""
 
-#: bakeup/newsletter/models.py:128
+#: bakeup/newsletter/models.py:134
 msgid "Settings"
 msgstr ""
 
-#: bakeup/newsletter/models.py:167
+#: bakeup/newsletter/models.py:173
 msgid "status"
 msgstr ""
 
-#: bakeup/newsletter/models.py:174
+#: bakeup/newsletter/models.py:180
 msgid "receipts"
 msgstr ""
 
@@ -108,30 +108,30 @@ msgstr ""
 msgid "Internal Server Error (try again later)"
 msgstr ""
 
-#: bakeup/newsletter/views.py:156
+#: bakeup/newsletter/views.py:159
 msgid "Bad request"
 msgstr ""
 
-#: bakeup/newsletter/views.py:184
+#: bakeup/newsletter/views.py:187
 msgid "Search redirects"
 msgstr ""
 
-#: bakeup/newsletter/views.py:198
+#: bakeup/newsletter/views.py:201
 #, python-format
 msgid "File format of type \"%(extension)s\" is not supported"
 msgstr ""
 
-#: bakeup/newsletter/views.py:215
+#: bakeup/newsletter/views.py:218
 #, python-format
 msgid "Imported file has a wrong encoding: %(error_message)s"
 msgstr ""
 
-#: bakeup/newsletter/views.py:222
+#: bakeup/newsletter/views.py:225
 #, python-format
 msgid "%(error)s encountered while trying to read file: %(filename)s"
 msgstr ""
 
-#: bakeup/newsletter/views.py:313
+#: bakeup/newsletter/views.py:316
 #, python-format
 msgid "Imported %(total)d redirect"
 msgid_plural "Imported %(total)d redirects"
@@ -373,11 +373,11 @@ msgstr "Bestätigen"
 #: bakeup/templates/account/email_confirm.html:35
 #, python-format
 msgid ""
-"This e-mail confirmation link expired or is invalid. Please <a href="
-"\"%(email_url)s#email\">issue a new e-mail confirmation request</a>."
+"This e-mail confirmation link expired or is invalid. Please <a "
+"href=\"%(email_url)s#email\">issue a new e-mail confirmation request</a>."
 msgstr ""
-"Dieser E-Maillink ist abgelaufen oder ungültig. Bitte <a href=\"%(email_url)s"
-"\">fordere einen neuen an</a>."
+"Dieser E-Maillink ist abgelaufen oder ungültig. Bitte <a "
+"href=\"%(email_url)s\">fordere einen neuen an</a>."
 
 #: bakeup/templates/account/login.html:19
 #, python-format
@@ -484,10 +484,11 @@ msgstr "E-Mail-Adresse erfolgreich bestätigt!"
 msgid ""
 "Thank you for confirming your email address. You will now regularly receive "
 "our newsletter."
-msgstr "Vielen Dank, dass du deine E-Mail-Adresse bestätigt hast. Du wirst nun regelmäßig unseren Newsletter erhalten."
+msgstr ""
+"Vielen Dank, dass du deine E-Mail-Adresse bestätigt hast. Du wirst nun "
+"regelmäßig unseren Newsletter erhalten."
 
 #: bakeup/templates/newsletter/activate.html:12
-#| msgid "Go to recipies"
 msgid "Go to homepage"
 msgstr "Zur Startseite"
 
@@ -584,27 +585,26 @@ msgid "Continue"
 msgstr ""
 
 #: bakeup/templates/newsletter/unsubscribe.html:10
-#| msgid "Subscriptions"
 msgid "Unsubscription successful"
 msgstr "Abmeldung erfolgreich"
 
-#: bakeup/templates/newsletter/unsubscribe.html:11
-#, python-format
+#: bakeup/templates/newsletter/unsubscribe.html:12
 msgid ""
 "\n"
-"            <p class=\"card-text\">The email address <strong>"
-"%(contact.email)s</strong> has been unsubscribed from the mailing list "
-"<strong>%(list)s</strong>.<br>\n"
-"            <p>If this was a mistake, please go back to your <a href="
-"\"%(site.root_page.full_url)s\">profile</a> to subscribe again.</p>\n"
+"            <p class=\"card-text\">The email address "
+"<strong>%(contact.email)s</strong> has been unsubscribed from the mailing "
+"list <strong>%(list)s</strong>.<br>\n"
+"            <p>If this was a mistake, please go back to your <a "
+"href=\"%(profile_url)s\">profile</a> to subscribe again.</p>\n"
 "            "
 msgstr ""
 "\n"
-"            <p class=\"card-text\">Die E-Mail-Adresse <strong>"
-"%(contact.email)s</strong> wurde von der Mailingliste "
+"            <p class=\"card-text\">Die E-Mail-Adresse "
+"<strong>%(contact.email)s</strong> wurde von der Mailingliste "
 "<strong>%(list)s</strong> abgemeldet.<br>\n"
-"            <p>Wenn dies ein Fehler war, geh bitte zurück zum <a href="
-"\"%(site.root_page.full_url)s\">Profil</a>, um Dich erneut anzumelden.</p>\n"
+"            <p>Wenn dies ein Fehler war, geh bitte zurück zum <a "
+"href=\"%(profile_url)s\">Profil</a>, um Dich erneut anzumelden.</"
+"p>\n"
 "            "
 
 #: bakeup/templates/registration/token.html:12
@@ -684,9 +684,9 @@ msgid ""
 "in</a> or <a href=\"%(signup_url)s\" class=\"text-white fw-bold\">signup</a> "
 "for an account before you can order something."
 msgstr ""
-"Um bestellen zu können musst du dich zuerst <a href=\"%(login_url)s\" class="
-"\"text-white fw-bold\">anmelden</a> oder <a href=\"%(signup_url)s\" class="
-"\"text-white fw-bold\">registrieren</a>."
+"Um bestellen zu können musst du dich zuerst <a href=\"%(login_url)s\" "
+"class=\"text-white fw-bold\">anmelden</a> oder <a href=\"%(signup_url)s\" "
+"class=\"text-white fw-bold\">registrieren</a>."
 
 #: bakeup/templates/shop/weekly.html:9
 #: bakeup/templates/workshop/includes/sidebar.html:50
@@ -1497,7 +1497,7 @@ msgstr "E-Mail-Adresse bestätigen"
 msgid "This username has already been taken."
 msgstr "Dieser Benutzername ist schon vergeben."
 
-#: bakeup/users/views.py:321
+#: bakeup/users/views.py:325
 msgid "Your account is closed."
 msgstr "Dein Konto ist jetzt geschlossen."
 

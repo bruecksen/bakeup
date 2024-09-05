@@ -54,7 +54,12 @@ def recipients(request):
 
 
 def unsubscribe_user(request, uuid, list_id=None):
-    contact = get_object_or_404(Contact, uuid=uuid)
+    try:
+        contact = Contact.objects.get(uuid=uuid)
+    except Contact.DoesNotExist:
+        return redirect(
+            "home"
+        )  # unable to identify contact, let's pretend this endpoint doesn't exist
     contact.delete()
     list_page = None
     if list_id:
