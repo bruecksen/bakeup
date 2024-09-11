@@ -38,7 +38,7 @@
 
     {% elif campaign.scheduled or campaign.sending %}
         <p>
-            <b>Scheduled:</b>
+            <b>{{ campaign.get_status_display }}:</b>
             {{ campaign.newsletter_schedule_date }} (in {{ campaign.newsletter_schedule_date|timeuntil }}).
         </p>
 
