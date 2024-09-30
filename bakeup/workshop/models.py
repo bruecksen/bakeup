@@ -8,6 +8,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
@@ -713,7 +714,7 @@ class ReminderMessage(CommonBaseClass):
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "email": user.email,
-                    "order": order.get_order_positions_string(),
+                    "order": SafeString(order.get_order_positions_string()),
                     "price_total": (
                         order.price_total and Money(order.price_total, "EUR") or ""
                     ),
@@ -766,7 +767,7 @@ class ReminderMessage(CommonBaseClass):
             "absolute_url": client.default_full_url,
         }
         html = render_to_string(
-            template_name="workshop/emails/reminder_email.html",
+            template_name="emails/system_email.html",
             context=context,
         )
         message_data = {

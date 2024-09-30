@@ -415,7 +415,8 @@ class EmailSettings(BaseGenericSetting):
             " production_day }}, {{ order_count }}, {{ order_link }}"
         ),
     )
-    email_order_confirm = models.TextField(
+    email_order_confirm = RichTextField(
+        editor="email",
         default="""Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!
 
 Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:
@@ -458,7 +459,8 @@ Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ 
             " production_day }}, {{ order_count }}, {{ order_link }}"
         ),
     )
-    email_order_cancellation = models.TextField(
+    email_order_cancellation = RichTextField(
+        editor="email",
         default=(
             "Sie haben soeben Ihre komplette Bestellung für den {{ production_day }}"
             " gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten"

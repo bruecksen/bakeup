@@ -1232,9 +1232,9 @@ class DummyOrder(object):
 
     def get_order_positions_string(self):
         return """
-            1 x Hasenbrot 3,99 €
-            2 x Baguette
-            1 x Roggenmisch
+            1 x Hasenbrot 3,99 € <br>
+            2 x Baguette <br>
+            1 x Roggenmisch <br>
         """
 
 
