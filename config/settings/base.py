@@ -465,7 +465,29 @@ WAGTAILADMIN_RICH_TEXT_EDITORS = {
                 "blockquote",
             ]
         },
-    }
+    },
+    "email": {
+        "WIDGET": "wagtail.admin.rich_text.DraftailRichTextArea",
+        "OPTIONS": {
+            "features": [
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "bold",
+                "italic",
+                "ol",
+                "ul",
+                "hr",
+                "link",
+                "document-link",
+                "code",
+                "blockquote",
+            ]
+        },
+    },
 }
 DJANGO_TABLES2_TABLE_ATTRS = {
     "class": "table table-white table-hover shadow",

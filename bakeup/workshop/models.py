@@ -647,23 +647,7 @@ class ReminderMessage(CommonBaseClass):
     state = models.IntegerField(choices=State.choices, default=State.PLANNED)
     subject = models.TextField()
     body = RichTextField(
-        features=[
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "bold",
-            "italic",
-            "ol",
-            "ul",
-            "hr",
-            "link",
-            "document-link",
-            "code",
-            "blockquote",
-        ],
+        editor="email",
         help_text=(
             "Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{"
             " email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{"
