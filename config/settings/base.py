@@ -117,6 +117,7 @@ TENANT_APPS = [
     "allauth.socialaccount",
     "wagtailmenus",
     "djangoql",
+    "wagtail_non_admin_draftail",
 ]
 
 

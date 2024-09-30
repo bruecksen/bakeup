@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import Group
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Count, ProtectedError, Q, Sum
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
@@ -1225,6 +1225,19 @@ def reminder_message_redirect_view(request, pk):
     return HttpResponseRedirect(reverse("workshop:"))
 
 
+class DummyOrder(object):
+    point_of_sale = "Laden"
+    total_quantity = 3
+    price_total = 12.5
+
+    def get_order_positions_string(self):
+        return """
+            1 x Hasenbrot 3,99 €
+            2 x Baguette
+            1 x Roggenmisch
+        """
+
+
 class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView):
     form_class = ReminderMessageForm
     model = ReminderMessage
@@ -1293,9 +1306,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
                     "subject": email_settings.get_subject_with_prefix(
                         email_settings.production_day_reminder_subject
                     ),
-                    "body": email_settings.get_body_with_footer(
-                        email_settings.production_day_reminder_body
-                    ),
+                    "body": email_settings.production_day_reminder_body,
                 }
             )
         initial["production_day"] = self.production_day
@@ -1313,6 +1324,9 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
                 "Reminder message saved and will be send to selected orders.",
             )
             self.object.set_state_to_planned_sending()
+        elif "send_test" in self.request.POST:
+            client = connection.get_tenant()
+            self.object.send_email(self.request.user, DummyOrder(), client)
         else:
             messages.add_message(
                 self.request, messages.SUCCESS, "Reminder message saved."
