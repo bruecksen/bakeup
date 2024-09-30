@@ -88,7 +88,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
           <p class="small mb-0">{{ message.sent_date }}</p>
           <h5>{% if message.error_log %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ message }} </h5>
           <hr>
-          <p>{{ message.body|linebreaksbr }}</p>
+          <p>{{ message.body|safe }}</p>
           <hr>
           <p><small>
             <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a>
