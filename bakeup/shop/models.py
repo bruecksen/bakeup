@@ -951,7 +951,7 @@ class CustomerOrder(CommonBaseClass):
                     "first_name": self.customer.user.first_name,
                     "last_name": self.customer.user.last_name,
                     "email": self.customer.user.email,
-                    "order": self.get_order_positions_string(),
+                    "order": self.get_order_positions_string(html=True),
                     "price_total": (
                         self.price_total and Money(self.price_total, "EUR") or ""
                     ),

@@ -714,7 +714,7 @@ class ReminderMessage(CommonBaseClass):
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "email": user.email,
-                    "order": SafeString(order.get_order_positions_string()),
+                    "order": SafeString(order.get_order_positions_string(html=True)),
                     "price_total": (
                         order.price_total and Money(order.price_total, "EUR") or ""
                     ),
