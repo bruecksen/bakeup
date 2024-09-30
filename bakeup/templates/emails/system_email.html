@@ -1,0 +1,13 @@
+{% extends "newsletter/mail/base_email.html" %}
+{% load wagtailcore_tags wagtailimages_tags static wagtailimages_tags newsletter_tags %}
+
+
+{% block email_body %}
+        <mj-section padding="0">
+            <mj-column>
+                <mj-text>
+                    {{ body|newsletter_richtext }}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+{% endblock email_body %}

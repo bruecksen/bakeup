@@ -396,7 +396,10 @@ class EmailSettings(BaseGenericSetting):
         help_text="E-Mail-Betreff Präfix, kann {{site_name}} enthalten.",
     )
     email_footer = RichTextField(
-        blank=True, null=True, help_text="Dieser Footer wird an jede Email angehängt."
+        editor="email",
+        blank=True,
+        null=True,
+        help_text="Dieser Footer wird an jede Email angehängt.",
     )
     send_email_order_confirm = models.BooleanField(
         default=False,
@@ -412,7 +415,8 @@ class EmailSettings(BaseGenericSetting):
             " production_day }}, {{ order_count }}, {{ order_link }}"
         ),
     )
-    email_order_confirm = models.TextField(
+    email_order_confirm = RichTextField(
+        editor="email",
         default="""Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!
 
 Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:
@@ -455,7 +459,8 @@ Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ 
             " production_day }}, {{ order_count }}, {{ order_link }}"
         ),
     )
-    email_order_cancellation = models.TextField(
+    email_order_cancellation = RichTextField(
+        editor="email",
         default=(
             "Sie haben soeben Ihre komplette Bestellung für den {{ production_day }}"
             " gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten"
@@ -479,7 +484,8 @@ Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ 
             " order_count }}"
         ),
     )
-    production_day_reminder_body = models.TextField(
+    production_day_reminder_body = RichTextField(
+        editor="email",
         default=get_production_day_reminder_body,
         help_text=(
             "Erinnerungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name }}, {{"

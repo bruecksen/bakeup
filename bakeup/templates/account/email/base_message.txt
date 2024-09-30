@@ -1,8 +1,16 @@
+{% extends "newsletter/mail/base_email.html" %}
 
+{% load i18n utils %}
 
-{% load i18n %}{% autoescape off %}
-Hallo!
+{% block email_body %}
+<mj-section padding="0">
+    <mj-column>
+    <mj-text>
+    {% linebreaksbr_block %}
+    Hallo,
 
-{% block content %}{% endblock %}
-
-{% endautoescape %}
+    {% block content %}{% endblock content %}</mj-text>
+    {% endlinebreaksbr_block %}
+    </mj-column>
+</mj-section>
+{% endblock email_body %}

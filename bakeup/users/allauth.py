@@ -1,7 +1,7 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.mail import EmailMessage
 from django.http import HttpResponseRedirect
 from django.template import Context, Template, TemplateDoesNotExist
 from django.template.loader import render_to_string
@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 
-from bakeup.pages.models import EmailSettings, GeneralSettings
+from bakeup.pages.models import BrandSettings, EmailSettings, GeneralSettings
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -71,37 +71,31 @@ class AccountAdapter(DefaultAccountAdapter):
         email that is to be sent, e.g. "account/email/email_confirmation"
         """
         to = [email] if isinstance(email, str) else email
+        context["brand_settings"] = BrandSettings.load(request_or_site=self.request)
+        context["email_settings"] = EmailSettings.load(request_or_site=self.request)
+        context["absolute_url"] = self.request.tenant.default_full_url
         subject = render_to_string("{0}_subject.txt".format(template_prefix), context)
         # remove superfluous line breaks
         subject = " ".join(subject.splitlines()).strip()
         subject = self.format_email_subject(subject)
 
         from_email = self.get_from_email()
-        email_settings = EmailSettings.load(request_or_site=self.request)
 
-        bodies = {}
-        for ext in ["html", "txt"]:
-            try:
-                template_name = "{0}_message.{1}".format(template_prefix, ext)
-                bodies[ext] = render_to_string(
-                    template_name,
-                    context,
-                    self.request,
-                ).strip()
-                bodies[ext] = email_settings.get_body_with_footer(bodies[ext])
-            except TemplateDoesNotExist:
-                if ext == "txt" and not bodies:
-                    # We need at least one body
-                    raise
-        if "txt" in bodies:
-            msg = EmailMultiAlternatives(
-                subject, bodies["txt"], from_email, to, headers=headers
-            )
-            if "html" in bodies:
-                msg.attach_alternative(bodies["html"], "text/html")
-        else:
-            msg = EmailMessage(subject, bodies["html"], from_email, to, headers=headers)
-            msg.content_subtype = "html"  # Main content is now text/html
+        body = None
+        try:
+            template_name = "{0}_message.txt".format(template_prefix)
+            body = render_to_string(
+                template_name,
+                context,
+                self.request,
+            ).strip()
+            # bodies[ext] = email_settings.get_body_with_footer(bodies[ext])
+        except TemplateDoesNotExist:
+            if not body:
+                # We need at least one body
+                raise
+        msg = EmailMessage(subject, body, from_email, to, headers=headers)
+        msg.content_subtype = "html"  # Main content is now text/html
         return msg
 
     def format_email_subject(self, subject):

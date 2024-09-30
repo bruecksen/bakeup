@@ -2,6 +2,10 @@
 {% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
 
+{% block wagtail_non_admin_draftail_head %}
+  {% include "wagtail_non_admin_draftail/draftail_media.html" %}
+{% endblock wagtail_non_admin_draftail_head %}
+
 {% block title %}Send production day reminder{% endblock %}
 {% block page_heading %}
 Production day reminder <small class="text-muted">{{ object }}</small>
@@ -10,7 +14,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 {% block page_content %}
 {{ form.errors }}
 <div class="row">
-  <div class="col col-md-10">
+  <div class="col-sm-10 col">
     <div class="row">
       <div class="col-6">
         <form method="POST" id="select-message-form" action="{% url 'workshop:reminder-message-redirect' pk=production_day.pk %}">
@@ -21,6 +25,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
     </div>
       <form class="form-horizontal" method="POST">
       <input type="hidden" name="next" value="{{ next }}" />
+      {{ form.media }}
       {{ form.production_day.as_hidden }}
       {% csrf_token %}
       <div class="card p-3">
@@ -35,18 +40,10 @@ Production day reminder <small class="text-muted">{{ object }}</small>
           <div class="col">
             {% bootstrap_field form.subject %}
           </div>
-          <div class="col">
-            <label for="email-subject" class="form-label">&nbsp;</label>
-            <input class="form-control" id="email-subject" readonly disabled>
-          </div>
         </div>
         <div class="row">
           <div class="col">
             {% bootstrap_field form.body %}
-          </div>
-          <div class="col">
-            <label for="email-body" class="form-label">&nbsp;</label>
-            <textarea class="form-control" id="email-body" rows="10" readonly disabled></textarea>
           </div>
         </div>
         <div class="row">
@@ -54,6 +51,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
             <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
             <button type="submit" class="btn btn-outline-primary" name="save"><i class="far fa-save"></i> Save reminder</button>
             {% if object and object.is_planned %}<a class="btn btn-outline-primary" href="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}"><i class="fas fa-trash-alt"></i> Delete reminder</a>{% endif %}
+            <button type="submit" class="btn btn-outline-primary" name="send_test"><i class="fas fa-paper-plane"></i> Send test email</button>
             <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send reminder emails</button>
           </div>
         </div>

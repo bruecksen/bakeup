@@ -1,6 +1,8 @@
 import subprocess
 from urllib.parse import urljoin
 
+from django import template
+from django.template.defaultfilters import linebreaksbr
 from django.template.defaulttags import register
 from django.urls import reverse
 from wagtail.models import Site
@@ -88,3 +90,19 @@ def reverse_fullurl(context, view_name, *args, **kwargs):
     root_url = site.root_url
     path = reverse(view_name, args=args, kwargs=kwargs)
     return urljoin(root_url, path)
+
+
+@register.tag(name="linebreaksbr_block")
+def do_linebreaksbr_block(parser, token):
+    nodelist = parser.parse(("endlinebreaksbr_block",))
+    parser.delete_first_token()
+    return LineBreaksBRNode(nodelist)
+
+
+class LineBreaksBRNode(template.Node):
+    def __init__(self, nodelist):
+        self.nodelist = nodelist
+
+    def render(self, context):
+        content = self.nodelist.render(context)
+        return linebreaksbr(content)

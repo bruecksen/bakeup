@@ -9,6 +9,7 @@ from django.core.mail import EmailMessage
 from django.db import models, transaction
 from django.db.models import Count, Exists, F, OuterRef, Q, Subquery, Sum
 from django.template import Context, Template
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -755,7 +756,8 @@ class CustomerOrder(CommonBaseClass):
     def __str__(self):
         return "Customer order: {} {}".format(self.production_day, self.customer)
 
-    def get_order_positions_string(self):
+    def get_order_positions_string(self, html=False):
+        separator = html and "<br>" or "\n"
         positions_string = ""
         for position in self.positions.all():
             price_total = ""
@@ -765,7 +767,7 @@ class CustomerOrder(CommonBaseClass):
                 "{}x {}{}".format(
                     position.quantity, position.product.get_display_name(), price_total
                 )
-                + "\n"
+                + separator
             )
         return positions_string
 
@@ -969,13 +971,13 @@ class CustomerOrder(CommonBaseClass):
         return message
 
     def send_order_confirm_email(self, request):
-        from bakeup.pages.models import EmailSettings
+        from bakeup.pages.models import BrandSettings, EmailSettings
 
         try:
             email_settings = EmailSettings.load(request_or_site=request)
             user_email = self.customer.user.email
             message_body = self.replace_message_tags(
-                email_settings.get_body_with_footer(email_settings.email_order_confirm),
+                email_settings.email_order_confirm,
                 request,
             )
             message_subject = self.replace_message_tags(
@@ -984,12 +986,26 @@ class CustomerOrder(CommonBaseClass):
                 ),
                 request,
             )
+            context = {
+                "body": message_body,
+                "brand_settings": BrandSettings.load(
+                    request
+                ),  # BrandSettings.load(request)
+                "email_settings": email_settings,
+                "contact": None,
+                "absolute_url": request.tenant.default_full_url,
+            }
+            html = render_to_string(
+                template_name="emails/system_email.html",
+                context=context,
+            )
             message = EmailMessage(
                 message_subject,
-                message_body,
+                html,
                 settings.DEFAULT_FROM_EMAIL,
                 [user_email],
             )
+            message.content_subtype = "html"
             if email_settings.email_order_confirm_attachment:
                 message.attach(
                     email_settings.email_order_confirm_attachment.title,
@@ -1001,16 +1017,27 @@ class CustomerOrder(CommonBaseClass):
             logger.exception("Sending order confirm email failed.", stack_info=True)
 
     def send_order_cancellation_email(self, request):
-        from bakeup.pages.models import EmailSettings
+        from bakeup.pages.models import BrandSettings, EmailSettings
 
         try:
             email_settings = EmailSettings.load(request_or_site=request)
             user_email = self.customer.user.email
             message_body = self.replace_message_tags(
-                email_settings.get_body_with_footer(
-                    email_settings.email_order_cancellation
-                ),
+                email_settings.email_order_cancellation,
                 request,
+            )
+            context = {
+                "body": message_body,
+                "brand_settings": BrandSettings.load(
+                    request
+                ),  # BrandSettings.load(request)
+                "email_settings": email_settings,
+                "contact": None,
+                "absolute_url": request.tenant.default_full_url,
+            }
+            html = render_to_string(
+                template_name="emails/system_email.html",
+                context=context,
             )
             message_subject = self.replace_message_tags(
                 email_settings.get_subject_with_prefix(
@@ -1020,10 +1047,11 @@ class CustomerOrder(CommonBaseClass):
             )
             message = EmailMessage(
                 message_subject,
-                message_body,
+                html,
                 settings.DEFAULT_FROM_EMAIL,
                 [user_email],
             )
+            message.content_subtype = "html"
             message.send(fail_silently=False)
         except Exception:
             logger.exception(

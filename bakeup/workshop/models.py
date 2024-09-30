@@ -2,17 +2,19 @@ from collections import defaultdict
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db import connection, models
 from django.db.models import F, ProtectedError, Q, Sum
 from django.template import Context, Template
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 from taggit.managers import TaggableManager
 from treebeard.mp_tree import MP_Node, get_result_class
+from wagtail.fields import RichTextField
 
 from bakeup.core.models import CommonBaseClass
 from bakeup.workshop.managers import (
@@ -645,13 +647,21 @@ class ReminderMessage(CommonBaseClass):
 
     state = models.IntegerField(choices=State.choices, default=State.PLANNED)
     subject = models.TextField()
-    body = models.TextField(
+    body = RichTextField(
+        editor="email",
         help_text=(
             "Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{"
             " email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{"
             " order_count }}, {{ point_of_sale }}"
-        )
+        ),
     )
+    # body = models.TextField(
+    #     help_text=(
+    #         "Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{"
+    #         " email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{"
+    #         " order_count }}, {{ point_of_sale }}"
+    #     )
+    # )
     point_of_sale = models.ForeignKey(
         "shop.PointOfSale", blank=True, null=True, on_delete=models.CASCADE
     )
@@ -694,17 +704,17 @@ class ReminderMessage(CommonBaseClass):
         else:
             return self.production_day.customer_orders.all()
 
-    def replace_message_tags(self, message, order, client, production_day):
+    def replace_message_tags(self, message, order, user, client, production_day):
         t = Template(message)
         message = t.render(
             Context(
                 {
                     "site_name": client.name,
-                    "user": order.customer.user.get_full_name(),
-                    "first_name": order.customer.user.first_name,
-                    "last_name": order.customer.user.last_name,
-                    "email": order.customer.user.email,
-                    "order": order.get_order_positions_string(),
+                    "user": user.get_full_name(),
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                    "order": SafeString(order.get_order_positions_string()),
                     "price_total": (
                         order.price_total and Money(order.price_total, "EUR") or ""
                     ),
@@ -732,6 +742,44 @@ class ReminderMessage(CommonBaseClass):
             ]
         )
 
+    def send_email(self, user, order, client):
+        from bakeup.newsletter.backend import send_mass_html_mail
+        from bakeup.pages.models import BrandSettings, EmailSettings
+
+        messages = []
+        email = user.email
+        user_body = self.replace_message_tags(
+            self.body, order, user, client, self.production_day
+        )
+        subject = self.replace_message_tags(
+            self.subject, order, user, client, self.production_day
+        )
+        context = {
+            "body": user_body,
+            "page": self,
+            "brand_settings": BrandSettings.load(
+                client.default_site
+            ),  # BrandSettings.load(request)
+            "email_settings": EmailSettings.load(
+                client.default_site
+            ),  # EmailSettings.load(request)
+            "contact": None,
+            "absolute_url": client.default_full_url,
+        }
+        html = render_to_string(
+            template_name="emails/system_email.html",
+            context=context,
+        )
+        message_data = {
+            "subject": subject,
+            "from_email": settings.DEFAULT_FROM_EMAIL,
+            "to": [email],
+            "reply_to": [settings.DEFAULT_FROM_EMAIL],
+            "html_body": html,
+        }
+        messages.append(message_data)
+        send_mass_html_mail(messages)
+
     def send_messages(self):
         user_successfull = []
         emails_error = {}
@@ -740,19 +788,7 @@ class ReminderMessage(CommonBaseClass):
         for order in orders:
             try:
                 user_email = order.customer.user.email
-                user_body = self.replace_message_tags(
-                    self.body, order, client, self.production_day
-                )
-                subject = self.replace_message_tags(
-                    self.subject, order, client, self.production_day
-                )
-                send_mail(
-                    subject,
-                    user_body,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user_email],
-                    fail_silently=False,
-                )
+                self.send_email(order.customer.user, order, client)
                 user_successfull.append(order.customer.user)
             except Exception as e:
                 emails_error[user_email] = str(e)
