@@ -26,6 +26,7 @@ django-htmx==1.17.3
 wagtail==6.1.*
 tablib==3.5.0
 wagtailmenus==4.0
+wagtail-non-admin-draftail==0.18.2
 babel==2.9.1 # newer version fails because of langauge variants https://github.com/python-babel/babel/issues/454
 django-money==3.4.1
 django-autocomplete-light==3.11.0
