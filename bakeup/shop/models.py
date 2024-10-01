@@ -960,10 +960,10 @@ class CustomerOrder(CommonBaseClass):
                         "%d.%m.%Y"
                     ),
                     "order_count": self.total_quantity,
-                    "order_link": request.build_absolute_uri(
-                        "{}#bestellung-{}".format(
-                            reverse_lazy("shop:order-list"), self.pk
-                        )
+                    "order_link": "{}{}#bestellung-{}".format(
+                        client.default_full_url,
+                        reverse_lazy("shop:order-list"),
+                        self.pk,
                     ),
                     "point_of_sale": self.point_of_sale,
                 }
