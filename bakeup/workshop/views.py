@@ -1230,7 +1230,7 @@ class DummyOrder(object):
     total_quantity = 3
     price_total = 12.5
 
-    def get_order_positions_string(self):
+    def get_order_positions_string(self, html=False):
         return """
             1 x Hasenbrot 3,99 € <br>
             2 x Baguette <br>
