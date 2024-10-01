@@ -6,7 +6,7 @@ from django.db import connection, models
 from django.db.models import F, ProtectedError, Q, Sum
 from django.template import Context, Template
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
@@ -720,6 +720,11 @@ class ReminderMessage(CommonBaseClass):
                     ),
                     "production_day": production_day.day_of_sale.strftime("%d.%m.%Y"),
                     "order_count": order.total_quantity,
+                    "order_link": "{}{}#bestellung-{}".format(
+                        client.default_full_url,
+                        reverse_lazy("shop:order-list"),
+                        self.pk,
+                    ),
                     "point_of_sale": order.point_of_sale,
                 }
             )
