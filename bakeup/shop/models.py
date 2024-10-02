@@ -945,6 +945,11 @@ class CustomerOrder(CommonBaseClass):
     def replace_message_tags(self, message, request):
         t = Template(message)
         client = request.tenant
+        order_link = "{}{}#bestellung-{}".format(
+            client.default_full_url,
+            reverse_lazy("shop:order-list"),
+            self.pk,
+        )
         message = t.render(
             Context(
                 {
@@ -960,11 +965,10 @@ class CustomerOrder(CommonBaseClass):
                         "%d.%m.%Y"
                     ),
                     "order_count": self.total_quantity,
-                    "order_link": "{}{}#bestellung-{}".format(
-                        client.default_full_url,
-                        reverse_lazy("shop:order-list"),
-                        self.pk,
+                    "order_link_text": SafeString(
+                        "<a href='{}'>{}</a>".format(order_link, "jetzt ändern")
                     ),
+                    "order_link": order_link,
                     "point_of_sale": self.point_of_sale,
                 }
             )

@@ -434,7 +434,7 @@ Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ 
             "Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name"
             " }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{"
             " production_day }}, {{ order_count }}, {{ order_link }}, {{"
-            " point_of_sale }}"
+            " order_link_text }}, {{ point_of_sale }}"
         ),
     )
     email_order_confirm_attachment = models.ForeignKey(
@@ -472,7 +472,7 @@ Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ 
             "Bestellbestätigungs E-Mail. Mögliche Tags: {{ site_name }}, {{ first_name"
             " }}, {{ last_name }}, {{ email }}, {{ order }}, {{ price_total }}, {{"
             " production_day }}, {{ order_count }}, {{ order_link }}, {{"
-            " point_of_sale }}"
+            " order_link_text }}, {{ point_of_sale }}"
         ),
     )
     production_day_reminder_subject = models.CharField(

@@ -651,8 +651,9 @@ class ReminderMessage(CommonBaseClass):
         editor="email",
         help_text=(
             "Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{"
-            " email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{"
-            " order_count }}, {{ point_of_sale }}"
+            " email }}, {{ order }}, {{ order_link }}, {{ order_link_text }}, {{"
+            " price_total }}, {{ production_day }}, {{ order_count }}, {{"
+            " point_of_sale }}"
         ),
     )
     # body = models.TextField(
@@ -706,6 +707,11 @@ class ReminderMessage(CommonBaseClass):
 
     def replace_message_tags(self, message, order, user, client, production_day):
         t = Template(message)
+        order_link = "{}{}#bestellung-{}".format(
+            client.default_full_url,
+            reverse_lazy("shop:order-list"),
+            self.pk,
+        )
         message = t.render(
             Context(
                 {
@@ -720,11 +726,10 @@ class ReminderMessage(CommonBaseClass):
                     ),
                     "production_day": production_day.day_of_sale.strftime("%d.%m.%Y"),
                     "order_count": order.total_quantity,
-                    "order_link": "{}{}#bestellung-{}".format(
-                        client.default_full_url,
-                        reverse_lazy("shop:order-list"),
-                        self.pk,
+                    "order_link_text": SafeString(
+                        "<a href='{}'>{}</a>".format(order_link, "jetzt ändern")
                     ),
+                    "order_link": order_link,
                     "point_of_sale": order.point_of_sale,
                 }
             )
