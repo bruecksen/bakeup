@@ -44,12 +44,13 @@ def newsletter_subscribe_form(context, button_text="Subscribe"):
 
 @register.filter
 def newsletter_richtext(value):
-    if not isinstance(value, RichText):
-        if not isinstance(value, str):
-            raise ValueError("Expected string value")
-        value = RichText(value)
+    if value:
+        if not isinstance(value, RichText):
+            if not isinstance(value, str):
+                raise ValueError("Expected string value")
+            value = RichText(value)
 
-    return mark_safe(rewrite_db_html_for_email(value))  # noqa: S308
+        return mark_safe(rewrite_db_html_for_email(value))  # noqa: S308
 
 
 class MRMLError(Exception):
