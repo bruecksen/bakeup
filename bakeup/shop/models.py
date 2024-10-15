@@ -543,6 +543,13 @@ class ProductionDayProduct(CommonBaseClass):
         )
         return form
 
+    @property
+    def order_positions(self):
+        return CustomerOrderPosition.objects.filter(
+            Q(product=self.product) | Q(product__product_template=self.product),
+            order__production_day=self.production_day,
+        )
+
     def get_order_quantity(self):
         orders = CustomerOrderPosition.objects.filter(
             Q(product=self.product) | Q(product__product_template=self.product),
@@ -653,6 +660,9 @@ class CustomerOrderPosition(BasePositionClass):
 
     class Meta:
         ordering = ["product"]
+
+    def __str__(self):
+        return "{}x {}".format(self.quantity, self.product)
 
     def get_product(self):
         if self.product.product_template:

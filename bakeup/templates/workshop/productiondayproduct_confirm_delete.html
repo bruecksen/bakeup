@@ -1,0 +1,28 @@
+{% extends "workshop/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block page_heading %}{% blocktranslate trimmed with product=object.product production_day=object.production_day %}{{product}} von {{ production_day }} löschen{% endblocktranslate %}{% endblock %}
+
+{% block page_content %}
+<div id="content-container" class="container p-none">
+    <div class="side-p">
+        <h3>{% trans "Are you sure?" %}</h3>
+        {% blocktranslate trimmed with product=object.product production_day=object.production_day %}
+        <p>You're about to delete {{ product }} from {{ production_day }}.<br>The following existing orders will be delted too:</p>
+        {% endblocktranslate %}
+        <ul>
+            {% for order_position in object.order_positions %}
+                <li>{{ order_position.order }}: {{ order_position }}</li>
+            {% endfor %}
+        </ul>
+        <form action="" method="post">
+            {% csrf_token %}
+            <input class="btn btn-link"
+                   type="button" value="{% trans 'Cancel' %}"
+                   onclick="window.history.go(-1);"/>
+            <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}"/>
+        </form>
+    </div>
+</div>
+{% endblock %}
