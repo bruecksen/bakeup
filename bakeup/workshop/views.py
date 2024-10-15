@@ -1077,6 +1077,14 @@ class ProductionDayMixin(object):
                 try:
                     if obj.production_plan:
                         obj.production_plan.delete()
+                    if obj.order_positions.exists():
+                        print("redirect....")
+                        return HttpResponseRedirect(
+                            reverse(
+                                "workshop:production-day-product-delete",
+                                kwargs={"pk": obj.pk},
+                            )
+                        )
                     obj.delete()
                 except ProtectedError as e:
                     messages.error(self.request, e)
@@ -1103,6 +1111,31 @@ class ProductionDayMixin(object):
         return reverse(
             "workshop:production-day-next",
         )
+
+
+class ProductionDayProductDeleteView(StaffPermissionsMixin, DeleteView):
+    model = ProductionDayProduct
+    template_name = "workshop/productiondayproduct_confirm_delete.html"
+
+    def setup(self, request, *args, **kwargs):
+        return super().setup(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse(
+            "workshop:production-day-detail",
+            kwargs={"pk": self.object.production_day.pk},
+        )
+
+    def form_valid(self, form):
+        for position in self.object.order_positions.all():
+            position.delete()
+            if position.order.positions.count() == 0:
+                position.order.delete()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 
 class ProductionDayAddView(NextUrlMixin, ProductionDayMixin, CreateView):
@@ -1176,7 +1209,7 @@ class ProductionDayCopyView(NextUrlMixin, ProductionDayMixin, CreateView):
         return None
 
 
-class ProductionDayUpdateView(NextUrlMixin, ProductionDayMixin, UpdateView):
+class ProductionDayUpdateView(ProductionDayMixin, UpdateView):
     template_name = "workshop/productionday_form.html"
     model = ProductionDay
     form_class = ProductionDayForm
@@ -1184,6 +1217,9 @@ class ProductionDayUpdateView(NextUrlMixin, ProductionDayMixin, UpdateView):
 
     def get_production_day_products(self):
         return ProductionDayProduct.objects.filter(production_day=self.object)
+
+    def get_success_url(self):
+        return reverse("workshop:production-day-detail", kwargs={"pk": self.object.pk})
 
 
 class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
