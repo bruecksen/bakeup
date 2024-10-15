@@ -350,22 +350,22 @@ class CustomerOrderTemplateTable(tables.Table):
     #     "{% load workshop_tags %}{% token_url record.token %}",
     #     verbose_name=_("Signup url"),
     # )
-    user_count = tables.TemplateColumn(
+    abo_count = tables.TemplateColumn(
         "<a href='{% url 'workshop:customer-list'"
         " %}?abo_product={{record.pk}}'>{{record.abo_count}}</a>",
         verbose_name=_("Subscriptions"),
     )
-    abo_count = tables.Column(empty_values=(), verbose_name=_("Quantity"))
+    abo_qty_count = tables.Column(empty_values=(), verbose_name=_("Quantity"))
     # actions = tables.TemplateColumn(
     #     template_name="tables/group_actions_column.html", verbose_name=""
     # )
 
     class Meta:
         model = Product
-        fields = ("name",)
+        fields = ("name", "max_recurring_order_qty")
 
     # def render_user_count(self, value, record):
     #     return record.customerorderposition_positions.count()
 
-    def render_abo_count(self, value, record):
+    def render_abo_qty_count(self, value, record):
         return record.abo_sum
