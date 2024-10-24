@@ -316,6 +316,17 @@ class GeneralSettings(BaseGenericSetting):
     production_day_product_ordering = models.CharField(
         max_length=255, choices=Ordering.choices, default=Ordering.ALPHA
     )
+    bio_certification_logo = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Bio logo",
+        help_text=(
+            "Logo wird in der Produktkachel angezeigt, wenn es ein Bio Produkt ist."
+        ),
+    )
 
     panels = [
         FieldPanel("legal_entity"),
@@ -329,6 +340,7 @@ class GeneralSettings(BaseGenericSetting):
             ],
             heading="Brand name",
         ),
+        FieldPanel("bio_certification_logo"),
     ]
 
     class Meta:

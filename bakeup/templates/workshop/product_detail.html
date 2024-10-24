@@ -33,6 +33,7 @@
       {% if object.sale_price %}<li class="list-inline-item"><strong>{% trans "Price" %}:</strong> {{ object.sale_price.price }}{% endif %}
       <li class="list-inline-item">{% if object.is_recurring %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "recurring product" %}</li>
       {% if object.max_recurring_order_qty %}<li class="list-inline-item"><strong>{% trans "max recurring order qty" %}: </strong> {{ object.max_recurring_order_qty }}</li>{% endif %}
+      <li class="list-inline-item">{% if object.is_bio_certified %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Bio certified" %}</li>
     </ul>
     <ul class="list-unstyled list-inline mb-1">
       {% for parent in object.childs.all %}

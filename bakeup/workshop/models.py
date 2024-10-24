@@ -99,6 +99,9 @@ class Product(CommonBaseClass):
     is_buyable = models.BooleanField(default=False, verbose_name=_("Is buyable"))
     is_composable = models.BooleanField(default=False, verbose_name=_("Is composable"))
     is_recurring = models.BooleanField(default=False, verbose_name=_("Is abo product?"))
+    is_bio_certified = models.BooleanField(
+        default=False, verbose_name=_("Is bio certified?")
+    )
     max_recurring_order_qty = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_("Max abo quantity?")
     )

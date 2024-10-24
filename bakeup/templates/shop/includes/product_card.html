@@ -1,6 +1,7 @@
 {% load l10n %}
 {% load thumbnail %}
 {% load shop_tags %}
+{% load wagtailimages_tags %}
 {% if user.is_authenticated %}
 {% customer_quantity production_day_product as customer_quantity %}
 {% endif %}
@@ -34,7 +35,10 @@
         </div>
         <div class="card-body">
             <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.get_display_name }}
-                <span class="small text-muted fw-normal">{{ production_day_product.product.weight_in_base_unit|clever_weight|localize }}</span>
+                <span class="small text-muted fw-normal text-nowrap">{{ production_day_product.product.weight_in_base_unit|clever_weight|localize }}</span>
+                {% if production_day_product.product.is_bio_certified and settings.pages.GeneralSettings.bio_certification_logo %}
+                {% image settings.pages.GeneralSettings.bio_certification_logo height-30 %}
+                {% endif %}
             </h2>
             <p>{{ production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
             {% with ingredients=production_day_product.product.get_full_ingredient_list %}

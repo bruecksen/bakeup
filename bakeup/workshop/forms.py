@@ -55,6 +55,7 @@ class ProductForm(ModelForm):
             "is_composable",
             "is_recurring",
             "max_recurring_order_qty",
+            "is_bio_certified",
         ]
         widgets = {
             "tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete"),
