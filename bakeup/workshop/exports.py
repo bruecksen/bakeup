@@ -435,7 +435,7 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
                         "",
                     ]
                 )
-            return rows
+        return rows
 
     @property
     def export_name(self):
