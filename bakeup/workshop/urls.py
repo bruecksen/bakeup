@@ -1,6 +1,13 @@
 from django.urls import path
 
 from bakeup.core.views import TagAutocomplete
+from bakeup.workshop.exports import (
+    CustomerBillbeeExportView,
+    CustomerOrderBillbeeExportView,
+    CustomerReady2OrderExportView,
+    CustomerSevdeskExportView,
+    ProductionDayExportView,
+)
 from bakeup.workshop.views import (
     BatchCustomerTemplateView,
     CategoryAddView,
@@ -18,8 +25,6 @@ from bakeup.workshop.views import (
     CustomerOrderListView,
     CustomerOrderTemplateOverview,
     CustomerOrderUpdateView,
-    CustomerReady2OrderExportView,
-    CustomerSevdeskExportView,
     CustomerUpdateView,
     GroupCreateView,
     GroupDeleteView,
@@ -38,7 +43,6 @@ from bakeup.workshop.views import (
     ProductionDayCopyView,
     ProductionDayDeleteView,
     ProductionDayDetailView,
-    ProductionDayExportView,
     ProductionDayListView,
     ProductionDayMetaProductView,
     ProductionDayProductDeleteView,
@@ -292,6 +296,11 @@ urlpatterns = [
     path("orders/", view=CustomerOrderListView.as_view(), name="order-list"),
     path("orders/batch/", view=CustomerOrderBatchView.as_view(), name="order-batch"),
     path(
+        "orders/export/billbee/",
+        view=CustomerOrderBillbeeExportView.as_view(),
+        name="order-export-billbee",
+    ),
+    path(
         "orders/batch/<int:pk>/",
         view=CustomerOrderBatchView.as_view(),
         name="order-batch",
@@ -329,6 +338,11 @@ urlpatterns = [
         "customers/export/ready2order/",
         view=CustomerReady2OrderExportView.as_view(),
         name="customer-export-ready-2-order",
+    ),
+    path(
+        "customers/export/billbee/",
+        view=CustomerBillbeeExportView.as_view(),
+        name="customer-export-billbee",
     ),
     path(
         "customers/export/sevdesk/",

@@ -12,7 +12,15 @@
   {% csrf_token %}
   <div class="row justify-content-end">
     <div class="col-10 text-end">
-      <a href="{% export_url "csv" %}" class="btn btn-primary btn-sm"><i class="fas fa-file-download"></i> {% trans "Export as CSV" %}</a>
+      <div class="btn-group">
+        <a class="btn btn-sm btn-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-file-download"></i> {% trans "Export as CSV" %}
+        </a>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="{% export_url "csv" %}">{% trans "Export as CSV" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'workshop:order-export-billbee' %}?{{ request.GET.urlencode }}">{% trans "Export billbee" %}</a></li>
+        </ul>
+      </div>
     </div>
   </div>
   </form>

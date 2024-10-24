@@ -20,6 +20,7 @@
       <li><a class="dropdown-item" href="{% export_url "csv" %}">{% trans "Export" %}</a></li>
       <li><a class="dropdown-item" href="{% url 'workshop:customer-export-ready-2-order' %}?{{ request.GET.urlencode }}">{% trans "Export Ready2Order" %}</a></li>
       <li><a class="dropdown-item" href="{% url 'workshop:customer-export-sevdesk' %}?{{ request.GET.urlencode }}">{% trans "Export sevDesk" %}</a></li>
+      <li><a class="dropdown-item" href="{% url 'workshop:customer-export-billbee' %}?{{ request.GET.urlencode }}">{% trans "Export billbee" %}</a></li>
     </ul>
   </div>
 </div>
