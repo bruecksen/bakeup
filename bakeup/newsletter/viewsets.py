@@ -10,7 +10,14 @@ from wagtail.admin.viewsets.chooser import ChooserViewSet
 from wagtail.admin.viewsets.model import ModelViewSet, ModelViewSetGroup
 from wagtail.admin.widgets.button import Button
 
-from .models import Audience, Contact, ContactSchema, NewsletterRecipients, Segment
+from .models import (
+    Audience,
+    Contact,
+    ContactSchema,
+    NewsletterPermissionPolicy,
+    NewsletterRecipients,
+    Segment,
+)
 from .panels import DjangoQLPanel, MembersPanel
 from .widgets import DjangoQLWidget
 
@@ -40,6 +47,7 @@ class AudienceViewSet(ModelViewSet):
     model = Audience
     icon = "group"
     list_display = ["name", "member_count"]
+    permission_policy = NewsletterPermissionPolicy(Audience)
 
     form_fields = [
         "name",
@@ -62,7 +70,7 @@ class SegmentViewSet(ModelViewSet):
     list_filter = ["audience"]
     search_fields = ["name"]
     template_prefix = "wagtail_newsletter_simple_smtp/audience_segment/"
-
+    permission_policy = NewsletterPermissionPolicy(Segment)
     form_fields = ["name", "audience"]
 
     panels = [
@@ -119,6 +127,7 @@ class ContactViewSet(ModelViewSet):
     list_display = ["email", "first_name", "last_name", "is_active"]
     search_fields = ["email", "first_name", "last_name"]
     list_filter = ["audiences", "is_active"]
+    permission_policy = NewsletterPermissionPolicy(Contact)
 
     form_fields = [
         "email",
@@ -147,6 +156,7 @@ class NewsletterRecipientsViewSet(ModelViewSet):
     model = NewsletterRecipients
     icon = "group"
     list_display = ["name", "audience", "segment", "member_count"]
+    permission_policy = NewsletterPermissionPolicy(NewsletterRecipients)
 
     form_fields = [
         "name",

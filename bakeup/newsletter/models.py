@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
-from django.db import models
+from django.db import connection, models
 from django.db.models import Exists, OuterRef, Q, UniqueConstraint
 from django.http import HttpResponse, HttpResponseNotFound
 from django.template.loader import render_to_string
@@ -37,6 +37,14 @@ from bakeup.users.models import User
 from .blocks import StoryBlock
 
 
+class NewsletterPermissionPolicy(ModelPermissionPolicy):
+    def user_has_permission(self, user, action):
+        tenant = connection.get_tenant()
+        if tenant.clientsetting.is_newsletter_enabled:
+            return True
+        return False
+
+
 class CampaignStatus(models.IntegerChoices):
     UNSENT = 0, _("unsent")
     SENDING = 1, _("sending")
@@ -55,6 +63,14 @@ class NewsletterListPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("content"),
     ]
+
+    @classmethod
+    def can_create_at(cls, parent):
+        # Custom logic to determine if page can be created
+        tenant = connection.get_tenant()
+        if tenant.clientsetting.is_newsletter_enabled:
+            return True
+        return False
 
     def get_newsletter_archive(self):
         return (
@@ -102,6 +118,14 @@ class NewsletterPageMixin(Page):
             return HttpResponseNotFound()
 
     @classmethod
+    def can_create_at(cls, parent):
+        # Custom logic to determine if page can be created
+        tenant = connection.get_tenant()
+        if tenant.clientsetting.is_newsletter_enabled:
+            return True
+        return False
+
+    @classmethod
     def get_newsletter_panels(cls):
         from .viewsets import recipients_chooser_viewset
 
@@ -140,7 +164,7 @@ class NewsletterPageMixin(Page):
         return edit_handler.bind_to_model(cls)
 
     def has_newsletter_permission(self, user, action):
-        permission_policy = ModelPermissionPolicy(type(self))
+        permission_policy = NewsletterPermissionPolicy(type(self))
         return permission_policy.user_has_permission(user, "publish")
 
     newsletter_template: str
@@ -191,7 +215,7 @@ class NewsletterPage(NewsletterPageMixin):  # type: ignore
     template = "newsletter/newsletter.html"
 
     def has_newsletter_permission(self, user, action):
-        permission_policy = ModelPermissionPolicy(type(self))
+        permission_policy = NewsletterPermissionPolicy(type(self))
         return permission_policy.user_has_permission(user, "sendnewsletter")
 
     @property
