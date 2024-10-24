@@ -6,12 +6,7 @@ from django_filters.views import FilterView
 
 from bakeup.contrib.export import ExportMixin
 from bakeup.core.views import StaffPermissionsMixin
-from bakeup.shop.models import (
-    Customer,
-    CustomerOrder,
-    CustomerOrderPosition,
-    ProductionDay,
-)
+from bakeup.shop.models import Customer, CustomerOrder, ProductionDay
 from bakeup.workshop.tables import CustomerOrderFilter
 
 
@@ -328,7 +323,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
 class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
     filterset_class = CustomerOrderFilter
-    model = CustomerOrderPosition
+    model = CustomerOrder
 
     def get_headers(self):
         headers = [
@@ -384,62 +379,63 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
         return headers
 
     def get_data(self):
-        customer_order_positions = self.object_list.order_by("order")
+        customer_orders = self.object_list.order_by("pk")
         rows = []
-        for customer_order_position in customer_order_positions:
-            rows.append(
-                [
-                    customer_order_position.order.id,
-                    customer_order_position.product.pk,
-                    customer_order_position.order.created,
-                    "",  # Bezahlmethode
-                    customer_order_position.product.name,
-                    "",  # Variante
-                    "",  # Einzelpreis Netto
-                    customer_order_position.price,  # Einzelpreis Brutto
-                    "0",  # Versandkosten Netto
-                    "0",  # Versandkosten Brutto
-                    "0",  # Nachnahmegebühr
-                    "7",  # MwSt. %
-                    customer_order_position.quantity,
-                    "",  # Preis Netto
-                    customer_order_position.price_total,  # Preis Brutto
-                    "EUR",
-                    "",  # Versand-Datum
-                    "",  # Rechn. Firma
-                    "",  # Rechn. Anrede
-                    customer_order_position.order.customer.user.last_name,  # Rechn. Nachname
-                    "",
-                    customer_order_position.order.customer.user.first_name,  # Rechn. Vorname
-                    "",  # Rechn. Adresszusatz
-                    customer_order_position.order.customer.address_line,  # Rechn. Straße
-                    customer_order_position.order.customer.postal_code,
-                    customer_order_position.order.customer.city,
-                    "",
-                    "Deutschland",
-                    customer_order_position.order.customer.telephone_number,
-                    customer_order_position.order.customer.user.email,
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                ]
-            )
-        return rows
+        for customer_order in customer_orders:
+            for customer_order_position in customer_order.positions.all():
+                rows.append(
+                    [
+                        customer_order_position.order.id,
+                        customer_order_position.product.pk,
+                        customer_order.created,
+                        "",  # Bezahlmethode
+                        customer_order_position.product.name,
+                        "",  # Variante
+                        "",  # Einzelpreis Netto
+                        customer_order_position.price,  # Einzelpreis Brutto
+                        "0",  # Versandkosten Netto
+                        "0",  # Versandkosten Brutto
+                        "0",  # Nachnahmegebühr
+                        "7",  # MwSt. %
+                        customer_order_position.quantity,
+                        "",  # Preis Netto
+                        customer_order_position.price_total,  # Preis Brutto
+                        "EUR",
+                        "",  # Versand-Datum
+                        "",  # Rechn. Firma
+                        "",  # Rechn. Anrede
+                        customer_order.customer.user.last_name,  # Rechn. Nachname
+                        "",
+                        customer_order.customer.user.first_name,  # Rechn. Vorname
+                        "",  # Rechn. Adresszusatz
+                        customer_order.customer.address_line,  # Rechn. Straße
+                        customer_order.customer.postal_code,
+                        customer_order.customer.city,
+                        "",
+                        "Deutschland",
+                        customer_order.customer.telephone_number,
+                        customer_order.customer.user.email,
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                    ]
+                )
+            return rows
 
     @property
     def export_name(self):
