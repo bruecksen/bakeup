@@ -50,9 +50,10 @@ def current_git_commit():
 @register.filter(name="hex_to_rgb")
 def hex_to_rgb(hex, format_string="{r},{g},{b}"):
     # Returns the RGB value of a hexadecimal color
-    hex = hex.replace("#", "")
-    out = {"r": int(hex[0:2], 16), "g": int(hex[2:4], 16), "b": int(hex[4:6], 16)}
-    return format_string.format(**out)
+    if hex:
+        hex = hex.replace("#", "")
+        out = {"r": int(hex[0:2], 16), "g": int(hex[2:4], 16), "b": int(hex[4:6], 16)}
+        return format_string.format(**out)
 
 
 @register.simple_tag(takes_context=True)
