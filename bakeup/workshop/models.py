@@ -2,6 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import connection, models
 from django.db.models import F, ProtectedError, Q, Sum
 from django.template import Context, Template
@@ -59,6 +60,15 @@ WEIGHT_UNIT_CHOICES = [
 ]
 
 
+def validate_video_file(value):
+    # Check that the uploaded file is a video file
+    valid_extensions = [".mp4", ".mov", ".avi", ".mkv"]
+    if not any(value.name.endswith(ext) for ext in valid_extensions):
+        raise ValidationError(
+            "Unsupported file extension. Allowed extensions are: .mp4, .mov, .avi, .mkv"
+        )
+
+
 # Item
 class Product(CommonBaseClass):
     product_template = models.ForeignKey(
@@ -79,6 +89,9 @@ class Product(CommonBaseClass):
         blank=True,
         upload_to="product_images",
         verbose_name=_("Secondary Image"),
+    )
+    video_file = models.FileField(
+        upload_to="videos/", validators=[validate_video_file], blank=True, null=True
     )
     category = models.ForeignKey(
         Category,

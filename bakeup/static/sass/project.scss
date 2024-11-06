@@ -129,6 +129,51 @@ input.form-control.product-quantity {
       opacity: 1;
     }
   }
+  &.has-video {
+    &:hover {
+      cursor: pointer;
+    }
+    .fa-circle-play {
+      z-index: 3;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+    img {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    overflow: hidden;
+    video {
+      z-index: 1;
+    }
+      .btn-mute {
+        z-index: 1;
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        color: $white;
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        border: 0;
+        &.active {
+          color: $white;
+        }
+        .fa-volume-high {
+          display: block;
+        }
+        .fa-volume-xmark {
+          display: none;
+        }
+      }
+      // .btn-play {
+      //   position: absolute;
+      //   top: 50%;
+      //   left: 50%;
+      //   color: $black;
+      // }
+  }
 }
 
 .text-shadow {

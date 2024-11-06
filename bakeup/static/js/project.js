@@ -600,6 +600,49 @@ $(function(){
             updateModalUnchange(modal);
         }
     });
+    $('.product-card .figure.has-video img').click(function(){
+        var figure = $(this).parents('.figure');
+        $(figure).find('img').hide();
+        var play_button = $(figure).find('.fa-circle-play');
+        var video = $(figure).find('video');
+
+        if (video.length) {
+            video = video.get(0);
+            video.play();
+            video.addEventListener('play', function() {
+                $(this).find('.fa-circle-play').hide();
+            });
+
+            // Event listener for 'pause' to show the button
+            video.addEventListener('pause', function() {
+                play_button.show();
+            });
+
+            // Initial icon setup to play or pause
+            video.addEventListener('playing', () => {
+                play_button.hide();
+            });
+            $(video).add(play_button).click(function() {
+                if (video.paused) {
+                    video.play();
+                    play_button.hide();
+                } else {
+                    video.pause();
+                    play_button.show();
+                }
+            });
+            $(figure).find('.btn-mute').click(function() {
+                video.muted = !video.muted;
+                if (video.muted) {
+                    $(figure).find('.fa-volume-xmark').show();
+                    $(figure).find('.fa-volume-high').hide();
+                } else {
+                    $(figure).find('.fa-volume-xmark').hide();
+                    $(figure).find('.fa-volume-high').show();
+                }
+            })
+        }
+    });
 });
 
 
