@@ -1,6 +1,5 @@
 EMAIL_ORDER_CONFIRM_DEFAULT = """
 <p>Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!</p>
-<br>
 <p>Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:<br>
 <br>
 <br>
