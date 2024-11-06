@@ -12799,6 +12799,9 @@ input.form-control.product-quantity::-webkit-outer-spin-button, input.form-contr
 .figure {
   min-height: 50px;
 }
+.figure .z-3 {
+  z-index: 3;
+}
 .figure .img-hover {
   position: absolute;
   top: 0;
