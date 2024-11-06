@@ -7,6 +7,7 @@ from wagtail.contrib.settings.models import BaseGenericSetting, register_setting
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
 
+from bakeup.pages import constants
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
 from bakeup.shop.models import (
     CustomerOrder,
@@ -405,7 +406,10 @@ class EmailSettings(BaseGenericSetting):
     email_subject_prefix = models.CharField(
         max_length=1024,
         default="[{{site_name}}]",
-        help_text="E-Mail-Betreff Präfix, kann {{site_name}} enthalten.",
+        help_text=(
+            "E-Mail-Betreff Präfix, kann {{site_name}} enthalten. Dieser Prefix wird an"
+            " den Betreff jeder E-Mail angehängt."
+        ),
     )
     email_footer = RichTextField(
         editor="email",
@@ -429,17 +433,7 @@ class EmailSettings(BaseGenericSetting):
     )
     email_order_confirm = RichTextField(
         editor="email",
-        default="""Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!
-
-Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:
-
-{{ order }}
-
-Gesamtpreis: {{ price_total }}
-
-Ihre ausgewählte Abholstelle: {{ point_of_sale }}
-
-Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ order_link }} anpassen oder stornieren.""",  # noqa: E501
+        default=constants.EMAIL_ORDER_CONFIRM_DEFAULT,
         blank=True,
         null=True,
         help_text=(

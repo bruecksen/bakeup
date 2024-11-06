@@ -1,9 +1,10 @@
-Hallo {{ user }},
-
-deine Bestellung ist fertig und abholbereit.
-
-{{ order }}
-{{ price_total }}
-
-Viele Grüße,
-{{ site_name }}
+<p>Hallo {{ user }},<br>
+<br>
+deine Bestellung ist fertig und abholbereit.</p>
+<p>
+{{ order }}<br>
+{{ price_total }}<br>
+</p>
+<p>
+Viele Grüße,<br>
+{{ site_name }}</p>
