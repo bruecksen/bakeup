@@ -1,12 +1,12 @@
 EMAIL_ORDER_CONFIRM_DEFAULT = """
 <p>Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!</p>
-<p>Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:<br>
-<br>
-<br>
+<p>Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:<br/>
+<br/>
+<br/>
 <strong>{{ order }}</strong>
-<br>
-<br>
-Gesamtpreis: <strong>{{ price_total }}</strong><br>
+<br/>
+<br/>
+Gesamtpreis: <strong>{{ price_total }}</strong><br/>
 </p>
 <p>Ihre ausgewählte Abholstelle: <strong>{{ point_of_sale }}</strong></p>
 <p>Sie können Ihre Bestellung vor dem Backtag jederzeit in Ihrem Account unter {{ order_link }} anpassen oder stornieren.</p>
