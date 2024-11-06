@@ -114,6 +114,9 @@ input.form-control.product-quantity {
 
 .figure {
   min-height: 50px;
+  .z-3 {
+    z-index: 3;
+  }
   .img-hover {
     position: absolute;
     top: 0;
