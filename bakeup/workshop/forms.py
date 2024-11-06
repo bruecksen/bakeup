@@ -46,6 +46,7 @@ class ProductForm(ModelForm):
             "description",
             "image",
             "image_secondary",
+            "video_file",
             "category",
             "tags",
             "weight",

@@ -60,6 +60,18 @@
   </div>
   {% endif %}
 </div>
+<div class="row ">
+  {% if object.video_file %}
+  <div class="offset-8 col-4 mt-2">
+    <div class="ratio ratio-16x9">
+      <video controls class="mt-2">
+          <source src="{{ object.video_file.url }}" type="video/mp4">
+          Your browser does not support the video tag.
+      </video>
+  </div>
+  </div>
+  {% endif %}
+</div>
 <div class="row mb-4 justify-content-between">
   {% if key_figures_form %}
   <div class="col-sm-12 col-md-8 col-lg-6 col-xl-4">
