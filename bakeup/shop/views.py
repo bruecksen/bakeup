@@ -277,9 +277,12 @@ class ShopView(TemplateView):
 
     def setup(self, request, *args, **kwargs):
         if kwargs.get("production_day", None):
-            self.production_day = ProductionDay.objects.get(
-                pk=kwargs.get("production_day")
-            )
+            try:
+                self.production_day = ProductionDay.objects.get(
+                    pk=kwargs.get("production_day")
+                )
+            except ProductionDay.DoesNotExist:
+                self.production_day = ProductionDay.get_production_day(request.user)
         else:
             self.production_day = ProductionDay.get_production_day(request.user)
 
