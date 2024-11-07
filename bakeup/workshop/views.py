@@ -367,7 +367,7 @@ def production_plan_redirect_view(request):
                 "workshop:production-plan-production-day",
                 kwargs={"pk": form.cleaned_data["production_day"].pk},
             )
-        return HttpResponseRedirect(url)
+            return HttpResponseRedirect(url)
     production_day = ProductionDay.objects.upcoming().first()
     if not production_day:
         production_day = ProductionDay.objects.all().first()
