@@ -1,5 +1,4 @@
 {% load l10n %}
-{% load thumbnail %}
 {% load shop_tags %}
 {% load wagtailimages_tags %}
 {% if user.is_authenticated %}
@@ -18,51 +17,8 @@
     {% endif %}
     {% if production_day_product.is_locked or production_day_product.is_sold_out%}<div class="opacity-60">{% endif %}
 
-        <div class="position-relative figure{% if production_day_product.product.video_file %} has-video{% endif %}">
-            {% if production_day_product.product.image %}
-            {% thumbnail production_day_product.product.image "600x450" crop="center" as im %}
-            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid" alt="product image">
-            {% endthumbnail %}
-            {% endif %}
-            {% if production_day_product.product.image_secondary %}
-            {% thumbnail production_day_product.product.image_secondary "600x450" crop="center" as im %}
-            <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid img-hover" alt="product image">
-            {% endthumbnail %}
-            {% endif %}
-            <div class="position-absolute bottom-20 start-20 z-3">
-                {% for tag in production_day_product.product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
-            </div>
-            {% if production_day_product.product.video_file %}
-            <i class="fa-regular fa-circle-play position-absolute z-3 top-50 start-50 translate-middle text-white fs-1"></i>
-            <div class="ratio ratio-16x9">
-                <video>
-                    <source src="{{ production_day_product.product.video_file.url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <button id="btn-mute" class="btn btn-text btn-mute">
-                <i class="fa-solid fa-fw fa-volume-xmark"></i>
-                <i class="fa-solid fa-fw fa-volume-high"></i>
-            </button>
-            {% endif %}
-        </div>
-        <div class="card-body">
-            <h2 class="card-title hyphens-auto fw-bold">{{ production_day_product.product.get_display_name }}
-                <span class="small text-muted fw-normal text-nowrap">{{ production_day_product.product.weight_in_base_unit|clever_weight|localize }}</span>
-                {% if production_day_product.product.is_bio_certified and settings.pages.GeneralSettings.bio_certification_logo %}
-                {% image settings.pages.GeneralSettings.bio_certification_logo height-30 %}
-                {% endif %}
-            </h2>
-            <p>{{ production_day_product.product.description|safe|linebreaksbr|urlize }}</p>
-            {% with ingredients=production_day_product.product.get_full_ingredient_list %}
-            {% if ingredients %}
-            <p class="small mb-0 text-muted"><strong>Zutaten</strong>: {% for ingredient in ingredients %}{{ ingredient.0.get_display_name }}{% if not forloop.last %},{% endif %} {% endfor %}</p>
-            {% endif %}
-            {% endwith %}
-            {% if production_day_product.product.sale_price %}
-                <p class="mt-3 mb-3 fs-5 fw-bold">{{ production_day_product.product.sale_price.price }} <small class="text-muted fw-normal">({% base_price production_day_product.product %})</small></p>
-            {% endif %}
-        </div>
+        {% include "shop/includes/product_card_header.html" with product=production_day_product.product %}
+        {% include "shop/includes/product_card_body.html" with product=production_day_product.product %}
 
         {% if user.is_authenticated %}
         <div class="card-footer border-top-0 bg-transparent">
