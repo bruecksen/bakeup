@@ -7,7 +7,7 @@
             <span class="small text-muted fw-normal text-nowrap">{{ product.weight_in_base_unit|clever_weight|localize }}</span>
         </h2>
         {% if product.is_bio_certified and settings.pages.GeneralSettings.bio_certification_logo %}
-        {% image settings.pages.GeneralSettings.bio_certification_logo height-40 class="float-endx" %}
+        {% image settings.pages.GeneralSettings.bio_certification_logo height-40 class="ms-2" %}
         {% endif %}
     </div>
     <p>{{ product.description|safe|linebreaksbr|urlize }}</p>
