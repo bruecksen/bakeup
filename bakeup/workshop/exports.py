@@ -7,11 +7,11 @@ from django_filters.views import FilterView
 from bakeup.contrib.export import ExportMixin
 from bakeup.core.views import StaffPermissionsMixin
 from bakeup.shop.models import Customer, CustomerOrder, ProductionDay
-from bakeup.workshop.tables import CustomerOrderFilter
+from bakeup.workshop.tables import CustomerFilter, CustomerOrderFilter
 
 
 class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterView):
-    filterset_class = CustomerOrderFilter
+    filterset_class = CustomerFilter
     model = Customer
 
     def get_headers(self):
@@ -57,7 +57,7 @@ class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterVi
 
 
 class CustomerBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
-    filterset_class = CustomerOrderFilter
+    filterset_class = CustomerFilter
     model = Customer
 
     def get_headers(self):
@@ -135,7 +135,7 @@ class CustomerBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
 
 
 class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
-    filterset_class = CustomerOrderFilter
+    filterset_class = CustomerFilter
     model = Customer
 
     def get_headers(self):
