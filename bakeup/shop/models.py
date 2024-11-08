@@ -665,8 +665,8 @@ class CustomerOrderPosition(BasePositionClass):
         return "{}x {}".format(self.quantity, self.product)
 
     def save(self, *args, **kwargs):
-        if not self.price and self.product.sale_price:
-            self.price = self.product.sale_price.price.amount
+        if not self.price and self.get_product().sale_price:
+            self.price = self.get_product().sale_price.price.amount
         if self.price and self.quantity:
             self.price_total = self.price * self.quantity
         super().save(*args, **kwargs)
