@@ -26,8 +26,11 @@ class DataExport:
         XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         YAML: "text/yaml; charset=utf-8",
     }
+    delimiter = ","
 
-    def __init__(self, export_format, data, headers, title, dataset_kwargs=None):
+    def __init__(
+        self, export_format, data, headers, title, delimiter=",", dataset_kwargs=None
+    ):
         if not self.is_valid_format(export_format):
             raise TypeError(
                 'Export format "{}" is not supported.'.format(export_format)
@@ -35,6 +38,7 @@ class DataExport:
 
         self.format = export_format
         self.dataset = self.data_to_dataset(data, headers, title, dataset_kwargs)
+        self.delimiter = delimiter
 
     @classmethod
     def is_valid_format(self, export_format):
@@ -61,7 +65,7 @@ class DataExport:
         """
         Returns the string/bytes for the current export format
         """
-        return self.dataset.export(self.format)
+        return self.dataset.export(self.format, delimiter=self.delimiter)
 
     def response(self, filename=None):
         """
@@ -77,7 +81,7 @@ class DataExport:
                 filename
             )
 
-        response.write(self.export().encode("latin-1", "ignore"))
+        response.write(self.export().encode("iso-8859-1", "ignore"))
         return response
 
 
@@ -87,6 +91,7 @@ class ExportMixin:
     export_class = DataExport
 
     export_format = DataExport.CSV
+    delimiter = ","
 
     def get_export_filename(self, export_format):
         return "{}.{}".format(self.export_name, export_format)
@@ -94,16 +99,17 @@ class ExportMixin:
     def get_dataset_kwargs(self):
         return self.dataset_kwargs
 
-    def create_export(self, export_format):
+    def create_export(self, export_format, delimiter):
         exporter = self.export_class(
             export_format=export_format,
             data=self.get_data(),
             headers=self.get_headers(),
             title=self.export_name,
+            delimiter=delimiter,
             dataset_kwargs=self.get_dataset_kwargs(),
         )
 
         return exporter.response(filename=self.get_export_filename(export_format))
 
     def render_to_response(self, context, **kwargs):
-        return self.create_export(self.export_format)
+        return self.create_export(self.export_format, self.delimiter)

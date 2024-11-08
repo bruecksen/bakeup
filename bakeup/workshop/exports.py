@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils import numberformat
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
@@ -59,6 +60,7 @@ class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterVi
 class CustomerBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
     filterset_class = CustomerFilter
     model = Customer
+    delimiter = ";"
 
     def get_headers(self):
         headers = [
@@ -383,23 +385,33 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
         rows = []
         for customer_order in customer_orders:
             for customer_order_position in customer_order.positions.all():
+                price = ""
+                if customer_order_position.price:
+                    decimal_value = customer_order_position.price_total.amount
+                    price = numberformat.format(decimal_value, ",", use_l10n=True)
+                price_total = ""
+                if customer_order_position.price_total:
+                    decimal_value = customer_order_position.price_total.amount
+                    price_total = numberformat.format(decimal_value, ",", use_l10n=True)
                 rows.append(
                     [
                         customer_order_position.order.id,
                         customer_order_position.product.pk,
-                        customer_order.created,
+                        customer_order.created.strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),  # format yyyy-MM-dd HH:mm:ss
                         "",  # Bezahlmethode
                         customer_order_position.product.name,
                         "",  # Variante
                         "",  # Einzelpreis Netto
-                        customer_order_position.price,  # Einzelpreis Brutto
+                        price,  # Einzelpreis Brutto
                         "0",  # Versandkosten Netto
                         "0",  # Versandkosten Brutto
                         "0",  # Nachnahmegebühr
                         "7",  # MwSt. %
                         customer_order_position.quantity,
                         "",  # Preis Netto
-                        customer_order_position.price_total,  # Preis Brutto
+                        price_total,  # Preis Brutto
                         "EUR",
                         "",  # Versand-Datum
                         "",  # Rechn. Firma
