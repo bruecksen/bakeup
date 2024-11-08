@@ -1,5 +1,5 @@
 <ul class="list-unstyled mb-0">
     {% for position in record.positions.all %}
-    <li class="text-nowrap">{{ position.quantity}} x {{ position.product }}{% if position.price_total %} {{ position.price_total }}{% endif %}</li>
+    <li class="">{{ position.quantity}} x {{ position.product }}{% if position.price_total %} {{ position.price_total }}{% endif %}</li>
     {% endfor %}
 </ul>
