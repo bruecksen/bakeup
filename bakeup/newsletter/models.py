@@ -103,6 +103,10 @@ class NewsletterPageMixin(Page):
             " will be sent immediately."
         ),
     )
+    show_unsubscribe_link = models.BooleanField(
+        default=True,
+        help_text="If checked the footer contains an unsbscribe link.",
+    )
     web_version = models.BooleanField(
         default=False,
         help_text="If checked a web version of the newsletter will be published.",
@@ -137,6 +141,7 @@ class NewsletterPageMixin(Page):
             ),
             FieldPanel("newsletter_subject", heading="Subject"),
             FieldPanel("newsletter_schedule_date", heading="Schedule"),
+            FieldPanel("show_unsubscribe_link", heading="Unsubscribe link"),
             FieldPanel("web_version", heading="Web version"),
             NewsletterPanel(heading="Campaign"),
         ]
@@ -251,7 +256,7 @@ class NewsletterPage(NewsletterPageMixin):  # type: ignore
             "page": self,
             "brand_settings": brand_settings,  # BrandSettings.load(request)
             "email_settings": email_settings,  # EmailSettings.load(request)
-            "contact": contact,
+            "contact": self.show_unsubscribe_link and contact or None,
             "absolute_url": absolute_url,
         }
 
