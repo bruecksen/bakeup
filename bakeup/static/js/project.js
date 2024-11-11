@@ -602,43 +602,55 @@ $(function(){
     });
     $('.product-card .figure.has-video img').click(function(){
         var figure = $(this).parents('.figure');
-        $(figure).find('img').hide();
         var play_button = $(figure).find('.fa-circle-play');
-        var video = $(figure).find('video');
+        var video = $(figure).find('.video-container');
+        var mute_btn = $(figure).find('.btn-mute');
 
         if (video.length) {
-            video = video.get(0);
-            video.play();
-            video.addEventListener('play', function() {
+            mute_btn.show();
+            $(figure).find('.product-tags').hide();
+            video.css('height',figure.outerHeight() + "px");
+            video.show();
+            var video_element = video.find('video').get(0);
+            video_element.play();
+            $(figure).find('img').hide();
+            video_element.addEventListener('play', function() {
                 $(this).find('.fa-circle-play').hide();
             });
 
             // Event listener for 'pause' to show the button
-            video.addEventListener('pause', function() {
+            video_element.addEventListener('pause', function() {
                 play_button.show();
+            });
+            // Event listener for 'ended' to show the button
+            video_element.addEventListener('ended', function() {
+                play_button.show();
+                $(figure).find('img').show();
+                $(figure).find('.product-tags').show();
+                video.hide();
             });
 
             // Initial icon setup to play or pause
-            video.addEventListener('playing', () => {
+            video_element.addEventListener('playing', () => {
                 play_button.hide();
             });
-            $(video).add(play_button).click(function() {
-                if (video.paused) {
-                    video.play();
+            $(video_element).add(play_button).click(function() {
+                if (video_element.paused) {
+                    video_element.play();
                     play_button.hide();
                 } else {
-                    video.pause();
+                    video_element.pause();
                     play_button.show();
                 }
             });
             $(figure).find('.btn-mute').click(function() {
-                video.muted = !video.muted;
-                if (video.muted) {
-                    $(figure).find('.fa-volume-xmark').show();
-                    $(figure).find('.fa-volume-high').hide();
+                video_element.muted = !video_element.muted;
+                if (video_element.muted) {
+                    mute_btn.find('.fa-volume-xmark').show();
+                    mute_btn.find('.fa-volume-high').hide();
                 } else {
-                    $(figure).find('.fa-volume-xmark').hide();
-                    $(figure).find('.fa-volume-high').show();
+                    mute_btn.find('.fa-volume-xmark').hide();
+                    mute_btn.find('.fa-volume-high').show();
                 }
             })
         }

@@ -11,20 +11,20 @@
     <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" class="card-img-top img-fluid img-hover" alt="product image">
     {% endthumbnail %}
     {% endif %}
-    <div class="position-absolute bottom-20 start-20 z-3">
+    <div class="position-absolute bottom-20 start-20 z-3 product-tags">
         {% for tag in product.tags.all %}<span class="badge rounded-pill bg-dark me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}
     </div>
     {% if product.video_file %}
     <i class="fa-regular fa-circle-play position-absolute z-3 top-50 start-50 translate-middle text-white fs-1"></i>
-    <div class="ratio ratio-16x9">
+    <div class="video-container position-relative">
         <video>
             <source src="{{ product.video_file.url }}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+        <button id="btn-mute" class="btn btn-text btn-mute">
+            <i class="fa-solid fa-fw fa-volume-xmark"></i>
+            <i class="fa-solid fa-fw fa-volume-high"></i>
+        </button>
     </div>
-    <button id="btn-mute" class="btn btn-text btn-mute">
-        <i class="fa-solid fa-fw fa-volume-xmark"></i>
-        <i class="fa-solid fa-fw fa-volume-high"></i>
-    </button>
     {% endif %}
 </div>
