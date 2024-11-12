@@ -10,6 +10,7 @@ from bakeup.workshop.models import (
     ProductionPlan,
     ProductMapping,
     ProductPrice,
+    ReminderMessage,
 )
 
 
@@ -60,4 +61,15 @@ class ProductMappingAdmin(admin.ModelAdmin):
         "target_product",
         "production_day",
         "matched_count",
+    )
+
+
+@admin.register(ReminderMessage)
+class ReminderMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        "state",
+        "point_of_sale",
+        "sent_date",
+        "created",
+        "updated",
     )
