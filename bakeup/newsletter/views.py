@@ -334,7 +334,6 @@ def create_contacts_from_dataset(dataset, config):
             "email": row[config["email"]],
             "first_name": row[config["first_name"]],
             "last_name": row[config["last_name"]],
-            "audience": config["audience"],
             "is_active": config["is_active"],
         }
 
