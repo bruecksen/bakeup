@@ -12,7 +12,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from django.views.decorators.http import require_http_methods
 from wagtail.admin.forms.search import SearchForm
-from wagtail.log_actions import log
 from wagtail.models import Site
 
 from bakeup.contrib.utils import get_json_http_response
@@ -351,7 +350,7 @@ def create_contacts_from_dataset(dataset, config):
                 if config["is_active"]:
                     contact.is_active = True
                     contact.save()
-                log(instance=contact, action="wagtail.create")
+                # log(instance=contact, action="wagtail.create")
             except IntegrityError as e:
                 errors.append([row[config["email"]], str(e)])
                 continue
