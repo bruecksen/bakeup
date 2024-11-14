@@ -33,3 +33,4 @@ django-autocomplete-light==3.11.0
 mjml-python==1.3.3
 mrml==0.1.14
 djangoql==0.18.1
+django-hijack==3.7.0

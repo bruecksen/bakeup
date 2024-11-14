@@ -41,6 +41,7 @@ urlpatterns = [
             "wagtail_non_admin_draftail.urls", namespace="wagtail_non_admin_draftail"
         ),
     ),
+    path("hijack/", include("hijack.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
