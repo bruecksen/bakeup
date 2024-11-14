@@ -118,6 +118,8 @@ TENANT_APPS = [
     "wagtailmenus",
     "djangoql",
     "wagtail_non_admin_draftail",
+    "hijack",
+    "hijack.contrib.admin",
 ]
 
 
@@ -191,6 +193,7 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
     "bakeup.core.middleware.PersistentFiltersMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
 ]
 
 # STATIC
