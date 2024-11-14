@@ -39,12 +39,22 @@ class CustomerAdmin(BaseAdmin):
 
 @admin.register(ProductionDayProduct)
 class ProductionDayProductAdmin(BaseAdmin):
-    list_display = ("production_day", "product", "max_quantity")
+    list_display = (
+        "production_day",
+        "product",
+        "max_quantity",
+        "created",
+        "updated",
+    )
 
 
 @admin.register(ProductionDay)
 class ProductionDayAdmin(BaseAdmin):
-    list_display = ("day_of_sale",)
+    list_display = (
+        "day_of_sale",
+        "created",
+        "updated",
+    )
 
 
 @admin.register(ProductionDayTemplate)
@@ -66,6 +76,7 @@ class CustomerOrderAdmin(BaseAdmin):
         "point_of_sale",
         "address",
         "created",
+        "updated",
     )
     inlines = (CustomerOrderPositionAdmin,)
     search_fields = (
