@@ -63,7 +63,7 @@ WEIGHT_UNIT_CHOICES = [
 def validate_video_file(value):
     # Check that the uploaded file is a video file
     valid_extensions = [".mp4", ".mov", ".avi", ".mkv"]
-    if not any(value.name.endswith(ext) for ext in valid_extensions):
+    if not any(value.name.lower().endswith(ext) for ext in valid_extensions):
         raise ValidationError(
             "Unsupported file extension. Allowed extensions are: .mp4, .mov, .avi, .mkv"
         )
