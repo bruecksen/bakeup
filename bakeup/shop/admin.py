@@ -86,7 +86,7 @@ class CustomerOrderAdmin(BaseAdmin):
     )
 
 
-class CustomerOrderTemplatePositionAdmin(admin.TabularInline):
+class CustomerOrderTemplatePositionAdminInline(admin.TabularInline):
     model = CustomerOrderTemplatePosition
     extra = 0
 
@@ -94,4 +94,9 @@ class CustomerOrderTemplatePositionAdmin(admin.TabularInline):
 @admin.register(CustomerOrderTemplate)
 class CustomerOrderTemplateAdmin(BaseAdmin):
     list_display = ("customer", "start_date", "end_date", "is_locked")
-    inlines = (CustomerOrderTemplatePositionAdmin,)
+    inlines = (CustomerOrderTemplatePositionAdminInline,)
+
+
+@admin.register(CustomerOrderTemplatePosition)
+class CustomerOrderTemplatePositionAdmin(BaseAdmin):
+    list_display = ("order_template", "product", "quantity", "created", "updated")
