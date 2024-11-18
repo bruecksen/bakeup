@@ -1038,7 +1038,7 @@ class CustomerOrder(CommonBaseClass):
         except Exception:
             logger.exception("Sending order confirm email failed.", stack_info=True)
 
-    def send_order_cancellation_email(self, request):
+    def generate_order_cancellation_email(self, request):
         from bakeup.pages.models import BrandSettings, EmailSettings
 
         try:
@@ -1074,10 +1074,10 @@ class CustomerOrder(CommonBaseClass):
                 [user_email],
             )
             message.content_subtype = "html"
-            message.send(fail_silently=False)
+            return message
         except Exception:
             logger.exception(
-                "Sending order cancellation email failed.", stack_info=True
+                "Generating order cancellation email failed.", stack_info=True
             )
 
 

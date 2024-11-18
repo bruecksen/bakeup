@@ -176,11 +176,21 @@ def customer_order_add_or_update(request, production_day):
                 customer=request.user.customer,
             )
             logger.error("Order #%s: order will be completely deleted!", customer_order)
-            customer_order.delete()
+            email = None
             if EmailSettings.load(
                 request_or_site=request
             ).send_email_order_cancellation:
-                customer_order.send_order_cancellation_email(request)
+                email = customer_order.generate_order_cancellation_email(request)
+            customer_order.delete()
+            if email:
+                try:
+                    email.send(fail_silently=False)
+                except Exception as e:
+                    logger.error(
+                        "Order #%s: Error while sending cancellation email: %s",
+                        customer_order,
+                        e,
+                    )
             messages.add_message(
                 request,
                 messages.INFO,
