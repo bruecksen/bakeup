@@ -1,2 +1,12 @@
 {% load wagtailimages_tags %}
+{% if value.link %}
+<a href="{{ value.link.href }}">
+{% endif %}
+{% if value.max_width %}
+{% image value.image width-800 class=classes style=max_width %}
+{% else %}
 {% image value.image width-800 class=classes %}
+{% endif %}
+{% if value.link %}
+</a>
+{% endif %}

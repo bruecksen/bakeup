@@ -44,32 +44,6 @@ class ColourThemeChoiceBlock(ChoiceBlock):
     ]
 
 
-class ImageChooserBlock(StructBlock):
-    alignment = ImageAlignmentChoiceBlock(default="start")
-    image = _ImageChooserBlock()
-
-    class Meta:
-        template = "blocks/image_block.html"
-        label = "Image"
-        icon = "image"
-
-    def get_context(self, value, parent_context=None):
-        context = super().get_context(value, parent_context)
-        if value.get("alignment") == "center":
-            context.update(
-                {
-                    "classes": "img-fluid mx-auto d-block",
-                }
-            )
-        else:
-            context.update(
-                {
-                    "classes": "img-fluid float-{}".format(value),
-                }
-            )
-        return context
-
-
 class SpacerBlock(StructBlock):
     space = ChoiceBlock(
         choices=[(0, "0"), (1, "16px"), (2, "32px"), (3, "48px"), (4, "64px")],
@@ -107,7 +81,6 @@ class LinkTargetBlock(StreamBlock):
 
     page = PageChooserBlock(label=_("Page"), icon="doc-empty-inverse")
     document = DocumentChooserBlock(label=_("Document"), icon="doc-full")
-    image = ImageChooserBlock(label=_("Image"))
     link = CharBlock(label=_("Internal link"))
     url = URLBlock(label=_("External link"))
     anchor = CharBlock(
@@ -168,6 +141,40 @@ class LinkBlock(StructBlock):
     @property
     def required(self):
         return self.meta.required
+
+
+class ImageChooserBlock(StructBlock):
+    image = _ImageChooserBlock()
+    max_width = IntegerBlock(
+        required=False,
+        help_text=_("Set a maximum width for the image in pixels."),
+        min_value=0,
+    )
+    alignment = ImageAlignmentChoiceBlock(default="start")
+    link = LinkBlock()
+
+    class Meta:
+        template = "blocks/image_block.html"
+        label = "Image"
+        icon = "image"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        if value.get("alignment") == "center":
+            context.update(
+                {
+                    "classes": "img-fluid mx-auto d-block",
+                }
+            )
+        else:
+            context.update(
+                {
+                    "classes": "img-fluid float-{}".format(value.get("alignment")),
+                }
+            )
+        if value.get("max_width"):
+            context["max_width"] = "max-width: {}px;".format(value.get("max_width"))
+        return context
 
 
 class ButtonBlock(StructBlock):
