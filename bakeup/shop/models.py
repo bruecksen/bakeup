@@ -905,9 +905,8 @@ class CustomerOrder(CommonBaseClass):
                     )
                     if created:
                         changes_detected = True
-                    elif old_position:
-                        if old_position.quantity != quantity:
-                            changes_detected = True
+                    elif old_position and old_position.quantity != quantity:
+                        changes_detected = True
                 elif quantity == 0:
                     deleted, object_types = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product),
