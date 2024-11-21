@@ -12,6 +12,16 @@ Production day reminder <small class="text-muted">{{ object }}</small>
 {% endblock %}
 
 {% block page_content %}
+{% if messages_sending %}
+<div class="row">
+  <div class=" col">
+    {% for message in messages_sending %}
+    <p><span class="badge bg-warning text-dark">{% if message.is_sending %}SENDING{% elif message.is_planned_sending %}PLANNED SENDING{% endif %}</span> {{ message.get_orders.count }} emails to users: <small> {{ message }}</small></p>
+  {% endfor %}
+  </div>
+</div>
+<hr>
+{% endif %}
 {{ form.errors }}
 <div class="row">
   <div class="col-sm-10 col">
@@ -59,20 +69,7 @@ Production day reminder <small class="text-muted">{{ object }}</small>
     </form>
   </div>
 </div>
-{% if messages_sending %}
-<div class="row mt-4">
-  <div class="col">
-    <h2>Message pipeline<h2>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-8 col">
-    {% for message in messages_sending %}
-    <p><span class="badge bg-warning text-dark">{% if message.is_sending %}SENDING{% elif message.is_planned_sending %}PLANNED SENDING{% endif %}</span> {{ message.get_orders.count }} emails to users: <small> {{ message }}</small></p>
-  {% endfor %}
-  </div>
-</div>
-{% endif %}
+<hr>
 {% if messages_sent %}
 <div class="row mt-4">
   <div class="col">
@@ -88,7 +85,8 @@ Production day reminder <small class="text-muted">{{ object }}</small>
           <p class="small mb-0">{{ message.sent_date }}</p>
           <h5>{% if message.error_log %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ message }} </h5>
           <hr>
-          <p>{{ message.body|safe }}</p>
+          <a data-bs-toggle="collapse" href=".email-body-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail body</a>
+          <div class="collapse email-body-{{ message.pk }}">{{ message.body|safe }}</div>
           <hr>
           <p><small>
             <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a>
