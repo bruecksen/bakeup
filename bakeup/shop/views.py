@@ -130,12 +130,14 @@ def customer_order_add_or_update(request, production_day):
                 for k, v in request.POST.items()
                 if k.startswith("product-")
             }
-            order, created = CustomerOrder.create_or_update_customer_order(
-                request,
-                production_day,
-                request.user.customer,
-                products,
-                request.POST.get("point_of_sale", None),
+            order, created, changes_detected = (
+                CustomerOrder.create_or_update_customer_order(
+                    request,
+                    production_day,
+                    request.user.customer,
+                    products,
+                    request.POST.get("point_of_sale", None),
+                )
             )
             products_recurring = {
                 Product.objects.get(pk=k.replace("productabo-", "")): int(
@@ -162,12 +164,12 @@ def customer_order_add_or_update(request, production_day):
                     messages.INFO,
                     "Vielen Dank, die Bestellung wurde geändert.",
                 )
-            if order:
+            if order and changes_detected:
                 if EmailSettings.load(request_or_site=request).send_email_order_confirm:
                     order.send_order_confirm_email(request)
-                return HttpResponseRedirect(
-                    "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
-                )
+            return HttpResponseRedirect(
+                "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
+            )
         elif "cancel" in request.POST:
             # cancellation of order
             customer_order = get_object_or_404(

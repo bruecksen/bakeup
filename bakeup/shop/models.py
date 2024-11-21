@@ -829,11 +829,15 @@ class CustomerOrder(CommonBaseClass):
         cls, request, production_day, customer, products, point_of_sale=None
     ):
         with transaction.atomic():
+            changes_detected = False
             point_of_sale = (
                 point_of_sale
                 and PointOfSale.objects.get(pk=point_of_sale)
                 or customer.point_of_sale
             )
+            old_customer_order = CustomerOrder.objects.filter(
+                production_day=production_day, customer=customer
+            ).first()
             customer_order, created = CustomerOrder.objects.update_or_create(
                 production_day=production_day,
                 customer=customer,
@@ -841,8 +845,9 @@ class CustomerOrder(CommonBaseClass):
                     "point_of_sale": point_of_sale,
                 },
             )
+            if old_customer_order and old_customer_order.point_of_sale != point_of_sale:
+                changes_detected = True
             for product, quantity in products.items():
-                # print(product, quantity)
                 production_day_product = ProductionDayProduct.objects.get(
                     production_day=production_day, product=product
                 )
@@ -883,6 +888,10 @@ class CustomerOrder(CommonBaseClass):
                     if product.sale_price:
                         price = product.sale_price.price.amount
                         price_total = price * quantity
+                    old_position = CustomerOrderPosition.objects.filter(
+                        Q(product=product)
+                        | Q(product__product_template=product, order=customer_order)
+                    ).first()
                     position, created = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product)
                     ).update_or_create(
@@ -894,12 +903,19 @@ class CustomerOrder(CommonBaseClass):
                             "price_total": price_total,
                         },
                     )
+                    if created:
+                        changes_detected = True
+                    elif old_position and old_position.quantity != quantity:
+                        changes_detected = True
                 elif quantity == 0:
-                    CustomerOrderPosition.objects.filter(
+                    deleted, object_types = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product),
                         order=customer_order,
                     ).delete()
-            return customer_order, created
+                    if deleted:
+                        changes_detected = True
+
+            return customer_order, created, changes_detected
 
     def get_production_day_products_ordered_list(self):
         production_day_products = (
