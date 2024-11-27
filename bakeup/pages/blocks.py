@@ -151,7 +151,7 @@ class ImageChooserBlock(StructBlock):
         min_value=0,
     )
     alignment = ImageAlignmentChoiceBlock(default="start")
-    link = LinkBlock()
+    link = LinkBlock(required=False)
 
     class Meta:
         template = "blocks/image_block.html"
