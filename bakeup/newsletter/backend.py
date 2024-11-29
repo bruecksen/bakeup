@@ -181,12 +181,6 @@ class SMTPEmailBackend:
                     tenant,
                     contact,
                 )
-                html = revision.get_newsletter_html(
-                    contact,
-                    BrandSettings.load(site),
-                    email_settings,
-                    tenant.default_full_url,
-                )
                 message_data = {
                     "subject": subject,
                     "from_email": from_string,
