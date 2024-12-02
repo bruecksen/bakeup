@@ -22,24 +22,30 @@
             {% if report %}
                 {% if report.send_time %}
                     <p>
-                        <b>Send time:</b>
+                        <b>Versendet am:</b>
                         {{ report.send_time }}
                         ({{ report.send_time|timesince }} ago).
                     </p>
                 {% endif %}
 
                 <p>
-                    <b>Emails sent:</b>
+                    <b>Emails versendet:</b>
                     {{ report.emails_sent }}
                 </p>
 
             {% endif %}
         {% endblock %}
 
-    {% elif campaign.scheduled or campaign.sending %}
+    {% elif campaign.scheduled %}
         <p>
             <b>{{ campaign.get_status_display }}:</b>
             {{ campaign.newsletter_schedule_date }} (in {{ campaign.newsletter_schedule_date|timeuntil }}).
+        </p>
+
+        {% elif campaign.sending %}
+        <p>
+            <b>{{ campaign.get_status_display|upper }}: </b>
+            Die Kampagne wird aktuell versendet, bitte warten!
         </p>
 
     {% else %}

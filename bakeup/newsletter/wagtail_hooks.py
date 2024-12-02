@@ -8,7 +8,21 @@ from wagtail.log_actions import LogContext
 from wagtail.models import Page
 
 from . import actions, views, viewsets
-from .models import NewsletterPageMixin
+from .models import CampaignStatus, NewsletterPageMixin
+
+
+@hooks.register("after_copy_page")  # type: ignore
+def clear_campaign_after_copy(request, page, new_page):
+    if isinstance(new_page, NewsletterPageMixin):
+        new_page = new_page.specific
+        new_page.status = CampaignStatus.UNSENT
+        new_page.sent_date = None
+        new_page.save(update_fields=["status", "sent_date"])
+        if new_page.locked:
+            new_page.locked = False
+            new_page.locked_at = None
+            new_page.locked_by = None
+            new_page.save(update_fields=["locked", "locked_at", "locked_by"])
 
 
 @hooks.register("register_admin_urls")  # type: ignore
