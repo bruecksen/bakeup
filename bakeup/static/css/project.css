@@ -13084,6 +13084,7 @@ button[aria-expanded=false] .fa-chevron-down {
 
 .navbar-toggler {
   border: 0;
+  line-height: unset;
 }
 .navbar-toggler .fa-bars {
   display: inline-block;
@@ -13094,6 +13095,24 @@ button[aria-expanded=false] .fa-chevron-down {
 
 header .navbar {
   min-height: 65px;
+}
+header .main-menu-social {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+header.open .container {
+  position: relative;
+}
+header.open .main-menu-social {
+  display: none;
+}
+header.open .navbar-toggler {
+  position: absolute;
+  top: 3.2px;
+  top: 0.2rem;
+  right: 11.2px;
+  right: 0.7rem;
 }
 header.open .navbar-toggler .fa-times {
   display: inline-block;

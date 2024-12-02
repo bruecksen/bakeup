@@ -7,38 +7,46 @@
         {% include "includes/logo.html" with logo_size='small' client_logo=settings.pages.BrandSettings.logo %}
         <a href="/shop/" class="navbar-brand me-0 text-white {{ settings.pages.GeneralSettings.brand_font }}{% if settings.pages.GeneralSettings.brand_uppercase %} text-uppercase{% endif %}  fs-3 d-lg-none">{{ request.tenant.name }}</a>
         {% else %}
-        <a href="/shop/" class="navbar-brand me-lg-4 text-white {{ settings.pages.GeneralSettings.brand_font }}{% if settings.pages.GeneralSettings.brand_uppercase %} text-uppercase{% endif %} fs-3 me-auto">{{ request.tenant.name }}</a>{% endif %}
-        <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <i class="fa-solid fa-bars fs-2 fa-fw"></i>
-          <i class="fa-solid fa-times fs-2 fa-fw"></i>
-        </button>
+        <a href="/shop/" class="navbar-brand me-lg-4 text-white {{ settings.pages.GeneralSettings.brand_font }}{% if settings.pages.GeneralSettings.brand_uppercase %} text-uppercase{% endif %} fs-3 me-auto">{{ request.tenant.name }}</a>
+        {% endif %}
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           {% main_menu max_levels=2 template="shop/includes/main_menu.html" %}
           <ul class="navbar-nav mb-2 mb-lg-0 main-menu-sub">
-              <li class="nav-item shopping-basket d-none invisible">
-                  <a class="nav-link btn btn-primary p-0 rounded-circle shadow position-relative">
-                    <i class="fas fa-shopping-cart fa-fw"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge text-bg-light rounded-circle color-primary order-quantity d-none">
-                      <span class="visually-hidden">bestellte brote</span>
-                  </a>
+            <li class="nav-item shopping-basket d-none invisible">
+              <a class="nav-link btn btn-primary p-0 rounded-circle shadow position-relative">
+                <i class="fas fa-shopping-cart fa-fw"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge text-bg-light rounded-circle color-primary order-quantity d-none">
+                  <span class="visually-hidden">bestellte brote</span>
+                </a>
               </li>
               {% if request.user.is_authenticated %}
               <li class="nav-item">
-                  <a class="nav-link" href="{% url 'shop:order-list' %}"><i class="fa-solid fa-receipt fa-fw"></i> Bestellungen</a>
+                <a class="nav-link" href="{% url 'shop:order-list' %}"><i class="fa-solid fa-receipt fa-fw"></i> Bestellungen</a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
+                <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
+                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
               </li>
               {% else %}
               <li class="nav-item">
-                  <a id="log-in-link" class="nav-link btn btn-primary px-2 py-1 mt-1" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
+                <a id="log-in-link" class="nav-link btn btn-primary px-2 py-1 mt-1" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
               </li>
               {% endif %}
+            </ul>
+          </div>
+          {% if settings.pages.GeneralSettings.social_media_accounts %}
+          <ul class="navbar-nav mb-2 mb-lg-0 main-menu-social ms-auto">
+            {% for social_media_account in settings.pages.GeneralSettings.social_media_accounts.all %}
+            <li class="nav-item"><a href="{{ social_media_account.url }}" target="_blank" class="nav-link btn btn-primary p-0 pt-1 mt-1"><i class="fa-brands fa-fw fa-xl fa-{{ social_media_account.platform }}"></i></a></li>
+            {% endfor %}
           </ul>
-        </div>
+          {% endif %}
+          <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars fs-2 fa-fw"></i>
+            <i class="fa-solid fa-times fs-2 fa-fw"></i>
+          </button>
       </div>
     </nav>
   </header>
