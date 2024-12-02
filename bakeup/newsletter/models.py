@@ -218,6 +218,24 @@ class NewsletterPage(NewsletterPageMixin):  # type: ignore
 
     newsletter_template = "newsletter/newsletter.html"
     template = "newsletter/newsletter.html"
+    newsletter_persistent_fields = [
+        "status",
+        "sent_date",
+    ]
+
+    def with_content_json(self, content):
+        obj = super().with_content_json(content)
+        for field in self.newsletter_persistent_fields:
+            setattr(obj, field, getattr(self, field))
+        return obj
+
+    def save_revision(self, *args, **kwargs):
+        revision = super().save_revision(*args, **kwargs)
+        self.save(
+            update_fields=self.newsletter_persistent_fields,
+            clean=False,
+        )
+        return revision
 
     def has_newsletter_permission(self, user, action):
         permission_policy = NewsletterPermissionPolicy(type(self))
