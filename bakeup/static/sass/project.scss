@@ -377,6 +377,7 @@ button[aria-expanded=false] .fa-chevron-down {
 
 .navbar-toggler {
   border: 0;
+  line-height: unset;
   .fa-bars {
     display: inline-block;
   }
@@ -388,8 +389,20 @@ header {
   .navbar {
     min-height: 65px;
   }
+  .main-menu-social {
+    display: flex;
+  }
   &.open {
+    .container {
+      position: relative;
+    }
+    .main-menu-social {
+      display: none;
+    }
     .navbar-toggler {
+      position: absolute;
+      top: .2rem;
+      right: .7rem;
       .fa-times {
         display: inline-block;
       }

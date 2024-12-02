@@ -2,7 +2,9 @@ from django.db import models
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
+from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseGenericSetting, register_setting
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
@@ -271,8 +273,28 @@ class BrandSettings(BaseGenericSetting):
         verbose_name = "Brand settings"
 
 
+class SocialMediaAccount(models.Model):
+    class Platform(models.TextChoices):
+        FACEBOOK = "facebook", "Facebook"
+        INSTAGRAM = "instagram", "Instagram"
+
+    platform = models.CharField(
+        max_length=9, choices=Platform.choices, verbose_name="Platform"
+    )
+    url = models.URLField(verbose_name="URL")
+    general_settings = ParentalKey(
+        "GeneralSettings",
+        on_delete=models.CASCADE,
+        related_name="social_media_accounts",
+    )
+
+    class Meta:
+        verbose_name = "Social Media Account"
+        verbose_name_plural = "Social Media Accounts"
+
+
 @register_setting(icon="key")
-class GeneralSettings(BaseGenericSetting):
+class GeneralSettings(BaseGenericSetting, ClusterableModel):
     class Visibility(models.TextChoices):
         NEVER = "never", "Never"
         ALWAYS = "always", "Always"
@@ -342,6 +364,7 @@ class GeneralSettings(BaseGenericSetting):
             heading="Brand name",
         ),
         FieldPanel("bio_certification_logo"),
+        InlinePanel("social_media_accounts", label="Social Media Accounts"),
     ]
 
     class Meta:
