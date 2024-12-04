@@ -1,5 +1,8 @@
+import getpass
 from pathlib import Path
 
+from django.conf import settings
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
 from django.core.management.base import BaseCommand
@@ -9,14 +12,20 @@ from wagtail.images.models import Image
 from wagtail.models import Page, Site
 from wagtailmenus.conf import settings as wagtailmenu_settings
 
+from bakeup.core.models import RegistrationFieldOption
+from bakeup.newsletter.models import Audience
 from bakeup.pages.models import ContentPage, ShopPage
+from bakeup.users.models import User
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
 FIXTURES_DIR = APP_DIR.joinpath("fixtures")
 
 
 class Command(InteractiveTenantOption, BaseCommand):
-    help = "Creates initial pages for the wagtail site"
+    help = (
+        "Setup default data for tenant. Includes creating pages and menus, adding a"
+        " user and default settings."
+    )
 
     def _boolean_input(self, question, default=None):
         self.stdout.write(f"{question} ", ending="")
@@ -245,7 +254,77 @@ class Command(InteractiveTenantOption, BaseCommand):
             # finally, create the menus
             self._create_main_menu()
             self._create_flat_menus()
-
-        self.stdout.write(
-            self.style.SUCCESS("All pages created for tenant {}".format(tenant))
+            self.stdout.write(
+                self.style.SUCCESS("All pages created for tenant {}".format(tenant))
+            )
+        do_account = self._boolean_input(
+            "Would you like to create an baker account? [y/N]",
+            default=True,
         )
+        if do_account:
+            # create a user
+            username = input("Username: ")
+            password = getpass.getpass()
+            email = input("Email: ")
+            first_name = input("First name: ")
+            last_name = input("Last name: ")
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+                is_staff=True,
+                is_active=True,
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Account {} created for tenant {}".format(user, tenant)
+                )
+            )
+            # Add user to Wagtail groups
+            editors_group = Group.objects.filter(name="Editors").first()
+            moderators_group = Group.objects.filter(name="Moderators").first()
+
+            if editors_group:
+                user.groups.add(editors_group)
+                self.stdout.write(self.style.SUCCESS("Added user to 'Editors' group."))
+            else:
+                self.stderr.write(
+                    "Editors group not found. Please ensure Wagtail is set up."
+                )
+
+            if moderators_group:
+                user.groups.add(moderators_group)
+                self.stdout.write(
+                    self.style.SUCCESS("Added user to 'Moderators' group.")
+                )
+            else:
+                self.stderr.write(
+                    "Moderators group not found. Please ensure Wagtail is set up."
+                )
+        do_settings = self._boolean_input(
+            "Would you really like to create default settings? [y/N]",
+            default=True,
+        )
+        if do_settings:
+            tenant_settings = tenant.clientsetting
+            tenant_settings.default_from_email = settings.TENANT_DEFAULT_EMAIL
+            tenant_settings.email_host = settings.TENANT_DEFAULT_EMAIL_HOST
+            tenant_settings.email_host_password = settings.TENANT_DEFAULT_EMAIL_PASSWORD
+            tenant_settings.email_host_user = settings.TENANT_DEFAULT_EMAIL_USER
+            tenant_settings.email_host_port = settings.TENANT_DEFAULT_EMAIL_PORT
+            tenant_settings.email_use_tls = settings.TENANT_DEFAULT_EMAIL_USE_TLS
+            tenant_settings.show_full_name_delivery_bill = True
+            tenant_settings.show_remaining_products = True
+            tenant_settings.user_registration_fields = RegistrationFieldOption.values
+            is_newsletter_enabled = self._boolean_input(
+                "Enable newsletter? [y/N]", default=False
+            )
+            if is_newsletter_enabled:
+                tenant_settings.is_newsletter_enabled = is_newsletter_enabled
+                Audience.objects.create(
+                    name="Alle Kunden",
+                    is_default=True,
+                )
+            tenant_settings.save()
