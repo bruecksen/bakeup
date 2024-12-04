@@ -313,7 +313,7 @@ class Command(InteractiveTenantOption, BaseCommand):
             tenant_settings.email_host = settings.TENANT_DEFAULT_EMAIL_HOST
             tenant_settings.email_host_password = settings.TENANT_DEFAULT_EMAIL_PASSWORD
             tenant_settings.email_host_user = settings.TENANT_DEFAULT_EMAIL_USER
-            tenant_settings.email_host_port = settings.TENANT_DEFAULT_EMAIL_PORT
+            tenant_settings.email_port = settings.TENANT_DEFAULT_EMAIL_PORT
             tenant_settings.email_use_tls = settings.TENANT_DEFAULT_EMAIL_USE_TLS
             tenant_settings.show_full_name_delivery_bill = True
             tenant_settings.show_remaining_products = True
@@ -323,7 +323,7 @@ class Command(InteractiveTenantOption, BaseCommand):
             )
             if is_newsletter_enabled:
                 tenant_settings.is_newsletter_enabled = is_newsletter_enabled
-                Audience.objects.create(
+                Audience.objects.get_or_create(
                     name="Alle Kunden",
                     is_default=True,
                 )
