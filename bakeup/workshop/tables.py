@@ -232,11 +232,13 @@ class CustomerTable(tables.Table):
         args=[A("pk")],
         text=lambda record: record.user.email,
         verbose_name=_("eMail"),
+        order_by="user__email",
     )
     abos = tables.TemplateColumn(
         template_name="tables/customer_abos_column.html",
         verbose_name="Abos",
         exclude_from_export=True,
+        orderable=False,
     )
     actions = tables.TemplateColumn(
         template_name="tables/customer_actions_column.html",
