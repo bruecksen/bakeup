@@ -144,7 +144,7 @@ Customer {{ object }}
             {{ order.production_day }}
           </div>
           <div class="col-2">
-            {{ order.point_of_sale }}
+            {{ order.point_of_sale.short_name }}
           </div>
           <div class="col-8">
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
