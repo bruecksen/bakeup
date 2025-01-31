@@ -140,10 +140,13 @@ Customer {{ object }}
         Total positions: <strong>{{ object.total_ordered_positions }}</strong></p>
       {% for order in customer.orders.all %}
         <div class="row border-bottom">
-          <div class="col-3 fw-bold">
+          <div class="col-2 fw-bold">
             {{ order.production_day }}
           </div>
-          <div class="col-9">
+          <div class="col-2">
+            {{ order.point_of_sale }}
+          </div>
+          <div class="col-8">
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </div>
         </div>
