@@ -1994,6 +1994,7 @@ class CustomerAutocomplete(CustomSelect2QuerySetView):
                 Q(user__first_name__istartswith=self.q)
                 | Q(user__last_name__istartswith=self.q)
             )
+        qs = qs.order_by(Lower("user__last_name"), Lower("user__first_name"))
 
         return qs
 
