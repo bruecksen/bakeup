@@ -3,12 +3,12 @@
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
-{% block title %}{% trans "Products" %}{% endblock %}
-{% block page_heading %}{% trans "Products"%}{% endblock page_heading %}
+{% block title %}{{ object_name_plural }}{% endblock %}
+{% block page_heading %}{{ object_name_plural }}{% endblock page_heading %}
 
 
 {% block page_heading_action %}
-<a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">{% trans "Add new product" %}</a>
+<a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">{% blocktrans %}Add new {{ object_name }} {% endblocktrans %}</a>
 {% endblock page_heading_action %}
 
 {% block page_content %}

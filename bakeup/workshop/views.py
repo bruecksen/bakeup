@@ -350,12 +350,24 @@ class RecipeListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
         qs = qs.filter(is_sellable=True)
         return qs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_name"] = _("Recipe")
+        context["object_name_plural"] = _("Recipes")
+        return context
+
 
 class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     model = Product
     table_class = ProductTable
     filterset_class = ProductFilter
     template_name = "workshop/product_list.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_name"] = _("Product")
+        context["object_name_plural"] = _("Products")
+        return context
 
 
 @staff_member_required(login_url="login")
