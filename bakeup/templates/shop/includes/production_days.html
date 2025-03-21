@@ -1,3 +1,4 @@
+{% load wagtailcore_tags %}
 <div class="row gy-4">
 
     {% for production_day in production_days %}
@@ -5,8 +6,14 @@
         {%  include 'shop/includes/production_day_card.html' %}
     </div>
     {% empty %}
-    <div class="col">
-        <p>Aktuell sind keine weiteren Backtage geplant.</p>
-    </div>
+    {% if value.text_no_production_day %}
+        <div class="col">
+            {{ value.text_no_production_day|richtext }}
+        </div>
+    {% else %}
+        <div class="col">
+            <p>Aktuell sind keine weiteren Backtage geplant.</p>
+        </div>
+    {% endif %}
     {% endfor %}
 </div>

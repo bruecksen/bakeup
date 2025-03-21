@@ -281,6 +281,10 @@ class ColumnBlocks(StreamBlock):
 
 class ProductionDaysBlock(StructBlock):
     production_day_limit = IntegerBlock(default=4, required=False)
+    text_no_production_day = RichTextBlock(
+        required=False,
+        help_text="This text is displayed if no production day is planned.",
+    )
     cta_button_text = CharBlock(
         default="Zum Backtag", required=False, label="Button Text (Zum Backtag)"
     )
