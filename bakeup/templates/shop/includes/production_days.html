@@ -8,7 +8,7 @@
     {% empty %}
     {% if value.text_no_production_day %}
         <div class="col">
-            {{ value.text_no_production_day|richtext }}
+            {% include_block value.text_no_production_day %}
         </div>
     {% else %}
         <div class="col">
