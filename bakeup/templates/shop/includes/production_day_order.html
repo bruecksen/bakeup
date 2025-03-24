@@ -36,7 +36,7 @@
                 <div class="col-12 col-lg-4">
                     {% if user.is_authenticated %}
                     {% include "shop/includes/basket.html" %}
-                    {% else %}
+                    {% elif request.tenant.clientsetting.show_login %}
                     <div class="card bg-primary text-white mb-3">
                         <div class="card-body">
                             <h4 class="card-title hyphens-auto fw-bold" id="current-order">Brotkorb</h4>

@@ -37,7 +37,7 @@
             {% endif %}
         {% endif %}
         </div>
-    {% elif not production_day_product.is_sold_out %}
+    {% elif not production_day_product.is_sold_out and request.tenant.clientsetting.show_login %}
         <div class="card-footer">
             <p class="fw-bold mb-0">
                 Jetzt <a href="{% url 'shop:login' %}" class="">anmelden</a> um zu bestellen!
