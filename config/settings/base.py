@@ -150,6 +150,8 @@ LOGOUT_REDIRECT_URL = "/shop/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
+HONEYPOT_FIELD_NAME = "email_confirm"
+
 # PASSWORDS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers

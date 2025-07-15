@@ -1,3 +1,4 @@
+from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as _LoginForm
 from allauth.account.forms import ResetPasswordForm
 from allauth.account.forms import SignupForm as _SignupForm
@@ -46,6 +47,17 @@ class TokenAuthenticationForm(forms.Form):
 class UserFormMixin:
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields[settings.HONEYPOT_FIELD_NAME] = forms.CharField(
+            label=False,
+            required=False,
+            widget=forms.TextInput(
+                attrs={
+                    "style": "position: absolute; right: -99999px;",
+                    "tabindex": "-1",
+                    "autocomplete": "nope",
+                }
+            ),
+        )
         for field in request.tenant.clientsetting.user_registration_fields:
             field_settings = settings.USER_REGISTRATION_FORM_FIELDS.get(field)
             self.fields[field] = forms.CharField(**field_settings)
@@ -80,6 +92,7 @@ class UserFormMixin:
         self.helper.disable_csrf = False
         self.helper.layout = Layout(
             "email",
+            settings.HONEYPOT_FIELD_NAME,
             "password1",
             "point_of_sale",
             "first_name",
@@ -132,6 +145,17 @@ class UserFormMixin:
         user.save(update_fields=["first_name", "last_name"])
         self.update_customer(user, request)
         return user
+
+    def try_save(self, request):
+        if self.cleaned_data[settings.HONEYPOT_FIELD_NAME]:
+            user = None
+            adapter = get_adapter()
+            # honeypot fields work best when you do not report to the bot
+            # that anything went wrong. So we return a fake email verification
+            # sent response but without creating a user
+            resp = adapter.respond_email_verification_sent(request, None)
+            return user, resp
+        return super().try_save(request)
 
 
 class SignupForm(UserFormMixin, _SignupForm):
