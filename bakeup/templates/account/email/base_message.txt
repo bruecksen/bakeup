@@ -7,8 +7,8 @@
     <mj-column>
     <mj-text>
     {% linebreaksbr_block %}
-    Hallo,
-
+    Hallo {{ user.get_full_name }},
+    {% block pre_content %}{% endblock pre_content %}
     {% block content %}{% endblock content %}</mj-text>
     {% endlinebreaksbr_block %}
     </mj-column>

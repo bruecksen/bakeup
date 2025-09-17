@@ -2,6 +2,11 @@
 {% load account %}
 {% load i18n %}
 
-{% block content %}{% autoescape off %}Bitte bestätige, dass die E-Mail-Adresse von Dir ist um deinen Account auf {{ current_tenant_domain }} anzulegen:
+{% block content %}{% autoescape off %}bitte bestätige deine E-Mail-Adresse, um dein Konto bei <strong>{{ current_tenant.name }}</strong> anzulegen:
 
-{{ activate_url }}{% endautoescape %}{% endblock %}
+<mj-button href="{{ activate_url }}">E-Mail-Adresse bestätigen</mj-button>
+
+<mj-text>Falls der Button nicht funktioniert, kopiere bitte diesen Link in die Adresszeile deines Browsers:</mj-text>
+{{ activate_url }}
+
+{% endautoescape %}{% endblock %}

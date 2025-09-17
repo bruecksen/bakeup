@@ -66,6 +66,7 @@
             <mj-section background-color="#fff" />
             <mj-text font-size="16px" />
             <mj-all font-family="Quattrocento, Times, 'Times New Roman'" line-height="1.5"/>
+            <mj-button background-color="{% if brand_settings.is_brand_theme_activated and brand_settings.primary_color %}{{ brand_settings.primary_color }}{% else %}#000000{% endif %}" color="#ffffff" font-size="16px" padding="15px 30px" border-radius="5px" />
         </mj-attributes>
         {% block email_head %}
         {% endblock email_head %}
