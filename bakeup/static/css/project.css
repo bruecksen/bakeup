@@ -13524,4 +13524,9 @@ textarea {
     position: fixed;
     z-index: 10;
   }
+  .block-image img {
+    width: 100% !important;
+    height: auto;
+    float: none !important;
+  }
 }
