@@ -18,7 +18,7 @@
         </a>
         <ul class="dropdown-menu">
           <li><a class="dropdown-item" href="{% export_url "csv" %}">{% trans "Export as CSV" %}</a></li>
-          <li><a class="dropdown-item" href="{% url 'workshop:order-export-billbee' %}?{{ request.GET.urlencode }}">{% trans "Export billbee" %}</a></li>
+          <li><a class="dropdown-item" href="{% url 'workshop:order-export-easybill' %}?{{ request.GET.urlencode }}">{% trans "Export easybill" %}</a></li>
         </ul>
       </div>
     </div>
@@ -38,6 +38,9 @@
       </div>
       <div class="col-2">
         {% bootstrap_field filter.form.point_of_sale size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
+      </div>
+      <div class="col-2">
+        {% bootstrap_field filter.form.month size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
       <div class="col-2">
         {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}

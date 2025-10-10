@@ -4,7 +4,8 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db.models import Q
-from django.db.models.functions import Lower
+from django.db.models.functions import Lower, TruncMonth
+from django.utils import formats
 from django.utils.translation import gettext_lazy as _
 from django_tables2.utils import A
 from taggit.models import Tag
@@ -110,13 +111,47 @@ class CustomerOrderFilter(django_filters.FilterSet):
     point_of_sale = django_filters.ModelChoiceFilter(
         queryset=PointOfSale.objects.all(), empty_label=_("Select a point of sale")
     )
+    month = django_filters.ChoiceFilter(
+        method="filter_by_month",
+        label="Monat",
+        empty_label="Monat auswählen",
+    )
     search = django_filters.filters.CharFilter(
         method="filter_search", label=_("Search")
     )
 
     class Meta:
         model = CustomerOrder
-        fields = ("production_day", "point_of_sale", "customer")
+        fields = ("production_day", "point_of_sale", "customer", "month")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get distinct year-month combinations from production days with orders
+        months = (
+            ProductionDay.objects.filter(customer_orders__isnull=False)
+            .annotate(month=TruncMonth("day_of_sale"))
+            .values_list("month", flat=True)
+            .distinct()
+            .order_by("-month")
+        )
+
+        # Format choices as (YYYY-MM, Month Year)
+        month_choices = [
+            (month.strftime("%Y-%m"), formats.date_format(month, "F Y"))
+            for month in months
+            if month
+        ]
+
+        self.filters["month"].extra["choices"] = month_choices
+
+    def filter_by_month(self, queryset, name, value):
+        if value:
+            year, month = value.split("-")
+            return queryset.filter(
+                production_day__day_of_sale__year=year,
+                production_day__day_of_sale__month=month,
+            )
+        return queryset
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(

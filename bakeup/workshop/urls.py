@@ -4,6 +4,7 @@ from bakeup.core.views import TagAutocomplete
 from bakeup.workshop.exports import (
     CustomerBillbeeExportView,
     CustomerOrderBillbeeExportView,
+    CustomerOrderEasyBillExportView,
     CustomerReady2OrderExportView,
     CustomerSevdeskExportView,
     ProductionDayExportView,
@@ -299,6 +300,11 @@ urlpatterns = [
         "orders/export/billbee/",
         view=CustomerOrderBillbeeExportView.as_view(),
         name="order-export-billbee",
+    ),
+    path(
+        "orders/export/easybill/",
+        view=CustomerOrderEasyBillExportView.as_view(),
+        name="order-export-easybill",
     ),
     path(
         "orders/batch/<int:pk>/",

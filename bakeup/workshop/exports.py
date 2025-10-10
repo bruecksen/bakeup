@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.models import Q
 from django.utils import numberformat
 from django.utils.timezone import now
@@ -452,3 +454,154 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
     @property
     def export_name(self):
         return "billbee-bestellungen-{}".format(now().strftime("%d-%m-%Y"))
+
+
+class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, FilterView):
+    filterset_class = CustomerOrderFilter
+    model = CustomerOrder
+    delimiter = ";"
+
+    def get_headers(self):
+        headers = [
+            "order_number",
+            "item_type",
+            "purchase_date",
+            "currency",
+            "order_shipping_price",
+            "payment_type",
+            "payment_reference",
+            "customer_number",
+            "email",
+            "phone_number",
+            "firstname",
+            "lastname",
+            "street",
+            "zipcode",
+            "city",
+            "state",
+            "country",
+            "sku",
+            "title",
+            "quantity",
+            "item_price",
+            "vat_percent",
+            "tax_type",
+            "shipping_date",
+            "shipping_type",
+            "payment_date",
+            "store_id",
+        ]
+        return headers
+
+    def get_data(self):
+        customer_orders = (
+            self.object_list.select_related("customer", "customer__user")
+            .prefetch_related("positions", "positions__product")
+            .order_by("customer", "created")
+        )
+
+        # Group orders by customer
+        customer_groups = defaultdict(list)
+        for order in customer_orders:
+            customer_groups[order.customer_id].append(order)
+
+        rows = []
+
+        for customer_id, orders in customer_groups.items():
+            # Get the first order for the order number and customer data
+            first_order = min(orders, key=lambda x: x.created)
+            order_number = first_order.id
+
+            # Collect all positions from all orders of this customer
+            for order in orders:
+                for position in order.positions.all():
+                    # Format price
+                    item_price = ""
+                    if position.price:
+                        item_price = numberformat.format(
+                            position.price.amount, ".", decimal_pos=4, use_l10n=False
+                        )
+
+                    # Determine VAT percentage (default to 7%, adjust as needed)
+                    vat_percent = "7.0000"
+                    if hasattr(position.product, "vat_rate"):
+                        vat_percent = numberformat.format(
+                            position.product.vat_rate,
+                            ".",
+                            decimal_pos=4,
+                            use_l10n=False,
+                        )
+
+                    # Format dates
+                    purchase_date = first_order.created.strftime("%Y-%m-%d")
+                    shipping_date = ""
+                    payment_date = ""
+
+                    if hasattr(order, "shipped_date") and order.shipped_date:
+                        shipping_date = order.shipped_date.strftime("%Y-%m-%d")
+
+                    if hasattr(order, "paid_date") and order.paid_date:
+                        payment_date = order.paid_date.strftime("%Y-%m-%d")
+
+                    row = [
+                        str(order_number),
+                        "item",
+                        purchase_date,
+                        "EUR",
+                        "0.00",  # order_shipping_price - adjust if you have shipping costs
+                        "",  # payment_type - add if available
+                        "",
+                        (  # payment_reference - add if available
+                            str(first_order.customer.id) if first_order.customer else ""
+                        ),
+                        (
+                            first_order.customer.user.email
+                            if first_order.customer and first_order.customer.user
+                            else ""
+                        ),
+                        (
+                            first_order.customer.telephone_number
+                            if first_order.customer
+                            else ""
+                        ),
+                        (
+                            first_order.customer.user.first_name
+                            if first_order.customer and first_order.customer.user
+                            else ""
+                        ),
+                        (
+                            first_order.customer.user.last_name
+                            if first_order.customer and first_order.customer.user
+                            else ""
+                        ),
+                        (
+                            first_order.customer.address_line
+                            if first_order.customer
+                            else ""
+                        ),
+                        (
+                            first_order.customer.postal_code
+                            if first_order.customer
+                            else ""
+                        ),
+                        first_order.customer.city if first_order.customer else "",
+                        "",  # state
+                        "DE",
+                        str(position.product.pk) if position.product else "",
+                        position.product.name if position.product else "",  # country
+                        str(position.quantity),
+                        item_price,
+                        vat_percent,
+                        "",  # tax_type
+                        shipping_date,
+                        "",  # shipping_type - add if available (e.g., "DHL")
+                        payment_date,
+                        "",  # store_id - add if you have multiple stores
+                    ]
+                    rows.append(row)
+
+        return rows
+
+    @property
+    def export_name(self):
+        return "easybill-orders-{}".format(now().strftime("%Y-%m-%d"))
