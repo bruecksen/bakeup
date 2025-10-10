@@ -533,15 +533,9 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         )
 
                     # Format dates
-                    purchase_date = first_order.created.strftime("%Y-%m-%d")
+                    purchase_date = order.created.strftime("%Y-%m-%d")
                     shipping_date = ""
                     payment_date = ""
-
-                    if hasattr(order, "shipped_date") and order.shipped_date:
-                        shipping_date = order.shipped_date.strftime("%Y-%m-%d")
-
-                    if hasattr(order, "paid_date") and order.paid_date:
-                        payment_date = order.paid_date.strftime("%Y-%m-%d")
 
                     row = [
                         str(order_number),
@@ -588,7 +582,11 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         "",  # state
                         "DE",
                         str(position.product.pk) if position.product else "",
-                        position.product.name if position.product else "",  # country
+                        (
+                            position.product.get_display_name()
+                            if position.product
+                            else ""
+                        ),  # country
                         str(position.quantity),
                         item_price,
                         vat_percent,
