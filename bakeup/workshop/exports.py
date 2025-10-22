@@ -536,7 +536,7 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                     purchase_date = order.created.strftime("%Y-%m-%d")
                     shipping_date = ""
                     payment_date = ""
-
+                    position_product = position.get_product()
                     row = [
                         str(order_number),
                         "item",
@@ -582,11 +582,8 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         "",  # state
                         "DE",
                         (
-                            str(
-                                position.product.product_template.sku
-                                or position.product.product_template.pk
-                            )
-                            if position.product
+                            str(position_product.sku or position_product.pk)
+                            if position_product
                             else ""
                         ),
                         (
