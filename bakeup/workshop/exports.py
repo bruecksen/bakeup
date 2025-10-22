@@ -581,7 +581,14 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         first_order.customer.city if first_order.customer else "",
                         "",  # state
                         "DE",
-                        str(position.product.pk) if position.product else "",
+                        (
+                            str(
+                                position.product.product_template.sku
+                                or position.product.product_template.pk
+                            )
+                            if position.product
+                            else ""
+                        ),
                         (
                             position.product.get_display_name()
                             if position.product
