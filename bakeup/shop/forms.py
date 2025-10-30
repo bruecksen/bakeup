@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from bakeup.shop.models import (
     Customer,
     CustomerOrderPosition,
+    PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
@@ -120,7 +121,7 @@ class CustomerProductionDayOrderForm(forms.Form):
 class ProductionDayForm(forms.ModelForm):
     class Meta:
         model = ProductionDay
-        fields = ["day_of_sale", "description"]
+        fields = ["day_of_sale", "description", "point_of_sales"]
         widgets = {
             "day_of_sale": forms.DateInput(
                 format="%Y-%m-%d",
@@ -131,7 +132,17 @@ class ProductionDayForm(forms.ModelForm):
                 },
             ),
             "description": forms.Textarea(attrs={"rows": 3}),
+            "point_of_sales": forms.CheckboxSelectMultiple(
+                attrs={"class": "form-control"}
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not PointOfSale.objects.exists():
+            del self.fields["point_of_sales"]
+        elif not self.instance.pk:
+            self.fields["point_of_sales"].initial = PointOfSale.objects.all()
 
 
 class ProductionDayProductForm(forms.ModelForm):

@@ -83,6 +83,16 @@ class ProductionDay(CommonBaseClass):
         unique=True, verbose_name=_("Day of Sale"), db_index=True
     )
     description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
+    point_of_sales = models.ManyToManyField(
+        "shop.PointOfSale",
+        blank=False,
+        related_name="production_days",
+        verbose_name=_("Point of Sales"),
+        help_text=_(
+            "Select the point of sales where this production day is available. At least"
+            " one must be selected."
+        ),
+    )
 
     objects = ProductionDayQuerySet.as_manager()
 
@@ -1215,41 +1225,50 @@ class CustomerOrderTemplate(CommonBaseClass):
                         production_day.production_day_products.filter(product=product)
                     )
                     if not customer_order_position.exists() and production_day_product:
-                        production_day_product = production_day_product.get()
-                        max_quantity = production_day_product.calculate_max_quantity(
-                            customer
-                        )
-                        quantity = min(
-                            customer_order_template_position.quantity, max_quantity
-                        )
-                        if not production_day_product.is_locked and quantity > 0:
-                            print(
-                                "Create Abo order: ", production_day, product, quantity
+                        if (
+                            not production_day.point_of_sales.exists()
+                            or customer.point_of_sale
+                            in production_day.point_of_sales.all()
+                        ):
+                            # check if pos is available for this production day
+                            production_day_product = production_day_product.get()
+                            max_quantity = (
+                                production_day_product.calculate_max_quantity(customer)
                             )
-                            customer_order, created = (
-                                CustomerOrder.objects.get_or_create(
-                                    production_day=production_day,
-                                    customer=customer,
-                                    defaults={
-                                        "point_of_sale": customer.point_of_sale,
-                                    },
+                            quantity = min(
+                                customer_order_template_position.quantity, max_quantity
+                            )
+                            if not production_day_product.is_locked and quantity > 0:
+                                print(
+                                    "Create Abo order: ",
+                                    production_day,
+                                    product,
+                                    quantity,
                                 )
-                            )
-                            price = None
-                            price_total = None
-                            if product.sale_price:
-                                price = product.sale_price.price.amount
-                                price_total = price * quantity
-                            position = CustomerOrderPosition.objects.create(
-                                order=customer_order,
-                                product=product,
-                                quantity=quantity,
-                                price=price,
-                                price_total=price_total,
-                            )
-                            customer_order_template_position.orders.add(position)
-                            customer_order_template_position.order_template.set_locked()
-                            is_order_created = True
+                                customer_order, created = (
+                                    CustomerOrder.objects.get_or_create(
+                                        production_day=production_day,
+                                        customer=customer,
+                                        defaults={
+                                            "point_of_sale": customer.point_of_sale,
+                                        },
+                                    )
+                                )
+                                price = None
+                                price_total = None
+                                if product.sale_price:
+                                    price = product.sale_price.price.amount
+                                    price_total = price * quantity
+                                position = CustomerOrderPosition.objects.create(
+                                    order=customer_order,
+                                    product=product,
+                                    quantity=quantity,
+                                    price=price,
+                                    price_total=price_total,
+                                )
+                                customer_order_template_position.orders.add(position)
+                                customer_order_template_position.order_template.set_locked()
+                                is_order_created = True
                 from bakeup.pages.models import EmailSettings
 
                 if (

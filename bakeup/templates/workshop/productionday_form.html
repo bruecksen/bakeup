@@ -17,6 +17,9 @@
       {{ formset.management_form }}
       <div class="card p-3 mb-3">
         {% bootstrap_field form.day_of_sale %}
+        {% if form.point_of_sales %}
+        {% bootstrap_field form.point_of_sales %}
+        {% endif %}
         {% bootstrap_field form.description %}
       </div>
   </div>

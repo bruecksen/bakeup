@@ -48,7 +48,14 @@
 </ul>
 <div class="tab-content">
   <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-    <p class="mt-4"><strong>{% trans "Description" %}: </strong> {{ object.description }}</p>
+    <p class="mt-4 mb-0"><strong>{% trans "Description" %}: </strong> {{ object.description }}</p>
+    {% if object.point_of_sales.exists %}
+    <p class="mb-0"><strong>{% trans "Point of sales" %}: </strong>
+      {% for pos in object.point_of_sales.all %}
+      {{ pos }}{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
 
     <h2 class="mt-4">{% trans "Summary" %}
 
