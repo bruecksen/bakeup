@@ -52,7 +52,7 @@
     {% if object.point_of_sales.exists %}
     <p class="mb-0"><strong>{% trans "Point of sales" %}: </strong>
       {% for pos in object.point_of_sales.all %}
-      {{ pos }}{% if not forloop.last %}, {% endif %}
+      {{ pos.get_short_name }}{% if not forloop.last %}, {% endif %}
       {% endfor %}
     </p>
     {% endif %}
