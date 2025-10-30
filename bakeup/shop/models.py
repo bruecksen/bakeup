@@ -598,7 +598,7 @@ class PointOfSale(CommonBaseClass):
     is_primary = models.BooleanField(default=False, verbose_name=_("Primary?"))
 
     def __str__(self):
-        return self.name
+        return self.short_name or self.name
 
     def get_short_name(self):
         return self.short_name or self.name
@@ -1012,7 +1012,7 @@ class CustomerOrder(CommonBaseClass):
                         "<a href='{}'>{}</a>".format(order_link, "jetzt ändern")
                     ),
                     "order_link": order_link,
-                    "point_of_sale": self.point_of_sale,
+                    "point_of_sale": self.point_of_sale.name,
                 }
             )
         )

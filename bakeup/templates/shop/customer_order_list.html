@@ -55,7 +55,7 @@
     {% with has_price=order.price_total %}
     <div class="card px-3 py-2 mb-5" id="bestellung-{{ order.pk }}">
         <h4 class="fs-5">Backtag: <strong>{{ order.production_day }}</strong></h4>
-        <h4 class="fs-5">Abholung: <strong>{{ order.point_of_sale|default:'-' }}</strong></h4>
+        <h4 class="fs-5">Abholung: <strong>{{ order.point_of_sale.name|default:'-' }}</strong></h4>
         <div class="row">
             <div class="col-12">
                 <table class="table table-light">

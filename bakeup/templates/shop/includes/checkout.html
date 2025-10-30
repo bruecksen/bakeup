@@ -25,7 +25,7 @@
                 {% if point_of_sales %}
                 <p class=""><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect" name="point_of_sale"{% if customer_order.is_locked %} disabled{% endif %}>
                     {% for point_of_sale in point_of_sales %}
-                    <option value="{{ point_of_sale.pk }}" {% if  customer_order.point_of_sale == point_of_sale or not customer_order and user.customer.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale }}</option>
+                    <option value="{{ point_of_sale.pk }}" {% if  customer_order.point_of_sale == point_of_sale or not customer_order and user.customer.point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale.name }}</option>
                     {% endfor %}
                     </select></p>
                 {% endif %}
