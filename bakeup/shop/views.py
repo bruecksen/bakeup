@@ -377,10 +377,10 @@ class ShopView(TemplateView):
                     )
                 )
             context["production_day_products"] = production_day_products
+            context["point_of_sales"] = self.production_day.point_of_sales.all()
         context["show_remaining_products"] = (
             self.request.tenant.clientsetting.show_remaining_products
         )
-        context["point_of_sales"] = PointOfSale.objects.all()
         context["production_days"] = ProductionDay.objects.upcoming().exclude(
             id=self.production_day.pk
         )

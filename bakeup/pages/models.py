@@ -15,7 +15,6 @@ from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
     CustomerOrderTemplatePosition,
-    PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
@@ -171,10 +170,10 @@ class ShopPage(Page):
                     )
                 )
             context["production_day_products"] = production_day_products
+            context["point_of_sales"] = self.production_day.point_of_sales.all()
         context["show_remaining_products"] = (
             request.tenant.clientsetting.show_remaining_products
         )
-        context["point_of_sales"] = PointOfSale.objects.all()
         context["all_production_days"] = list(
             ProductionDay.objects.published()
             .available_to_user(request.user)
