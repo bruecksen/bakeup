@@ -68,6 +68,7 @@ class UserFormMixin:
                 help_text="Bitte wähle eine Abholstelle aus.",
                 empty_label=None,
             )
+            self.fields["point_of_sale"].label_from_instance = lambda obj: f"{obj.name}"
             if PointOfSale.objects.filter(is_primary=True).exists():
                 self.fields["point_of_sale"].initial = PointOfSale.objects.get(
                     is_primary=True
