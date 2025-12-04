@@ -21,6 +21,7 @@
         --bs-dark-rgb: {{ settings.pages.BrandSettings.dark_color|hex_to_rgb }};
         {% endif %}
     }
+    {% if settings.pages.BrandSettings.primary_color %}
     .accordion {
         --bs-accordion-active-color: {{ settings.pages.BrandSettings.primary_color }};
         --bs-accordion-active-bg: rgba(var(--bs-primary-rgb), 0.2);
@@ -49,12 +50,24 @@
         background-color: var(--bs-primary)!important;
         color: var(--bs-light)!important;
     }
-    {% if settings.pages.BrandSettings.secondary_color %}
-    .text-bg-secondary {
-        background-color: var(--bs-secondary)!important;
-        color: var(--bs-light)!important;
+    .btn-white {
+        --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
     }
-    {% endif %}
+    .datepicker-cell.date-enabled {
+        color: {{ settings.pages.BrandSettings.primary_color }}!important;
+        font-weight: bold;
+    }
+    .datepicker-cell.selected {
+        background-color: {{ settings.pages.BrandSettings.primary_color }}!important;
+        color: #fff!important;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
+    }
+    .dropdown-menu {
+        --bs-dropdown-link-active-bg: {{ settings.pages.BrandSettings.primary_color }};
+    }
     .table-primary {
         --bs-table-color: #000;
         --bs-table-bg: rgba(var(--bs-primary-rgb), 0.2);
@@ -84,6 +97,12 @@
     .btn-close:focus {
         box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb),.25);
     }
+    {% endif %}
+    {% if settings.pages.BrandSettings.secondary_color %}
+    .text-bg-secondary {
+        background-color: var(--bs-secondary)!important;
+        color: var(--bs-light)!important;
+    }
     .btn-secondary {
             --bs-btn-bg: {{ settings.pages.BrandSettings.secondary_color }};
             --bs-btn-border-color: {{ settings.pages.BrandSettings.secondary_color }};
@@ -95,24 +114,7 @@
             --bs-btn-hover-color: var(--bs-white);
 
     }
-    .btn-white {
-        --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
-    }
-    .datepicker-cell.date-enabled {
-        color: {{ settings.pages.BrandSettings.primary_color }}!important;
-        font-weight: bold;
-    }
-    .datepicker-cell.selected {
-        background-color: {{ settings.pages.BrandSettings.primary_color }}!important;
-        color: #fff!important;
-    }
-
-    .form-control:focus {
-        box-shadow: 0 0 0 0.25rem rgba({{ settings.pages.BrandSettings.primary_color|hex_to_rgb }},.25);
-    }
-    .dropdown-menu {
-        --bs-dropdown-link-active-bg: {{ settings.pages.BrandSettings.primary_color }};
-    }
+    {% endif %}
     {% if settings.pages.BrandSettings.custom_css %}
     {{ settings.pages.BrandSettings.custom_css|safe }}
     {% endif %}
