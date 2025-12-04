@@ -577,7 +577,10 @@ class ProductionDayProduct(CommonBaseClass):
         ordered_quantity = (
             orders.aggregate(quantity_sum=Sum("quantity"))["quantity_sum"] or 0
         )
-        return max(self.max_quantity - ordered_quantity, 0)
+        max_orderable_quantity = max(self.max_quantity - ordered_quantity, 0)
+        if self.product.max_order_qty and self.product.max_order_qty > 0:
+            return min(max_orderable_quantity, self.product.max_order_qty)
+        return max_orderable_quantity
 
     def is_available_to_customer(self, customer):
         if not self.group:

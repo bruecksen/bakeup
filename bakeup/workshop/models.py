@@ -118,6 +118,9 @@ class Product(CommonBaseClass):
     max_recurring_order_qty = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_("Max abo quantity?")
     )
+    max_order_qty = models.PositiveSmallIntegerField(
+        blank=True, null=True, verbose_name=_("Max order quantity?")
+    )
 
     tags = TaggableManager(blank=True, ordering=["name"])
     objects = ProductManager()

@@ -33,7 +33,10 @@
                 </div>
             </div>
             {% if show_remaining_products %}
-            <p class="mb-1 text-center">Noch <span class="fw-bold">{{ production_day_product.calculate_max_quantity }} Stück</span> verfügbar</p>
+            <p class="mb-0 text-center">Noch <span class="fw-bold">{{ production_day_product.calculate_max_quantity }} Stück</span> verfügbar</p>
+            {% if production_day_product.product.max_order_qty > 0 %}
+            <p class="mt-1 text-center small text-muted">Aus Qualitäts- und Kapazitätsgründen auf {{ production_day_product.product.max_order_qty }} Stück pro Bestellung begrenzt.</p>
+            {% endif %}
             {% endif %}
         {% endif %}
         </div>
