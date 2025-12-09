@@ -212,7 +212,6 @@ class CustomerOrderListView(CustomerRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["point_of_sales"] = PointOfSale.objects.all()
         context["next_url"] = reverse_lazy("shop:order-list")
         context["abos"] = CustomerOrderTemplate.objects.active().filter(
             customer=self.request.user.customer
