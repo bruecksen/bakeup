@@ -133,6 +133,7 @@ class ClientSetting(models.Model):
     account_email_verification = models.CharField(
         max_length=12, choices=ACCOUNT_EMAIL_VERIFICATION_CHOICES, default="optional"
     )
+    account_signup_email_enter_twice = models.BooleanField(default=False)
     is_newsletter_enabled = models.BooleanField(default=False)
     wagtail_reference_index_ignore = True
 

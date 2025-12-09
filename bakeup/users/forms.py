@@ -93,6 +93,7 @@ class UserFormMixin:
         self.helper.disable_csrf = False
         self.helper.layout = Layout(
             "email",
+            "email2",
             settings.HONEYPOT_FIELD_NAME,
             "password1",
             "point_of_sale",
