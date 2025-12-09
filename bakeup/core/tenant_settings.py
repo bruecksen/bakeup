@@ -28,6 +28,10 @@ class TenantSettings:
                 settings.ACCOUNT_EMAIL_VERIFICATION = (
                     client_settings.account_email_verification
                 )
+            if client_settings.account_signup_email_enter_twice:
+                settings.ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = (
+                    client_settings.account_signup_email_enter_twice
+                )
 
         if request:
             settings.WAGTAILADMIN_BASE_URL = tenant.default_full_url
