@@ -173,15 +173,17 @@ class CustomerOrderTable(tables.Table):
         "workshop:customer-detail", args=[A("customer.pk")], verbose_name=_("Customer")
     )
     email = tables.TemplateColumn(
-        "{{ record.customer.user.email }}", verbose_name=_("eMail")
+        "{{ record.customer.user.email }}", verbose_name=_("eMail"), orderable=False
     )
     positions = tables.TemplateColumn(
         template_name="tables/customer_order_positions_column.html",
         verbose_name=_("Positions"),
+        orderable=False,
     )
     price_total = tables.TemplateColumn(
         "{% if record.price_total %}<nobr>{{ record.price_total }} €</nobr>{% endif %}",
         verbose_name=_("Sum"),
+        orderable=False,
     )
     collected = tables.TemplateColumn(
         "{% if record.is_picked_up %}x{% endif %}",
@@ -196,6 +198,7 @@ class CustomerOrderTable(tables.Table):
     note = tables.TemplateColumn(
         "{{ record.notes.first.content|default:'' }}",
         verbose_name=_("Note"),
+        orderable=False,
     )
 
     class Meta:
