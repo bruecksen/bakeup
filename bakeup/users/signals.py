@@ -42,15 +42,16 @@ def create_user_customer(sender, instance, created, **kwargs):
         )
     client = connection.get_tenant()
     if not hasattr(instance, "contact") and client.clientsetting.is_newsletter_enabled:
-        contact, created = Contact.objects.get_or_create(
-            email__iexact=instance.email,
-            defaults={
-                "first_name": instance.first_name,
-                "last_name": instance.last_name,
-                "email": instance.email,
-                "user": instance,
-            },
+        contact = (
+            Contact.objects.filter(email__iexact=instance.email).order_by("id").first()
         )
+        if not contact:
+            contact = Contact.objects.create(
+                email=instance.email,
+                first_name=instance.first_name,
+                last_name=instance.last_name,
+                user=instance,
+            )
         contact.audiences.add(Audience.objects.filter(is_default=True).first())
 
 
