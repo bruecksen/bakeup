@@ -578,6 +578,13 @@ def production_plans_start_view(request, production_day):
     )
     production_plans_updated = []
     for production_plan in production_plans:
+        production_day_product = ProductionDayProduct.objects.filter(
+            product=production_plan.product.product_template,
+            production_day=production_day,
+        )
+        if not production_day_product.exists():
+            production_plan.delete()
+            continue
         production_plans_updated.append(
             production_plan.production_day.create_or_update_production_plan(
                 product=production_plan.product.product_template,
