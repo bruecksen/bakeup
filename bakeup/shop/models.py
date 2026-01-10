@@ -1015,7 +1015,9 @@ class CustomerOrder(CommonBaseClass):
                         "<a href='{}'>{}</a>".format(order_link, "jetzt ändern")
                     ),
                     "order_link": order_link,
-                    "point_of_sale": self.point_of_sale.name,
+                    "point_of_sale": (
+                        self.point_of_sale and self.point_of_sale.name or "-"
+                    ),
                 }
             )
         )
