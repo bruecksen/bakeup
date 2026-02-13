@@ -159,6 +159,15 @@ class Product(CommonBaseClass):
             )
         return product
 
+    @classmethod
+    def duplicate_children(cls, product, new_product):
+        children = list(product.parents.all())
+        for child in children:
+            duplicate_child = Product.duplicate(child.child)
+            ProductHierarchy.objects.create(
+                parent=new_product, child=duplicate_child, quantity=child.quantity
+            )
+
     @property
     def sale_price(self):
         return self.sale_prices.first()

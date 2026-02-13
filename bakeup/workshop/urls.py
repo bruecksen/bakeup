@@ -36,6 +36,7 @@ from bakeup.workshop.views import (
     PointOfSaleListView,
     PointOfSaleUpdateView,
     ProductAddView,
+    ProductCopyView,
     ProductDeleteView,
     ProductDetailView,
     ProductHierarchyDeleteView,
@@ -95,6 +96,11 @@ urlpatterns = [
         "products/<int:pk>/update/",
         view=ProductUpdateView.as_view(),
         name="product-update",
+    ),
+    path(
+        "products/<int:pk_copy>/copy/",
+        view=ProductCopyView.as_view(),
+        name="product-copy",
     ),
     path(
         "products/<int:pk>/normalize/",

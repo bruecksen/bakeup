@@ -165,6 +165,53 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class ProductCopyView(ProductAddView):
+    original_product = None
+    original_product_name = None
+    original_children = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if "pk_copy" in kwargs:
+            self.original_product = get_object_or_404(
+                Product, pk=self.kwargs.get("pk_copy")
+            )
+            if self.original_product:
+                self.original_product_name = self.original_product.name
+                self.original_children = list(self.original_product.parents.all())
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["original_product"] = self.original_product
+        context["original_product_name"] = self.original_product_name
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.original_product:
+            kwargs["instance"] = self.original_product
+            if self.original_product.name:
+                kwargs["instance"].name = f"{self.original_product.name} (Kopie)"
+            if self.original_product.display_name:
+                kwargs["instance"].display_name = (
+                    f"{self.original_product.display_name} (Kopie)"
+                )
+            kwargs["instance"].sku = ""
+        return kwargs
+
+    def form_valid(self, form):
+        # Ensure we create a NEW product instead of updating the original
+        form.instance.pk = None
+        form.instance.id = None
+        response = super().form_valid(form)
+        for child in self.original_children:
+            duplicate_child = Product.duplicate(child.child)
+            ProductHierarchy.objects.create(
+                parent=form.instance, child=duplicate_child, quantity=child.quantity
+            )
+        return response
+
+
 @staff_member_required(login_url="login")
 def product_add_inline_view(request, pk):
     parent_product = Product.objects.get(pk=pk)

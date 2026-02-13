@@ -12736,6 +12736,11 @@ body {
   font-family: sans-serif;
 }
 
+h1, .h1 {
+  font-size: 32px;
+  font-size: 2rem;
+}
+
 .progress {
   background-color: #ced4da;
 }

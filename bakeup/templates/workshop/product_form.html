@@ -7,6 +7,8 @@
 {% block page_heading %}
 {% if object %}
 <h1>{% trans "Update product" %}: {{ object.name }}</h1>
+{% elif original_product %}
+<h1>{% trans "Copy product" %}: {{ original_product_name }}</h1>
 {% else %}
 <h2>{% trans "Add new product" %}</h2>
 {% endif %}
