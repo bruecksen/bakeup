@@ -29,7 +29,7 @@
 {% block page_content %}
   {% if filter %}
   <form action="" method="get" class="form form-inline d-print-none">
-    <div class="row justify-content-end g-2 mb-3">
+    <div class="row g-2 mb-3">
       <div class="col-2">
         {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
@@ -45,7 +45,7 @@
       <div class="col-2">
         {% bootstrap_field filter.form.production_day size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
       </div>
-      <div class="col-auto">
+      <div class="col-2">
         {% bootstrap_button "Filter" button_type="submit" button_class="btn-primary" size="sm" %}
         <button type="submit" name="reset-filters" class="btn btn-outline-primary btn-sm"><i class="fas fa-times"></i> {% trans "Reset" %}</button>
       </div>

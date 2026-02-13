@@ -6,15 +6,19 @@
     <div class="row flex-nowrap">
       {% include "workshop/includes/sidebar.html" %}
       <div class="col offset-0 offset-md-3 offset-xl-2 mb-4">
+        <div class="row mt-2 d-print-none justify-content-end">
+          <div class="col-10">
+             <div class="col align-self-center">
+              {% block page_heading_action %}{% endblock page_heading_action %}
+            </div>
+          </div>
+        </div>
           <div class="row mt-2 d-print-none">
-            <div class="col-12 col-sm-7">
-              <div class="page-heading p-4">
+            <div class="col-12">
+              <div class="page-heading">
                 <h1>{% block page_heading %}{% endblock page_heading %}</h1>
                 {% block page_subheading %}{% endblock%}
               </div>
-            </div>
-            <div class="col align-self-center">
-              {% block page_heading_action %}{% endblock page_heading_action%}
             </div>
           </div>
 
