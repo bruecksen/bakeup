@@ -204,6 +204,7 @@ class ProductCopyView(ProductAddView):
         form.instance.pk = None
         form.instance.id = None
         response = super().form_valid(form)
+        # Duplicate the children of the original product for the new product
         for child in self.original_children:
             duplicate_child = Product.duplicate(child.child)
             ProductHierarchy.objects.create(
