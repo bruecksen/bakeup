@@ -8,7 +8,19 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db import connection, models
-from django.db.models import Exists, OuterRef, Q, UniqueConstraint
+from django.db.models import (
+    Count,
+    Exists,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    Max,
+    OuterRef,
+    Q,
+    UniqueConstraint,
+    Value,
+)
+from django.db.models.functions import ExtractDay, Now
 from django.http import HttpResponse, HttpResponseNotFound
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -18,7 +30,7 @@ from django.utils.translation import gettext_lazy as _
 from djangoql.exceptions import DjangoQLParserError
 from djangoql.parser import DjangoQLParser
 from djangoql.queryset import DjangoQLQuerySet
-from djangoql.schema import BoolField, DjangoQLField, DjangoQLSchema, IntField
+from djangoql.schema import BoolField, DjangoQLSchema, IntField
 from modelcluster.models import ClusterableModel
 from wagtail.admin.forms import WagtailAdminPageForm
 from wagtail.admin.panels import FieldPanel, ObjectList, TabbedInterface
@@ -31,7 +43,7 @@ from bakeup.core.fields import StreamField
 from bakeup.newsletter.panels import NewsletterPanel
 from bakeup.pages.blocks import AllBlocks
 from bakeup.pages.models import BrandSettings, EmailSettings
-from bakeup.shop.models import Customer, PointOfSale
+from bakeup.shop.models import Customer, CustomerOrder, PointOfSale
 from bakeup.users.models import User
 
 from .blocks import StoryBlock
@@ -372,7 +384,19 @@ class Segment(models.Model):
         members = self.audience.contacts.all()
         if self.filter_query:
             members = members.annotate(
-                is_customer=Exists(Customer.objects.filter(user=OuterRef("user")))
+                is_customer=Exists(Customer.objects.filter(user=OuterRef("user"))),
+                has_ordered=Exists(
+                    CustomerOrder.objects.filter(customer__user=OuterRef("user"))
+                ),
+                order_count=Count("user__customer__orders"),
+            )
+            members = members.annotate(
+                last_order_date=Max("user__customer__orders__created"),
+            ).annotate(
+                months_since_last_order=ExpressionWrapper(
+                    ExtractDay(Now() - F("last_order_date")) / Value(30),
+                    output_field=IntegerField(),
+                ),
             )
             members = members.djangoql(self.filter_query, ContactSchema)
         return members
@@ -548,7 +572,7 @@ class ContactActivationTokenGenerator(PasswordResetTokenGenerator):
         return str(bool(contact.is_active)) + str(contact.pk) + str(timestamp)
 
 
-class MonthsSinceLastOrderField(DjangoQLField):
+class MonthsSinceLastOrderField(IntField):
     """
     Allows filtering like:
         months_since_last_order > 12
@@ -556,10 +580,36 @@ class MonthsSinceLastOrderField(DjangoQLField):
     """
 
     name = "months_since_last_order"
-    type = IntField
 
     def get_lookup_name(self):
         return "months_since_last_order"
+
+
+class OrderCountField(IntField):
+    """
+    Allows filtering like:
+        order_count = 0       (never ordered)
+        order_count > 5       (more than 5 orders)
+        order_count >= 1      (has ordered at least once)
+    """
+
+    name = "order_count"
+
+    def get_lookup_name(self):
+        return "order_count"
+
+
+class HasOrderedField(BoolField):
+    """
+    Allows filtering like:
+        has_ordered = True
+        has_ordered = False
+    """
+
+    name = "has_ordered"
+
+    def get_lookup_name(self):
+        return "has_ordered"
 
 
 class ContactSchema(DjangoQLSchema):
@@ -574,6 +624,9 @@ class ContactSchema(DjangoQLSchema):
                 "email",
                 "user",
                 "is_active",
+                HasOrderedField(),
+                OrderCountField(),
+                MonthsSinceLastOrderField(),
             ]
         if model == Group:
             return ["name"]
