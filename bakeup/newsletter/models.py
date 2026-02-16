@@ -18,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from djangoql.exceptions import DjangoQLParserError
 from djangoql.parser import DjangoQLParser
 from djangoql.queryset import DjangoQLQuerySet
-from djangoql.schema import BoolField, DjangoQLSchema
+from djangoql.schema import BoolField, DjangoQLField, DjangoQLSchema, IntField
 from modelcluster.models import ClusterableModel
 from wagtail.admin.forms import WagtailAdminPageForm
 from wagtail.admin.panels import FieldPanel, ObjectList, TabbedInterface
@@ -546,6 +546,20 @@ class ContactActivationTokenGenerator(PasswordResetTokenGenerator):
         :rtype: str
         """
         return str(bool(contact.is_active)) + str(contact.pk) + str(timestamp)
+
+
+class MonthsSinceLastOrderField(DjangoQLField):
+    """
+    Allows filtering like:
+        months_since_last_order > 12
+        months_since_last_order = 0  (ordered this month)
+    """
+
+    name = "months_since_last_order"
+    type = IntField
+
+    def get_lookup_name(self):
+        return "months_since_last_order"
 
 
 class ContactSchema(DjangoQLSchema):
