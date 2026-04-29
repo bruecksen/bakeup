@@ -133,6 +133,12 @@ class ClientSetting(models.Model):
     account_email_verification = models.CharField(
         max_length=12, choices=ACCOUNT_EMAIL_VERIFICATION_CHOICES, default="optional"
     )
+    custom_css = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Custom CSS",
+        help_text="Add custom CSS workshop backend.",
+    )
     account_signup_email_enter_twice = models.BooleanField(default=False)
     is_newsletter_enabled = models.BooleanField(default=False)
     wagtail_reference_index_ignore = True

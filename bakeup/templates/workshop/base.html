@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block theme %}
+{% if request.tenant.clientsetting.custom_css %}
+  <style>
+    {{ request.tenant.clientsetting.custom_css|safe }}
+  </style>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row flex-nowrap">
