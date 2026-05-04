@@ -58,6 +58,7 @@ from bakeup.shop.models import (
 from bakeup.users.models import User
 from bakeup.workshop.forms import (
     AddProductFormSet,
+    CustomerCreateForm,
     CustomerForm,
     CustomerOrderForm,
     ProductForm,
@@ -1591,6 +1592,44 @@ class CustomerListView(
     @property
     def export_name(self):
         return "customers-{}".format(now().strftime("%Y%m%d-%H%M%S"))
+
+
+class CustomerCreateView(StaffPermissionsMixin, CreateView):
+    model = Customer
+    form_class = CustomerCreateForm
+    template_name = "workshop/customer_form.html"
+    success_url = reverse_lazy("workshop:customer-list")
+
+    def form_valid(self, form):
+        from allauth.account.models import EmailAddress
+
+        email = form.cleaned_data["email"]
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            first_name=form.cleaned_data["first_name"],
+            last_name=form.cleaned_data["last_name"],
+            is_active=True,
+            password=None,
+        )
+        user.groups.set(form.cleaned_data["groups"])
+        EmailAddress.objects.create(user=user, email=email, verified=True, primary=True)
+        customer = user.customer
+        customer.point_of_sale = form.cleaned_data.get("point_of_sale")
+        customer.street = form.cleaned_data.get("street", "")
+        customer.street_number = form.cleaned_data.get("street_number", "")
+        customer.postal_code = form.cleaned_data.get("postal_code", "")
+        customer.city = form.cleaned_data.get("city", "")
+        customer.telephone_number = form.cleaned_data.get("telephone_number", "")
+        customer.save()
+        self.object = customer
+        if form.cleaned_data.get("send_invite"):
+            from bakeup.users.forms import CustomResetPasswordForm
+
+            reset_form = CustomResetPasswordForm(data={"email": email})
+            if reset_form.is_valid():
+                reset_form.save(self.request)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class CustomerDeleteView(StaffPermissionsMixin, DeleteView):

@@ -110,7 +110,7 @@ Customer {{ object }}
           {% trans "last login" %}:
         </div>
         <div class="col-8">
-          {{ object.user.last_login }}
+          {{ object.user.last_login|default:"-" }}
         </div>
       </div>
     </div>

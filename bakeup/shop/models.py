@@ -138,7 +138,7 @@ class ProductionDay(CommonBaseClass):
         )
         for state in states:
             state["label"] = (
-                f'#{state["count"]} {ProductionPlan.state_display_value(state["state"])}'
+                f"#{state['count']} {ProductionPlan.state_display_value(state['state'])}"
             )
             state["css_class"] = ProductionPlan.state_css_class(state["state"])
         return states
@@ -699,12 +699,23 @@ class Customer(CommonBaseClass):
         blank=True,
         null=True,
         related_name="customers",
+        verbose_name=_("Point of Sale"),
     )
-    street = models.CharField(max_length=100, blank=True, null=True)
-    street_number = models.CharField(max_length=10, blank=True, null=True)
-    postal_code = models.CharField(max_length=10, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
-    telephone_number = models.CharField(max_length=20, blank=True, null=True)
+    street = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("Street")
+    )
+    street_number = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Street Number")
+    )
+    postal_code = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Postal Code")
+    )
+    city = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("City")
+    )
+    telephone_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name=_("Telephone Number")
+    )
 
     class Meta:
         ordering = ("user__email",)
@@ -1327,7 +1338,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                         request,
                         messages.INFO,
                         "Es sind nicht mehr genügend Abo Plätze verfügbar. Es wurde"
-                        f" eine kleinere Menge von {product.name } abonniert.",
+                        f" eine kleinere Menge von {product.name} abonniert.",
                     )
                 (
                     order_template_position,

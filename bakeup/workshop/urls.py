@@ -17,6 +17,7 @@ from bakeup.workshop.views import (
     CategoryUpdateView,
     CreateUpdateInstructionsView,
     CustomerAutocomplete,
+    CustomerCreateView,
     CustomerDeleteView,
     CustomerDetailView,
     CustomerListView,
@@ -346,6 +347,7 @@ urlpatterns = [
         "groups/<int:pk>/update/", view=GroupUpdateView.as_view(), name="group-update"
     ),
     path("customers/", view=CustomerListView.as_view(), name="customer-list"),
+    path("customers/add/", view=CustomerCreateView.as_view(), name="customer-add"),
     path(
         "customers/export/ready2order/",
         view=CustomerReady2OrderExportView.as_view(),
