@@ -20,6 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 from bakeup.core.models import UOM
 from bakeup.shop.models import Customer, CustomerOrder, PointOfSale, ProductionDay
+from bakeup.users.models import User
 from bakeup.workshop.models import Category, Product, ProductionPlan, ReminderMessage
 
 
@@ -225,8 +226,8 @@ class SelectProductionDayForm(Form):
 
 
 class CustomerForm(ModelForm):
-    first_name = CharField()
-    last_name = CharField()
+    first_name = CharField(label=_("First name"))
+    last_name = CharField(label=_("Last name"))
     is_active = BooleanField(
         required=False,
         label=_("active"),
@@ -257,6 +258,26 @@ class CustomerForm(ModelForm):
             "telephone_number",
             "groups",
         ]
+
+
+class CustomerCreateForm(CustomerForm):
+    email = forms.EmailField()
+    send_invite = forms.BooleanField(
+        required=False,
+        label=_("Send password reset email"),
+        help_text=_(
+            "Send the customer an email with a link to set their own password."
+        ),
+    )
+
+    class Meta(CustomerForm.Meta):
+        fields = ["email"] + CustomerForm.Meta.fields
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(_("A user with this email already exists."))
+        return email
 
 
 class CustomerOrderForm(ModelForm):
