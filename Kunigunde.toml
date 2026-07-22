@@ -1,0 +1,15 @@
+[local]
+#skip_migrate_on_resetdb = false
+
+[staging]
+host = "staging.bakeup.org"
+user = "bakeup"
+dbname = "bakeup"
+dbuser = "bakeup"
+
+
+# [production]
+# host = "admin.pumpwerk.org"
+# user = "pumpwerk"
+# dbname = "pumpwerk"
+# dbuser = "pumpwerk"
