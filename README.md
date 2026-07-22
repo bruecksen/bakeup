@@ -15,11 +15,11 @@ Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings
 
 ### Setting up tenants
 
-    $ python manage.py migrate_schemas --shared
+    $ uv run python manage.py migrate_schemas --shared
 
 Create the first primary tenant, schema_name, name and domain should be **localhost**
 
-    $ python manage.py create_tenant
+    $ uv run python manage.py create_tenant
 
 Edit your hosts file (/etc/hosts) and add one for the primary tenanat and for all the other tenants as well
 
@@ -35,11 +35,11 @@ In production add subdomain to nginx config and update letsencrypt certificate:
 
 It is important to set the proper --schema parameter to load the data into the right tenant. For local development this should be --schema=localhost
 
-    python manage.py tenant_command loaddata --schema=localhost bakeup/shop/fixtures/demo_point_of_sale.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/demo_users.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/groups.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_categories.json
-    python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_products.json
+    uv run python manage.py tenant_command loaddata --schema=localhost bakeup/shop/fixtures/demo_point_of_sale.json
+    uv run python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/demo_users.json
+    uv run python manage.py tenant_command loaddata --schema=localhost bakeup/users/fixtures/groups.json
+    uv run python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_categories.json
+    uv run python manage.py tenant_command loaddata --schema=localhost bakeup/workshop/fixtures/demo_products.json
 
 This will also create some demo users accounts to login. You can user username: admin, password: admin.
 
@@ -47,13 +47,13 @@ This will also create some demo users accounts to login. You can user username: 
 
 This will create some default wagtail pages with demo content
 
-    python manage.py create_initial_wagtail_pages
+    uv run python manage.py create_initial_wagtail_pages
 
 
 ### Translation
 
-    python manage.py makemessages -l de_DE -l de_DE@formal
-    python manage.py compilemessages
+    uv run python manage.py makemessages -l de_DE -l de_DE@formal
+    uv run python manage.py compilemessages
 
 
 ### Type checks
@@ -87,7 +87,13 @@ You must set the DSN url in production.
 
 ## Deployment
 
-Make sure pip is up-to-date (pip install --upgrade pip) and requirements are installed (pip install -r requirements/local.txt)
+This project uses [uv](https://docs.astral.sh/uv/) for dependency and environment management. Install uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`), then create the environment and install dependencies with:
+
+    $ uv sync
+
+Run any management command through uv (which uses the project's `.venv`):
+
+    $ uv run python manage.py <command>
 
 Adjust fabfile.py to your needs, ex. change staging envs to fit your servername and directory or/and configure a totally different environment. We go with staging in this example
 

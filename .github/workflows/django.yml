@@ -36,9 +36,10 @@ jobs:
           ssh server "
             cd $ROOT_DIR &&
             git pull origin $BRANCH &&
-            source $ENV_DIR &&
-            pip install -r requirements/production.txt &&
-            python manage.py migrate --settings=config.settings.production &&
-            python manage.py collectstatic --noinput --settings=config.settings.production &&
+            export PATH=\"\$HOME/.local/bin:\$PATH\" &&
+            command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh &&
+            uv sync --frozen --no-dev &&
+            uv run python manage.py migrate --settings=config.settings.production &&
+            uv run python manage.py collectstatic --noinput --settings=config.settings.production &&
             supervisorctl restart $APP_NAME
           "

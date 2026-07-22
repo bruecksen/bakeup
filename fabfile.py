@@ -1,6 +1,6 @@
 from __future__ import with_statement
 
-from fabric.api import cd, env, prefix, run
+from fabric.api import cd, env, run
 
 
 def staging():
@@ -32,8 +32,8 @@ def reload_webserver():
 
 
 def migrate():
-    with prefix("source %(virtualenv_path)s/bin/activate" % env):
-        run("%(path)s/manage.py migrate --settings=config.settings.production" % env)
+    with cd(env.path):
+        run("uv run python manage.py migrate --settings=config.settings.production")
 
 
 def ping():
@@ -54,18 +54,17 @@ def deploy():
 
 
 def collectstatic():
-    with prefix("source %(virtualenv_path)s/bin/activate" % env):
+    with cd(env.path):
         run(
-            "%(path)s/manage.py collectstatic --noinput"
-            " --settings=config.settings.production" % env
+            "uv run python manage.py collectstatic --noinput"
+            " --settings=config.settings.production"
         )
 
 
 def pip():
     with cd(env.path):
         run("git pull %(push_remote)s %(push_branch)s" % env)
-        with prefix("source %(virtualenv_path)s/bin/activate" % env):
-            run("pip install -Ur requirements/production.txt")
+        run("uv sync --frozen --no-dev")
 
     reload_webserver()
 

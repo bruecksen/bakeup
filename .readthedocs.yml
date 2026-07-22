@@ -4,9 +4,12 @@ sphinx:
   configuration: docs/conf.py
 
 build:
-  image: testing
-
-python:
-  version: 3.9
-  install:
-    - requirements: requirements/local.txt
+  os: ubuntu-22.04
+  tools:
+    python: "3.9"
+  commands:
+    - asdf plugin add uv
+    - asdf install uv latest
+    - asdf global uv latest
+    - uv sync --group dev
+    - uv run python -m sphinx -T -b html -d docs/_build/doctrees -D language=en docs $READTHEDOCS_OUTPUT/html
