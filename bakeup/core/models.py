@@ -124,7 +124,7 @@ class ClientSetting(models.Model):
     show_login = models.BooleanField(default=True)
     show_remaining_products = models.BooleanField(default=False)
     user_registration_fields = ChoiceArrayField(
-        models.CharField(max_length=24, choices=RegistrationFieldOption.choices),
+        models.CharField(max_length=24, choices=RegistrationFieldOption),
         default=default_registration_fields,
     )
     language_default = models.CharField(

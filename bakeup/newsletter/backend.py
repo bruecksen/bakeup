@@ -124,9 +124,7 @@ class SMTPEmailBackend:
             email_settings = EmailSettings.load(site)
             subject = revision.newsletter_subject or revision.title
             if email_settings.email_subject_prefix:
-                subject = (
-                    f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
-                )
+                subject = f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
             subject = self.replace_message_tags(subject, tenant, user.contact)
             html = self.replace_message_tags(
                 revision.get_newsletter_html(
@@ -167,9 +165,7 @@ class SMTPEmailBackend:
             for contact in recipients.members.all():
                 subject = revision.newsletter_subject or revision.title
                 if email_settings.email_subject_prefix:
-                    subject = (
-                        f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
-                    )
+                    subject = f"{email_settings.email_subject_prefix} {revision.newsletter_subject or revision.title}"
                 subject = self.replace_message_tags(subject, tenant, contact)
                 html = self.replace_message_tags(
                     revision.get_newsletter_html(

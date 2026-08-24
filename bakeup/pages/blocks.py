@@ -11,9 +11,9 @@ from wagtail.blocks.field_block import (
     IntegerBlock,
     PageChooserBlock,
     RawHTMLBlock,
+    URLBlock,
 )
 from wagtail.blocks.field_block import RichTextBlock as _RichTextBlock
-from wagtail.blocks.field_block import URLBlock
 from wagtail.blocks.list_block import ListBlock
 from wagtail.blocks.stream_block import StreamBlock
 from wagtail.blocks.struct_block import StructBlock

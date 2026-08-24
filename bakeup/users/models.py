@@ -75,9 +75,8 @@ class AbstractToken(models.Model):
         img = qrcode.make(full_url, image_factory=factory, box_size=20)
         stream = BytesIO()
         img.save(stream)
-        html = (
-            "<div style='background-color: white;display: inline-block;'>{}</div>"
-            .format(stream.getvalue().decode())
+        html = "<div style='background-color: white;display: inline-block;'>{}</div>".format(
+            stream.getvalue().decode()
         )
         return html
 

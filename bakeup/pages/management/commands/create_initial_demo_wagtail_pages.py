@@ -191,8 +191,9 @@ class Command(InteractiveTenantOption, BaseCommand):
                         " Musterstadt</p><p><b>Kontakt:</b></p><ul><li>Telefon: +49 123"
                         " 4567890</li><li>E-Mail:"
                         " info@musterbackstube.de</li><li>Webseite: <a"
-                        ' href="http://musterbackstube.de">musterbackstube.de</a></li></ul>'
-                        .format(tenant.name)
+                        ' href="http://musterbackstube.de">musterbackstube.de</a></li></ul>'.format(
+                            tenant.name
+                        )
                     ),
                     "alignment": "start",
                 },

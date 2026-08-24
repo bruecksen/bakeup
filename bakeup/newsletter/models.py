@@ -212,7 +212,7 @@ class NewsletterPage(NewsletterPageMixin):  # type: ignore
     body = StreamField(StoryBlock(), blank=True, use_json_field=True)
     status = models.IntegerField(
         verbose_name=_("status"),
-        choices=CampaignStatus.choices,
+        choices=CampaignStatus,
         default=CampaignStatus.UNSENT,
     )
     sent_date = models.DateTimeField(blank=True, null=True)
@@ -409,9 +409,7 @@ class Segment(models.Model):
 
 class NewsletterRecipients(models.Model, index.Indexed):
     name = models.CharField(max_length=1000)
-    audience = models.ForeignKey(
-        "newsletter.Audience", on_delete=models.PROTECT
-    )  # noqa: DJ001
+    audience = models.ForeignKey("newsletter.Audience", on_delete=models.PROTECT)  # noqa: DJ001
     segment = models.ForeignKey(
         Segment, on_delete=models.SET_NULL, blank=True, null=True
     )  # noqa: DJ001

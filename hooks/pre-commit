@@ -1,0 +1,21 @@
+#!/bin/sh
+# Native git pre-commit hook — runs Astral ruff (lint + format) on staged Python files.
+# No pre-commit framework. Enable once per clone with:
+#   git config core.hooksPath hooks
+#
+# Note: fixes are re-staged for the whole file (simple-hook limitation), so avoid
+# committing partial hunks of a file that also has unstaged changes.
+
+set -e
+
+# Staged, non-deleted Python files.
+files=$(git diff --cached --name-only --diff-filter=ACM -- '*.py')
+[ -z "$files" ] && exit 0
+
+# Lint with autofix; non-zero exit (unfixable violations) aborts the commit.
+uv run ruff check --fix $files
+# Format (replaces black).
+uv run ruff format $files
+
+# Re-stage anything ruff modified.
+git add $files

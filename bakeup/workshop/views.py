@@ -194,9 +194,9 @@ class ProductCopyView(ProductAddView):
             if self.original_product.name:
                 kwargs["instance"].name = f"{self.original_product.name} (Kopie)"
             if self.original_product.display_name:
-                kwargs["instance"].display_name = (
-                    f"{self.original_product.display_name} (Kopie)"
-                )
+                kwargs[
+                    "instance"
+                ].display_name = f"{self.original_product.display_name} (Kopie)"
             kwargs["instance"].sku = ""
         return kwargs
 
