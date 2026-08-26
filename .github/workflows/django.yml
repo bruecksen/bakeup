@@ -54,6 +54,9 @@ jobs:
           ENV_DIR: ${{ vars.ENV_DIR }}
           BRANCH: ${{ github.ref_name }}
           APP_NAME: ${{ vars.APP_NAME }}
+          # Per-environment restart command (Settings > Environments > [main|staging] > Variables).
+          # e.g. staging: "supervisorctl restart bakeup-staging" / production: "sudo systemctl restart bakeup"
+          RESTART_CMD: ${{ vars.RESTART_CMD }}
         run: |
           ssh server "
             cd $ROOT_DIR &&
@@ -63,5 +66,5 @@ jobs:
             uv sync --frozen --no-dev &&
             uv run python manage.py migrate --settings=config.settings.production &&
             uv run python manage.py collectstatic --noinput --settings=config.settings.production &&
-            supervisorctl restart $APP_NAME
+            $RESTART_CMD
           "
