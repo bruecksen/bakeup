@@ -2,7 +2,8 @@ from typing import Set
 
 from dal import autocomplete
 from django.contrib.auth.mixins import AccessMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import RedirectView
@@ -83,6 +84,21 @@ class HomeView(RedirectView):
                 return "/shop/"
         else:
             return "/shop/"
+
+
+def tenant_not_found(request):
+    """Response for hosts that don't match any tenant.
+
+    Called by django_tenants' ``TenantMainMiddleware`` (via the
+    ``DEFAULT_NOT_FOUND_TENANT_VIEW`` setting) while the connection is still on
+    the public schema, before ``request.tenant`` is set and before the
+    auth/session middleware have run. It must therefore render a fully
+    standalone template and must not touch any tenant-only table: we render
+    without the request context processors (Wagtail settings/menus, ``base.html``
+    eagerly reads ``settings.pages.BrandSettings``, which lives per-tenant).
+    """
+    html = render_to_string("tenant_not_found.html")
+    return HttpResponse(html, status=404)
 
 
 class TagAutocomplete(autocomplete.Select2QuerySetView):

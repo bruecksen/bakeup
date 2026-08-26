@@ -350,6 +350,12 @@ TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
 
 SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
 
+# Rendered by TenantMainMiddleware when a host matches no tenant. Takes
+# precedence over SHOW_PUBLIC_IF_NO_TENANT_FOUND, so unknown hosts get a clean
+# 404 page instead of falling through to the public schema (where tenant-only
+# tables like wagtailcore_site / pages_brandsettings don't exist -> 500).
+DEFAULT_NOT_FOUND_TENANT_VIEW = "bakeup.core.views.tenant_not_found"
+
 # Login is possible via both username and email
 # (replaces the legacy ACCOUNT_AUTHENTICATION_METHOD = "username_email").
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
