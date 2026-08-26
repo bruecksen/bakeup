@@ -1624,9 +1624,9 @@ class CustomerCreateView(StaffPermissionsMixin, CreateView):
         customer.save()
         self.object = customer
         if form.cleaned_data.get("send_invite"):
-            from bakeup.users.forms import CustomResetPasswordForm
+            from allauth.account.forms import ResetPasswordForm
 
-            reset_form = CustomResetPasswordForm(data={"email": email})
+            reset_form = ResetPasswordForm(data={"email": email})
             if reset_form.is_valid():
                 reset_form.save(self.request)
         return HttpResponseRedirect(self.get_success_url())
