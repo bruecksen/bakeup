@@ -10,7 +10,7 @@ dependencies = [
     # Django
     "django>=5.2,<5.3",  # https://www.djangoproject.com/
     "django-environ>=0.13",  # https://github.com/joke2k/django-environ
-    "django-allauth==0.61.1",  # https://github.com/pennersr/django-allauth  # upgrade tracked in ALLAUTH_UPGRADE_PLAN.md
+    "django-allauth>=65.19,<66",  # https://github.com/pennersr/django-allauth
     "django-crispy-forms>=2.4",  # https://github.com/django-crispy-forms/django-crispy-forms
     "crispy-bootstrap5>=2025.4",  # https://github.com/django-crispy-forms/crispy-bootstrap5
     "django-tables2>=2.8",

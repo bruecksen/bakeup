@@ -58,7 +58,10 @@
                 <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> {% translate "Logout" %}</a>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start"><i class="fa-solid fa-right-from-bracket fa-fw"></i> {% translate "Logout" %}</button>
+                </form>
               </li>
             {% else %}
               <li class="nav-item">

@@ -3,7 +3,7 @@ from typing import Any
 from allauth.account import signals
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import AddEmailForm, ChangePasswordForm
-from allauth.account.utils import logout_on_password_change
+from allauth.account.internal import flows
 from allauth.account.views import LoginView as _LoginView
 from allauth.account.views import SignupView as _SignupView
 from django.conf import settings
@@ -250,16 +250,14 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, MultiFormsView):
 
     def change_password_form_valid(self, form, *args, **kwargs):
         form.save()
-        logout_on_password_change(self.request, form.user)
+        # Handles session update / logout-on-change and sends the
+        # password_changed signal (replaces the removed
+        # allauth.account.utils.logout_on_password_change helper).
+        flows.password_change.finalize_password_change(self.request, form.user)
         get_adapter(self.request).add_message(
             self.request,
             messages.SUCCESS,
             "account/messages/password_changed.txt",
-        )
-        signals.password_changed.send(
-            sender=self.request.user.__class__,
-            request=self.request,
-            user=self.request.user,
         )
         return HttpResponseRedirect(self.get_success_url())
 

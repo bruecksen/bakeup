@@ -1,6 +1,5 @@
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as _LoginForm
-from allauth.account.forms import ResetPasswordForm
 from allauth.account.forms import SignupForm as _SignupForm
 from allauth.utils import set_form_field_order
 from crispy_forms.helper import FormHelper
@@ -181,11 +180,3 @@ class LoginForm(_LoginForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["login"].widget.attrs["autofocus"] = True
-
-
-class CustomResetPasswordForm(ResetPasswordForm):
-    def save(self, request, **kwargs):
-        email = self.cleaned_data["email"]
-        if self.users:
-            self._send_password_reset_mail(request, email, self.users, **kwargs)
-        return email
