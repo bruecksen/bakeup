@@ -33,6 +33,12 @@ CACHES = {
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# allauth 65.x rate-limiting needs the client IP. gunicorn runs behind nginx via
+# a unix socket, so REMOTE_ADDR is empty and the client IP is only in nginx's
+# X-Forwarded-For. Trust that single proxy hop so allauth reads the real IP
+# instead of raising "Unable to determine client IP address" (403) on login.
+# If another proxy/CDN is added in front of nginx, bump this to match the count.
+ALLAUTH_TRUSTED_PROXY_COUNT = env.int("DJANGO_ALLAUTH_TRUSTED_PROXY_COUNT", default=1)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
 SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-secure
