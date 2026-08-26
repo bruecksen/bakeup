@@ -1,4 +1,3 @@
-from allauth.account.adapter import get_adapter
 from allauth.account.forms import LoginForm as _LoginForm
 from allauth.account.forms import SignupForm as _SignupForm
 from allauth.utils import set_form_field_order
@@ -8,6 +7,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 
 from bakeup.newsletter.models import Audience, Contact
@@ -53,7 +53,8 @@ class UserFormMixin:
                 attrs={
                     "style": "position: absolute; right: -99999px;",
                     "tabindex": "-1",
-                    "autocomplete": "nope",
+                    "autocomplete": "off",
+                    "aria-hidden": "true",
                 }
             ),
         )
@@ -149,13 +150,10 @@ class UserFormMixin:
 
     def try_save(self, request):
         if self.cleaned_data[settings.HONEYPOT_FIELD_NAME]:
-            user = None
-            adapter = get_adapter()
-            # honeypot fields work best when you do not report to the bot
-            # that anything went wrong. So we return a fake email verification
-            # sent response but without creating a user
-            resp = adapter.respond_email_verification_sent(request, None)
-            return user, resp
+            # Honeypot tripped: silently send them back to a fresh signup form.
+            # No user created, no email, no misleading "verification sent" page,
+            # and nothing that tells a bot which field is the trap.
+            return None, HttpResponseRedirect(request.path)
         return super().try_save(request)
 
 

@@ -151,7 +151,7 @@ LOGOUT_REDIRECT_URL = "/shop/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
-HONEYPOT_FIELD_NAME = "email_confirm"
+HONEYPOT_FIELD_NAME = "comment"
 
 # PASSWORDS
 # ------------------------------------------------------------------------------

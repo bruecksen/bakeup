@@ -47,6 +47,9 @@ def deploy():
     with cd(env.path):
         run("git fetch --tags -f")
         run("git pull %(push_remote)s %(push_branch)s" % env)
+        # Install/upgrade dependencies to match uv.lock. Without this the venv drifts
+        # from the code (e.g. new code on an old Django), which breaks migrate/runtime.
+        run("uv sync --frozen --no-dev")
     migrate()
     collectstatic()
     reload_webserver()
