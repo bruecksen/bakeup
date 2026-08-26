@@ -28,10 +28,14 @@ class TenantSettings:
                 settings.ACCOUNT_EMAIL_VERIFICATION = (
                     client_settings.account_email_verification
                 )
+            # allauth 65.x drives the signup fields via ACCOUNT_SIGNUP_FIELDS;
+            # the legacy ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE is ignored once
+            # ACCOUNT_SIGNUP_FIELDS is set. Always assign explicitly so the
+            # "email2" field doesn't leak across tenants in the same worker.
             if client_settings.account_signup_email_enter_twice:
-                settings.ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = (
-                    client_settings.account_signup_email_enter_twice
-                )
+                settings.ACCOUNT_SIGNUP_FIELDS = ["email*", "email2*", "password1*"]
+            else:
+                settings.ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 
         if request:
             settings.WAGTAILADMIN_BASE_URL = tenant.default_full_url

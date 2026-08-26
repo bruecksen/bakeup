@@ -40,8 +40,8 @@ class AccountAdapter(DefaultAccountAdapter):
         else:
             return "/shop/"
 
-    def get_email_confirmation_redirect_url(self, request):
-        if request.user.is_staff:
+    def get_email_verification_redirect_url(self, email_address):
+        if self.request.user.is_staff:
             return reverse("workshop:workshop")
         else:
             return "/shop/"
