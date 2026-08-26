@@ -468,7 +468,7 @@ class ProductHierarchy(CommonBaseClass):
         unique_together = ("parent", "child")
         constraints = [
             models.CheckConstraint(
-                check=~Q(parent=F("child")),
+                condition=~Q(parent=F("child")),
                 name="recipe_parent_and_child_cannot_be_equal",
             )
         ]
@@ -562,7 +562,8 @@ class ProductionPlan(CommonBaseClass):
         ordering = ("-production_day", "product__name")
         constraints = [
             models.CheckConstraint(
-                check=~Q(pk=F("parent_plan")), name="production_plan_not_equal_parent"
+                condition=~Q(pk=F("parent_plan")),
+                name="production_plan_not_equal_parent",
             )
         ]
 
@@ -696,7 +697,7 @@ class ReminderMessage(CommonBaseClass):
 
     def __str__(self):
         if self.point_of_sale:
-            return f"{ self.point_of_sale }: { self.subject }"
+            return f"{self.point_of_sale}: {self.subject}"
         else:
             return self.subject
 

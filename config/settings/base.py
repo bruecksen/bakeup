@@ -1,6 +1,7 @@
 """
 Base settings to build other settings files upon.
 """
+
 from pathlib import Path
 
 import environ
@@ -349,13 +350,20 @@ TENANT_DOMAIN_MODEL = "core.Domain"  # app.Model
 
 SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
 
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
+# Login is possible via both username and email
+# (replaces the legacy ACCOUNT_AUTHENTICATION_METHOD = "username_email").
+ACCOUNT_LOGIN_METHODS = {"username", "email"}
+# Signup collects a required email + password; no username field
+# (replaces ACCOUNT_EMAIL_REQUIRED / ACCOUNT_USERNAME_REQUIRED /
+# ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE / ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE).
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 ACCOUNT_SESSION_REMEMBER = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
+# Don't leak whether an account exists on password reset. Together with
+# EMAIL_UNKNOWN_ACCOUNTS = False this replaces the old CustomResetPasswordForm,
+# which guarded against sending a reset mail to unknown email addresses.
+ACCOUNT_PREVENT_ENUMERATION = True
+ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 14
 
@@ -363,13 +371,10 @@ ACCOUNT_ADAPTER = "bakeup.users.allauth.AccountAdapter"
 ACCOUNT_FORMS = {
     "signup": "bakeup.users.forms.SignupForm",
     "login": "bakeup.users.forms.LoginForm",
-    "reset_password": "bakeup.users.forms.CustomResetPasswordForm",
 }
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_USER_DISPLAY = lambda user: user.get_full_name()  # noqa
-# ACCOUNT_SIGNUP_FORM_CLASS = 'bakeup.users.forms.UserFormMixin'
 ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True
 
 META_PRODUCT_CATEGORY_NAME = "META PRODUCTS"

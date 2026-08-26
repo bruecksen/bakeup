@@ -27,7 +27,10 @@
                 <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</a>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="nav-link border-0 bg-transparent"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</button>
+                </form>
               </li>
               {% elif request.tenant.clientsetting.show_login %}
               <li class="nav-item">
