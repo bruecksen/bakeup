@@ -1,18 +1,15 @@
-from django.core.management.base import BaseCommand
-from django.db import connection
 from django.utils import timezone
-from django_tenants.utils import get_tenant_model
 
+from bakeup.core.management.base import PerTenantCommand
 from bakeup.core.tenant_settings import TenantSettings
 from bakeup.newsletter import get_backend
 from bakeup.newsletter.models import CampaignStatus, NewsletterPage
 
 
-class Command(BaseCommand):
+class Command(PerTenantCommand):
     help = "Sends scheduled newsletter"
 
-    def handle(self, *args, **options):
-        tenant = get_tenant_model().objects.get(schema_name=connection.schema_name)
+    def handle_tenant(self, tenant, *args, **options):
         TenantSettings.overload_settings(tenant)
         scheduled_newsletters = NewsletterPage.objects.filter(
             status=CampaignStatus.SCHEDULED,
