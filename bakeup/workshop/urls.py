@@ -71,6 +71,7 @@ from bakeup.workshop.views import (
     order_max_quantities_view,
     pos_order_all_picked_up_view,
     product_add_inline_view,
+    product_dough_yield_view,
     product_normalize_view,
     production_day_redirect_view,
     production_plan_cancel_view,
@@ -107,6 +108,11 @@ urlpatterns = [
         "products/<int:pk>/normalize/",
         view=product_normalize_view,
         name="product-normalize",
+    ),
+    path(
+        "products/<int:pk>/dough-yield/",
+        view=product_dough_yield_view,
+        name="product-dough-yield",
     ),
     path("products/<int:pk>/", view=ProductDetailView.as_view(), name="product-detail"),
     path(

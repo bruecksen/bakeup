@@ -152,6 +152,10 @@ class ProductionPlanForm(ModelForm):
         fields = ("start_date", "duration")
 
 
+class ProductDoughYieldForm(Form):
+    dough_yield = IntegerField(min_value=100, label=_("Hydration"))
+
+
 class ProductKeyFiguresForm(Form):
     fermentation_loss = DecimalField(
         decimal_places=2,

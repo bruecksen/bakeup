@@ -408,6 +408,46 @@ class Product(CommonBaseClass):
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=["quantity"])
 
+    def adjust_dough_yield(self, dough_yield):
+        # Only the ratio of liquids on this level is changed, sub levels keep
+        # their composition. Afterwards this level is rescaled so the total
+        # weight stays the same.
+        category = Category.objects.filter(slug="liquids").first()
+        total_weight_flour = self.total_weight_flour
+        if not category or not total_weight_flour:
+            return False
+        total_weight_water = Product.calculate_total_weight_by_category(self, category)
+        children = list(self.parents.all())
+        liquids = [
+            child
+            for child in children
+            if child.child.category
+            and child.child.weight_in_base_unit
+            and (
+                child.child.category == category
+                or child.child.category.is_descendant_of(category)
+            )
+        ]
+        weight_direct = sum(child.weight for child in liquids)
+        if not weight_direct:
+            return False
+        target_weight_water = total_weight_flour * (dough_yield - 100) / 100
+        new_weight_direct = weight_direct + target_weight_water - total_weight_water
+        if new_weight_direct <= 0:
+            return False
+        factor = new_weight_direct / weight_direct
+        total_weight = sum(
+            child.weight for child in children if child.child.weight_in_base_unit
+        )
+        scale = total_weight / (total_weight - weight_direct + new_weight_direct)
+        for child in children:
+            if child in liquids:
+                child.quantity = child.quantity * factor * scale
+            else:
+                child.quantity = child.quantity * scale
+            child.save(update_fields=["quantity"])
+        return True
+
 
 class ProductPrice(CommonBaseClass):
     product = models.ForeignKey(

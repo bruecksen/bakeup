@@ -61,6 +61,7 @@ from bakeup.workshop.forms import (
     CustomerCreateForm,
     CustomerForm,
     CustomerOrderForm,
+    ProductDoughYieldForm,
     ProductForm,
     ProductHierarchyForm,
     ProductionDayMetaProductformSet,
@@ -371,6 +372,21 @@ def product_normalize_view(request, pk):
             product.normalize(fermentation_loss)
         else:
             raise Exception(form.errors)
+    return redirect(product.get_absolute_url())
+
+
+@staff_member_required
+@require_POST
+def product_dough_yield_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductDoughYieldForm(request.POST)
+    if not form.is_valid() or not product.adjust_dough_yield(
+        form.cleaned_data["dough_yield"]
+    ):
+        messages.error(
+            request,
+            _("Dough yield can't be reached by changing the water on this level."),
+        )
     return redirect(product.get_absolute_url())
 
 
