@@ -408,17 +408,19 @@ class Product(CommonBaseClass):
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=["quantity"])
 
-    def adjust_dough_yield(self, dough_yield):
-        # Only the ratio of liquids on this level is changed, sub levels keep
-        # their composition. Afterwards this level is rescaled so the total
-        # weight stays the same.
-        category = Category.objects.filter(slug="liquids").first()
+    def adjust_ratio_to_flour(self, category_slug, ratio):
+        # Only the ingredients of the category on this level are changed, sub
+        # levels keep their composition. Afterwards this level is rescaled so
+        # the total weight stays the same.
+        category = Category.objects.filter(slug=category_slug).first()
         total_weight_flour = self.total_weight_flour
         if not category or not total_weight_flour:
             return False
-        total_weight_water = Product.calculate_total_weight_by_category(self, category)
+        total_weight_category = Product.calculate_total_weight_by_category(
+            self, category
+        )
         children = list(self.parents.all())
-        liquids = [
+        ingredients = [
             child
             for child in children
             if child.child.category
@@ -428,11 +430,11 @@ class Product(CommonBaseClass):
                 or child.child.category.is_descendant_of(category)
             )
         ]
-        weight_direct = sum(child.weight for child in liquids)
+        weight_direct = sum(child.weight for child in ingredients)
         if not weight_direct:
             return False
-        target_weight_water = total_weight_flour * (dough_yield - 100) / 100
-        new_weight_direct = weight_direct + target_weight_water - total_weight_water
+        target_weight = total_weight_flour * ratio / 100
+        new_weight_direct = weight_direct + target_weight - total_weight_category
         if new_weight_direct <= 0:
             return False
         factor = new_weight_direct / weight_direct
@@ -441,10 +443,114 @@ class Product(CommonBaseClass):
         )
         scale = total_weight / (total_weight - weight_direct + new_weight_direct)
         for child in children:
-            if child in liquids:
+            if child in ingredients:
                 child.quantity = child.quantity * factor * scale
             else:
                 child.quantity = child.quantity * scale
+            child.save(update_fields=["quantity"])
+        return True
+
+    def adjust_dough_yield(self, dough_yield):
+        return self.adjust_ratio_to_flour("liquids", dough_yield - 100)
+
+    def adjust_salt_ratio(self, salt_ratio):
+        return self.adjust_ratio_to_flour("salt", float(salt_ratio))
+
+    def adjust_total_weight(self, total_weight):
+        children = list(self.parents.all())
+        current_total_weight = sum(
+            child.weight for child in children if child.child.weight_in_base_unit
+        )
+        if not current_total_weight or total_weight <= 0:
+            return False
+        scale = float(total_weight) / current_total_weight
+        for child in children:
+            child.quantity = child.quantity * scale
+            child.save(update_fields=["quantity"])
+        return True
+
+    def adjust_pre_ferment_ratio(self, pre_ferment):
+        # The pre doughs on this level are scaled. The flour (per flour type)
+        # and liquids they add or remove are compensated on this level, so
+        # flour composition and dough yield stay. Afterwards this level is
+        # rescaled so the total weight stays the same.
+        flour = Category.objects.filter(slug="flour").first()
+        liquids = Category.objects.filter(slug="liquids").first()
+        pre_dough = Category.objects.filter(slug="pre-dough").first()
+        total_weight_flour = self.total_weight_flour
+        if not flour or not liquids or not pre_dough or not total_weight_flour:
+            return False
+        children = list(self.parents.all())
+
+        def direct_children(category, exact=False):
+            return [
+                child
+                for child in children
+                if child.child.category
+                and child.child.weight_in_base_unit
+                and (
+                    child.child.category == category
+                    or (not exact and child.child.category.is_descendant_of(category))
+                )
+            ]
+
+        pre_doughs = direct_children(pre_dough)
+
+        def weight_in_pre_doughs(category):
+            return sum(
+                Product.calculate_total_weight_by_category(
+                    child.child, category, child.quantity
+                )
+                for child in pre_doughs
+            )
+
+        flour_in_pre_doughs = weight_in_pre_doughs(flour)
+        if not flour_in_pre_doughs:
+            return False
+        total_pre_ferment = Product.calculate_total_weight_by_category_and_parent(
+            self, flour, 1, pre_dough
+        )
+        target_pre_ferment = total_weight_flour * float(pre_ferment) / 100
+        factor = (
+            target_pre_ferment - (total_pre_ferment - flour_in_pre_doughs)
+        ) / flour_in_pre_doughs
+        if factor <= 0:
+            return False
+        factors = {child.pk: factor for child in pre_doughs}
+
+        flour_types = [(category, False) for category in flour.get_children()]
+        flour_types.append((flour, True))
+        flour_in_flour_types = 0
+        compensations = []
+        for category, exact in flour_types:
+            if exact:
+                weight = flour_in_pre_doughs - flour_in_flour_types
+            else:
+                weight = weight_in_pre_doughs(category)
+                flour_in_flour_types += weight
+            compensations.append((direct_children(category, exact), weight))
+        compensations.append((direct_children(liquids), weight_in_pre_doughs(liquids)))
+        for compensated_children, weight_in_pre_dough in compensations:
+            delta_weight = (factor - 1) * weight_in_pre_dough
+            if abs(delta_weight) < 1e-9:
+                continue
+            weight = sum(child.weight for child in compensated_children)
+            if not weight or weight - delta_weight <= 0:
+                return False
+            for child in compensated_children:
+                factors[child.pk] = (weight - delta_weight) / weight
+
+        total_weight = sum(
+            child.weight for child in children if child.child.weight_in_base_unit
+        )
+        new_total_weight = sum(
+            child.weight * factors.get(child.pk, 1)
+            for child in children
+            if child.child.weight_in_base_unit
+        )
+        scale = total_weight / new_total_weight
+        for child in children:
+            child.quantity = child.quantity * factors.get(child.pk, 1) * scale
             child.save(update_fields=["quantity"])
         return True
 

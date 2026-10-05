@@ -73,6 +73,9 @@ from bakeup.workshop.views import (
     product_add_inline_view,
     product_dough_yield_view,
     product_normalize_view,
+    product_pre_ferment_view,
+    product_salt_view,
+    product_total_dough_weight_view,
     production_day_redirect_view,
     production_plan_cancel_view,
     production_plan_finish_view,
@@ -113,6 +116,21 @@ urlpatterns = [
         "products/<int:pk>/dough-yield/",
         view=product_dough_yield_view,
         name="product-dough-yield",
+    ),
+    path(
+        "products/<int:pk>/salt/",
+        view=product_salt_view,
+        name="product-salt",
+    ),
+    path(
+        "products/<int:pk>/dough-weight/",
+        view=product_total_dough_weight_view,
+        name="product-dough-weight",
+    ),
+    path(
+        "products/<int:pk>/pre-ferment/",
+        view=product_pre_ferment_view,
+        name="product-pre-ferment",
     ),
     path("products/<int:pk>/", view=ProductDetailView.as_view(), name="product-detail"),
     path(

@@ -156,6 +156,35 @@ class ProductDoughYieldForm(Form):
     dough_yield = IntegerField(min_value=100, label=_("Hydration"))
 
 
+class ProductSaltForm(Form):
+    salt = DecimalField(
+        decimal_places=2,
+        min_value=0,
+        max_value=100,
+        label=_("Salt"),
+        localize=True,
+    )
+
+
+class ProductPreFermentForm(Form):
+    pre_ferment = DecimalField(
+        decimal_places=2,
+        min_value=0,
+        max_value=100,
+        label=_("Fermented Flour"),
+        localize=True,
+    )
+
+
+class ProductTotalDoughWeightForm(Form):
+    total_dough_weight = DecimalField(
+        decimal_places=2,
+        min_value=0,
+        label=_("Dough Weight"),
+        localize=True,
+    )
+
+
 class ProductKeyFiguresForm(Form):
     fermentation_loss = DecimalField(
         decimal_places=2,

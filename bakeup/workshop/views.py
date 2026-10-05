@@ -67,6 +67,9 @@ from bakeup.workshop.forms import (
     ProductionDayMetaProductformSet,
     ProductionPlanDayForm,
     ProductKeyFiguresForm,
+    ProductPreFermentForm,
+    ProductSaltForm,
+    ProductTotalDoughWeightForm,
     ReminderMessageForm,
     SelectProductForm,
     SelectProductionDayForm,
@@ -386,6 +389,48 @@ def product_dough_yield_view(request, pk):
         messages.error(
             request,
             _("Dough yield can't be reached by changing the water on this level."),
+        )
+    return redirect(product.get_absolute_url())
+
+
+@staff_member_required
+@require_POST
+def product_salt_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductSaltForm(request.POST)
+    if not form.is_valid() or not product.adjust_salt_ratio(form.cleaned_data["salt"]):
+        messages.error(
+            request,
+            _("Salt can't be reached by changing the salt on this level."),
+        )
+    return redirect(product.get_absolute_url())
+
+
+@staff_member_required
+@require_POST
+def product_total_dough_weight_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductTotalDoughWeightForm(request.POST)
+    if not form.is_valid() or not product.adjust_total_weight(
+        form.cleaned_data["total_dough_weight"]
+    ):
+        messages.error(request, _("Dough weight can't be changed."))
+    return redirect(product.get_absolute_url())
+
+
+@staff_member_required
+@require_POST
+def product_pre_ferment_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductPreFermentForm(request.POST)
+    if not form.is_valid() or not product.adjust_pre_ferment_ratio(
+        form.cleaned_data["pre_ferment"]
+    ):
+        messages.error(
+            request,
+            _(
+                "Fermented flour can't be reached by changing the pre dough on this level."
+            ),
         )
     return redirect(product.get_absolute_url())
 
