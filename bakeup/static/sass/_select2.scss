@@ -8,3 +8,12 @@
 .select2-selection__arrow {
     display: none!important;
 }
+#add-ingredient .select2-container .select2-selection--single {
+    height: calc(1.5em + .5rem + 2px)!important;
+    padding: .25rem .5rem;
+    font-size: .875rem;
+    border-radius: .25rem;
+}
+#add-ingredient .select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+}

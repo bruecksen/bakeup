@@ -53,7 +53,7 @@ This will create some default wagtail pages with demo content
 ### Translation
 
     uv run python manage.py makemessages -l de_DE -l de_DE@formal
-    uv run python manage.py compilemessages
+    uv run python manage.py compilemessages --ignore=.venv --ignore=node_modules
 
 
 ### Type checks

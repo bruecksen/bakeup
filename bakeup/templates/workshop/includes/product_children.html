@@ -8,12 +8,19 @@
         <div class="row gx-1 gx-sm-4">
           <div class="col-4 col-sm-2">
             {% if is_root %}
-              <form action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST">
+              <form id="amount-form-{{ child.pk }}" class="amount-form" action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST"
+                hx-post="{% url 'workshop:product-hierarchy-update' pk=child.pk %}"
+                hx-trigger="input delay:1s, change, submit"
+                hx-sync="this:replace"
+                hx-validate="false"
+                hx-target="#recipe-figures"
+                hx-select="#recipe-figures"
+                hx-select-oob="#messages"
+                hx-swap="outerMorph">
                 {% csrf_token %}
                 <div class="input-group input-group-sm">
-                  <input type="text" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ child.weight|clever_rounding }}" step="0.1">
-                  <span class="input-group-text d-none d-sm-inline">g</span>
-                  <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-save"></i></button>
+                  <input type="text" id="amount-{{ child.pk }}" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ child.weight|clever_rounding }}" required>
+                  <span class="input-group-text d-none d-sm-inline"><span class="amount-unit">g</span><i class="amount-spinner fas fa-spinner fa-spin d-none"></i></span>
                 </div>
               </form>
 
@@ -33,7 +40,7 @@
           <div class="col-1 col-sm-3 text-end">
             {% if is_root %}
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" class="btn btn-outline-primary"><i class="fa-solid fa-trash"></i></a>
+              <a href="{% url 'workshop:product-hierarchy-delete' pk=child.pk %}" id="delete-{{ child.pk }}" class="btn btn-outline-primary delete-link text-nowrap" data-csrf="{{ csrf_token }}"><i class="fa-solid fa-trash"></i><span class="delete-label d-none"> {% trans "Delete?" %}</span></a>
             </div>
             {% endif %}
           </div>
@@ -45,65 +52,38 @@
         </div>
       </li>
   {% endfor %}
-  {% if is_root %}
-  <form method="POST" class="form-add-inline" action="{% url 'workshop:product-add-inline' pk=parent.pk %}" encrypt="multipart/form-data">
-    {% csrf_token %}
-    {{ formset.management_form }}
-    <li class="list-group-item add-another-container">
-      <div class="row">
-        <div class="col text-end">
-          <div class="btn-group" role="group" aria-label="Basic example">
-            <a class="btn btn-outline-primary btn-sm add-another add-another-form"><i class="fas fa-plus-circle"></i> {% trans "Add another" %}</a>
+  {% if is_root and add_ingredient_form %}
+  <li class="list-group-item" id="add-ingredient" hx-morph-skip>
+    <form id="add-ingredient-form" action="{% url 'workshop:product-add-inline' pk=parent.pk %}" method="POST" novalidate
+      hx-post="{% url 'workshop:product-add-inline' pk=parent.pk %}"
+      hx-trigger="submit"
+      hx-validate="false"
+      hx-target="#recipe-figures"
+      hx-select="#recipe-figures"
+      hx-select-oob="#messages"
+      hx-swap="outerMorph">
+      {% csrf_token %}
+      <div class="row gx-1 gx-sm-4">
+        <div class="col-4 col-sm-2">
+          <div class="input-group input-group-sm">
+            <input type="text" id="add-ingredient-weight" class="form-control" name="weight" placeholder="0" pattern="[0-9]+([\.,][0-9]+)?" required aria-label="{% trans 'Weight' %}">
+            <span class="input-group-text d-none d-sm-inline">g</span>
           </div>
         </div>
-      </div>
-    </li>
-    <div class="list-group-item d-none form-container">
-      <div class="add-product-form">
-        <div class="row gx-1 gx-sm-4">
-          <div class="col-12 col-sm-2">
-            {% if formset.empty_form.weight %}
-            {% bootstrap_field formset.empty_form.weight show_label=False size="sm" addon_after='g' %}
-            {% endif %}
-          </div>
-          <div class="col-12 col-sm-8">
-            <div class="row">
-              <div class="col-4">
-                {% bootstrap_field formset.empty_form.product_existing show_label=False size="sm" wrapper_class='' %}
-                <p class="text-center mb-0"><small>{% trans "Or" %}</small></p>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-6 col-sm-3">
-                {% bootstrap_field formset.empty_form.product_new show_label=False size="sm" %}
-              </div>
-              <div class="col-6 col-sm-3">
-                {% bootstrap_field formset.empty_form.category show_label=False size="sm" %}
-              </div>
-              <div class="col-6 col-sm-2">
-                {% bootstrap_field formset.empty_form.is_sellable size="sm" %}
-              </div>
-              <div class="col-6 col-sm-2">
-                {% bootstrap_field formset.empty_form.is_buyable size="sm" %}
-              </div>
-              <div class="col-6 col-sm-2">
-                {% bootstrap_field formset.empty_form.is_composable size="sm" %}
-              </div>
-            </div>
-          </div>
-          <div class="col-2 text-end">
-            <a class="btn btn-outline-primary btn-sm add-another remove-another-form"><i class="fa-solid fa-trash"></i></a>
+        <div class="col-6 col-sm-7">
+          {{ add_ingredient_form.ingredient }}
+          <div class="add-ingredient-new d-none mt-2">
+            {% bootstrap_field add_ingredient_form.category show_label=False size="sm" wrapper_class="mb-2" %}
+            {% bootstrap_field add_ingredient_form.is_buyable size="sm" wrapper_class="d-inline-block me-3 mb-0" %}
+            {% bootstrap_field add_ingredient_form.is_composable size="sm" wrapper_class="d-inline-block me-3 mb-0" %}
+            {% bootstrap_field add_ingredient_form.is_sellable size="sm" wrapper_class="d-inline-block me-3 mb-0" %}
           </div>
         </div>
-      </div>
-    </div>
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col text-end">
-          <button type="submit" class="btn btn-primary btn-sm add-another d-none save-another-form">{% trans "Save" %}</button>
+        <div class="col-2 col-sm-3 text-end">
+          <button type="submit" class="btn btn-sm btn-primary text-nowrap"><i class="fas fa-plus"></i><span class="d-none d-sm-inline"> {% trans "Add" %}</span></button>
         </div>
       </div>
-    </li>
-  </form>
+    </form>
+  </li>
   {% endif %}
   </ol>

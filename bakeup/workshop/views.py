@@ -57,7 +57,7 @@ from bakeup.shop.models import (
 )
 from bakeup.users.models import User
 from bakeup.workshop.forms import (
-    AddProductFormSet,
+    AddIngredientForm,
     CustomerCreateForm,
     CustomerForm,
     CustomerOrderForm,
@@ -74,6 +74,7 @@ from bakeup.workshop.forms import (
     SelectProductForm,
     SelectProductionDayForm,
     SelectReminderMessageForm,
+    ingredient_choices,
 )
 from bakeup.workshop.models import (
     Category,
@@ -219,67 +220,30 @@ class ProductCopyView(ProductAddView):
 
 
 @staff_member_required(login_url="login")
+@staff_member_required
+@require_POST
 def product_add_inline_view(request, pk):
-    parent_product = Product.objects.get(pk=pk)
-    if request.method == "POST":
-        formset = AddProductFormSet(request.POST)
-        if formset.is_valid():
-            for form in formset:
-                product = None
-                quantity = None
-                if form.cleaned_data.get(
-                    "product_existing", None
-                ) and form.cleaned_data.get("weight", None):
-                    product = form.cleaned_data["product_existing"]
-                    if parent_product.has_child(product):
-                        product = None
-                        messages.add_message(
-                            request,
-                            messages.WARNING,
-                            "This product is already a child product.",
-                        )
-                    if parent_product == product:
-                        product = None
-                        messages.add_message(
-                            request,
-                            messages.WARNING,
-                            "You cannot add the parent product as a child product"
-                            " again",
-                        )
-                    quantity = (
-                        form.cleaned_data.get("weight", 1000)
-                        / product.weight_in_base_unit
-                    )
-                if form.cleaned_data.get("product_new", None) and form.cleaned_data.get(
-                    "category", None
-                ):
-                    product = Product.objects.create(
-                        name=form.cleaned_data["product_new"],
-                        category=form.cleaned_data["category"],
-                        weight=1000,
-                        is_sellable=form.cleaned_data.get("is_sellable", False),
-                        is_buyable=form.cleaned_data.get("is_buyable", False),
-                        is_composable=form.cleaned_data.get("is_composable", False),
-                    )
-                    quantity = (
-                        form.cleaned_data.get("weight", 1000)
-                        / product.weight_in_base_unit
-                    )
-                elif form.cleaned_data.get(
-                    "product_new", None
-                ) and not form.cleaned_data.get("category", None):
-                    messages.add_message(
-                        request,
-                        messages.WARNING,
-                        "Bitte eine Kategorie für das neue Produkt auswählen.",
-                    )
-                if product and quantity:
-                    parent_product.add_child(product, quantity)
-        else:
-            raise Exception(formset.errors)
-    return HttpResponseRedirect(
-        reverse("workshop:product-detail", kwargs={"pk": parent_product.pk})
-    )
+    parent_product = get_object_or_404(Product, pk=pk)
+    form = AddIngredientForm(request.POST, product=parent_product)
+    if form.is_valid():
+        product = form.cleaned_data["product"]
+        if product is None:
+            product = Product.objects.create(
+                name=form.cleaned_data["new_name"],
+                category=form.cleaned_data["category"],
+                weight=1000,
+                is_sellable=form.cleaned_data["is_sellable"],
+                is_buyable=form.cleaned_data["is_buyable"],
+                is_composable=form.cleaned_data["is_composable"],
+            )
+        parent_product.add_child(
+            product, form.cleaned_data["weight"] / product.weight_in_base_unit
+        )
+    else:
+        for errors in form.errors.values():
+            for error in errors:
+                messages.error(request, error)
+    return redirect(parent_product.get_absolute_url())
 
 
 class ProductUpdateView(StaffPermissionsMixin, UpdateView):
@@ -330,8 +294,8 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        raise Exception(form.errors)
-        return super().form_invalid(form)
+        messages.error(self.request, _("Please enter a valid weight."))
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.object.parent.pk})
@@ -353,12 +317,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["formset"] = AddProductFormSet(
-            form_kwargs={
-                "parent_products": self.object.childs.with_weights(),
-                "product": self.object,
-            }
-        )
+        context["add_ingredient_form"] = AddIngredientForm(product=self.object)
         if self.object.is_composable:
             context["key_figures_form"] = ProductKeyFiguresForm(
                 initial=self.get_key_figures_inital_data()
@@ -2134,6 +2093,32 @@ class CustomSelect2ViewMixin(Select2ViewMixin):
 
 class CustomSelect2QuerySetView(CustomSelect2ViewMixin, BaseQuerySetView):
     """Adds ability to pass a disabled property to a choice."""
+
+
+class IngredientAutocomplete(Select2ViewMixin, BaseQuerySetView):
+    def get_queryset(self):
+        if not self.request.user.is_staff:
+            return Product.objects.none()
+        parent = Product.objects.filter(pk=self.forwarded.get("parent")).first()
+        qs = ingredient_choices(parent)
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+        return qs.order_by(Lower("name"))
+
+    def get_create_option(self, context, q):
+        q = (q or "").strip()
+        if (
+            not q
+            or self.request.GET.get("page", "1") != "1"
+            or Product.objects.filter(name__iexact=q).exists()
+        ):
+            return []
+        return [
+            {
+                "id": f"{AddIngredientForm.NEW_PREFIX}{q}",
+                "text": _('Create "%(name)s"') % {"name": q},
+            }
+        ]
 
 
 class CustomerAutocomplete(CustomSelect2QuerySetView):

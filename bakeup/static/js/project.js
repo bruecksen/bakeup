@@ -77,57 +77,6 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 })
 
 
-var addButton = document.querySelector(".add-another-form");
-var totalForms = document.querySelector("#id_form-TOTAL_FORMS");
-var saveButton = document.querySelector(".save-another-form");
-if (addButton) {
-    addButton.addEventListener('click', addForm);
-}
-
-function addRemoveButtonEvent(removeButtons) {
-    for (let i = 0; i < removeButtons.length; i++) {
-        removeButtons[i].addEventListener("click", removeForm);
-    }
-}
-
-
-function addForm(e){
-    e.preventDefault();
-    saveButton.classList.remove('d-none');
-    var form = document.querySelector(".form-container");
-    var container = document.querySelector(".form-add-inline");
-    var totalFormValue = parseInt(totalForms.value);
-    var newForm = form.cloneNode(true);
-    var formRegex = RegExp(`form-(\\d){1}-`,'g');
-
-    newForm.classList.remove('d-none');
-    console.log(newForm);
-    newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, `${totalFormValue}`);
-    newForm.querySelector(`#id_form-${totalFormValue}-weight`).required = true;
-    console.log(form)
-    container.insertBefore(newForm, form);
-
-    totalForms.setAttribute('value', `${totalFormValue+1}`);
-    var removeButtons = document.querySelectorAll(".remove-another-form");
-    addRemoveButtonEvent(removeButtons);
-
-}
-
-var removeButtons = document.querySelectorAll(".remove-another-form");
-
-addRemoveButtonEvent(removeButtons);
-
-function removeForm(e) {
-    console.log('click');
-    e.preventDefault();
-    e.target.closest('.list-group-item').remove();
-    var totalFormValue = parseInt(document.querySelector("#id_form-TOTAL_FORMS").value);
-    totalForms.setAttribute('value', `${totalFormValue-1}`);
-    if (totalFormValue - 1 == 0) {
-        saveButton.classList.add('d-none');
-    }
-}
-
 // toggle Sidebar
 var sidebarToggler = document.querySelector(".sidebar-toggler");
 if (sidebarToggler) {
@@ -710,5 +659,210 @@ $(function() {
             // $('.sticky').removeClass('sticked').css({position: 'static', width: 'auto'});
           }
         });
+    }
+});
+
+var openRecipeCollapses = [];
+var amountSaved = {};
+var amountSent = {};
+var amountInflight = {};
+
+function amountInput(form) {
+    return document.getElementById(form.id.replace("amount-form-", "amount-"));
+}
+
+function refreshAmountForms() {
+    document.querySelectorAll(".amount-form").forEach(function(form) {
+        var input = amountInput(form);
+        if (!(input.id in amountSaved)) amountSaved[input.id] = input.value;
+        var busy = amountInflight[form.id] > 0;
+        input.classList.toggle("border-warning", input.value !== amountSaved[input.id]);
+        form.querySelector(".amount-unit").classList.toggle("d-none", busy);
+        form.querySelector(".amount-spinner").classList.toggle("d-none", !busy);
+    });
+}
+
+function amountFormsDirty() {
+    return [].some.call(document.querySelectorAll(".amount-form"), function(form) {
+        return amountInflight[form.id] > 0 || amountInput(form).value !== amountSaved[amountInput(form).id];
+    });
+}
+
+document.addEventListener("DOMContentLoaded", refreshAmountForms);
+document.addEventListener("input", function(event) {
+    if (event.target.closest(".amount-form")) refreshAmountForms();
+});
+document.addEventListener("htmx:config:request", function(event) {
+    var form = event.target.closest(".amount-form");
+    if (!form) return;
+    var input = amountInput(form);
+    var sourceEvent = event.detail.ctx.sourceEvent;
+    var trigger = sourceEvent ? sourceEvent.type : "";
+    var unchanged = input.value === amountSaved[input.id] || (amountInflight[form.id] > 0 && input.value === amountSent[form.id]);
+    if (!input.checkValidity()) {
+        if (trigger !== "input") input.reportValidity();
+        event.preventDefault();
+        return;
+    }
+    if (unchanged && trigger !== "submit") event.preventDefault();
+});
+document.addEventListener("htmx:before:request", function(event) {
+    var form = event.target.closest(".amount-form");
+    if (!form) return;
+    var input = amountInput(form);
+    event.detail.ctx.amountCounted = true;
+    amountSent[form.id] = input.value;
+    amountInflight[form.id] = (amountInflight[form.id] || 0) + 1;
+    refreshAmountForms();
+});
+document.addEventListener("htmx:finally:request", function(event) {
+    var form = event.target.closest(".amount-form");
+    if (!form || !event.detail.ctx.amountCounted) return;
+    amountInflight[form.id] -= 1;
+    refreshAmountForms();
+});
+function isRecipeSwap(event) {
+    return event.target.closest("#recipe-figures");
+}
+
+document.addEventListener("htmx:before:swap", function(event) {
+    if (!isRecipeSwap(event)) return;
+    openRecipeCollapses = [].map.call(document.querySelectorAll("#recipe-figures .collapse.show"), function(el) {
+        return el.id;
+    });
+});
+document.addEventListener("htmx:after:swap", function(event) {
+    if (!isRecipeSwap(event)) return;
+    openRecipeCollapses.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add("show");
+    });
+    document.querySelectorAll("#messages .toast").forEach(function(toastEl) {
+        bootstrap.Toast.getOrCreateInstance(toastEl).show();
+    });
+    var failed = document.querySelector("#messages .toast");
+    if (event.target.id === "add-ingredient-form" && !failed) resetAddIngredient();
+    var form = event.target.closest(".amount-form");
+    if (!form) {
+        refreshAmountForms();
+        return;
+    }
+    var input = amountInput(form);
+    if (!failed) amountSaved[input.id] = amountSent[form.id];
+    refreshAmountForms();
+    if (!failed && input.value === amountSaved[input.id]) {
+        input.classList.add("is-valid");
+        setTimeout(function() { input.classList.remove("is-valid"); }, 1500);
+    }
+});
+document.addEventListener("keydown", function(event) {
+    if (event.key !== "Tab" || !event.target.closest(".amount-form")) return;
+    var inputs = [].slice.call(document.querySelectorAll(".amount-form input[name=amount], #add-ingredient-weight"));
+    var next = inputs[inputs.indexOf(event.target) + (event.shiftKey ? -1 : 1)];
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
+    next.select();
+});
+$(document).on("select2:open", function() {
+    setTimeout(function() {
+        var search = document.querySelector(".select2-container--open .select2-search__field");
+        if (search) search.focus();
+    }, 0);
+});
+
+var addIngredientForm = document.getElementById("add-ingredient-form");
+
+function addIngredientSelect() {
+    return $("#id_ingredient");
+}
+
+function toggleNewIngredient(isNew) {
+    addIngredientForm.querySelector(".add-ingredient-new").classList.toggle("d-none", !isNew);
+}
+
+function resetAddIngredient() {
+    addIngredientForm.reset();
+    addIngredientSelect().val(null).trigger("change");
+    toggleNewIngredient(false);
+    document.getElementById("add-ingredient-weight").focus();
+}
+
+if (addIngredientForm) {
+    var addIngredientWeight = document.getElementById("add-ingredient-weight");
+    $(document).on("select2:select", "#id_ingredient", function(event) {
+        var isNew = String(event.params.data.id).indexOf("new:") === 0;
+        toggleNewIngredient(isNew);
+        if (isNew) {
+            addIngredientForm.querySelector("select[name=category]").focus();
+        } else if (addIngredientWeight.value && addIngredientWeight.checkValidity()) {
+            addIngredientForm.requestSubmit();
+        } else {
+            addIngredientWeight.focus();
+        }
+    });
+    $(document).on("select2:clear select2:unselect", "#id_ingredient", function() {
+        toggleNewIngredient(false);
+    });
+    addIngredientWeight.addEventListener("keydown", function(event) {
+        if (event.key !== "Tab" || event.shiftKey) return;
+        event.preventDefault();
+        addIngredientSelect().select2("open");
+    });
+}
+document.addEventListener("htmx:config:request", function(event) {
+    if (event.target.id !== "add-ingredient-form") return;
+    var weight = document.getElementById("add-ingredient-weight");
+    if (!weight.value || !weight.checkValidity()) {
+        weight.reportValidity();
+        event.preventDefault();
+    } else if (!addIngredientSelect().val()) {
+        event.preventDefault();
+        addIngredientSelect().select2("open");
+    }
+});
+var armedDelete = null;
+var armedDeleteTimeout = null;
+
+function disarmDelete() {
+    if (!armedDelete) return;
+    armedDelete.classList.replace("btn-danger", "btn-outline-primary");
+    armedDelete.querySelector(".delete-label").classList.remove("d-sm-inline");
+    armedDelete = null;
+    clearTimeout(armedDeleteTimeout);
+}
+
+document.addEventListener("click", function(event) {
+    var link = event.target.closest(".delete-link");
+    if (link !== armedDelete) disarmDelete();
+    if (!link || !window.htmx) return;
+    event.preventDefault();
+    if (!armedDelete) {
+        armedDelete = link;
+        link.classList.replace("btn-outline-primary", "btn-danger");
+        link.querySelector(".delete-label").classList.add("d-sm-inline");
+        armedDeleteTimeout = setTimeout(disarmDelete, 3000);
+        return;
+    }
+    disarmDelete();
+    var row = link.closest(".list-group-item");
+    row.style.transition = "opacity 200ms";
+    row.style.opacity = "0.3";
+    htmx.ajax("POST", link.getAttribute("href"), {
+        source: "#recipe-figures",
+        target: "#recipe-figures",
+        select: "#recipe-figures",
+        selectOOB: "#messages",
+        swap: "outerMorph",
+        headers: {"X-CSRFToken": link.dataset.csrf},
+    });
+});
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") disarmDelete();
+});
+window.addEventListener("beforeunload", function(event) {
+    if (amountFormsDirty()) {
+        event.preventDefault();
+        event.returnValue = "";
     }
 });

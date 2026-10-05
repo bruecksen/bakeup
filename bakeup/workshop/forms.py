@@ -1,4 +1,4 @@
-from dal import autocomplete
+from dal import autocomplete, forward
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -87,14 +87,42 @@ class ProductForm(ModelForm):
         return sku
 
 
-class AddProductForm(Form):
-    weight = FloatField(required=True, label=_("Weight"))
-    product_existing = ModelChoiceField(
-        queryset=Product.objects.all(),
-        required=False,
-        empty_label=_("Select existing product"),
+def ingredient_choices(product=None):
+    paths = list(
+        Category.objects.filter(
+            slug__in=["dough", "preparations", "ingredients"]
+        ).values_list("path", flat=True)
     )
-    product_new = CharField(required=False, label=_("New product name"))
+    if not paths:
+        return Product.objects.none()
+    query = Q()
+    for path in paths:
+        query |= Q(category__path__startswith=path)
+    products = Product.objects.filter(query)
+    if product:
+        products = (
+            products.exclude(pk=product.pk)
+            .exclude(pk__in=product.childs.values("parent"))
+            .exclude(pk__in=product.parents.values("child"))
+        )
+    return products
+
+
+class AddIngredientForm(Form):
+    NEW_PREFIX = "new:"
+
+    weight = FloatField(localize=True, label=_("Weight"))
+    ingredient = CharField(
+        label=_("Ingredient"),
+        widget=autocomplete.Select2(
+            url="workshop:ingredient-autocomplete",
+            attrs={
+                "data-placeholder": _("Search or create ingredient"),
+                "data-minimum-input-length": 0,
+                "data-width": "100%",
+            },
+        ),
+    )
     category = ModelChoiceField(
         queryset=Category.objects.all(),
         required=False,
@@ -104,29 +132,46 @@ class AddProductForm(Form):
     is_buyable = BooleanField(label=_("Buyable?"), required=False)
     is_composable = BooleanField(label=_("Composable?"), required=False)
 
-    def __init__(self, product=None, parent_products=None, *args, **kwargs):
+    def __init__(self, *args, product=None, **kwargs):
         super().__init__(*args, **kwargs)
-        products = Product.objects.filter(
-            Q(category__path__startswith=Category.objects.get(slug="dough").path)
-            | Q(
-                category__path__startswith=Category.objects.get(
-                    slug="preparations"
-                ).path
-            )
-            | Q(
-                category__path__startswith=Category.objects.get(slug="ingredients").path
-            )
-        )
-        if parent_products:
-            products = products.exclude(
-                pk__in=parent_products.values_list("parent__pk", flat=True)
-            )
+        self.product = product
         if product:
-            products = products.exclude(pk=product.pk)
-        self.fields["product_existing"].queryset = products
+            self.fields["ingredient"].widget.forward = [
+                forward.Const(product.pk, "parent")
+            ]
+        if not self.is_bound:
+            self.initial.setdefault(
+                "category", Category.objects.filter(slug="ingredients").first()
+            )
 
+    def clean_weight(self):
+        weight = self.cleaned_data["weight"]
+        if weight <= 0:
+            raise ValidationError(_("Please enter a valid weight."))
+        return weight
 
-AddProductFormSet = formset_factory(AddProductForm, extra=0)
+    def clean(self):
+        cleaned_data = super().clean()
+        value = cleaned_data.get("ingredient", "")
+        cleaned_data["product"] = None
+        cleaned_data["new_name"] = None
+        if value.startswith(self.NEW_PREFIX):
+            name = value[len(self.NEW_PREFIX) :].strip()
+            if not name:
+                self.add_error("ingredient", _("Please select an ingredient."))
+            elif not cleaned_data.get("category"):
+                self.add_error(
+                    "category", _("Please select a category for the new product.")
+                )
+            cleaned_data["new_name"] = name
+        elif value:
+            product = None
+            if value.isdigit():
+                product = ingredient_choices(self.product).filter(pk=value).first()
+            if not product or not product.weight_in_base_unit:
+                self.add_error("ingredient", _("Please select an ingredient."))
+            cleaned_data["product"] = product
+        return cleaned_data
 
 
 class SelectProductForm(Form):

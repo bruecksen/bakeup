@@ -32,6 +32,7 @@ from bakeup.workshop.views import (
     GroupDeleteView,
     GroupListView,
     GroupUpdateView,
+    IngredientAutocomplete,
     PointOfSaleCreateView,
     PointOfSaleDeleteView,
     PointOfSaleListView,
@@ -430,6 +431,11 @@ urlpatterns = [
         "tag-autocomplete/",
         TagAutocomplete.as_view(),
         name="tag-autocomplete",
+    ),
+    path(
+        "ingredient-autocomplete/",
+        IngredientAutocomplete.as_view(),
+        name="ingredient-autocomplete",
     ),
     path(
         "customer-autocomplete/",
