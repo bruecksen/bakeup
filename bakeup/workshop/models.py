@@ -470,13 +470,14 @@ class Product(CommonBaseClass):
         return True
 
     def adjust_pre_ferment_ratio(self, pre_ferment):
-        # The pre doughs on this level are scaled. The flour (per flour type)
-        # and liquids they add or remove are compensated on this level, so
-        # flour composition and dough yield stay. Afterwards this level is
-        # rescaled so the total weight stays the same.
+        # The pre doughs on this level are scaled. The flour (per flour type),
+        # liquids and salt they add or remove are compensated on this level, so
+        # flour composition, dough yield and salt ratio stay. Afterwards this
+        # level is rescaled so the total weight stays the same.
         flour = Category.objects.filter(slug="flour").first()
         liquids = Category.objects.filter(slug="liquids").first()
         pre_dough = Category.objects.filter(slug="pre-dough").first()
+        salt = Category.objects.filter(slug="salt").first()
         total_weight_flour = self.total_weight_flour
         if not flour or not liquids or not pre_dough or not total_weight_flour:
             return False
@@ -530,6 +531,8 @@ class Product(CommonBaseClass):
                 flour_in_flour_types += weight
             compensations.append((direct_children(category, exact), weight))
         compensations.append((direct_children(liquids), weight_in_pre_doughs(liquids)))
+        if salt:
+            compensations.append((direct_children(salt), weight_in_pre_doughs(salt)))
         for compensated_children, weight_in_pre_dough in compensations:
             delta_weight = (factor - 1) * weight_in_pre_dough
             if abs(delta_weight) < 1e-9:
