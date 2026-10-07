@@ -73,8 +73,10 @@ from bakeup.workshop.views import (
     pos_order_all_picked_up_view,
     product_add_inline_view,
     product_dough_yield_view,
+    product_main_flour_view,
     product_normalize_view,
     product_pre_ferment_view,
+    product_recipe_mode_view,
     product_salt_view,
     product_total_dough_weight_view,
     production_day_redirect_view,
@@ -127,6 +129,16 @@ urlpatterns = [
         "products/<int:pk>/dough-weight/",
         view=product_total_dough_weight_view,
         name="product-dough-weight",
+    ),
+    path(
+        "products/<int:pk>/main-flour/",
+        view=product_main_flour_view,
+        name="product-main-flour",
+    ),
+    path(
+        "products/<int:pk>/recipe-mode/",
+        view=product_recipe_mode_view,
+        name="product-recipe-mode",
     ),
     path(
         "products/<int:pk>/pre-ferment/",

@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.forms import (
     BooleanField,
     CharField,
+    ChoiceField,
     DecimalField,
     FloatField,
     Form,
@@ -178,8 +179,14 @@ class SelectProductForm(Form):
     product = ModelChoiceField(queryset=Product.objects.all())
 
 
+UNIT_GRAM = "g"
+UNIT_PERCENT = "percent"
+UNIT_CHOICES = [(UNIT_GRAM, "g"), (UNIT_PERCENT, "%")]
+
+
 class ProductHierarchyForm(Form):
     amount = FloatField(localize=True)
+    unit = ChoiceField(choices=UNIT_CHOICES, required=False)
 
 
 class ProductionPlanDayForm(Form):

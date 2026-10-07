@@ -75,7 +75,7 @@
   {% endif %}
 </div>
 {% if add_ingredient_form %}{{ add_ingredient_form.media }}{% endif %}
-<div id="recipe-figures">
+<div id="recipe-figures"{% if percent_mode %} class="unit-percent"{% endif %}>
 <div class="row mb-4 justify-content-between">
   {% if key_figures_form %}
   <div class="col-sm-12 col-md-8 col-lg-6 col-xl-4">
@@ -128,7 +128,7 @@
       <form action="{% url 'workshop:product-dough-weight' pk=object.pk %}" method="POST">
         {% csrf_token %}
         <div class="row">
-          <label class="col-6 col-form-label" for="id_total_dough_weight">{% trans "Dough Weight" %}</label>
+          <label class="col-6 col-form-label" for="id_total_dough_weight">{% trans "Dough Weight" %}{% if not percent_mode %} <a tabindex="0" role="button" class="text-muted ms-1" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top" title="{% trans 'Fixed in recipe mode' %}" data-bs-content="{% trans 'Changing the hydration, salt, fermented flour or a percentage keeps this dough weight, all ingredients are rescaled. Change the dough weight to scale the whole recipe.' %}"><i class="fas fa-lock fa-xs"></i></a>{% endif %}</label>
           <div class="col-6">
             <div class="input-group input-group-sm">
               <input type="text" pattern="[0-9]+([\.,][0-9]+)?" name="total_dough_weight" value="{{ key_figures_form.total_dough_weight.value|unlocalize }}" class="form-control form-control-sm" required="" id="id_total_dough_weight">
@@ -138,6 +138,12 @@
           </div>
         </div>
       </form>
+      {% endif %}
+      {% if percent_mode and object.total_weight_flour %}
+      <div class="row">
+        <div class="col-6 col-form-label">{% trans "Total Flour" %} <a tabindex="0" role="button" class="text-muted ms-1" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top" title="{% trans "Fixed in baker's percentage mode" %}" data-bs-content="{% trans 'All percentages refer to this flour weight and it stays the same. Changing a value only changes that ingredient, the main flour balances changes of the flours. The dough weight follows, change it to scale the whole recipe.' %}"><i class="fas fa-lock fa-xs"></i></a></div>
+        <div class="col-6 col-form-label">{{ object.total_weight_flour|clever_rounding }} g = 100 %</div>
+      </div>
       {% endif %}
       {% if key_figures_form.pre_ferment and key_figures_form.pre_ferment.value %}
       <form action="{% url 'workshop:product-pre-ferment' pk=object.pk %}" method="POST">
@@ -161,28 +167,33 @@
 </div>
 <div class="row mb-4">
   <div class="col">
-    {% include "workshop/includes/product_children.html" with children=object.parents.with_weights parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
+    <div class="d-flex justify-content-end align-items-center mb-2">
+    <button type="button" id="sort-ingredients" class="btn btn-sm btn-outline-secondary me-2{% if not ingredients_unsorted %} d-none{% endif %}"
+      hx-get="{{ object.get_absolute_url }}?sort=1"
+      hx-target="#recipe-figures"
+      hx-select="#recipe-figures"
+      hx-swap="outerMorph"
+      data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top"
+      title="{% trans 'Sort by amount' %}"
+      data-bs-content="{% trans 'The order stays the same while you edit, so rows do not jump. Sort the ingredients by amount again.' %}"><i class="fas fa-arrow-down-wide-short"></i></button>
+    <form id="recipe-mode-form" action="{% url 'workshop:product-recipe-mode' pk=object.pk %}" method="POST"
+      hx-post="{% url 'workshop:product-recipe-mode' pk=object.pk %}"
+      hx-trigger="change"
+      hx-target="#recipe-figures"
+      hx-select="#recipe-figures"
+      hx-swap="outerMorph">
+      {% csrf_token %}
+      <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Working mode' %}">
+        <input type="radio" class="btn-check" name="mode" id="recipe-mode-g" value="g" autocomplete="off"{% if not percent_mode %} checked{% endif %}>
+        <label class="btn btn-outline-primary" for="recipe-mode-g" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" title="{% trans 'Recipe mode' %}" data-bs-content="{% trans 'Edit the recipe in grams. When you change a percentage, the dough weight stays fixed and all ingredients are rescaled.' %}">g</label>
+        <input type="radio" class="btn-check" name="mode" id="recipe-mode-percent" value="percent" autocomplete="off"{% if percent_mode %} checked{% endif %}>
+        <label class="btn btn-outline-primary" for="recipe-mode-percent" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" title="{% trans "Baker's percentage mode" %}" data-bs-content="{% trans 'Develop the recipe in percentages of the flour. The flour stays fixed, only the changed ingredient moves and the dough weight follows.' %}">%</label>
+      </div>
+    </form>
+    </div>
+    {% include "workshop/includes/product_children.html" with children=ingredients parent=object is_root=True quantity=1 total_weight_flour=object.total_weight_flour show_baker_percentage=True%}
   </div>
 </div>
 </div>
-<div class="card p-3 mt-4 mb-4">
-  <div class="row">
-    <div class="col-8">
-      <h2>{% trans "Instructions" %}</h2>
-    </div>
-    <div class="col-4 text-end align-self-center">
-      <a href="{% url 'workshop:product-instructions-update' pk=object.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
-    </div>
-  </div>
-  <hr>
-  <div class="row">
-    <div class="col">
-      {% if object.instructions %}
-      <p>{{ object.instructions.instruction|linebreaksbr }}</p>
-      {% else %}
-      <p>{% trans "No instructions yet!" %}</p>
-      {% endif %}
-    </div>
-  </div>
-</div>
+{% include "workshop/includes/instructions.html" with product=object editing=False %}
 {% endblock %}

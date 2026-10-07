@@ -408,10 +408,11 @@ class Product(CommonBaseClass):
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=["quantity"])
 
-    def adjust_ratio_to_flour(self, category_slug, ratio):
+    def adjust_ratio_to_flour(self, category_slug, ratio, keep_total_weight=True):
         # Only the ingredients of the category on this level are changed, sub
-        # levels keep their composition. Afterwards this level is rescaled so
-        # the total weight stays the same.
+        # levels keep their composition. With keep_total_weight this level is
+        # rescaled afterwards so the total weight stays the same, otherwise the
+        # flour stays and the total weight follows.
         category = Category.objects.filter(slug=category_slug).first()
         total_weight_flour = self.total_weight_flour
         if not category or not total_weight_flour:
@@ -441,7 +442,9 @@ class Product(CommonBaseClass):
         total_weight = sum(
             child.weight for child in children if child.child.weight_in_base_unit
         )
-        scale = total_weight / (total_weight - weight_direct + new_weight_direct)
+        scale = 1
+        if keep_total_weight:
+            scale = total_weight / (total_weight - weight_direct + new_weight_direct)
         for child in children:
             if child in ingredients:
                 child.quantity = child.quantity * factor * scale
@@ -450,11 +453,93 @@ class Product(CommonBaseClass):
             child.save(update_fields=["quantity"])
         return True
 
-    def adjust_dough_yield(self, dough_yield):
-        return self.adjust_ratio_to_flour("liquids", dough_yield - 100)
+    def adjust_dough_yield(self, dough_yield, keep_total_weight=True):
+        return self.adjust_ratio_to_flour(
+            "liquids", dough_yield - 100, keep_total_weight
+        )
 
-    def adjust_salt_ratio(self, salt_ratio):
-        return self.adjust_ratio_to_flour("salt", float(salt_ratio))
+    def adjust_salt_ratio(self, salt_ratio, keep_total_weight=True):
+        return self.adjust_ratio_to_flour("salt", float(salt_ratio), keep_total_weight)
+
+    def get_flour_children(self):
+        flour = Category.objects.filter(slug="flour").first()
+        if not flour:
+            return []
+        return [
+            child
+            for child in self.parents.all()
+            if child.child.weight_in_base_unit
+            and child.child.category
+            and (
+                child.child.category == flour
+                or child.child.category.is_descendant_of(flour)
+            )
+        ]
+
+    def adjust_child_ratio(
+        self, hierarchy, ratio, keep_total_weight=True, balancing=None
+    ):
+        # Sets one row to ratio percent of the total flour, r = ratio / 100.
+        # The row may contain flour itself (a flour or a pre dough).
+        # With keep_total_weight the flour may change: with the flour of the
+        # other rows F and the flour share f of the row the new row weight W
+        # solves W = r * (F + f * W), afterwards this level is rescaled so the
+        # total weight stays the same, which keeps all ratios.
+        # Otherwise the total flour stays: W = r * F and the flour the row adds
+        # or removes is compensated by the balancing flour row, or by all other
+        # flours on this level when there is none or the row is the balancing
+        # flour itself.
+        total_weight_flour = self.total_weight_flour
+        weight = hierarchy.child.weight_in_base_unit and hierarchy.weight
+        if not total_weight_flour or not weight or ratio <= 0:
+            return False
+        flours = self.get_flour_children()
+        if any(child.pk == hierarchy.pk for child in flours):
+            flour_in_row = weight
+        else:
+            flour = Category.objects.filter(slug="flour").first()
+            flour_in_row = Product.calculate_total_weight_by_category(
+                hierarchy.child, flour, hierarchy.quantity
+            )
+        ratio = float(ratio) / 100
+        children = list(self.parents.all())
+        factors = {}
+        if keep_total_weight:
+            other_flour = total_weight_flour - flour_in_row
+            denominator = 1 - ratio * flour_in_row / weight
+            if other_flour <= 0 or denominator <= 0:
+                return False
+            new_weight = ratio * other_flour / denominator
+        else:
+            new_weight = ratio * total_weight_flour
+            delta_flour = flour_in_row / weight * (new_weight - weight)
+            if abs(delta_flour) > 1e-9:
+                compensating = [child for child in flours if child.pk != hierarchy.pk]
+                if balancing and balancing.pk != hierarchy.pk:
+                    compensating = [
+                        child for child in compensating if child.pk == balancing.pk
+                    ]
+                weight_flours = sum(child.weight for child in compensating)
+                if not weight_flours or weight_flours - delta_flour <= 0:
+                    return False
+                for child in compensating:
+                    factors[child.pk] = (weight_flours - delta_flour) / weight_flours
+        factors[hierarchy.pk] = new_weight / weight
+        scale = 1
+        if keep_total_weight:
+            total_weight = sum(
+                child.weight for child in children if child.child.weight_in_base_unit
+            )
+            new_total_weight = sum(
+                child.weight * factors.get(child.pk, 1)
+                for child in children
+                if child.child.weight_in_base_unit
+            )
+            scale = total_weight / new_total_weight
+        for child in children:
+            child.quantity = child.quantity * factors.get(child.pk, 1) * scale
+            child.save(update_fields=["quantity"])
+        return True
 
     def adjust_total_weight(self, total_weight):
         children = list(self.parents.all())
@@ -469,11 +554,12 @@ class Product(CommonBaseClass):
             child.save(update_fields=["quantity"])
         return True
 
-    def adjust_pre_ferment_ratio(self, pre_ferment):
+    def adjust_pre_ferment_ratio(self, pre_ferment, keep_total_weight=True):
         # The pre doughs on this level are scaled. The flour (per flour type),
         # liquids and salt they add or remove are compensated on this level, so
-        # flour composition, dough yield and salt ratio stay. Afterwards this
-        # level is rescaled so the total weight stays the same.
+        # flour composition, dough yield and salt ratio stay. With
+        # keep_total_weight this level is rescaled afterwards so the total
+        # weight stays the same.
         flour = Category.objects.filter(slug="flour").first()
         liquids = Category.objects.filter(slug="liquids").first()
         pre_dough = Category.objects.filter(slug="pre-dough").first()
@@ -551,7 +637,7 @@ class Product(CommonBaseClass):
             for child in children
             if child.child.weight_in_base_unit
         )
-        scale = total_weight / new_total_weight
+        scale = total_weight / new_total_weight if keep_total_weight else 1
         for child in children:
             child.quantity = child.quantity * factors.get(child.pk, 1) * scale
             child.save(update_fields=["quantity"])

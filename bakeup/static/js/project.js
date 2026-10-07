@@ -668,7 +668,7 @@ var amountSent = {};
 var amountInflight = {};
 
 function amountInput(form) {
-    return document.getElementById(form.id.replace("amount-form-", "amount-"));
+    return form.querySelector("input[name=amount]");
 }
 
 function refreshAmountForms() {
@@ -743,6 +743,11 @@ document.addEventListener("htmx:after:swap", function(event) {
     var failed = document.querySelector("#messages .toast");
     if (event.target.id === "add-ingredient-form" && !failed) resetAddIngredient();
     var form = event.target.closest(".amount-form");
+    document.querySelectorAll(".amount-form input[name=amount]").forEach(function(other) {
+        if (other !== document.activeElement && (!form || other !== amountInput(form))) {
+            amountSaved[other.id] = other.value;
+        }
+    });
     if (!form) {
         refreshAmountForms();
         return;
@@ -757,7 +762,9 @@ document.addEventListener("htmx:after:swap", function(event) {
 });
 document.addEventListener("keydown", function(event) {
     if (event.key !== "Tab" || !event.target.closest(".amount-form")) return;
-    var inputs = [].slice.call(document.querySelectorAll(".amount-form input[name=amount], #add-ingredient-weight"));
+    var inputs = [].filter.call(document.querySelectorAll(".amount-form input[name=amount], #add-ingredient-weight"), function(input) {
+        return input.offsetParent !== null && !input.disabled;
+    });
     var next = inputs[inputs.indexOf(event.target) + (event.shiftKey ? -1 : 1)];
     if (!next) return;
     event.preventDefault();
@@ -821,6 +828,91 @@ document.addEventListener("htmx:config:request", function(event) {
         addIngredientSelect().select2("open");
     }
 });
+var recipeFigures = document.getElementById("recipe-figures");
+
+function closePercentRow(row) {
+    if (row) row.classList.remove("row-percent");
+}
+
+function initRecipePopovers() {
+    document.querySelectorAll('#recipe-figures [data-bs-toggle="popover"]').forEach(function(el) {
+        var popover = bootstrap.Popover.getInstance(el);
+        if (popover && el.getAttribute("title")) {
+            popover.dispose();
+            popover = null;
+        }
+        if (!popover) new bootstrap.Popover(el);
+    });
+}
+
+if (recipeFigures) {
+    document.addEventListener("click", function(event) {
+        var button = event.target.closest(".percent-edit");
+        if (!button) return;
+        var input = document.getElementById("percent-" + button.dataset.row);
+        if (!input || input.disabled) return;
+        if (!document.getElementById("recipe-figures").classList.contains("unit-percent")) {
+            document.getElementById("row-" + button.dataset.row).classList.add("row-percent");
+        }
+        input.focus();
+        input.select();
+    });
+    document.addEventListener("focusout", function(event) {
+        if (!event.target.closest(".row-percent form.unit-percent-only")) return;
+        closePercentRow(event.target.closest(".row-percent"));
+    });
+    document.addEventListener("keydown", function(event) {
+        if (event.key !== "Escape") return;
+        var row = event.target.closest(".row-percent");
+        if (!row) return;
+        event.target.value = amountSaved[event.target.id];
+        refreshAmountForms();
+        closePercentRow(row);
+    });
+    document.addEventListener("htmx:before:swap", function(event) {
+        if (!isRecipeSwap(event)) return;
+        document.querySelectorAll('#recipe-figures [data-bs-toggle="popover"]').forEach(function(el) {
+            var popover = bootstrap.Popover.getInstance(el);
+            if (popover) popover.hide();
+        });
+    });
+    document.addEventListener("htmx:after:swap", function(event) {
+        if (isRecipeSwap(event)) initRecipePopovers();
+    });
+}
+var ingredientOrder = [];
+
+function rootRowIds() {
+    return [].map.call(document.querySelectorAll('#recipe-figures li[id^="row-"]'), function(row) {
+        return row.id;
+    });
+}
+
+document.addEventListener("htmx:before:swap", function(event) {
+    if (event.target.id === "sort-ingredients") ingredientOrder = rootRowIds();
+});
+document.addEventListener("htmx:after:swap", function(event) {
+    if (event.target.id !== "sort-ingredients") return;
+    rootRowIds().forEach(function(id, index) {
+        if (ingredientOrder[index] === id) return;
+        var row = document.getElementById(id);
+        row.classList.add("bg-warning", "bg-opacity-25");
+        setTimeout(function() { row.classList.remove("bg-warning", "bg-opacity-25"); }, 1200);
+    });
+});
+
+document.addEventListener("keydown", function(event) {
+    if (!event.target.classList.contains("instructions-input")) return;
+    var form = event.target.closest("form");
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        form.requestSubmit();
+    } else if (event.key === "Escape") {
+        event.preventDefault();
+        form.querySelector(".instructions-cancel").click();
+    }
+});
+
 var armedDelete = null;
 var armedDeleteTimeout = null;
 

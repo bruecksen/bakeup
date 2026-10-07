@@ -57,6 +57,8 @@ from bakeup.shop.models import (
 )
 from bakeup.users.models import User
 from bakeup.workshop.forms import (
+    UNIT_GRAM,
+    UNIT_PERCENT,
     AddIngredientForm,
     CustomerCreateForm,
     CustomerForm,
@@ -219,26 +221,106 @@ class ProductCopyView(ProductAddView):
         return response
 
 
+RECIPE_MODE_SESSION_KEY = "recipe_mode"
+
+
+def is_percent_mode(request):
+    # In the baker's percentage mode the total flour is the fixed value,
+    # otherwise the total dough weight.
+    return request.session.get(RECIPE_MODE_SESSION_KEY) == UNIT_PERCENT
+
+
 @staff_member_required(login_url="login")
-@staff_member_required
+@require_POST
+def product_recipe_mode_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    request.session[RECIPE_MODE_SESSION_KEY] = (
+        UNIT_PERCENT if request.POST.get("mode") == UNIT_PERCENT else UNIT_GRAM
+    )
+    return redirect(product.get_absolute_url())
+
+
+MAIN_FLOUR_SESSION_KEY = "main_flours"
+INGREDIENT_ORDER_SESSION_KEY = "ingredient_orders"
+
+
+def get_main_flour(request, product):
+    # The main flour balances the flour changes in the baker's percentage
+    # mode. It defaults to the largest flour, which is remembered so it doesn't
+    # change while the flours are edited.
+    flours = product.get_flour_children()
+    if not flours:
+        return None
+    main_flours = request.session.get(MAIN_FLOUR_SESSION_KEY, {})
+    main_flour = next(
+        (child for child in flours if child.pk == main_flours.get(str(product.pk))),
+        None,
+    )
+    if main_flour is None:
+        main_flour = max(flours, key=lambda child: child.weight)
+        main_flours[str(product.pk)] = main_flour.pk
+        request.session[MAIN_FLOUR_SESSION_KEY] = main_flours
+    return main_flour
+
+
+@staff_member_required(login_url="login")
+@require_POST
+def product_main_flour_view(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    hierarchy = product.parents.filter(pk=request.POST.get("hierarchy")).first()
+    if hierarchy and hierarchy in product.get_flour_children():
+        main_flours = request.session.get(MAIN_FLOUR_SESSION_KEY, {})
+        main_flours[str(product.pk)] = hierarchy.pk
+        request.session[MAIN_FLOUR_SESSION_KEY] = main_flours
+    return redirect(product.get_absolute_url())
+
+
+def ratio_error_message(product):
+    if not product.total_weight_flour:
+        return _("Percentages refer to the flour weight, please add flour first.")
+    return _("This percentage can't be reached.")
+
+
+@staff_member_required(login_url="login")
 @require_POST
 def product_add_inline_view(request, pk):
     parent_product = get_object_or_404(Product, pk=pk)
     form = AddIngredientForm(request.POST, product=parent_product)
     if form.is_valid():
-        product = form.cleaned_data["product"]
-        if product is None:
-            product = Product.objects.create(
-                name=form.cleaned_data["new_name"],
-                category=form.cleaned_data["category"],
-                weight=1000,
-                is_sellable=form.cleaned_data["is_sellable"],
-                is_buyable=form.cleaned_data["is_buyable"],
-                is_composable=form.cleaned_data["is_composable"],
-            )
-        parent_product.add_child(
-            product, form.cleaned_data["weight"] / product.weight_in_base_unit
-        )
+        added = False
+        with transaction.atomic():
+            product = form.cleaned_data["product"]
+            if product is None:
+                product = Product.objects.create(
+                    name=form.cleaned_data["new_name"],
+                    category=form.cleaned_data["category"],
+                    weight=1000,
+                    is_sellable=form.cleaned_data["is_sellable"],
+                    is_buyable=form.cleaned_data["is_buyable"],
+                    is_composable=form.cleaned_data["is_composable"],
+                )
+            if is_percent_mode(request):
+                # The row starts with a tiny weight, so it doesn't change the
+                # total flour the percentage refers to.
+                main_flour = get_main_flour(request, parent_product)
+                hierarchy = parent_product.add_child(
+                    product, 1e-6 / product.weight_in_base_unit
+                )
+                added = parent_product.adjust_child_ratio(
+                    hierarchy,
+                    form.cleaned_data["weight"],
+                    keep_total_weight=False,
+                    balancing=main_flour,
+                )
+            else:
+                parent_product.add_child(
+                    product, form.cleaned_data["weight"] / product.weight_in_base_unit
+                )
+                added = True
+            if not added:
+                transaction.set_rollback(True)
+        if not added:
+            messages.error(request, ratio_error_message(parent_product))
     else:
         for errors in form.errors.values():
             for error in errors:
@@ -288,7 +370,17 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
 
     def form_valid(self, form):
         amount = form.cleaned_data["amount"]
-        if amount and self.object.child.weight_in_base_unit:
+        if form.cleaned_data["unit"] == UNIT_PERCENT:
+            percent_mode = is_percent_mode(self.request)
+            if not self.object.parent.adjust_child_ratio(
+                self.object,
+                amount,
+                keep_total_weight=not percent_mode,
+                balancing=percent_mode
+                and get_main_flour(self.request, self.object.parent),
+            ):
+                messages.error(self.request, ratio_error_message(self.object.parent))
+        elif amount and self.object.child.weight_in_base_unit:
             self.object.quantity = amount / self.object.child.weight_in_base_unit
             self.object.save()
         return super().form_valid(form)
@@ -315,9 +407,41 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
             "total_dough_weight": clever_rounding(self.object.total_weight),
         }
 
+    def get_ingredients(self):
+        # The ingredients are sorted by weight on a page load. Updates via htmx
+        # keep that order, so rows don't jump while they are edited, new rows
+        # are appended. The order is sorted again on request.
+        ingredients = list(self.object.parents.with_weights())
+        orders = self.request.session.get(INGREDIENT_ORDER_SESSION_KEY, {})
+        order = orders.get(str(self.object.pk))
+        if self.request.htmx and order and not self.request.GET.get("sort"):
+            position = {pk: index for index, pk in enumerate(order)}
+            kept = sorted(
+                (child for child in ingredients if child.pk in position),
+                key=lambda child: position[child.pk],
+            )
+            added = sorted(
+                (child for child in ingredients if child.pk not in position),
+                key=lambda child: child.pk,
+            )
+            ordered = kept + added
+        else:
+            ordered = ingredients
+        orders[str(self.object.pk)] = [child.pk for child in ordered]
+        self.request.session[INGREDIENT_ORDER_SESSION_KEY] = orders
+        return ordered, ordered != ingredients
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["ingredients"], context["ingredients_unsorted"] = self.get_ingredients()
         context["add_ingredient_form"] = AddIngredientForm(product=self.object)
+        context["percent_mode"] = is_percent_mode(self.request)
+        if context["percent_mode"]:
+            main_flour = get_main_flour(self.request, self.object)
+            context["main_flour_pk"] = main_flour and main_flour.pk
+            context["flour_pks"] = [
+                child.pk for child in self.object.get_flour_children()
+            ]
         if self.object.is_composable:
             context["key_figures_form"] = ProductKeyFiguresForm(
                 initial=self.get_key_figures_inital_data()
@@ -343,7 +467,8 @@ def product_dough_yield_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
     form = ProductDoughYieldForm(request.POST)
     if not form.is_valid() or not product.adjust_dough_yield(
-        form.cleaned_data["dough_yield"]
+        form.cleaned_data["dough_yield"],
+        keep_total_weight=not is_percent_mode(request),
     ):
         messages.error(
             request,
@@ -357,7 +482,9 @@ def product_dough_yield_view(request, pk):
 def product_salt_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
     form = ProductSaltForm(request.POST)
-    if not form.is_valid() or not product.adjust_salt_ratio(form.cleaned_data["salt"]):
+    if not form.is_valid() or not product.adjust_salt_ratio(
+        form.cleaned_data["salt"], keep_total_weight=not is_percent_mode(request)
+    ):
         messages.error(
             request,
             _("Salt can't be reached by changing the salt on this level."),
@@ -383,7 +510,8 @@ def product_pre_ferment_view(request, pk):
     product = get_object_or_404(Product, pk=pk)
     form = ProductPreFermentForm(request.POST)
     if not form.is_valid() or not product.adjust_pre_ferment_ratio(
-        form.cleaned_data["pre_ferment"]
+        form.cleaned_data["pre_ferment"],
+        keep_total_weight=not is_percent_mode(request),
     ):
         messages.error(
             request,
@@ -1932,7 +2060,7 @@ class CustomerOrderDeleteView(StaffPermissionsMixin, DeleteView):
             return redirect(success_url)
 
 
-class CreateUpdateInstructionsView(UpdateView):
+class CreateUpdateInstructionsView(StaffPermissionsMixin, UpdateView):
     model = Instruction
     fields = ["instruction"]
 
@@ -1942,6 +2070,28 @@ class CreateUpdateInstructionsView(UpdateView):
             defaults={"product": Product.objects.get(pk=self.kwargs["pk"])},
         )
         return obj
+
+    def get_template_names(self):
+        # htmx requests edit the instructions inline on the product page.
+        if self.request.htmx:
+            return ["workshop/includes/instructions.html"]
+        return super().get_template_names()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["product"] = self.object.product
+        context.setdefault(
+            "editing", self.request.method == "POST" or "edit" in self.request.GET
+        )
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+        if self.request.htmx:
+            return self.render_to_response(
+                self.get_context_data(form=form, editing=False)
+            )
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.kwargs["pk"]})

@@ -13548,3 +13548,36 @@ textarea {
     float: none !important;
   }
 }
+#recipe-figures.unit-percent .unit-g-only,
+#recipe-figures:not(.unit-percent) .unit-percent-only,
+#recipe-figures:not(.unit-percent) .row-percent .unit-g-only {
+  display: none !important;
+}
+
+#recipe-figures:not(.unit-percent) .row-percent .unit-percent-only {
+  display: block !important;
+}
+
+.main-flour-set {
+  opacity: 0.35;
+}
+
+li:hover > .row .main-flour-set,
+.main-flour-set:focus {
+  opacity: 1;
+}
+
+.instructions-text {
+  line-height: 1.6;
+  max-width: 75ch;
+}
+.instructions-text p:last-child {
+  margin-bottom: 0;
+}
+
+.instructions-input {
+  field-sizing: content;
+  min-height: 128px;
+  min-height: 8rem;
+  line-height: 1.6;
+}

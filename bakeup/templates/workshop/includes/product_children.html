@@ -4,11 +4,11 @@
 {% load django_bootstrap5 %}
 <ol class="list-group{% if is_root %} list-group-root {% endif %} card">
   {% for child in children %}
-      <li class="list-group-item">
+      <li class="list-group-item"{% if is_root %} id="row-{{ child.pk }}"{% endif %}>
         <div class="row gx-1 gx-sm-4">
           <div class="col-4 col-sm-2">
             {% if is_root %}
-              <form id="amount-form-{{ child.pk }}" class="amount-form" action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST"
+              <form id="amount-form-{{ child.pk }}" class="amount-form unit-g-only" action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST"
                 hx-post="{% url 'workshop:product-hierarchy-update' pk=child.pk %}"
                 hx-trigger="input delay:1s, change, submit"
                 hx-sync="this:replace"
@@ -23,17 +23,49 @@
                   <span class="input-group-text d-none d-sm-inline"><span class="amount-unit">g</span><i class="amount-spinner fas fa-spinner fa-spin d-none"></i></span>
                 </div>
               </form>
+              {% baker_ratio child.weight total_weight_flour as ratio %}
+              <form id="percent-form-{{ child.pk }}" class="amount-form unit-percent-only" action="{% url 'workshop:product-hierarchy-update' pk=child.pk %}" method="POST"
+                hx-post="{% url 'workshop:product-hierarchy-update' pk=child.pk %}"
+                hx-trigger="input delay:1s, change, submit"
+                hx-sync="this:replace"
+                hx-validate="false"
+                hx-target="#recipe-figures"
+                hx-select="#recipe-figures"
+                hx-select-oob="#messages"
+                hx-swap="outerMorph">
+                {% csrf_token %}
+                <input type="hidden" name="unit" value="percent">
+                <div class="input-group input-group-sm">
+                  <input type="text" id="percent-{{ child.pk }}" class="form-control" name="amount" placeholder="" pattern="[0-9]+([\.,][0-9]+)?" value="{{ ratio }}" required{% if not ratio %} disabled{% endif %}>
+                  <span class="input-group-text d-none d-sm-inline"><span class="amount-unit">%</span><i class="amount-spinner fas fa-spinner fa-spin d-none"></i></span>
+                </div>
+              </form>
 
             {% endif %}
           </div>
           <div class="col-7 col-sm-7 align-self-center fs-xs-6">
             {% with child.quantity|multiply:quantity|multiply:child.child.weight_in_base_unit as child_weight %}
-              <span class="weight	d-none d-sm-inline">{{ child_weight|clever_rounding }}{{ child.child.uom.base_abbr }}</span>{% if show_baker_percentage %} <small class="text-muted">({% baker_percentage child_weight total_weight_flour %})</small>{% endif %}
+              <span class="weight	d-none d-sm-inline">{{ child_weight|clever_rounding }}{{ child.child.uom.base_abbr }}</span>{% if show_baker_percentage %} {% if is_root and total_weight_flour %}<button type="button" class="btn btn-link btn-sm p-0 align-baseline text-muted text-decoration-none percent-edit" data-row="{{ child.pk }}" title="{% trans 'Edit baker percentage' %}"><small>({% baker_percentage child_weight total_weight_flour %})</small></button>{% else %}<small class="text-muted">({% baker_percentage child_weight total_weight_flour %})</small>{% endif %}{% endif %}
               {% if child.child.is_composable %}
                 <a href="{% url 'workshop:product-detail' pk=child.child.pk %}">{{ child.child.name }}</a>
                 <a href="#item-{{ child.child.pk }}" data-bs-toggle="collapse">+</a>
               {% else %}
               {{ child.child.name }}
+              {% endif %}
+              {% if is_root and percent_mode and child.pk in flour_pks %}
+                <form id="main-flour-form-{{ child.pk }}" class="d-inline" action="{% url 'workshop:product-main-flour' pk=parent.pk %}" method="POST"
+                  hx-post="{% url 'workshop:product-main-flour' pk=parent.pk %}"
+                  hx-target="#recipe-figures"
+                  hx-select="#recipe-figures"
+                  hx-swap="outerMorph">
+                  {% csrf_token %}
+                  <input type="hidden" name="hierarchy" value="{{ child.pk }}">
+                  {% if child.pk == main_flour_pk %}
+                    <span class="badge rounded-pill bg-secondary ms-1" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="top" title="{% trans 'Main flour' %}" data-bs-content="{% trans 'Takes up the difference when you change other flours, add a flour or change a pre dough, so the total flour stays the same. Click on another flour to make it the main flour.' %}">{% trans "Main flour" %}</span>
+                  {% else %}
+                    <button type="submit" class="badge rounded-pill border border-secondary text-secondary bg-transparent ms-1 main-flour-set" title="{% trans 'Set as main flour' %}">{% trans "Main flour" %}</button>
+                  {% endif %}
+                </form>
               {% endif %}
             {% endwith %}
           </div>
@@ -67,7 +99,7 @@
         <div class="col-4 col-sm-2">
           <div class="input-group input-group-sm">
             <input type="text" id="add-ingredient-weight" class="form-control" name="weight" placeholder="0" pattern="[0-9]+([\.,][0-9]+)?" required aria-label="{% trans 'Weight' %}">
-            <span class="input-group-text d-none d-sm-inline">g</span>
+            <span class="input-group-text d-none d-sm-inline"><span class="unit-g-only">g</span><span class="unit-percent-only">%</span></span>
           </div>
         </div>
         <div class="col-6 col-sm-7">

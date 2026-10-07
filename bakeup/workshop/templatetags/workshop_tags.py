@@ -13,6 +13,13 @@ def baker_percentage(weight, flour_weight):
         return "{}%".format(value)
 
 
+@register.simple_tag
+def baker_ratio(weight, flour_weight):
+    if flour_weight:
+        return clever_rounding(weight / flour_weight * 100)
+    return ""
+
+
 @register.filter
 def clever_rounding(value):
     if value is None:

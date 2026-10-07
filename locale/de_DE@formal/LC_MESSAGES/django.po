@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 20:06+0200\n"
+"POT-Creation-Date: 2026-10-06 10:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -273,7 +273,7 @@ msgstr ""
 #: bakeup/templates/workshop/includes/dashboard.html:34
 #: bakeup/templates/workshop/includes/production_plan_table.html:13
 #: bakeup/templates/workshop/productionday_detail.html:69
-#: bakeup/workshop/views.py:437
+#: bakeup/workshop/views.py:565
 msgid "Product"
 msgstr "Produkt"
 
@@ -330,7 +330,7 @@ msgstr ""
 
 #: bakeup/shop/models.py:779
 #: bakeup/templates/workshop/batch_customerorder_form.html:39
-#: bakeup/workshop/forms.py:364 bakeup/workshop/tables.py:173
+#: bakeup/workshop/forms.py:371 bakeup/workshop/tables.py:173
 msgid "Customer"
 msgstr "Kunde"
 
@@ -570,6 +570,7 @@ msgstr "Bestätigen"
 #: bakeup/templates/workshop/customerorder_form.html:68
 #: bakeup/templates/workshop/group_confirm_delete.html:17
 #: bakeup/templates/workshop/group_form.html:23
+#: bakeup/templates/workshop/includes/instructions.html:26
 #: bakeup/templates/workshop/includes/production_plan_actions.html:20
 #: bakeup/templates/workshop/includes/production_plan_actions.html:34
 #: bakeup/templates/workshop/includes/production_plan_actions.html:55
@@ -862,7 +863,7 @@ msgstr "Ändern"
 #: bakeup/templates/workshop/category_form.html:23
 #: bakeup/templates/workshop/customer_form.html:24
 #: bakeup/templates/workshop/group_form.html:25
-#: bakeup/templates/workshop/includes/product_children.html:83
+#: bakeup/templates/workshop/includes/product_children.html:115
 #: bakeup/templates/workshop/instruction_form.html:18
 #: bakeup/templates/workshop/point_of_sale_form.html:24
 #: bakeup/templates/workshop/product_form.html:64
@@ -898,18 +899,18 @@ msgid "Account"
 msgstr "Konto schließen"
 
 #: bakeup/templates/workshop/customer_detail.html:32
-#: bakeup/workshop/forms.py:307
+#: bakeup/workshop/forms.py:314
 msgid "First name"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:40
-#: bakeup/workshop/forms.py:308
+#: bakeup/workshop/forms.py:315
 msgid "Last name"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:48
 #: bakeup/templates/workshop/includes/dashboard.html:56
-#: bakeup/workshop/forms.py:414 bakeup/workshop/forms.py:437
+#: bakeup/workshop/forms.py:421 bakeup/workshop/forms.py:444
 #, fuzzy
 #| msgid "Points of sale"
 msgid "Point of sale"
@@ -920,13 +921,13 @@ msgid "Telephone"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:86
-#: bakeup/workshop/forms.py:311
+#: bakeup/workshop/forms.py:318
 msgid "active"
 msgstr ""
 
 #: bakeup/templates/workshop/customer_detail.html:94
 #: bakeup/templates/workshop/customer_list.html:13
-#: bakeup/templates/workshop/group_list.html:8 bakeup/workshop/forms.py:321
+#: bakeup/templates/workshop/group_list.html:8 bakeup/workshop/forms.py:328
 msgid "Groups"
 msgstr "Gruppen"
 
@@ -1148,7 +1149,7 @@ msgstr "Zu den Kategorien"
 
 #: bakeup/templates/workshop/includes/dashboard.html:119
 #: bakeup/templates/workshop/includes/sidebar.html:22
-#: bakeup/templates/workshop/recipe_detail.html:11 bakeup/workshop/views.py:425
+#: bakeup/templates/workshop/recipe_detail.html:11 bakeup/workshop/views.py:553
 msgid "Recipes"
 msgstr "Rezepte"
 
@@ -1159,7 +1160,7 @@ msgstr "Zu den Rezepten"
 #: bakeup/templates/workshop/includes/dashboard.html:128
 #: bakeup/templates/workshop/includes/sidebar.html:25
 #: bakeup/templates/workshop/productionday_detail.html:119
-#: bakeup/workshop/views.py:438
+#: bakeup/workshop/views.py:566
 msgid "Products"
 msgstr "Produkte"
 
@@ -1184,15 +1185,67 @@ msgstr "Umsatz"
 msgid "Production"
 msgstr "Produktion"
 
-#: bakeup/templates/workshop/includes/product_children.html:43
-#| msgid "Go to products"
+#: bakeup/templates/workshop/includes/instructions.html:4
+msgid "Instructions"
+msgstr "Anweisungen"
+
+#: bakeup/templates/workshop/includes/instructions.html:9
+#: bakeup/templates/workshop/productionday_detail.html:27
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: bakeup/templates/workshop/includes/instructions.html:19
+msgid "Describe how this recipe is made"
+msgstr "Beschreibung, wie das Rezept hergestellt wird"
+
+#: bakeup/templates/workshop/includes/instructions.html:21
+msgid "Ctrl+Enter saves, Esc cancels."
+msgstr "Strg+Enter speichert, Esc bricht ab."
+
+#: bakeup/templates/workshop/includes/instructions.html:27
+#: bakeup/templates/workshop/recipe_detail.html:63
+msgid "Save"
+msgstr "Speichern"
+
+#: bakeup/templates/workshop/includes/instructions.html:36
+msgid "No instructions yet!"
+msgstr "Noch keine Anweisungen!"
+
+#: bakeup/templates/workshop/includes/instructions.html:40
+msgid "Add instructions"
+msgstr "Anweisungen hinzufügen"
+
+#: bakeup/templates/workshop/includes/product_children.html:48
+msgid "Edit baker percentage"
+msgstr "Bäckerprozent bearbeiten"
+
+#: bakeup/templates/workshop/includes/product_children.html:64
+#: bakeup/templates/workshop/includes/product_children.html:66
+msgid "Main flour"
+msgstr "Hauptmehl"
+
+#: bakeup/templates/workshop/includes/product_children.html:64
+msgid ""
+"Takes up the difference when you change other flours, add a flour or change "
+"a pre dough, so the total flour stays the same. Click on another flour to "
+"make it the main flour."
+msgstr ""
+"Gleicht die Differenz aus, wenn Sie andere Mehle ändern, ein Mehl hinzufügen "
+"oder einen Vorteig ändern, damit die Mehlmenge gleich bleibt. Klicken Sie "
+"auf ein anderes Mehl, um es zum Hauptmehl zu machen."
+
+#: bakeup/templates/workshop/includes/product_children.html:66
+msgid "Set as main flour"
+msgstr "Als Hauptmehl festlegen"
+
+#: bakeup/templates/workshop/includes/product_children.html:75
 msgid "Delete?"
 msgstr "Löschen?"
 
-#: bakeup/templates/workshop/includes/product_children.html:69
-#: bakeup/workshop/forms.py:114 bakeup/workshop/models.py:105
+#: bakeup/templates/workshop/includes/product_children.html:101
+#: bakeup/workshop/forms.py:120 bakeup/workshop/models.py:105
 msgid "Weight"
-msgstr ""
+msgstr "Gewicht"
 
 #: bakeup/templates/workshop/includes/production_plan_actions.html:6
 #: bakeup/templates/workshop/includes/production_plan_actions.html:48
@@ -1321,7 +1374,7 @@ msgstr "kombinierbar"
 
 #: bakeup/templates/workshop/product_detail.html:34
 #: bakeup/templates/workshop/productionday_detail.html:120
-#: bakeup/workshop/forms.py:32 bakeup/workshop/models.py:570
+#: bakeup/workshop/forms.py:33 bakeup/workshop/models.py:656
 msgid "Price"
 msgstr ""
 
@@ -1343,44 +1396,104 @@ msgstr "Bio zertifiziert"
 
 #: bakeup/templates/workshop/product_detail.html:87
 #: bakeup/templates/workshop/product_detail.html:90
-#: bakeup/workshop/forms.py:238
+#: bakeup/workshop/forms.py:245
 msgid "Fermentation Loss"
-msgstr ""
+msgstr "Gärverlust"
 
 #: bakeup/templates/workshop/product_detail.html:101
-#: bakeup/workshop/forms.py:201 bakeup/workshop/forms.py:242
+#: bakeup/workshop/forms.py:208 bakeup/workshop/forms.py:249
 #, fuzzy
 #| msgid "Duration"
 msgid "Hydration"
 msgstr "Dauer"
 
 #: bakeup/templates/workshop/product_detail.html:116
-#: bakeup/workshop/forms.py:209 bakeup/workshop/forms.py:248
+#: bakeup/workshop/forms.py:216 bakeup/workshop/forms.py:255
 msgid "Salt"
-msgstr ""
+msgstr "Salz"
 
 #: bakeup/templates/workshop/product_detail.html:131
-#: bakeup/workshop/forms.py:228 bakeup/workshop/forms.py:286
+#: bakeup/workshop/forms.py:235 bakeup/workshop/forms.py:293
 msgid "Dough Weight"
-msgstr ""
+msgstr "Teiggewicht"
 
-#: bakeup/templates/workshop/product_detail.html:146
-#: bakeup/workshop/forms.py:219 bakeup/workshop/forms.py:278
+#: bakeup/templates/workshop/product_detail.html:131
+msgid "Fixed in recipe mode"
+msgstr "Fest im Rezeptmodus"
+
+#: bakeup/templates/workshop/product_detail.html:131
+msgid ""
+"Changing the hydration, salt, fermented flour or a percentage keeps this "
+"dough weight, all ingredients are rescaled. Change the dough weight to scale "
+"the whole recipe."
+msgstr ""
+"Wenn Sie die TA, das Salz, die ferm. Mehlmenge oder einen Prozentwert "
+"ändern, bleibt dieses Teiggewicht gleich und alle Zutaten werden "
+"umgerechnet. Ändern Sie das Teiggewicht, um das ganze Rezept zu skalieren."
+
+#: bakeup/templates/workshop/product_detail.html:144
+msgid "Total Flour"
+msgstr "Mehl gesamt"
+
+#: bakeup/templates/workshop/product_detail.html:144
+msgid "Fixed in baker's percentage mode"
+msgstr "Fest im Bäckerprozent-Modus"
+
+#: bakeup/templates/workshop/product_detail.html:144
+msgid ""
+"All percentages refer to this flour weight and it stays the same. Changing a "
+"value only changes that ingredient, the main flour balances changes of the "
+"flours. The dough weight follows, change it to scale the whole recipe."
+msgstr ""
+"Alle Prozentwerte beziehen sich auf diese Mehlmenge, sie bleibt gleich. Wenn "
+"Sie einen Wert ändern, ändert sich nur diese Zutat, Änderungen an den Mehlen "
+"gleicht das Hauptmehl aus. Das Teiggewicht ergibt sich daraus, ändern Sie "
+"es, um das ganze Rezept zu skalieren."
+
+#: bakeup/templates/workshop/product_detail.html:152
+#: bakeup/workshop/forms.py:226 bakeup/workshop/forms.py:285
 msgid "Fermented Flour"
-msgstr ""
+msgstr "ferm. Mehlmenge"
 
-#: bakeup/templates/workshop/product_detail.html:171
-msgid "Instructions"
-msgstr ""
+#: bakeup/templates/workshop/product_detail.html:177
+msgid "Sort by amount"
+msgstr "Nach Menge sortieren"
 
-#: bakeup/templates/workshop/product_detail.html:174
-#: bakeup/templates/workshop/productionday_detail.html:27
-msgid "Edit"
+#: bakeup/templates/workshop/product_detail.html:178
+msgid ""
+"The order stays the same while you edit, so rows do not jump. Sort the "
+"ingredients by amount again."
 msgstr ""
+"Während Sie bearbeiten, bleibt die Reihenfolge gleich, damit keine Zeilen "
+"springen. Sortieren Sie die Zutaten wieder nach Menge."
 
-#: bakeup/templates/workshop/product_detail.html:183
-msgid "No instructions yet!"
+#: bakeup/templates/workshop/product_detail.html:186
+msgid "Working mode"
+msgstr "Arbeitsmodus"
+
+#: bakeup/templates/workshop/product_detail.html:188
+msgid "Recipe mode"
+msgstr "Rezeptmodus"
+
+#: bakeup/templates/workshop/product_detail.html:188
+msgid ""
+"Edit the recipe in grams. When you change a percentage, the dough weight "
+"stays fixed and all ingredients are rescaled."
 msgstr ""
+"Rezept in Gramm bearbeiten. Wenn Sie einen Prozentwert ändern, bleibt das "
+"Teiggewicht gleich und alle Zutaten werden umgerechnet."
+
+#: bakeup/templates/workshop/product_detail.html:190
+msgid "Baker's percentage mode"
+msgstr "Bäckerprozent-Modus"
+
+#: bakeup/templates/workshop/product_detail.html:190
+msgid ""
+"Develop the recipe in percentages of the flour. The flour stays fixed, only "
+"the changed ingredient moves and the dough weight follows."
+msgstr ""
+"Rezept in Prozent der Mehlmenge entwickeln. Die Mehlmenge bleibt gleich, nur "
+"die geänderte Zutat ändert sich und das Teiggewicht passt sich an."
 
 #: bakeup/templates/workshop/product_form.html:9
 #, fuzzy
@@ -1501,7 +1614,7 @@ msgid "Product Mapping"
 msgstr "Produktionspläne"
 
 #: bakeup/templates/workshop/productionday_detail.html:94
-#: bakeup/workshop/forms.py:384 bakeup/workshop/forms.py:386
+#: bakeup/workshop/forms.py:391 bakeup/workshop/forms.py:393
 #, fuzzy
 #| msgid "%(counter)s Product"
 #| msgid_plural "%(counter)s Products"
@@ -1509,7 +1622,7 @@ msgid "Source Product"
 msgstr "%(counter)s Produkt"
 
 #: bakeup/templates/workshop/productionday_detail.html:95
-#: bakeup/workshop/forms.py:393
+#: bakeup/workshop/forms.py:400
 #, fuzzy
 #| msgid "Product"
 msgid "Target Product"
@@ -1538,7 +1651,7 @@ msgid "Ingredients Summary"
 msgstr ""
 
 #: bakeup/templates/workshop/productionday_detail.html:166
-#: bakeup/workshop/forms.py:116
+#: bakeup/workshop/forms.py:122
 msgid "Ingredient"
 msgstr ""
 
@@ -1603,10 +1716,6 @@ msgstr "Produktionspläne"
 #| msgid "Add new category"
 msgid "Add product"
 msgstr "Neue Kategorie hinzufügen"
-
-#: bakeup/templates/workshop/recipe_detail.html:63
-msgid "Save"
-msgstr ""
 
 #: bakeup/templates/workshop/recipe_detail.html:79
 #, fuzzy
@@ -1690,107 +1799,107 @@ msgstr "Ihr Konto ist jetzt geschlossen."
 msgid "productionday-{}"
 msgstr "Produktionstage"
 
-#: bakeup/workshop/forms.py:86
+#: bakeup/workshop/forms.py:87
 msgid "A product with the SKU already exists"
 msgstr ""
 
-#: bakeup/workshop/forms.py:120
+#: bakeup/workshop/forms.py:126
 msgid "Search or create ingredient"
 msgstr "Suchen oder neue Zutat erstellen"
 
-#: bakeup/workshop/forms.py:129
+#: bakeup/workshop/forms.py:135
 #, fuzzy
 #| msgid "Delete category"
 msgid "Select a category"
 msgstr "Lösche Kategorie"
 
-#: bakeup/workshop/forms.py:131
+#: bakeup/workshop/forms.py:137
 #, fuzzy
 #| msgid "Sellable"
 msgid "Sellable?"
 msgstr "verkaufbar"
 
-#: bakeup/workshop/forms.py:132
+#: bakeup/workshop/forms.py:138
 #, fuzzy
 #| msgid "Buyable"
 msgid "Buyable?"
 msgstr "kaufbar"
 
-#: bakeup/workshop/forms.py:133
+#: bakeup/workshop/forms.py:139
 #, fuzzy
 #| msgid "Composable"
 msgid "Composable?"
 msgstr "kombinierbar"
 
-#: bakeup/workshop/forms.py:150 bakeup/workshop/views.py:297
+#: bakeup/workshop/forms.py:156 bakeup/workshop/views.py:389
 msgid "Please enter a valid weight."
-msgstr ""
+msgstr "Bitte geben Sie ein gültiges Gewicht ein."
 
-#: bakeup/workshop/forms.py:161 bakeup/workshop/forms.py:172
+#: bakeup/workshop/forms.py:167 bakeup/workshop/forms.py:178
 msgid "Please select an ingredient."
-msgstr ""
+msgstr "Bitte wählen Sie eine Zutat aus."
 
-#: bakeup/workshop/forms.py:164
+#: bakeup/workshop/forms.py:170
 msgid "Please select a category for the new product."
-msgstr ""
+msgstr "Bitte wählen Sie eine Kategorie für das neue Produkt aus."
 
-#: bakeup/workshop/forms.py:257
+#: bakeup/workshop/forms.py:264
 msgid "Starter"
 msgstr ""
 
-#: bakeup/workshop/forms.py:269
+#: bakeup/workshop/forms.py:276
 msgid "Flour"
 msgstr ""
 
-#: bakeup/workshop/forms.py:302
+#: bakeup/workshop/forms.py:309
 #, fuzzy
 #| msgid "Go to production days"
 msgid "Select production day"
 msgstr "Zu den Produktionstagen"
 
-#: bakeup/workshop/forms.py:313
+#: bakeup/workshop/forms.py:320
 msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 msgstr ""
 
-#: bakeup/workshop/forms.py:322
+#: bakeup/workshop/forms.py:329
 msgid "This user belongs to the following groups."
 msgstr "Dieser Benutzer ist Mitglied folgender Gruppen."
 
-#: bakeup/workshop/forms.py:345
+#: bakeup/workshop/forms.py:352
 msgid "Send password reset email"
 msgstr "Passwort-Reset-E-Mail senden"
 
-#: bakeup/workshop/forms.py:347
+#: bakeup/workshop/forms.py:354
 msgid "Send the customer an email with a link to set their own password."
 msgstr ""
 "Dem Kunden eine E-Mail mit einem Link zum Festlegen des Passworts senden."
 
-#: bakeup/workshop/forms.py:357
+#: bakeup/workshop/forms.py:364
 msgid "A user with this email already exists."
 msgstr "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits."
 
-#: bakeup/workshop/forms.py:377
+#: bakeup/workshop/forms.py:384
 msgid ""
 "If you leave this empty, it uses the default point of sale for the customer."
 msgstr "Wenn leer: verwendet die standard Verkaufsstelle des Kunden."
 
-#: bakeup/workshop/forms.py:411
+#: bakeup/workshop/forms.py:418
 msgid "All"
 msgstr ""
 
-#: bakeup/workshop/forms.py:416
+#: bakeup/workshop/forms.py:423
 msgid ""
 "Send emails to orders of specific point of sale, leave empty to send to all "
 "point of sales."
 msgstr ""
 
-#: bakeup/workshop/forms.py:457
+#: bakeup/workshop/forms.py:464
 msgid "Create a new message or select a saved one"
 msgstr ""
 
-#: bakeup/workshop/forms.py:458
+#: bakeup/workshop/forms.py:465
 msgid "Create a new message"
 msgstr ""
 
@@ -1860,7 +1969,7 @@ msgstr ""
 msgid "Max order quantity?"
 msgstr "Maximale Bestellmenge"
 
-#: bakeup/workshop/models.py:579
+#: bakeup/workshop/models.py:665
 msgid "Instruction"
 msgstr ""
 
@@ -1932,30 +2041,44 @@ msgstr "Registrieren"
 msgid "Select a group"
 msgstr "Gruppe auswählen"
 
-#: bakeup/workshop/views.py:350
+#: bakeup/workshop/views.py:280
+msgid "Percentages refer to the flour weight, please add flour first."
+msgstr ""
+"Prozentwerte beziehen sich auf die Mehlmenge, bitte fügen Sie zuerst Mehl "
+"hinzu."
+
+#: bakeup/workshop/views.py:281
+msgid "This percentage can't be reached."
+msgstr "Dieser Prozentwert lässt sich nicht erreichen."
+
+#: bakeup/workshop/views.py:475
 msgid "Dough yield can't be reached by changing the water on this level."
 msgstr ""
+"Die TA lässt sich nicht über die Flüssigkeit auf dieser Ebene erreichen."
 
-#: bakeup/workshop/views.py:363
+#: bakeup/workshop/views.py:490
 msgid "Salt can't be reached by changing the salt on this level."
 msgstr ""
+"Der Salzanteil lässt sich nicht über das Salz auf dieser Ebene erreichen."
 
-#: bakeup/workshop/views.py:376
+#: bakeup/workshop/views.py:503
 msgid "Dough weight can't be changed."
-msgstr ""
+msgstr "Das Teiggewicht lässt sich nicht ändern."
 
-#: bakeup/workshop/views.py:391
+#: bakeup/workshop/views.py:519
 msgid ""
 "Fermented flour can't be reached by changing the pre dough on this level."
 msgstr ""
+"Die ferm. Mehlmenge lässt sich nicht über den Vorteig auf dieser Ebene "
+"erreichen."
 
-#: bakeup/workshop/views.py:424
+#: bakeup/workshop/views.py:552
 #, fuzzy
 #| msgid "Recipes"
 msgid "Recipe"
 msgstr "Rezepte"
 
-#: bakeup/workshop/views.py:886
+#: bakeup/workshop/views.py:1014
 msgid ""
 "At least one of the production plans for this day has already started. You "
 "might change a already running production!"
@@ -1964,10 +2087,16 @@ msgstr ""
 "bearbeiten einer Bestellung könnte die bereits gestartete Produktion "
 "beeinflussen."
 
-#: bakeup/workshop/views.py:2119
+#: bakeup/workshop/views.py:2269
 #, python-format
 msgid "Create \"%(name)s\""
-msgstr ""
+msgstr "„%(name)s“ neu anlegen"
+
+#~ msgid "Mix flour and water"
+#~ msgstr "Mehl und Wasser mischen"
+
+#~ msgid "Rest for 30 minutes"
+#~ msgstr "30 Minuten ruhen lassen"
 
 #, fuzzy
 #~| msgid "Add new category"
@@ -2017,11 +2146,6 @@ msgstr ""
 #~| msgid "Production plans"
 #~ msgid "Production plan"
 #~ msgstr "Produktionspläne"
-
-#, fuzzy
-#~| msgid "Go to products"
-#~ msgid "Updae Instructions"
-#~ msgstr "Zu den Produkte"
 
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
