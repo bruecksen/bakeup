@@ -4,7 +4,14 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import connection, models
-from django.db.models import F, ProtectedError, Q, Sum
+from django.db.models import (
+    F,
+    Prefetch,
+    ProtectedError,
+    Q,
+    Sum,
+    prefetch_related_objects,
+)
 from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -222,7 +229,33 @@ class Product(CommonBaseClass):
         child = ProductHierarchy.objects.create(
             parent=self, child=child, quantity=quantity
         )
+        self.clear_recipe_cache()
         return child
+
+    def load_recipe_tree(self):
+        prefetch_recipe_trees([self])
+        return self
+
+    def clear_recipe_cache(self):
+        # The loaded recipe tree and the figures derived from it are stale once
+        # quantities or rows changed.
+        self.__dict__.pop("_total_weight_flour", None)
+        getattr(self, "_prefetched_objects_cache", {}).pop("parents", None)
+
+    def get_recipe_category(self, slug):
+        categories = self.__dict__.setdefault("_recipe_categories", {})
+        if slug not in categories:
+            categories[slug] = Category.objects.filter(slug=slug).first()
+        return categories[slug]
+
+    def get_children_by_weight(self):
+        # Same order as ProductHierarchy.objects.with_weights(), but uses a
+        # loaded recipe tree.
+        return sorted(
+            self.parents.all(),
+            key=lambda child: child.quantity * child.child.weight,
+            reverse=True,
+        )
 
     def get_full_ingredient_list(self):
         ingredients = defaultdict(int)
@@ -325,7 +358,7 @@ class Product(CommonBaseClass):
 
     def get_dough_yield(self):
         # Netto-Teigausbeute 100 x (Wasser + Mehl) / Mehl
-        category = Category.objects.filter(slug="liquids").first()
+        category = self.get_recipe_category("liquids")
         if not category:
             return None
         total_weight_water = Product.calculate_total_weight_by_category(self, category)
@@ -337,7 +370,7 @@ class Product(CommonBaseClass):
             return round(dough_yield)
 
     def get_salt_ratio(self):
-        category = Category.objects.filter(slug="salt").first()
+        category = self.get_recipe_category("salt")
         if not category:
             return None
         total_weight_flour = self.total_weight_flour
@@ -349,8 +382,8 @@ class Product(CommonBaseClass):
         return 10
 
     def get_pre_ferment_ratio(self):
-        category = Category.objects.filter(slug="flour").first()
-        category_parent = Category.objects.filter(slug="pre-dough").first()
+        category = self.get_recipe_category("flour")
+        category_parent = self.get_recipe_category("pre-dough")
         if not category or not category_parent:
             return None
         total_weight = self.total_weight_flour
@@ -363,17 +396,19 @@ class Product(CommonBaseClass):
 
     @property
     def total_weight_flour(self):
-        category = Category.objects.filter(slug="flour").first()
-        if not category:
-            return None
-        return Product.calculate_total_weight_by_category(self, category)
+        if "_total_weight_flour" not in self.__dict__:
+            category = self.get_recipe_category("flour")
+            self._total_weight_flour = category and (
+                Product.calculate_total_weight_by_category(self, category)
+            )
+        return self._total_weight_flour
 
     @property
     def is_normalized(self):
         return round(self.total_weight) == 1000
 
     def get_wheats(self):
-        category = Category.objects.filter(slug="flour").first()
+        category = self.get_recipe_category("flour")
         if not category:
             return None
         wheats = ""
@@ -407,13 +442,14 @@ class Product(CommonBaseClass):
             for child in self.parents.all():
                 child.quantity = child.quantity * float(delta_weight_addon)
                 child.save(update_fields=["quantity"])
+            self.clear_recipe_cache()
 
     def adjust_ratio_to_flour(self, category_slug, ratio, keep_total_weight=True):
         # Only the ingredients of the category on this level are changed, sub
         # levels keep their composition. With keep_total_weight this level is
         # rescaled afterwards so the total weight stays the same, otherwise the
         # flour stays and the total weight follows.
-        category = Category.objects.filter(slug=category_slug).first()
+        category = self.get_recipe_category(category_slug)
         total_weight_flour = self.total_weight_flour
         if not category or not total_weight_flour:
             return False
@@ -451,6 +487,7 @@ class Product(CommonBaseClass):
             else:
                 child.quantity = child.quantity * scale
             child.save(update_fields=["quantity"])
+        self.clear_recipe_cache()
         return True
 
     def adjust_dough_yield(self, dough_yield, keep_total_weight=True):
@@ -462,7 +499,7 @@ class Product(CommonBaseClass):
         return self.adjust_ratio_to_flour("salt", float(salt_ratio), keep_total_weight)
 
     def get_flour_children(self):
-        flour = Category.objects.filter(slug="flour").first()
+        flour = self.get_recipe_category("flour")
         if not flour:
             return []
         return [
@@ -489,6 +526,12 @@ class Product(CommonBaseClass):
         # or removes is compensated by the balancing flour row, or by all other
         # flours on this level when there is none or the row is the balancing
         # flour itself.
+        # Use the row of the loaded recipe tree, the passed one may be loaded
+        # on its own.
+        hierarchy = next(
+            (child for child in self.parents.all() if child.pk == hierarchy.pk),
+            hierarchy,
+        )
         total_weight_flour = self.total_weight_flour
         weight = hierarchy.child.weight_in_base_unit and hierarchy.weight
         if not total_weight_flour or not weight or ratio <= 0:
@@ -497,7 +540,7 @@ class Product(CommonBaseClass):
         if any(child.pk == hierarchy.pk for child in flours):
             flour_in_row = weight
         else:
-            flour = Category.objects.filter(slug="flour").first()
+            flour = self.get_recipe_category("flour")
             flour_in_row = Product.calculate_total_weight_by_category(
                 hierarchy.child, flour, hierarchy.quantity
             )
@@ -539,6 +582,7 @@ class Product(CommonBaseClass):
         for child in children:
             child.quantity = child.quantity * factors.get(child.pk, 1) * scale
             child.save(update_fields=["quantity"])
+        self.clear_recipe_cache()
         return True
 
     def adjust_total_weight(self, total_weight):
@@ -552,6 +596,7 @@ class Product(CommonBaseClass):
         for child in children:
             child.quantity = child.quantity * scale
             child.save(update_fields=["quantity"])
+        self.clear_recipe_cache()
         return True
 
     def adjust_pre_ferment_ratio(self, pre_ferment, keep_total_weight=True):
@@ -560,10 +605,10 @@ class Product(CommonBaseClass):
         # flour composition, dough yield and salt ratio stay. With
         # keep_total_weight this level is rescaled afterwards so the total
         # weight stays the same.
-        flour = Category.objects.filter(slug="flour").first()
-        liquids = Category.objects.filter(slug="liquids").first()
-        pre_dough = Category.objects.filter(slug="pre-dough").first()
-        salt = Category.objects.filter(slug="salt").first()
+        flour = self.get_recipe_category("flour")
+        liquids = self.get_recipe_category("liquids")
+        pre_dough = self.get_recipe_category("pre-dough")
+        salt = self.get_recipe_category("salt")
         total_weight_flour = self.total_weight_flour
         if not flour or not liquids or not pre_dough or not total_weight_flour:
             return False
@@ -641,6 +686,7 @@ class Product(CommonBaseClass):
         for child in children:
             child.quantity = child.quantity * factors.get(child.pk, 1) * scale
             child.save(update_fields=["quantity"])
+        self.clear_recipe_cache()
         return True
 
 
@@ -1073,3 +1119,33 @@ class ReminderMessage(CommonBaseClass):
                 "error_log",
             ]
         )
+
+
+def prefetch_recipe_trees(products):
+    # Loads the recipes of the products with all their sub recipes, one query
+    # per recipe level. Afterwards parents.all(), child, category and uom of
+    # every row in the trees don't hit the database. A product that shows up
+    # again, e.g. water in the pre dough and the main dough, shares the rows
+    # loaded first.
+    loaded = {}
+    level = [product for product in products if product is not None]
+    while level:
+        to_load = [product for product in level if product.pk not in loaded]
+        prefetch_related_objects(
+            to_load,
+            Prefetch(
+                "parents",
+                queryset=ProductHierarchy.objects.select_related(
+                    "child__category", "child__uom__base_unit"
+                ),
+            ),
+        )
+        for product in to_load:
+            loaded.setdefault(product.pk, product)
+        for product in level:
+            if product.pk in loaded and loaded[product.pk] is not product:
+                cache = product.__dict__.setdefault("_prefetched_objects_cache", {})
+                cache["parents"] = loaded[product.pk]._prefetched_objects_cache[
+                    "parents"
+                ]
+        level = [child.child for product in to_load for child in product.parents.all()]
