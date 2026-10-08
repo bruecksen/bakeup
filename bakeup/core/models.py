@@ -184,6 +184,10 @@ class UOM(models.Model):
     def __str__(self):
         return f"{self.name} ({self.abbreviation})"
 
+    @classmethod
+    def get_default(cls):
+        return cls.objects.filter(abbreviation="g", base_unit__isnull=True).first()
+
     @property
     def base_abbr(self):
         if self.base_unit:

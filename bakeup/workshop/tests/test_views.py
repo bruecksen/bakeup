@@ -169,6 +169,17 @@ class RecipeEditViewTest(RecipeViewTestCase):
         self.assertAlmostEqual(row.weight, 81)
         self.assertAlmostEqual(self.reload().total_weight_flour, 810)
 
+    def test_add_new_ingredient_gets_gram_uom(self):
+        self.client.post(
+            self.url("product-add-inline"),
+            {
+                "weight": "10",
+                "ingredient": "new:Seeds",
+                "category": self.categories["ingredients"].pk,
+            },
+        )
+        self.assertEqual(Product.objects.get(name="Seeds").uom.abbreviation, "g")
+
     def test_dough_yield(self):
         self.client.post(self.url("product-dough-yield"), {"dough_yield": "170"})
         bread = self.reload()

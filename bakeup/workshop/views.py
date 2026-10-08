@@ -37,6 +37,7 @@ from treebeard.forms import movenodeform_factory
 from bakeup.contrib.forms import NoteForm
 from bakeup.contrib.models import Note
 from bakeup.contrib.notes import can_change_note, get_note_target
+from bakeup.core.models import UOM
 from bakeup.core.utils import get_deleted_objects
 from bakeup.core.views import NextUrlMixin, StaffPermissionsMixin
 from bakeup.pages.models import EmailSettings
@@ -298,6 +299,7 @@ def product_add_inline_view(request, pk):
                     name=form.cleaned_data["new_name"],
                     category=form.cleaned_data["category"],
                     weight=1000,
+                    uom=UOM.get_default(),
                     is_sellable=form.cleaned_data["is_sellable"],
                     is_buyable=form.cleaned_data["is_buyable"],
                     is_composable=form.cleaned_data["is_composable"],

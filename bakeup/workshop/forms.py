@@ -76,6 +76,8 @@ class ProductForm(ModelForm):
                 }
             )
         super().__init__(*args, **kwargs)
+        if not self.instance.uom_id:
+            self.initial.setdefault("uom", UOM.get_default())
 
     def clean_sku(self):
         sku = self.cleaned_data["sku"]
