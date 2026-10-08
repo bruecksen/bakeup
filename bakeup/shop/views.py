@@ -25,7 +25,7 @@ from bakeup.shop.models import (
     ProductionDay,
     ProductionDayProduct,
 )
-from bakeup.workshop.models import Product
+from bakeup.workshop.models import Product, prefetch_product_cards
 
 logger = logging.getLogger(__name__)
 
@@ -375,6 +375,10 @@ class ShopView(TemplateView):
                         .values("quantity")
                     )
                 )
+            production_day_products = list(
+                production_day_products.select_related("product")
+            )
+            prefetch_product_cards([pdp.product for pdp in production_day_products])
             context["production_day_products"] = production_day_products
             context["point_of_sales"] = self.production_day.point_of_sales.all()
         context["show_remaining_products"] = (

@@ -266,7 +266,7 @@ def get_main_flour(request, product):
 @staff_member_required(login_url="login")
 @require_POST
 def product_main_flour_view(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     hierarchy = product.parents.filter(pk=request.POST.get("hierarchy")).first()
     if hierarchy and hierarchy in product.get_flour_children():
         main_flours = request.session.get(MAIN_FLOUR_SESSION_KEY, {})
@@ -284,7 +284,7 @@ def ratio_error_message(product):
 @staff_member_required(login_url="login")
 @require_POST
 def product_add_inline_view(request, pk):
-    parent_product = get_object_or_404(Product, pk=pk)
+    parent_product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = AddIngredientForm(request.POST, product=parent_product)
     if form.is_valid():
         added = False
@@ -371,6 +371,7 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
     def form_valid(self, form):
         amount = form.cleaned_data["amount"]
         if form.cleaned_data["unit"] == UNIT_PERCENT:
+            self.object.parent.load_recipe_tree()
             percent_mode = is_percent_mode(self.request)
             if not self.object.parent.adjust_child_ratio(
                 self.object,
@@ -396,6 +397,9 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
 class ProductDetailView(StaffPermissionsMixin, DetailView):
     model = Product
 
+    def get_object(self, queryset=None):
+        return super().get_object(queryset).load_recipe_tree()
+
     def get_key_figures_inital_data(self):
         return {
             "fermentation_loss": clever_rounding(self.object.get_fermentation_loss()),
@@ -411,7 +415,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
         # The ingredients are sorted by weight on a page load. Updates via htmx
         # keep that order, so rows don't jump while they are edited, new rows
         # are appended. The order is sorted again on request.
-        ingredients = list(self.object.parents.with_weights())
+        ingredients = self.object.get_children_by_weight()
         orders = self.request.session.get(INGREDIENT_ORDER_SESSION_KEY, {})
         order = orders.get(str(self.object.pk))
         if self.request.htmx and order and not self.request.GET.get("sort"):
@@ -450,7 +454,7 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
 
 
 def product_normalize_view(request, pk):
-    product = Product.objects.get(pk=pk)
+    product = Product.objects.get(pk=pk).load_recipe_tree()
     if request.method == "POST":
         form = ProductKeyFiguresForm(request.POST)
         if form.is_valid():
@@ -464,7 +468,7 @@ def product_normalize_view(request, pk):
 @staff_member_required
 @require_POST
 def product_dough_yield_view(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = ProductDoughYieldForm(request.POST)
     if not form.is_valid() or not product.adjust_dough_yield(
         form.cleaned_data["dough_yield"],
@@ -480,7 +484,7 @@ def product_dough_yield_view(request, pk):
 @staff_member_required
 @require_POST
 def product_salt_view(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = ProductSaltForm(request.POST)
     if not form.is_valid() or not product.adjust_salt_ratio(
         form.cleaned_data["salt"], keep_total_weight=not is_percent_mode(request)
@@ -495,7 +499,7 @@ def product_salt_view(request, pk):
 @staff_member_required
 @require_POST
 def product_total_dough_weight_view(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = ProductTotalDoughWeightForm(request.POST)
     if not form.is_valid() or not product.adjust_total_weight(
         form.cleaned_data["total_dough_weight"]
@@ -507,7 +511,7 @@ def product_total_dough_weight_view(request, pk):
 @staff_member_required
 @require_POST
 def product_pre_ferment_view(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = ProductPreFermentForm(request.POST)
     if not form.is_valid() or not product.adjust_pre_ferment_ratio(
         form.cleaned_data["pre_ferment"],
