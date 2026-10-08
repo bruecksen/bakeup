@@ -1,53 +1,63 @@
-{% load i18n utils %}
-<button class="sidebar-toggler d-print-none" type="button" aria-controls="plattform-menu" aria-expanded="false" aria-label="Toggle plattform navigation">
-  <i class="fas fa-list fa-fw"></i>
-</button>
-<div class="sidebar col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark d-print-none position-fixed">
+{% load i18n utils workshop_tags %}
+{% workshop_section as section %}
+<div class="sidebar-backdrop d-md-none" data-sidebar-close></div>
+<div id="workshop-sidebar" class="sidebar col-auto px-2 bg-dark d-print-none">
+  <button type="button" class="sidebar-close d-md-none" data-sidebar-close aria-label="{% trans 'Close menu' %}"><i class="fas fa-xmark fa-fw"></i></button>
   <nav class="d-flex flex-column align-items-center align-items-sm-start min-vh-100 py-3">
     {% include "includes/logo.html" with logo_size='large' home_url='home' client_logo=settings.pages.BrandSettings.logo %}
-      <span class="sidebar-toggler-hide"><i class="fas fa-chevron-left"></i></span>
-      <h3 class="mt-1 mb-3 text-center text-light w-100">{{ request.tenant.name }}</h3>
-          <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start w-100">
+      <h3 class="sidebar-name text-center text-light w-100">{{ request.tenant.name }}</h3>
+          <div class="sidebar-menu w-100 mb-sm-auto">
+          <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> {% translate "Dashboard" %}</a>
+              <a class="nav-link{% if section == "dashboard" %} active{% endif %}"{% if section == "dashboard" %} aria-current="page"{% endif %} href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> {% translate "Dashboard" %}</a>
             </li>
-            {% if request.user.is_authenticated and request.user.is_staff %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> {% translate "Categories" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:tag-list' %}"><i class="fa-solid fa-tags fa-fw"></i> {% translate "Tags" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-book fa-fw"></i> {% translate "Recipes" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-atom fa-fw"></i> {% translate "Products" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> {% translate "Production Days" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i> {% translate "Production Plans" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i> {% translate "Orders" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:customer-order-template-overview' %}"><i class="fas fa-repeat fa-fw"></i> {% trans "Subscriptions" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:customer-list' %}"><i class="fas fa-user fa-fw"></i> {% translate "Customers" %}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i> {% translate "Points of sale" %}</a>
-            </li>
-            {% endif %}
           </ul>
-          <ul class="nav nav-pills flex-column mb-0 align-items-start w-100">
+          {% if request.user.is_authenticated and request.user.is_staff %}
+          <h6 class="sidebar-heading">{% translate "Production" context "sidebar" %}</h6>
+          <ul class="nav nav-pills flex-column w-100">
+            <li class="nav-item">
+              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> {% translate "Production Days" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "production-plans" %} active{% endif %}"{% if section == "production-plans" %} aria-current="page"{% endif %} href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i> {% translate "Production Plans" %}</a>
+            </li>
+          </ul>
+          <h6 class="sidebar-heading">{% translate "Sales" context "sidebar" %}</h6>
+          <ul class="nav nav-pills flex-column w-100">
+            <li class="nav-item">
+              <a class="nav-link{% if section == "orders" %} active{% endif %}"{% if section == "orders" %} aria-current="page"{% endif %} href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i> {% translate "Orders" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "subscriptions" %} active{% endif %}"{% if section == "subscriptions" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-order-template-overview' %}"><i class="fas fa-repeat fa-fw"></i> {% trans "Subscriptions" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "customers" %} active{% endif %}"{% if section == "customers" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-list' %}"><i class="fas fa-user fa-fw"></i> {% translate "Customers" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "points-of-sale" %} active{% endif %}"{% if section == "points-of-sale" %} aria-current="page"{% endif %} href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i> {% translate "Points of sale" %}</a>
+            </li>
+          </ul>
+          <h6 class="sidebar-heading">{% translate "Products" context "sidebar" %}</h6>
+          <ul class="nav nav-pills flex-column w-100">
+            <li class="nav-item">
+              <a class="nav-link{% if section == "recipes" %} active{% endif %}"{% if section == "recipes" %} aria-current="page"{% endif %} href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-cookie-bite fa-fw"></i> {% translate "Product range" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "products" %} active{% endif %}"{% if section == "products" %} aria-current="page"{% endif %} href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-wheat-awn fa-fw"></i> {% translate "Ingredients & doughs" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "categories" %} active{% endif %}"{% if section == "categories" %} aria-current="page"{% endif %} href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> {% translate "Categories" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "tags" %} active{% endif %}"{% if section == "tags" %} aria-current="page"{% endif %} href="{% url 'workshop:tag-list' %}"><i class="fa-solid fa-tags fa-fw"></i> {% translate "Tags" %}</a>
+            </li>
+          </ul>
+          {% endif %}
+          </div>
+          <ul class="nav nav-pills flex-column mb-0 w-100 sidebar-bottom">
             {% if request.user.is_authenticated and request.user.is_customer %}
             <li class="nav-item">
-              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop"></i> {% translate "Shop" %}</a>
+              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop fa-fw"></i> {% translate "Shop" %}</a>
             </li>
             {% endif %}
             {% if request.user.is_authenticated %}
@@ -55,12 +65,12 @@
                 <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i> {% translate "CMS" %}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
+                <a class="nav-link{% if section == "profile" %} active{% endif %}"{% if section == "profile" %} aria-current="page"{% endif %} href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
               </li>
               <li class="nav-item">
                 <form method="post" action="{% url 'logout' %}">
                   {% csrf_token %}
-                  <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start"><i class="fa-solid fa-right-from-bracket fa-fw"></i> {% translate "Logout" %}</button>
+                  <button type="submit" class="nav-link border-0 text-start"><i class="fa-solid fa-right-from-bracket fa-fw"></i> {% translate "Logout" %}</button>
                 </form>
               </li>
             {% else %}
@@ -69,6 +79,6 @@
               </li>
             {% endif %}
           </ul>
-         <p class="small text-white mb-0 mt-2 text-center w-100">Gebacken mit <a href="https://bakeup.org" class="fw-bold">bakeup.org</a> | <a href="https://github.com/bruecksen/bakeup/releases/latest" target="_blank">{% current_git_tag %}</a></p>
+         <p class="sidebar-footer mb-0 text-center w-100">Gebacken mit <a href="https://bakeup.org" class="fw-bold">bakeup.org</a> <br> <a href="https://github.com/bruecksen/bakeup/releases/latest" target="_blank">{% current_git_tag %}</a></p>
         </nav>
 </div>

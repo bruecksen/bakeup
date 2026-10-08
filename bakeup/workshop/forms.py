@@ -54,13 +54,17 @@ class ProductForm(ModelForm):
             "weight",
             "uom",
             "is_sellable",
-            "is_buyable",
-            "is_composable",
             "is_recurring",
             "max_recurring_order_qty",
             "max_order_qty",
             "is_bio_certified",
         ]
+        labels = {"is_sellable": _("Sold in the shop")}
+        help_texts = {
+            "is_sellable": _(
+                "Customers can order it. Leave unchecked for ingredients and doughs."
+            )
+        }
         widgets = {
             "tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete"),
             "uom": forms.Select(attrs={"class": "form-select"}),
@@ -131,9 +135,6 @@ class AddIngredientForm(Form):
         required=False,
         empty_label=_("Select a category"),
     )
-    is_sellable = BooleanField(label=_("Sellable?"), required=False)
-    is_buyable = BooleanField(label=_("Buyable?"), required=False)
-    is_composable = BooleanField(label=_("Composable?"), required=False)
 
     def __init__(self, *args, product=None, **kwargs):
         super().__init__(*args, **kwargs)

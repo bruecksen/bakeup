@@ -801,54 +801,190 @@ textarea {
   opacity: 0.6;
 }
 
-.sidebar-toggler {
-  display: none;
-  position: absolute;
-  top: 15px;
-  vertical-align: top;
-  margin-left: -50px;
-  margin-right: 10px;
-  // margin-top: 17px;
-  width: 70px;
-  height: 70px;
-  background-color: $primary;
-  color: $white;
-  border: none;
-  border-radius: 50%;
-  .badge {
-    position: absolute;
-    top: 0;
-    right: 0;
+// The sidebar is as wide as its longest menu entry. Tenant name, uploaded logo
+// and footer wrap or shrink to that width instead of widening it.
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 12rem;
+  height: 100vh;
+  overflow-y: auto;
+  // Aligned like the Wagtail menu: icons in one column, labels in another.
+  .nav-item {
+    margin: 0 0 .125rem;
+    width: 100%;
   }
-  .fas {
-    padding-left: 20px;
-    font-size: 1.5rem;
+  .nav-item .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: .375rem .75rem .375rem .5rem;
+    font-size: .9375rem;
+    border-radius: $border-radius;
+    background: none;
+    color: rgba($white, .85);
+    white-space: nowrap;
+    transition: background-color .15s, color .15s;
+    .fa-fw {
+      width: 1.25em;
+      flex-shrink: 0;
+      opacity: .7;
+      transition: opacity .15s;
+    }
+    &:hover,
+    &:focus-visible {
+      background-color: rgba($white, .08);
+      color: $white;
+      .fa-fw {
+        opacity: 1;
+      }
+    }
+    &:focus-visible {
+      outline: 2px solid rgba($white, .75);
+      outline-offset: -2px;
+    }
+    &.active {
+      background-color: rgba($white, .14);
+      box-shadow: inset 3px 0 0 $primary;
+      color: $white;
+      font-weight: 600;
+      .fa-fw {
+        opacity: 1;
+      }
+    }
   }
-  &:focus {
-    outline: none;
-    color: $white;
+  .sidebar-heading {
+    margin: 1.25rem 0 .25rem;
+    padding: 0 .5rem;
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: rgba($white, .5);
+  }
+  .sidebar-bottom {
+    margin-top: 1.5rem;
+    padding-top: .75rem;
+  }
+  .sidebar-name {
+    margin: .5rem 0 1.25rem;
+    font-size: 1.25rem;
+  }
+  .logo {
+    &.large {
+      font-size: 2.5rem;
+      padding: 1rem;
+      margin-top: .5rem;
+      margin-bottom: .5rem;
+    }
+    img {
+      max-height: 4rem;
+      width: auto;
+    }
+  }
+  h3,
+  nav > p,
+  .logo:not(.rounded-circle) {
+    contain: inline-size;
+  }
+  .logo:not(.rounded-circle) {
+    align-self: stretch !important;
+    justify-content: center;
+  }
+  .sidebar-footer {
+    margin-top: .75rem;
+    padding-top: .75rem;
+    border-top: 1px solid rgba($white, .12);
+    font-size: .75rem;
+    color: rgba($white, .6);
+    a {
+      font-weight: normal !important;
+    }
   }
 }
 
-.sidebar-toggler-hide {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 15px;
-  width: 35px;
-  height: 35px;
-  background-color: $primary;
-  border-radius: 50%;
-  margin-right: -17.5px;
+// Below md the sidebar is a drawer that slides in from the left, opened from
+// the button in the top left corner.
+// Like the Wagtail admin: a square button in the top left corner, the page
+// starts below it. It stays in the corner while scrolling.
+.mobile-menu-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-left: calc(var(--bs-gutter-x) * -.5);
+  border: 0;
+  background-color: $dark;
   color: $white;
-  &:hover {
-    cursor: pointer;
+  font-size: 1.25rem;
+  &:hover,
+  &:focus-visible {
+    background-color: lighten($dark, 8%);
   }
-  .fas {
-    position:absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%);
+}
+.sidebar-close {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  z-index: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: $border-radius;
+  background: none;
+  color: rgba($white, .85);
+  font-size: 1.25rem;
+  &:hover,
+  &:focus-visible {
+    background-color: rgba($white, .08);
+    color: $white;
+  }
+}
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background-color: rgba($black, .5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s, visibility .2s;
+}
+@include media-breakpoint-down(md) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1045;
+    width: min(85vw, 18rem);
+    height: auto;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform .25s ease, visibility .25s;
+  }
+  .sidebar-open {
+    overflow: hidden;
+    .sidebar {
+      transform: none;
+      visibility: visible;
+    }
+    .sidebar-backdrop {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-backdrop {
+    transition: none;
   }
 }
 
@@ -866,17 +1002,6 @@ textarea {
 @media (max-width: 768px) {
   .fs-xs-6 {
     font-size: .9rem;
-  }
-  .sidebar-toggler-hide {
-    display: none;
-  }
-  .sidebar-toggler {
-    display: block;
-  }
-  .sidebar {
-      display: none;
-      position:fixed;
-      z-index: 10;
   }
   .block-image {
     img {
@@ -1002,12 +1127,15 @@ button.production-card-title:active {
 .production-card-weight {
     flex: 0 0 auto;
     min-width: 5rem;
+    white-space: nowrap;
     font-size: 1.125rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 .production-card-qty {
+    flex: 0 0 auto;
     min-width: 3.5rem;
+    white-space: nowrap;
     font-size: 1.75rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -1444,6 +1572,67 @@ i.step-check-all {
     }
 }
 
+// Phones: smaller type and tighter spacing, so a card header fits on one or
+// two lines and more of the plan is visible at once.
+@include media-breakpoint-down(sm) {
+    .page-heading h1 {
+        font-size: 1.5rem;
+    }
+    .production-day-switch {
+        flex: 1 1 100%;
+
+        .form-select {
+            min-width: 0;
+        }
+    }
+    .production-stat {
+        padding: .5rem .75rem;
+    }
+    .production-stat-value {
+        font-size: 1.125rem;
+    }
+    .production-stat-label {
+        font-size: .75rem;
+    }
+    .production-stat-states .badge {
+        font-size: .75rem;
+    }
+    .production-card-header {
+        gap: .25rem .5rem;
+        padding: .375rem .75rem;
+    }
+    .production-card-title {
+        flex: 1 1 0;
+        gap: .5rem;
+        min-width: 0;
+    }
+    .production-card-chevron {
+        flex-basis: .75rem;
+        font-size: 1rem;
+    }
+    .production-card-qty {
+        min-width: 0;
+        font-size: 1.25rem;
+    }
+    .production-card-weight {
+        min-width: 0;
+        font-size: .9375rem;
+    }
+    .production-card-name {
+        gap: .5rem;
+        font-size: 1rem;
+    }
+    .production-card-total {
+        font-size: .8125rem;
+    }
+    .production-card .card-body {
+        padding: .75rem;
+    }
+    .production-step {
+        padding: .5rem;
+    }
+}
+
 @media print {
     .production-card {
         box-shadow: none;
@@ -1465,5 +1654,15 @@ i.step-check-all {
     }
     .note {
         background: none;
+    }
+}
+
+// Touch screens keep :hover after a tap, so the hover fill made the toggle
+// look switched on after switching it off. Only .active fills it there.
+@media (hover: none) {
+    #wake-lock-toggle {
+        --bs-btn-hover-color: var(--bs-btn-color);
+        --bs-btn-hover-bg: transparent;
+        --bs-btn-hover-border-color: var(--bs-btn-border-color);
     }
 }

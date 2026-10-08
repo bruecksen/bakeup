@@ -116,8 +116,6 @@ class Product(CommonBaseClass):
     )
     # data in database normalized in milliliter
     is_sellable = models.BooleanField(default=False, verbose_name=_("Is sellable"))
-    is_buyable = models.BooleanField(default=False, verbose_name=_("Is buyable"))
-    is_composable = models.BooleanField(default=False, verbose_name=_("Is composable"))
     is_recurring = models.BooleanField(default=False, verbose_name=_("Is abo product?"))
     is_bio_certified = models.BooleanField(
         default=False, verbose_name=_("Is bio certified?")
@@ -232,6 +230,13 @@ class Product(CommonBaseClass):
 
     def get_absolute_url(self):
         return reverse("workshop:product-detail", kwargs={"pk": self.pk})
+
+    @property
+    def has_recipe(self):
+        # parents are the rows this product is the parent of, its ingredients.
+        if "parents" in getattr(self, "_prefetched_objects_cache", {}):
+            return bool(self.parents.all())
+        return self.parents.exists()
 
     def has_child(self, child):
         return ProductHierarchy.objects.filter(parent=self, child=child).exists()

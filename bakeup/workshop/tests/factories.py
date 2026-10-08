@@ -56,19 +56,15 @@ def create_recipe():
     salt 12 g, dough 1182 g.
     """
     c = create_categories()
-    rye = ProductFactory(name="Rye flour", category=c["rye"], is_buyable=True)
-    wheat = ProductFactory(name="Wheat flour", category=c["wheat"], is_buyable=True)
-    flour = ProductFactory(name="Flour", category=c["flour"], is_buyable=True)
-    water = ProductFactory(name="Water", category=c["liquids"], is_buyable=True)
-    salt = ProductFactory(name="Salt", category=c["salt"], is_buyable=True)
-    starter = ProductFactory(
-        name="Starter", category=c["starter"], weight=20, is_composable=True
-    )
+    rye = ProductFactory(name="Rye flour", category=c["rye"])
+    wheat = ProductFactory(name="Wheat flour", category=c["wheat"])
+    flour = ProductFactory(name="Flour", category=c["flour"])
+    water = ProductFactory(name="Water", category=c["liquids"])
+    salt = ProductFactory(name="Salt", category=c["salt"])
+    starter = ProductFactory(name="Starter", category=c["starter"], weight=20)
     add(starter, rye, 10)
     add(starter, water, 10)
-    sourdough = ProductFactory(
-        name="Sourdough", category=c["pre-dough"], weight=220, is_composable=True
-    )
+    sourdough = ProductFactory(name="Sourdough", category=c["pre-dough"], weight=220)
     rows = {
         "sourdough_rye": add(sourdough, rye, 100),
         "sourdough_water": add(sourdough, water, 100),
@@ -78,7 +74,6 @@ def create_recipe():
         name="Bread",
         category=c["bread"],
         weight=1000,
-        is_composable=True,
         is_sellable=True,
     )
     rows.update(

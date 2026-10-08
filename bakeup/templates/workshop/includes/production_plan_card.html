@@ -3,7 +3,7 @@
 <article id="{{ card.dom_id }}" class="card production-card mb-3{% if root.is_canceled %} is-canceled{% endif %}{% if root.is_produced %} is-produced{% endif %}">
   <div class="card-header production-card-header">
     {% if card.has_recipe %}
-    <button class="production-card-title" type="button" data-bs-toggle="collapse" data-bs-target="#{{ card.dom_id }}-body" aria-expanded="true" aria-controls="{{ card.dom_id }}-body">
+    <button class="production-card-title" type="button" data-bs-toggle="collapse" data-bs-target="#{{ card.dom_id }}-body" aria-expanded="false" aria-controls="{{ card.dom_id }}-body">
     {% else %}
     <div class="production-card-title">
     {% endif %}
@@ -28,7 +28,7 @@
       {% include "workshop/includes/production_plan_card_actions.html" %}
     </div>
   </div>
-  <div id="{{ card.dom_id }}-body" class="{% if card.has_recipe %}collapse show d-print-block{% endif %}">
+  <div id="{{ card.dom_id }}-body" class="{% if card.has_recipe %}collapse d-print-block{% endif %}">
     <div class="card-body">
       <div class="row g-4">
         {% if card.has_recipe %}

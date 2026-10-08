@@ -51,7 +51,7 @@ class UserFormMixin:
             required=False,
             widget=forms.TextInput(
                 attrs={
-                    "style": "position: absolute; right: -99999px;",
+                    "style": "position: absolute; left: -99999px;",
                     "tabindex": "-1",
                     "autocomplete": "off",
                     "aria-hidden": "true",

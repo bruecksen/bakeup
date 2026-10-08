@@ -4,7 +4,7 @@
     <li class="list-group-item d-flex justify-content-between align-items-start">
         <div class="ms-2 me-auto">
             <a href="{% url 'workshop:tag-update' pk=tag.pk %}" class="fs-4">{{ tag.name }}</a>
-            <a href="{% url 'workshop:product-list' %}?tag={{ tag.pk }}" class="ms-2"><span class="badge bg-primary rounded-pill">
+            <a href="{% url 'workshop:product-list' %}?all&tag={{ tag.pk }}" class="ms-2"><span class="badge bg-primary rounded-pill">
             {% blocktranslate count counter=tag.num_times trimmed %}
                 {{ counter }} Product
             {% plural %}
