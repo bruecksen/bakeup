@@ -8,9 +8,19 @@ from django.utils import timezone, translation
 from django_tenants.test.client import TenantClient
 
 from bakeup.contrib.models import Note
-from bakeup.shop.models import ProductionDay, ProductionDayProduct
+from bakeup.shop.models import (
+    CustomerOrder,
+    CustomerOrderPosition,
+    ProductionDay,
+    ProductionDayProduct,
+)
 from bakeup.users.models import User
-from bakeup.workshop.models import Instruction, ProductHierarchy, ProductionPlan
+from bakeup.workshop.models import (
+    Instruction,
+    Product,
+    ProductHierarchy,
+    ProductionPlan,
+)
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
 from bakeup.workshop.tests.test_models import RecipeTestCase
@@ -344,17 +354,47 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         instruction.save()
         self.assertEqual(self.cards()[self.bread]["instructions"], "Knead 10 minutes")
 
-    def test_product_without_recipe(self):
-        card = self.cards()[self.cake]
-        self.assertFalse(card["has_recipe"])
-        self.assertEqual(card["steps"], [])
-        self.assertEqual(card["day_product"], self.day_products[self.cake.pk])
+    def test_product_without_recipe_gets_no_plan(self):
+        self.assertNotIn(self.cake, self.cards())
+        self.assertFalse(
+            ProductionPlan.objects.filter(product__product_template=self.cake).exists()
+        )
+        self.assertIsNone(
+            ProductionDayProduct.objects.get(
+                pk=self.day_products[self.cake.pk].pk
+            ).production_plan
+        )
+
+    def test_plan_of_product_without_recipe_is_removed(self):
+        # A plan from before products without a recipe were skipped.
+        cake_plan = ProductionPlan.objects.create(
+            production_day=self.production_day,
+            product=Product.duplicate(self.cake),
+            quantity=10,
+            state=ProductionPlan.State.CANCELED,
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.assertFalse(ProductionPlan.objects.filter(pk=cake_plan.pk).exists())
+
+    def test_order_is_locked_without_plan_for_product_without_recipe(self):
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        CustomerOrderPosition.objects.create(
+            order=order, product=self.bread, quantity=1, production_plan=self.root()
+        )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=1)
+        self.assertFalse(order.is_locked)
+        self.start()
+        self.assertTrue(order.is_locked)
 
     def test_summary(self):
         response = self.client.get(self.day_url())
         summary = response.context["summary"]
-        self.assertEqual(summary["products"], 2)
-        self.assertEqual(summary["pieces"], 20)
+        self.assertEqual(summary["products"], 1)
+        self.assertEqual(summary["pieces"], 10)
         self.assertContains(response, 'id="production-summary"')
 
     def test_toggle_needs_production(self):

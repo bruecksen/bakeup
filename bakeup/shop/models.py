@@ -237,6 +237,17 @@ class ProductionDay(CommonBaseClass):
     ):
         # product_product_quantity.get('product'), product_quantity.get('total_quantity')
         product_template = product
+        if not product_template.parents.exists():
+            # A product without a recipe, e.g. the deposit for a bread bag, isn't
+            # produced and gets no plan. A plan from before goes, unless it was
+            # started already.
+            ProductionPlan.objects.filter(
+                production_day=self,
+                parent_plan=None,
+                product__product_template=product_template,
+                state__in=[ProductionPlan.State.PLANNED, ProductionPlan.State.CANCELED],
+            ).delete()
+            return None
         if quantity == 0:
             # if no orders, plan is cancelled
             state = ProductionPlan.State.CANCELED
@@ -857,8 +868,11 @@ class CustomerOrder(CommonBaseClass):
 
     @property
     def is_locked(self):
+        # Positions of products without a recipe have no plan and don't keep
+        # the order open.
         return not self.positions.filter(
-            Q(production_plan__state=0) | Q(production_plan__isnull=True)
+            Q(production_plan__state=0)
+            | Q(production_plan__isnull=True, product__parents__isnull=False)
         ).exists()
 
     @property
