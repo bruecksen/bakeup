@@ -992,7 +992,7 @@ def production_plans_start_view(request, production_day):
             )
         )
     # raise Exception(production_plans)
-    for production_plan in production_plans_updated:
+    for production_plan in filter(None, production_plans_updated):
         production_plan.production_day.update_order_positions_product(
             production_plan.product
         )
@@ -1004,23 +1004,22 @@ def production_plans_start_view(request, production_day):
 @staff_member_required(login_url="login")
 def production_plan_start_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
+    production_day = production_plan.production_day
     if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
-        production_plan = (
-            production_plan.production_day.create_or_update_production_plan(
-                product=production_plan.product.product_template,
-                state=ProductionPlan.State.IN_PRODUCTION,
-                create_max_quantity=False,
-            )
+        # None for a product without a recipe, it isn't produced.
+        production_plan = production_day.create_or_update_production_plan(
+            product=production_plan.product.product_template,
+            state=ProductionPlan.State.IN_PRODUCTION,
+            create_max_quantity=False,
         )
-        production_plan.production_day.update_order_positions_product(
-            production_plan.product
-        )
+        if production_plan:
+            production_day.update_order_positions_product(production_plan.product)
     if "next" in request.GET:
         return HttpResponseRedirect(request.GET.get("next"))
     return HttpResponseRedirect(
         reverse(
             "workshop:production-plan-production-day",
-            kwargs={"pk": production_plan.production_day.pk},
+            kwargs={"pk": production_day.pk},
         )
     )
 

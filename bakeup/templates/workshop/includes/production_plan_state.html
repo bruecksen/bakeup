@@ -1,1 +1,1 @@
-<span class="badge rounded-pill me-1 d-print-none {% if css_class %}{{ css_class }}{% else %}{{ state_css_class }}{% endif %}">{{ label }}</span>
+{% if label %}<span class="badge rounded-pill me-1 d-print-none {% if css_class %}{{ css_class }}{% else %}{{ state_css_class }}{% endif %}">{{ label }}</span>{% endif %}
