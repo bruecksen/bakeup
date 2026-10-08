@@ -1,0 +1,61 @@
+{% load i18n workshop_tags %}
+{% with label=object|model_label %}
+{% url 'workshop:notes' model=label object_id=object.pk as notes_url %}
+<div id="notes-{{ label|slugify }}-{{ object.pk }}" class="notes">
+  <h3 class="production-section-label">{% trans "Notes" %}</h3>
+  {% for note in object.notes.all %}
+  <div class="note">
+    {% if edit_note.pk == note.pk %}
+    <form class="note-form" method="post" action="{% url 'workshop:note-update' pk=note.pk %}"
+      hx-post="{% url 'workshop:note-update' pk=note.pk %}"
+      hx-target="#notes-{{ label|slugify }}-{{ object.pk }}"
+      hx-swap="outerHTML">
+      {% csrf_token %}
+      <textarea name="content" class="form-control note-input{% if form.content.errors %} is-invalid{% endif %}" rows="3" autofocus>{% if form %}{{ form.content.value|default:"" }}{% else %}{{ note.content }}{% endif %}</textarea>
+      <div class="note-form-actions">
+        <button type="button" class="btn btn-link note-cancel"
+          hx-get="{{ notes_url }}"
+          hx-target="#notes-{{ label|slugify }}-{{ object.pk }}"
+          hx-swap="outerHTML">{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+      </div>
+    </form>
+    {% else %}
+    <div class="note-meta">
+      <span>{{ note.user.short_name|default:note.user.username }} &middot; {{ note.created|date:"SHORT_DATETIME_FORMAT" }}{% if note.updated|date:"YmdHi" != note.created|date:"YmdHi" %} &middot; {% trans "edited" %}{% endif %}</span>
+      {% if note.user_id == request.user.pk or request.user.is_superuser %}
+      <span class="note-actions d-print-none">
+        <button type="button" class="btn btn-link" aria-label="{% trans 'Edit note' %}"
+          hx-get="{{ notes_url }}?edit={{ note.pk }}"
+          hx-target="#notes-{{ label|slugify }}-{{ object.pk }}"
+          hx-swap="outerHTML"><i class="fas fa-pen"></i></button>
+        <form class="d-inline" method="post" action="{% url 'workshop:note-delete' pk=note.pk %}"
+          hx-post="{% url 'workshop:note-delete' pk=note.pk %}"
+          hx-target="#notes-{{ label|slugify }}-{{ object.pk }}"
+          hx-swap="outerHTML">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-link confirm-tap" data-confirm-tap aria-label="{% trans 'Delete note' %}"><i class="fas fa-trash-can"></i><span class="confirm-tap-label"> {% trans "Delete?" %}</span></button>
+        </form>
+      </span>
+      {% endif %}
+    </div>
+    <div class="note-content">{{ note.content|linebreaksbr }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% if not edit_note %}
+  <form class="note-form d-print-none" method="post" action="{{ notes_url }}"
+    hx-post="{{ notes_url }}"
+    hx-target="#notes-{{ label|slugify }}-{{ object.pk }}"
+    hx-swap="outerHTML">
+    {% csrf_token %}
+    <label for="note-input-{{ label|slugify }}-{{ object.pk }}" class="visually-hidden">{% trans "New note" %}</label>
+    <div class="note-add">
+      <textarea id="note-input-{{ label|slugify }}-{{ object.pk }}" name="content" class="form-control note-input note-add-input{% if form.content.errors %} is-invalid{% endif %}" rows="1" placeholder="{% trans 'Add a note, e.g. dough was too warm, baked 5 minutes longer…' %}"{% if form %} autofocus{% endif %}>{% if form %}{{ form.content.value|default:"" }}{% endif %}</textarea>
+      <button type="submit" class="btn btn-outline-primary" aria-label="{% trans 'Add note' %}" title="{% trans 'Add note' %}"><i class="fas fa-plus"></i></button>
+    </div>
+    {% if form.content.errors %}<div class="invalid-feedback d-block">{{ form.content.errors|first }}</div>{% endif %}
+  </form>
+  {% endif %}
+</div>
+{% endwith %}

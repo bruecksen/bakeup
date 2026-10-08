@@ -902,15 +902,44 @@ document.addEventListener("htmx:after:swap", function(event) {
 });
 
 document.addEventListener("keydown", function(event) {
-    if (!event.target.classList.contains("instructions-input")) return;
+    if (!event.target.matches(".instructions-input, .note-input")) return;
     var form = event.target.closest("form");
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         form.requestSubmit();
     } else if (event.key === "Escape") {
+        var cancel = form.querySelector(".instructions-cancel, .note-cancel");
+        if (!cancel) return;
         event.preventDefault();
-        form.querySelector(".instructions-cancel").click();
+        cancel.click();
     }
+});
+
+// Buttons with data-confirm-tap need a second tap within three seconds, a
+// first tap only arms them. Works for touch screens where a confirm dialog
+// is in the way.
+var armedTap = null;
+var armedTapTimeout = null;
+
+function disarmTap() {
+    if (!armedTap) return;
+    armedTap.classList.remove("is-armed");
+    armedTap = null;
+    clearTimeout(armedTapTimeout);
+}
+
+document.addEventListener("click", function(event) {
+    var button = event.target.closest("[data-confirm-tap]");
+    if (button === armedTap && button) {
+        disarmTap();
+        return;
+    }
+    disarmTap();
+    if (!button) return;
+    event.preventDefault();
+    armedTap = button;
+    button.classList.add("is-armed");
+    armedTapTimeout = setTimeout(disarmTap, 3000);
 });
 
 var armedDelete = null;
@@ -957,4 +986,132 @@ window.addEventListener("beforeunload", function(event) {
         event.preventDefault();
         event.returnValue = "";
     }
+});
+
+// Production plan: remember which cards are collapsed, per browser.
+var collapsedCardsKey = "production-plan-collapsed";
+
+function getCollapsedCards() {
+    try {
+        return JSON.parse(localStorage.getItem(collapsedCardsKey)) || [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function setCollapsedCards(ids) {
+    try {
+        localStorage.setItem(collapsedCardsKey, JSON.stringify(ids.slice(-200)));
+    } catch (error) {}
+}
+
+function restoreCollapsedCards() {
+    getCollapsedCards().forEach(function(id) {
+        var body = document.getElementById(id);
+        if (!body || !body.closest(".production-card")) return;
+        body.classList.remove("show");
+        var toggle = document.querySelector('[data-bs-target="#' + id + '"]');
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", restoreCollapsedCards);
+document.addEventListener("htmx:after:swap", restoreCollapsedCards);
+document.addEventListener("shown.bs.collapse", function(event) {
+    if (!event.target.closest(".production-card")) return;
+    setCollapsedCards(getCollapsedCards().filter(function(id) { return id !== event.target.id; }));
+});
+document.addEventListener("hidden.bs.collapse", function(event) {
+    if (!event.target.closest(".production-card")) return;
+    var ids = getCollapsedCards().filter(function(id) { return id !== event.target.id; });
+    ids.push(event.target.id);
+    setCollapsedCards(ids);
+});
+
+// Production plan: keep the screen of a tablet on while baking, with the
+// Screen Wake Lock API (Safari on iPad from iPadOS 16.4).
+var wakeLockKey = "production-plan-wake-lock";
+var wakeLock = null;
+
+function wakeLockWanted() {
+    try {
+        return localStorage.getItem(wakeLockKey) === "1";
+    } catch (error) {
+        return false;
+    }
+}
+
+function renderWakeLockButton() {
+    var button = document.getElementById("wake-lock-toggle");
+    if (!button) return;
+    if (!("wakeLock" in navigator)) return;
+    button.classList.remove("d-none");
+    button.classList.toggle("active", wakeLock !== null);
+    button.setAttribute("aria-pressed", wakeLock !== null ? "true" : "false");
+}
+
+function requestWakeLock() {
+    if (!("wakeLock" in navigator) || wakeLock || !document.getElementById("wake-lock-toggle")) {
+        renderWakeLockButton();
+        return;
+    }
+    navigator.wakeLock.request("screen").then(function(lock) {
+        wakeLock = lock;
+        lock.addEventListener("release", function() {
+            wakeLock = null;
+            renderWakeLockButton();
+        });
+        renderWakeLockButton();
+    }).catch(function() {
+        renderWakeLockButton();
+    });
+}
+
+document.addEventListener("click", function(event) {
+    if (!event.target.closest("#wake-lock-toggle")) return;
+    // Safari may refuse the lock without a tap, so a tap on an inactive
+    // button always turns it on.
+    var wanted = wakeLock === null;
+    try {
+        localStorage.setItem(wakeLockKey, wanted ? "1" : "0");
+    } catch (error) {}
+    if (wanted) {
+        requestWakeLock();
+    } else if (wakeLock) {
+        wakeLock.release();
+    }
+});
+
+function resumeWakeLock() {
+    if (wakeLockWanted() && document.visibilityState === "visible") {
+        requestWakeLock();
+    } else {
+        renderWakeLockButton();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", resumeWakeLock);
+document.addEventListener("htmx:after:swap", resumeWakeLock);
+// The lock is released when the tab is hidden, take it again on return.
+document.addEventListener("visibilitychange", resumeWakeLock);
+
+// Production plan: a finished dough is collapsed. Keep one open that the baker
+// opened again, the next swap or sync would close it otherwise.
+var openedDoneSteps = new Set();
+
+document.addEventListener("toggle", function(event) {
+    if (!event.target.matches || !event.target.matches(".production-step-collapsed")) return;
+    var id = event.target.closest(".production-step").id;
+    if (event.target.open) {
+        openedDoneSteps.add(id);
+    } else {
+        openedDoneSteps.delete(id);
+    }
+}, true);
+
+document.addEventListener("htmx:after:swap", function() {
+    openedDoneSteps.forEach(function(id) {
+        var details = document.querySelector("#" + id + " > .production-step-collapsed");
+        if (details) details.open = true;
+    });
 });

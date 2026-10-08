@@ -1,0 +1,37 @@
+{% load i18n workshop_tags %}
+  <ul class="production-step-rows">
+    {% for item in step.rows %}
+    <li>
+      {% if step.can_check %}
+      {% url 'workshop:production-plan-ingredient-toggle' pk=step.plan.pk row_pk=item.row.pk as toggle_url %}
+      <form method="post" action="{{ toggle_url }}"
+        hx-post="{{ toggle_url }}"
+        hx-trigger="change"
+        hx-target="#step-{{ step.plan.pk }}"
+        hx-swap="outerMorph">
+        {% csrf_token %}
+        <label class="ingredient-row{% if item.checked %} is-checked{% endif %}">
+          <input type="checkbox" class="form-check-input ingredient-check"{% if item.checked %} checked{% endif %}>
+          <span class="ingredient-weight">{{ item.weight|clever_unit:item.unit }}</span>
+          <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}</span>
+        </label>
+      </form>
+      {% else %}
+      <div class="ingredient-row{% if item.checked %} is-checked{% endif %}">
+        {% if step.show_checks %}
+        <input type="checkbox" class="form-check-input ingredient-check" disabled{% if item.checked %} checked{% endif %} aria-label="{{ item.row.child.name }}">
+        {% else %}
+        <span class="ingredient-check-print" aria-hidden="true"></span>
+        {% endif %}
+        <span class="ingredient-weight">{{ item.weight|clever_unit:item.unit }}</span>
+        <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}</span>
+      </div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="ingredient-row ingredient-total">
+    <span class="ingredient-check-spacer" aria-hidden="true"></span>
+    <span class="ingredient-weight">{{ step.total|clever_unit }}</span>
+    <span class="ingredient-name">{% trans "Total" %}</span>
+  </div>

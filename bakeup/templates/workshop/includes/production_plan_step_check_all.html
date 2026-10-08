@@ -1,0 +1,14 @@
+{% load i18n %}{% if step.can_check %}
+{% url 'workshop:production-plan-ingredients-toggle-all' pk=step.plan.pk as toggle_all_url %}
+<input type="checkbox" class="form-check-input ingredient-check step-check-all"
+  hx-post="{{ toggle_all_url }}"
+  hx-trigger="change"
+  hx-target="#step-{{ step.plan.pk }}"
+  hx-swap="outerMorph"
+  title="{% if step.done %}{% trans 'Uncheck all' %}{% else %}{% trans 'Check all' %}{% endif %}"
+  aria-label="{% if step.done %}{% trans 'Uncheck all' %}{% else %}{% trans 'Check all' %}{% endif %}"{% if step.done %} checked{% endif %}>
+{% elif step.done %}
+<i class="fas fa-circle-check text-success step-check-all" aria-hidden="true"></i>
+{% elif step.show_checks %}
+<input type="checkbox" class="form-check-input ingredient-check step-check-all" disabled aria-hidden="true">
+{% endif %}

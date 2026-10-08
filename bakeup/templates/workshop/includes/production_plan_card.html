@@ -1,0 +1,74 @@
+{% load i18n workshop_tags %}
+{% with root=card.root %}
+<article id="{{ card.dom_id }}" class="card production-card mb-3{% if root.is_canceled %} is-canceled{% endif %}{% if root.is_produced %} is-produced{% endif %}">
+  <div class="card-header production-card-header">
+    {% if card.has_recipe %}
+    <button class="production-card-title" type="button" data-bs-toggle="collapse" data-bs-target="#{{ card.dom_id }}-body" aria-expanded="true" aria-controls="{{ card.dom_id }}-body">
+    {% else %}
+    <div class="production-card-title">
+    {% endif %}
+      <i class="fas fa-angle-down production-card-chevron d-print-none{% if not card.has_recipe %} invisible{% endif %}" aria-hidden="true"></i>
+      <span class="production-card-qty">{{ root.quantity|floatformat }}&times;</span>
+      {% if card.piece_weight %}
+      <span class="production-card-weight" title="{% trans 'Dough weight' %}">{{ card.piece_weight|clever_unit }}</span>
+      {% else %}
+      <span class="production-card-weight" title="{% trans 'Weight' %}">{{ root.product.weight|clever_unit }}</span>
+      {% endif %}
+      <span class="production-card-name">
+        <span class="production-card-product">{{ root.product.name }} <span class="production-card-total">({{ card.total_weight|clever_unit }})</span></span>
+        {% if card.show_progress %}{% include "workshop/includes/production_plan_progress.html" %}{% endif %}
+      </span>
+    {% if card.has_recipe %}
+    </button>
+    {% else %}
+    </div>
+    {% endif %}
+    <div class="production-card-actions">
+      {% if root.is_produced or root.is_canceled %}{% include "workshop/includes/production_plan_state.html" with state_css_class=root.get_state_css_class label=root.get_state_display_value %}{% endif %}
+      {% include "workshop/includes/production_plan_card_actions.html" %}
+    </div>
+  </div>
+  <div id="{{ card.dom_id }}-body" class="{% if card.has_recipe %}collapse show d-print-block{% endif %}">
+    <div class="card-body">
+      <div class="row g-4">
+        {% if card.has_recipe %}
+        <div class="{% if card.stages|length == 1 %}col-12 col-lg-6{% else %}col-12{% endif %}">
+          <div id="steps-{{ root.pk }}" class="production-stages{% if card.stages|length > 1 %} has-rail{% endif %}">
+            {% for stage in card.stages %}
+            <div class="production-stage">
+              {% if card.stages|length > 1 %}
+              <div class="production-stage-rail" aria-hidden="true"><span class="stage-number">{{ stage.number }}</span></div>
+              {% endif %}
+              <div class="production-stage-content">
+                {% if card.stages|length > 1 %}
+                <div class="production-stage-label">{% if stage.label %}{{ stage.label }}{% else %}{% blocktrans with number=stage.number %}Stage {{ number }}{% endblocktrans %}{% endif %}</div>
+                {% endif %}
+                <div class="row g-3">
+                  {% for step in stage.steps %}
+                  <div class="{% if card.stages|length == 1 %}col-12{% else %}col-12 col-md-6 col-xxl-4{% endif %}">
+                    {% include "workshop/includes/production_plan_step.html" %}
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="{% if card.has_recipe and card.stages|length == 1 %}col-12 col-lg-6{% else %}col-12{% endif %} production-card-aside">
+          {% if card.instructions %}
+          <details class="production-instructions"{% if not card.has_recipe %} open{% endif %}>
+            <summary class="production-section-label">{% trans "Instructions" %}</summary>
+            <div class="instructions-text">{{ card.instructions|linebreaks }}</div>
+          </details>
+          {% endif %}
+          {% if card.day_product %}
+          {% include "workshop/includes/notes.html" with object=card.day_product %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+{% endwith %}

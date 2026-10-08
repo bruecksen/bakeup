@@ -1,11 +1,11 @@
 {% load i18n %}
-<div id="instructions" class="card mt-4 mb-4">
+<div id="instructions-{{ product.pk }}" class="card instructions mt-4 mb-4">
   <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
     <h5 class="mb-0">{% trans "Instructions" %}</h5>
     {% if not editing %}
     <a href="{% url 'workshop:product-instructions-update' pk=product.pk %}" class="btn btn-sm btn-outline-primary"
       hx-get="{% url 'workshop:product-instructions-update' pk=product.pk %}?edit=1"
-      hx-target="#instructions"
+      hx-target="#instructions-{{ product.pk }}"
       hx-swap="outerHTML"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
     {% endif %}
   </div>
@@ -13,7 +13,7 @@
     {% if editing %}
     <form class="instructions-form" action="{% url 'workshop:product-instructions-update' pk=product.pk %}" method="POST"
       hx-post="{% url 'workshop:product-instructions-update' pk=product.pk %}"
-      hx-target="#instructions"
+      hx-target="#instructions-{{ product.pk }}"
       hx-swap="outerHTML">
       {% csrf_token %}
       <textarea name="instruction" id="id_instruction" class="form-control instructions-input" rows="8" placeholder="{% trans 'Describe how this recipe is made' %}" autofocus>{{ form.instruction.value|default:"" }}</textarea>
@@ -22,7 +22,7 @@
         <div>
           <button type="button" class="btn btn-sm btn-link instructions-cancel"
             hx-get="{% url 'workshop:product-instructions-update' pk=product.pk %}"
-            hx-target="#instructions"
+            hx-target="#instructions-{{ product.pk }}"
             hx-swap="outerHTML">{% trans "Cancel" %}</button>
           <button type="submit" class="btn btn-sm btn-primary">{% trans "Save" %}</button>
         </div>
@@ -36,7 +36,7 @@
       <p class="mb-2">{% trans "No instructions yet!" %}</p>
       <button type="button" class="btn btn-sm btn-primary"
         hx-get="{% url 'workshop:product-instructions-update' pk=product.pk %}?edit=1"
-        hx-target="#instructions"
+        hx-target="#instructions-{{ product.pk }}"
         hx-swap="outerHTML"><i class="fas fa-plus"></i> {% trans "Add instructions" %}</button>
     </div>
     {% endif %}

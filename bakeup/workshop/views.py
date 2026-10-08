@@ -6,12 +6,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import Group
+from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.db.models import Count, ProtectedError, Q, Sum
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.datastructures import MultiValueDict
 from django.utils.timezone import now
@@ -35,6 +36,7 @@ from treebeard.forms import movenodeform_factory
 
 from bakeup.contrib.forms import NoteForm
 from bakeup.contrib.models import Note
+from bakeup.contrib.notes import can_change_note, get_note_target
 from bakeup.core.utils import get_deleted_objects
 from bakeup.core.views import NextUrlMixin, StaffPermissionsMixin
 from bakeup.pages.models import EmailSettings
@@ -87,6 +89,7 @@ from bakeup.workshop.models import (
     ProductMapping,
     ProductPrice,
     ReminderMessage,
+    prefetch_recipe_trees,
 )
 from bakeup.workshop.tables import (
     CustomerFilter,
@@ -594,50 +597,165 @@ def production_plan_redirect_view(request):
     return HttpResponseRedirect(url)
 
 
-class ProductionPlanOfProductionDay(StaffPermissionsMixin, ListView):
-    model = ProductionPlan
-    context_object_name = "production_plans"
+def get_production_plan_cards(production_day):
+    # All plans of the day in one query, grouped below their root plan. A card
+    # lists the sub plans (pre doughs, main dough, ...) deepest first, which is
+    # the order they are made in.
+    plans = list(
+        ProductionPlan.objects.filter(production_day=production_day)
+        .select_related(
+            "product__category",
+            "product__uom__base_unit",
+            "product__product_template",
+            "product__instructions",
+        )
+        .order_by("product__name", "pk")
+    )
+    prefetch_recipe_trees([plan.product for plan in plans])
+    plans_by_pk = {plan.pk: plan for plan in plans}
+    for plan in plans:
+        if plan.parent_plan_id in plans_by_pk:
+            plan.parent_plan = plans_by_pk[plan.parent_plan_id]
+    day_products = {
+        day_product.product_id: day_product
+        for day_product in ProductionDayProduct.objects.filter(
+            production_day=production_day
+        ).prefetch_related("notes__user")
+    }
+    roots = [plan for plan in plans if plan.parent_plan_id is None]
+    sub_plans = {root.pk: [] for root in roots}
+    for plan in plans:
+        depth = 0
+        root = plan
+        while root.parent_plan_id:
+            root = root.parent_plan
+            depth += 1
+        if depth and root.pk in sub_plans:
+            sub_plans[root.pk].append((depth, plan))
+    cards = []
+    for root in roots:
+        plans_by_depth = sorted(
+            sub_plans[root.pk], key=lambda item: (-item[0], item[1].pk)
+        )
+        # Ingredients that go into the root product itself (and not via a sub
+        # plan) are the last step.
+        if any(not row.child.parents.all() for row in root.product.parents.all()):
+            plans_by_depth.append((0, root))
+        stages = get_production_plan_stages(root, plans_by_depth)
+        steps = [step for stage in stages for step in stage["steps"]]
+        # In production the steps of the first unfinished stage are the ones
+        # to make now, they can be made at the same time.
+        current_stage = next(
+            (step["stage"] for step in steps if not step["done"]), None
+        )
+        for step in steps:
+            step["is_current"] = (
+                root.is_production
+                and not step["done"]
+                and step["stage"] == current_stage
+            )
+        # The dough per piece to divide and weigh out after the last step.
+        piece_weight = None
+        if steps:
+            piece_weight = Product.calculate_total_weight(root.product)
+        template = root.product.product_template
+        # The plan has its own copy of the instructions, see Product.duplicate.
+        instructions = getattr(root.product, "instructions", None)
+        rows = [row for step in steps for row in step["rows"]]
+        day_product = day_products.get(root.product.product_template_id)
+        cards.append(
+            {
+                # "Start" recreates the plan, the id of the card stays.
+                "dom_id": f"card-{day_product.pk}"
+                if day_product
+                else f"card-plan-{root.pk}",
+                "root": root,
+                "steps": steps,
+                "stages": stages,
+                "has_recipe": bool(steps),
+                "weight": root.quantity * root.product.weight,
+                "piece_weight": piece_weight,
+                "total_weight": root.quantity * piece_weight
+                if piece_weight
+                else root.quantity * root.product.weight,
+                "done_count": sum(step["done"] for step in steps),
+                "day_product": day_product,
+                "product": template,
+                "instructions": instructions and instructions.instruction,
+                "show_progress": bool(rows)
+                and (root.is_production or root.is_produced),
+                "row_count": len(rows),
+                "checked_count": sum(row["checked"] for row in rows),
+            }
+        )
+    return cards
+
+
+def get_production_plan_stages(root, plans_by_depth):
+    # Steps of the same depth can be made at the same time, they form a stage.
+    # Stages are numbered in the order they are made, the deepest first.
+    stages = []
+    for depth, plan in plans_by_depth:
+        if not stages or stages[-1]["depth"] != depth:
+            stages.append({"depth": depth, "number": len(stages) + 1, "steps": []})
+        step = plan.get_step(root)
+        step["stage"] = stages[-1]["number"]
+        stages[-1]["steps"].append(step)
+    steps_by_product = {
+        step["plan"].product_id: step for stage in stages for step in stage["steps"]
+    }
+    for stage in stages:
+        if stage["depth"] == 0:
+            stage["label"] = _("Main dough")
+        else:
+            names = []
+            for step in stage["steps"]:
+                category = step["plan"].product.category
+                if category and category.name not in names:
+                    names.append(category.name)
+            stage["label"] = " · ".join(names)
+        for step in stage["steps"]:
+            # A row that is made in another step points to that step.
+            for row in step["rows"]:
+                row["ref"] = steps_by_product.get(row["row"].child_id)
+    return stages
+
+
+def get_production_plan_summary(cards):
+    active = [card for card in cards if not card["root"].is_canceled]
+    return {
+        "products": len(active),
+        "pieces": sum(card["root"].quantity for card in active),
+        "weight": sum(card["weight"] for card in active),
+        "states": [
+            {
+                "label": ProductionPlan.state_display_value(state),
+                "css_class": ProductionPlan.state_css_class(state),
+                "count": sum(card["root"].state == state for card in cards),
+            }
+            for state in ProductionPlan.State
+        ],
+    }
+
+
+class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
     template_name = "workshop/productionplan_productionday.html"
-    ordering = ("-production_day", "product__name")
     production_day = None
 
     def setup(self, request, *args, **kwargs):
-        self.production_day = ProductionDay.objects.get(pk=kwargs["pk"])
-        return super().setup(request, *args, **kwargs)
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        return qs.filter(parent_plan__isnull=True, production_day=self.production_day)
+        super().setup(request, *args, **kwargs)
+        self.production_day = get_object_or_404(ProductionDay, pk=kwargs["pk"])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        table_categories = OrderedDict()
-        for category in (
-            ProductionPlan.objects.filter(parent_plan__isnull=False)
-            .order_by("pk")
-            .values_list("product__category__name", flat=True)
-        ):
-            if category not in table_categories:
-                table_categories[category] = {}
-        production_plans = []
-        for production_plan in context["production_plans"]:
-            plan_dict = OrderedDict()
-            plan_dict["root"] = production_plan
-            for child in ProductionPlan.objects.filter(
-                Q(parent_plan=production_plan)
-                | Q(parent_plan__parent_plan=production_plan)
-                | Q(parent_plan__parent_plan__parent_plan=production_plan)
-                | Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)
-            ):
-                plan_dict.setdefault(child.product.category.name, [])
-                plan_dict[child.product.category.name].append(child)
-            production_plans.append(plan_dict)
-        context["table_categories"] = table_categories
-        context["production_plans"] = production_plans
+        cards = get_production_plan_cards(self.production_day)
+        context["cards"] = cards
+        context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
-        context["production_day_form"] = ProductionPlanDayForm(
-            initial={"production_day": self.production_day}
-        )
+        form = ProductionPlanDayForm(initial={"production_day": self.production_day})
+        # The page switches days with htmx instead of submitting the form.
+        form.fields["production_day"].widget.attrs.pop("onchange")
+        context["production_day_form"] = form
         try:
             context["production_day_prev"] = ProductionDay.get_previous_by_day_of_sale(
                 self.production_day
@@ -650,15 +768,95 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, ListView):
             )
         except ProductionDay.DoesNotExist:
             pass
-        context["has_plans_to_start"] = (
-            self.get_queryset().filter(state=ProductionPlan.State.PLANNED).exists()
-        )
-        context["has_plans_to_finish"] = (
-            self.get_queryset()
-            .filter(state=ProductionPlan.State.IN_PRODUCTION)
-            .exists()
+        context["has_plans_to_start"] = any(card["root"].is_planned for card in cards)
+        context["has_plans_to_finish"] = any(
+            card["root"].is_production for card in cards
         )
         return context
+
+
+@require_POST
+@staff_member_required(login_url="login")
+def production_plan_ingredient_toggle_view(request, pk, row_pk=None):
+    # Ticks off one row of a step, without a row all rows of the step.
+    plan = get_object_or_404(ProductionPlan, pk=pk)
+    root = plan.get_root()
+    status = 400
+    if root.is_production and row_pk is None:
+        plan.toggle_all_ingredients()
+        status = 200
+    elif root.is_production and plan.product.parents.filter(pk=row_pk).exists():
+        plan.toggle_ingredient(row_pk)
+        status = 200
+    # The step with the header progress of its card, as the page renders them.
+    for card in get_production_plan_cards(root.production_day):
+        for step in card["steps"]:
+            if step["plan"].pk == plan.pk:
+                return render(
+                    request,
+                    "workshop/includes/production_plan_step_toggled.html",
+                    {"card": card, "step": step},
+                    status=status,
+                )
+    raise Http404
+
+
+def render_notes(request, target, form=None, edit_note=None, status=200):
+    return render(
+        request,
+        "workshop/includes/notes.html",
+        {"object": target, "form": form, "edit_note": edit_note},
+        status=status,
+    )
+
+
+def get_changeable_note(request, pk):
+    note = get_object_or_404(Note, pk=pk)
+    target = get_note_target(
+        f"{note.content_type.app_label}.{note.content_type.model}", note.object_id
+    )
+    if not can_change_note(request.user, note):
+        raise PermissionDenied
+    return note, target
+
+
+@staff_member_required(login_url="login")
+def notes_view(request, model, object_id):
+    target = get_note_target(model, object_id)
+    if request.method == "POST":
+        form = NoteForm(request.POST)
+        form.fields["content"].required = True
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.content_object = target
+            note.save()
+            return render_notes(request, target)
+        return render_notes(request, target, form=form, status=422)
+    edit_note = None
+    if request.GET.get("edit", "").isdigit():
+        edit_note, target = get_changeable_note(request, request.GET["edit"])
+    return render_notes(request, target, edit_note=edit_note)
+
+
+@require_POST
+@staff_member_required(login_url="login")
+def note_update_view(request, pk):
+    note, target = get_changeable_note(request, pk)
+    form = NoteForm(request.POST, instance=note)
+    form.fields["content"].required = True
+    if form.is_valid():
+        form.save()
+        return render_notes(request, target)
+    return render_notes(request, target, form=form, edit_note=note, status=422)
+
+
+@require_POST
+@staff_member_required(login_url="login")
+def note_delete_view(request, pk):
+    note, target = get_changeable_note(request, pk)
+    note.delete()
+    return render_notes(request, target)
 
 
 class ProductionPlanListView(StaffPermissionsMixin, FilterView):
