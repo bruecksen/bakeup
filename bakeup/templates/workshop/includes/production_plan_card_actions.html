@@ -1,0 +1,43 @@
+{% load i18n %}
+{% with root=card.root %}
+<div class="d-flex gap-2 d-print-none">
+  {% if root.is_planned %}
+  {% url 'workshop:production-plan-start' pk=root.pk as start_url %}
+  <a href="{{ start_url }}?next={{ day_url }}" class="btn btn-warning"
+    hx-post="{{ start_url }}?next={{ day_url }}"
+    hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
+    hx-select-oob="#production-summary,#day-actions"><i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span></a>
+  {% elif root.is_production %}
+  {% url 'workshop:production-plan-finish' pk=root.pk as finish_url %}
+  <a href="{{ finish_url }}?next={{ day_url }}" class="btn btn-success"
+    hx-post="{{ finish_url }}?next={{ day_url }}"
+    hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
+    hx-select-oob="#production-summary,#day-actions"><i class="fas fa-check"></i><span class="d-none d-sm-inline"> {% trans "Finish" %}</span></a>
+  {% endif %}
+  <div class="dropdown">
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'More actions' %}">
+      <i class="fas fa-ellipsis-vertical fa-fw"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      {% if card.product %}
+      <li><a class="dropdown-item" href="{% url 'workshop:product-detail' pk=card.product.pk %}"><i class="fas fa-book-open fa-fw"></i> {% trans "Open recipe" %}</a></li>
+      {% endif %}
+      {% if root.is_planned or root.is_canceled %}
+      {% url 'workshop:production-plan-update' pk=root.pk as update_url %}
+      <li><a class="dropdown-item" href="{{ update_url }}?next={{ day_url }}"
+        hx-post="{{ update_url }}?next={{ day_url }}"
+        hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
+        hx-select-oob="#production-summary,#day-actions">
+        {% if root.is_canceled %}<i class="fas fa-rotate-left fa-fw"></i> {% trans "Reset" %}{% else %}<i class="fas fa-sync-alt fa-fw"></i> {% trans "Update plan" %}{% endif %}</a></li>
+      {% endif %}
+      {% if not root.is_canceled %}
+      {% url 'workshop:production-plan-cancel' pk=root.pk as cancel_url %}
+      <li><a class="dropdown-item text-danger" href="{{ cancel_url }}?next={{ day_url }}"
+        hx-post="{{ cancel_url }}?next={{ day_url }}"
+        hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
+        hx-select-oob="#production-summary,#day-actions"><i class="fas fa-ban fa-fw"></i> {% trans "Cancel" %}</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endwith %}

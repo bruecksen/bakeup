@@ -1,6 +1,9 @@
+from decimal import Decimal
+
 from django import template
 from django.db.models import Q
 from django.template.defaultfilters import floatformat
+from django.utils import formats
 
 register = template.Library()
 
@@ -42,3 +45,32 @@ def ordered_quantity(order, product):
 def token_url(context, token):
     if token:
         return token.token_url(context.get("request"))
+
+
+@register.filter
+def model_label(obj):
+    return obj._meta.label_lower
+
+
+LARGER_UNITS = {"g": "kg", "ml": "l"}
+# Bakers weigh in grams, scales show grams up to about 10 kg.
+LARGER_UNIT_FROM = 10000
+
+
+@register.filter
+def clever_unit(value, unit="g"):
+    # Large amounts in the larger unit, without losing a gram: 80760 g is
+    # 80,76 kg. Below as clever_rounding does, 1250 g stays 1250 g.
+    if value is None or value == "":
+        return ""
+    unit = unit or "g"
+    if unit in LARGER_UNITS and abs(round(value)) >= LARGER_UNIT_FROM:
+        amount = (Decimal(round(value)) / 1000).normalize()
+        # normalize() writes 2000 as 2E+3.
+        amount = (
+            amount.quantize(Decimal(1)) if amount == amount.to_integral() else amount
+        )
+        return (
+            f"{formats.number_format(amount, use_l10n=True)}\u00a0{LARGER_UNITS[unit]}"
+        )
+    return f"{clever_rounding(value)}\u00a0{unit}"

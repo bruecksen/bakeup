@@ -1,0 +1,21 @@
+{% load i18n %}
+<span id="progress-{{ card.root.pk }}" class="production-progress"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if card.steps|length > 1 and card.done_count == card.steps|length %}
+  <span class="progress-text is-done">
+    <i class="fas fa-check" aria-hidden="true"></i>
+    {% blocktrans with total=card.steps|length %}All {{ total }} doughs checked{% endblocktrans %}
+  </span>
+  {% else %}
+  {% for step in card.steps %}
+  {% if step.is_current %}
+  <span class="progress-chip is-current">
+    {% if card.stages|length > 1 %}<span class="stage-number">{{ step.stage }}</span>{% endif %}
+    <span class="progress-chip-name">{{ step.plan.product.name }}</span>
+    <span class="progress-chip-count">{{ step.checked_count }}/{{ step.rows|length }}</span>
+  </span>
+  {% else %}
+  <span class="progress-dot{% if step.done %} is-done{% endif %}" title="{{ step.plan.product.name }}{% if step.done %} ✓{% endif %}">{% if card.stages|length > 1 %}{{ step.stage }}{% elif step.done %}<i class="fas fa-check" aria-hidden="true"></i>{% endif %}</span>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+</span>

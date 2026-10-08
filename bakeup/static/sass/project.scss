@@ -917,3 +917,553 @@ li:hover > .row .main-flour-set,
     min-height: 8rem;
     line-height: 1.6;
 }
+
+// Production plan of a day. Used on tablets and phones in the bakery, so
+// the ingredient rows are big tap targets, buttons keep their normal size.
+$tap-size: 44px;
+
+.production-day {
+    .dropdown-item {
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+    }
+}
+
+.production-day-switch .form-select {
+    min-width: 11rem;
+}
+
+.production-stat {
+    height: 100%;
+    padding: .75rem 1rem;
+    background-color: $white;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow-sm;
+}
+.production-stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+.production-stat-label {
+    color: $text-muted;
+    font-size: .875rem;
+}
+.production-stat-states {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .375rem;
+
+    .badge {
+        font-size: .875rem;
+        font-weight: 500;
+    }
+}
+
+// An open menu must stay above the following cards.
+.production-card:has(.dropdown-menu.show) {
+    z-index: 2;
+}
+.production-card {
+    border: 0;
+    box-shadow: $box-shadow-sm;
+    break-inside: avoid;
+
+    &.is-canceled .production-card-title,
+    &.is-canceled .card-body {
+        opacity: .6;
+    }
+}
+.production-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 1rem;
+    padding: .5rem 1rem;
+    background-color: $white;
+}
+.production-card-title {
+    display: flex;
+    flex: 1 1 16rem;
+    align-items: center;
+    gap: .75rem;
+    min-height: $tap-size;
+    padding: 0;
+    color: inherit;
+    text-align: start;
+    background: none;
+    border: 0;
+}
+button.production-card-title:active {
+    opacity: .7;
+}
+.production-card-weight {
+    flex: 0 0 auto;
+    min-width: 5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.production-card-qty {
+    min-width: 3.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.production-card-name {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+.production-card-chevron {
+    flex: 0 0 1rem;
+    color: $text-muted;
+    font-size: 1.25rem;
+    transition: transform .2s;
+
+    [aria-expanded="false"] > & {
+        transform: rotate(-90deg);
+    }
+}
+.production-card-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-left: auto;
+}
+.production-card-product {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+.production-card-total {
+    color: $text-muted;
+    font-size: 1rem;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    text-transform: none;
+    white-space: nowrap;
+}
+// After the name on the same line, cut off at the end when there is no room.
+.production-progress {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    gap: .1875rem;
+    min-width: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+    font-size: .875rem;
+    font-weight: 400;
+    text-transform: none;
+}
+// An open card shows the steps itself, the pills are only for collapsed cards.
+.production-card-title[aria-expanded="true"] .production-progress {
+    display: none;
+}
+.progress-dot {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 .1875rem;
+    color: $gray-600;
+    font-size: .6875rem;
+    font-weight: 700;
+    line-height: 1;
+    background-color: $gray-200;
+    border-radius: 50rem;
+
+    &.is-done {
+        color: $white;
+        background-color: $success;
+    }
+}
+.progress-chip {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: .25rem;
+    min-width: 0;
+    height: 1.125rem;
+    padding: 0 .4375rem 0 .125rem;
+    font-size: .75rem;
+    font-weight: 500;
+    border-radius: 50rem;
+
+    &.is-current {
+        color: $white;
+        background-color: $primary;
+    }
+    &:not(:has(.stage-number)) {
+        padding-left: .4375rem;
+    }
+    .stage-number {
+        min-width: .875rem;
+        height: .875rem;
+        padding: 0 .125rem;
+        font-size: .625rem;
+        color: $primary;
+        background-color: $white;
+    }
+}
+.progress-chip-name {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.progress-chip-count {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    opacity: .85;
+}
+.progress-text {
+    min-width: 0;
+    overflow: hidden;
+    color: $text-muted;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &.is-done .fa-check {
+        color: $success;
+    }
+}
+.stage-number {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 .25rem;
+    color: $white;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+    background-color: $gray-600;
+    border-radius: 50rem;
+}
+a.stage-ref {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    margin-left: .25rem;
+    font-size: .8125rem;
+    text-decoration: none;
+    vertical-align: middle;
+    background-color: $primary;
+}
+.production-stages.has-rail .production-stage {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: .75rem;
+}
+.production-stage + .production-stage {
+    margin-top: 1rem;
+}
+.production-stage-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+
+    .stage-number {
+        position: relative;
+        z-index: 1;
+        min-width: 2rem;
+        height: 2rem;
+        font-size: .9375rem;
+        background-color: $primary;
+    }
+}
+// The line down to the next stage.
+.production-stage:not(:last-child) > .production-stage-rail::after {
+    position: absolute;
+    top: 2rem;
+    bottom: -1rem;
+    left: calc(50% - 1px);
+    width: 2px;
+    content: "";
+    background-color: $gray-300;
+}
+.production-stage-label {
+    display: flex;
+    align-items: center;
+    min-height: 2rem;
+    margin-bottom: .5rem;
+    font-weight: 700;
+}
+
+.production-step.is-current {
+    background-color: $white;
+    box-shadow: inset 0 0 0 2px $primary;
+}
+.production-step.is-done {
+    height: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.production-step-collapsed[open] {
+    padding-bottom: .75rem;
+}
+.production-step-summary {
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+}
+.production-step-chevron {
+    color: $text-muted;
+    transition: transform .2s;
+
+    [open] > summary > & {
+        transform: rotate(180deg);
+    }
+}
+.production-step:target {
+    box-shadow: 0 0 0 3px rgba($primary, .5);
+}
+.production-step {
+    scroll-margin-top: 1rem;
+    height: 100%;
+    padding: .75rem;
+    background-color: $gray-100;
+    border-radius: $border-radius;
+
+    &.is-done {
+        background-color: rgba($success, .08);
+        box-shadow: inset 0 0 0 2px rgba($success, .5);
+    }
+}
+.production-step-header,
+.production-step-summary {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-height: $tap-size;
+    padding: 0 .5rem;
+
+    .production-step-name {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+.production-step-header {
+    margin-bottom: .25rem;
+    border-bottom: 2px solid $gray-300;
+}
+i.step-check-all {
+    flex: 0 0 1.5rem;
+    font-size: 1.375rem;
+    text-align: center;
+}
+.production-step-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+.production-step-meta {
+    color: $text-muted;
+    font-size: .875rem;
+    white-space: nowrap;
+}
+.production-step-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    form {
+        margin: 0;
+    }
+}
+
+.ingredient-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    min-height: $tap-size + 4px;
+    margin: 0;
+    padding: .25rem .5rem;
+    border-bottom: 1px solid $gray-300;
+    border-radius: $border-radius-sm;
+    -webkit-tap-highlight-color: transparent;
+
+    &:is(label) {
+        cursor: pointer;
+    }
+    &:is(label):active {
+        background-color: $gray-200;
+    }
+    .htmx-request & {
+        opacity: .5;
+    }
+    &.is-checked .ingredient-weight,
+    &.is-checked .ingredient-name {
+        color: $text-muted;
+        text-decoration: line-through;
+    }
+}
+.ingredient-check,
+.ingredient-check-print,
+.ingredient-check-spacer {
+    flex: 0 0 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+}
+.ingredient-check {
+    cursor: pointer;
+
+    &:checked {
+        background-color: $success;
+        border-color: $success;
+    }
+    &:focus {
+        border-color: $success;
+        box-shadow: 0 0 0 .25rem rgba($success, .25);
+    }
+}
+.ingredient-check-print {
+    display: none;
+}
+.ingredient-weight {
+    flex: 0 0 8.5ch;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+.ingredient-name {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.ingredient-total {
+    font-weight: 600;
+    border-bottom: 0;
+}
+
+.production-instructions {
+    > summary {
+        cursor: pointer;
+    }
+    .instructions-text {
+        padding: .5rem .75rem;
+        background-color: $gray-100;
+        border-radius: $border-radius-sm;
+    }
+}
+
+.production-section-label {
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    min-height: $tap-size;
+    margin: 0;
+    color: $gray-700;
+    font-size: .8125rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.production-card-aside > * + * {
+    margin-top: .5rem;
+}
+.note-add {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+
+    .btn {
+        flex: 0 0 auto;
+        min-width: 2.75rem;
+        min-height: 2.375rem;
+    }
+}
+.note-input.note-add-input {
+    min-height: 2.375rem;
+}
+.note {
+    margin-bottom: .75rem;
+    padding: .5rem .75rem;
+    background-color: $gray-100;
+    border-left: 3px solid $primary;
+    border-radius: $border-radius-sm;
+}
+.note-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    color: $text-muted;
+    font-size: .875rem;
+}
+.note-actions .btn-link {
+    color: $text-muted;
+}
+.note-content {
+    line-height: 1.5;
+}
+.note-input {
+    field-sizing: content;
+    min-height: 4.5rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+.note-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    margin-top: .5rem;
+
+    @include media-breakpoint-down(sm) {
+        .btn:not(.btn-link) {
+            flex: 1 1 auto;
+        }
+    }
+}
+
+.confirm-tap-label {
+    display: none;
+}
+.confirm-tap.is-armed {
+    color: $danger !important;
+
+    .confirm-tap-label {
+        display: inline;
+    }
+}
+
+@media print {
+    .production-card {
+        box-shadow: none;
+        border: 1px solid $gray-400;
+    }
+    .production-card-actions,
+    .production-stat-states,
+    .production-instructions:not([open]) {
+        display: none !important;
+    }
+    .production-step {
+        background: none;
+        border: 1px solid $gray-300;
+    }
+    .ingredient-check-print {
+        display: inline-block;
+        border: 1.5px solid $gray-700;
+        border-radius: 3px;
+    }
+    .note {
+        background: none;
+    }
+}

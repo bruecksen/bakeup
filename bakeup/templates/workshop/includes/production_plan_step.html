@@ -1,0 +1,21 @@
+{% load i18n workshop_tags %}
+<section id="step-{{ step.plan.pk }}" class="production-step{% if step.done %} is-done{% endif %}{% if step.is_current %} is-current{% endif %}">
+  {% if step.done %}
+  <details class="production-step-collapsed">
+    <summary class="production-step-summary">
+      {% include "workshop/includes/production_plan_step_check_all.html" %}
+      <span class="production-step-name">{{ step.plan.product.name }}</span>
+      <span class="production-step-meta">{{ step.total|clever_unit }}</span>
+      <i class="fas fa-angle-down production-step-chevron" aria-hidden="true"></i>
+    </summary>
+    {% include "workshop/includes/production_plan_step_rows.html" %}
+  </details>
+  {% else %}
+  <header class="production-step-header">
+    {% include "workshop/includes/production_plan_step_check_all.html" %}
+    <h3 class="production-step-name">{{ step.plan.product.name }}</h3>
+    {% if card.stages|length == 1 and step.plan.product.category %}<span class="badge text-bg-light">{{ step.plan.product.category.name }}</span>{% endif %}
+  </header>
+  {% include "workshop/includes/production_plan_step_rows.html" %}
+  {% endif %}
+</section>

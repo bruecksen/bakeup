@@ -27,5 +27,8 @@ class Note(CommonBaseClass):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
 
+    class Meta:
+        ordering = ("created",)
+
     def __str__(self):
         return self.content

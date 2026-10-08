@@ -1,14 +1,17 @@
 from datetime import timedelta
 
 from django.db import connection
+from django.test import SimpleTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 from django_tenants.test.client import TenantClient
 
+from bakeup.contrib.models import Note
 from bakeup.shop.models import ProductionDay, ProductionDayProduct
 from bakeup.users.models import User
-from bakeup.workshop.models import ProductHierarchy
+from bakeup.workshop.models import Instruction, ProductHierarchy, ProductionPlan
+from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
 from bakeup.workshop.tests.test_models import RecipeTestCase
 
@@ -237,3 +240,319 @@ class ShopProductionDayTest(RecipeViewTestCase):
         self.assertContains(
             response, "Wheat flour, Water, Rye flour, Flour, Salt", html=False
         )
+
+
+class ProductionPlanDayViewTest(RecipeViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.production_day = ProductionDay.objects.create(
+            day_of_sale=timezone.now().date() + timedelta(days=3)
+        )
+        self.cake = ProductFactory(name="Cake", is_sellable=True)
+        self.day_products = {
+            product.pk: ProductionDayProduct.objects.create(
+                production_day=self.production_day,
+                product=product,
+                max_quantity=10,
+            )
+            for product in [self.bread, self.cake]
+        }
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+
+    def day_url(self):
+        return self.url("production-plan-production-day", self.production_day.pk)
+
+    def cards(self):
+        response = self.client.get(self.day_url())
+        self.assertEqual(response.status_code, 200)
+        return {
+            card["root"].product.product_template: card
+            for card in response.context["cards"]
+        }
+
+    def root(self, product=None):
+        return ProductionPlan.objects.get(
+            parent_plan=None, product__product_template=product or self.bread
+        )
+
+    def start(self):
+        self.root().set_production()
+
+    def sub_plan(self, name):
+        return ProductionPlan.objects.get(
+            production_day=self.production_day, product__name=name
+        )
+
+    def toggle(self, plan, row):
+        return self.client.post(
+            reverse(
+                "workshop:production-plan-ingredient-toggle",
+                kwargs={"pk": plan.pk, "row_pk": row.pk},
+            )
+        )
+
+    def test_recipe_steps_are_ordered_deepest_first(self):
+        card = self.cards()[self.bread]
+        self.assertTrue(card["has_recipe"])
+        self.assertEqual(
+            [step["plan"].product.name for step in card["steps"]],
+            ["Starter", "Sourdough", "Bread"],
+        )
+        sourdough = card["steps"][1]
+        self.assertEqual(
+            [row["row"].child.name for row in sourdough["rows"]],
+            ["Rye flour", "Water", "Starter"],
+        )
+        self.assertAlmostEqual(sourdough["total"], 2200)
+        bread = card["steps"][2]
+        self.assertEqual(
+            [row["row"].child.name for row in bread["rows"]],
+            ["Wheat flour", "Water", "Sourdough", "Rye flour", "Flour", "Salt"],
+        )
+        self.assertAlmostEqual(card["piece_weight"], 1182)
+        self.assertFalse(sourdough["show_checks"])
+
+    def test_stages_and_references(self):
+        card = self.cards()[self.bread]
+        self.assertEqual(
+            [
+                (stage["number"], stage["depth"], len(stage["steps"]))
+                for stage in card["stages"]
+            ],
+            [(1, 2, 1), (2, 1, 1), (3, 0, 1)],
+        )
+        self.assertEqual(
+            [stage["label"] for stage in card["stages"][:2]], ["Starter", "Pre dough"]
+        )
+        refs = {
+            row["row"].child.name: row["ref"]["stage"]
+            for step in card["steps"]
+            for row in step["rows"]
+            if row["ref"]
+        }
+        self.assertEqual(refs, {"Starter": 1, "Sourdough": 2})
+
+    def test_plan_keeps_a_copy_of_the_instructions(self):
+        instruction = Instruction.objects.create(
+            product=self.bread, instruction="Knead 10 minutes"
+        )
+        self.client.get(self.url("production-plan-update", self.root().pk))
+        self.assertEqual(self.cards()[self.bread]["instructions"], "Knead 10 minutes")
+        instruction.instruction = "Knead 5 minutes"
+        instruction.save()
+        self.assertEqual(self.cards()[self.bread]["instructions"], "Knead 10 minutes")
+
+    def test_product_without_recipe(self):
+        card = self.cards()[self.cake]
+        self.assertFalse(card["has_recipe"])
+        self.assertEqual(card["steps"], [])
+        self.assertEqual(card["day_product"], self.day_products[self.cake.pk])
+
+    def test_summary(self):
+        response = self.client.get(self.day_url())
+        summary = response.context["summary"]
+        self.assertEqual(summary["products"], 2)
+        self.assertEqual(summary["pieces"], 20)
+        self.assertContains(response, 'id="production-summary"')
+
+    def test_toggle_needs_production(self):
+        plan = self.sub_plan("Sourdough")
+        row = plan.product.parents.first()
+        self.assertEqual(self.toggle(plan, row).status_code, 400)
+        plan.refresh_from_db()
+        self.assertEqual(plan.checked_ingredients, [])
+
+    def test_toggle_ingredient(self):
+        self.start()
+        plan = self.sub_plan("Sourdough")
+        row = plan.product.parents.first()
+        response = self.toggle(plan, row)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'id="step-{plan.pk}"')
+        self.assertContains(response, 'hx-swap-oob="true"')
+        plan.refresh_from_db()
+        self.assertEqual(plan.checked_ingredients, [row.pk])
+        card = self.cards()[self.bread]
+        self.assertEqual((card["checked_count"], card["row_count"]), (1, 11))
+        self.toggle(plan, row)
+        plan.refresh_from_db()
+        self.assertEqual(plan.checked_ingredients, [])
+
+    def test_toggle_all_ingredients(self):
+        self.start()
+        plan = self.sub_plan("Sourdough")
+        url = reverse(
+            "workshop:production-plan-ingredients-toggle-all", kwargs={"pk": plan.pk}
+        )
+        self.toggle(plan, plan.product.parents.first())
+        self.assertEqual(self.client.post(url).status_code, 200)
+        plan.refresh_from_db()
+        self.assertEqual(
+            plan.checked_ingredients,
+            sorted(plan.product.parents.values_list("pk", flat=True)),
+        )
+        self.client.post(url)
+        plan.refresh_from_db()
+        self.assertEqual(plan.checked_ingredients, [])
+
+    def test_current_steps_follow_the_stages(self):
+        def current():
+            return [
+                step["plan"].product.name
+                for step in self.cards()[self.bread]["steps"]
+                if step["is_current"]
+            ]
+
+        self.assertEqual(current(), [])
+        self.start()
+        self.assertEqual(current(), ["Starter"])
+        starter = self.sub_plan("Starter")
+        self.client.post(
+            reverse(
+                "workshop:production-plan-ingredients-toggle-all",
+                kwargs={"pk": starter.pk},
+            )
+        )
+        self.assertEqual(current(), ["Sourdough"])
+
+    def test_toggle_rejects_rows_of_other_plans(self):
+        self.start()
+        plan = self.sub_plan("Sourdough")
+        other_row = self.sub_plan("Starter").product.parents.first()
+        self.assertEqual(self.toggle(plan, other_row).status_code, 400)
+
+    def test_finished_plan_keeps_checks_read_only(self):
+        self.start()
+        plan = self.sub_plan("Sourdough")
+        row = plan.product.parents.first()
+        self.toggle(plan, row)
+        self.root().set_state(ProductionPlan.State.PRODUCED)
+        self.assertEqual(self.toggle(plan, row).status_code, 400)
+        step = self.cards()[self.bread]["steps"][1]
+        self.assertTrue(step["show_checks"])
+        self.assertFalse(step["can_check"])
+        self.assertTrue(step["rows"][0]["checked"])
+
+    def test_htmx_action_returns_page_with_card(self):
+        day_product = self.day_products[self.bread.pk]
+        url = self.url("production-plan-cancel", self.root().pk)
+        response = self.client.post(
+            f"{url}?next={self.day_url()}", HTTP_HX_REQUEST="true", follow=True
+        )
+        self.assertContains(response, f'id="card-{day_product.pk}"')
+        self.assertContains(response, 'id="production-summary"')
+        self.assertTrue(self.root().is_canceled)
+
+
+class NotesViewTest(ProductionPlanDayViewTest):
+    def notes_url(self, day_product):
+        return reverse(
+            "workshop:notes",
+            kwargs={"model": "shop.productiondayproduct", "object_id": day_product.pk},
+        )
+
+    def add_note(self, content="Dough was too warm"):
+        day_product = self.day_products[self.bread.pk]
+        return self.client.post(self.notes_url(day_product), {"content": content})
+
+    def test_add_note(self):
+        response = self.add_note()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dough was too warm")
+        note = Note.objects.get()
+        self.assertEqual(note.user, self.user)
+        self.assertEqual(note.content_object, self.day_products[self.bread.pk])
+        self.assertContains(self.client.get(self.day_url()), "Dough was too warm")
+
+    def test_empty_note_is_rejected(self):
+        self.assertEqual(self.add_note("").status_code, 422)
+        self.assertFalse(Note.objects.exists())
+
+    def test_only_listed_models(self):
+        response = self.client.get(
+            reverse("workshop:notes", kwargs={"model": "users.user", "object_id": 1})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_update_and_delete_own_note(self):
+        self.add_note()
+        note = Note.objects.get()
+        self.client.post(
+            reverse("workshop:note-update", kwargs={"pk": note.pk}),
+            {"content": "Baked 5 minutes longer"},
+        )
+        note.refresh_from_db()
+        self.assertEqual(note.content, "Baked 5 minutes longer")
+        self.client.post(reverse("workshop:note-delete", kwargs={"pk": note.pk}))
+        self.assertFalse(Note.objects.exists())
+
+    def test_other_users_cannot_change_note(self):
+        self.add_note()
+        note = Note.objects.get()
+        other = User.objects.create_user(
+            username="other", email="other@example.com", password="x", is_staff=True
+        )
+        self.client.force_login(other)
+        response = self.client.post(
+            reverse("workshop:note-delete", kwargs={"pk": note.pk})
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Note.objects.exists())
+
+    def test_note_survives_plan_update(self):
+        self.add_note()
+        old_root = self.root()
+        self.client.get(self.url("production-plan-update", old_root.pk))
+        self.assertNotEqual(self.root().pk, old_root.pk)
+        self.assertContains(self.client.get(self.day_url()), "Dough was too warm")
+
+
+class ProductionPlanDayQueryTest(ProductionPlanDayViewTest):
+    def count_queries(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.cards()
+        return len(queries)
+
+    def test_queries_dont_grow_with_products(self):
+        self.start()
+        self.client.post(
+            reverse(
+                "workshop:notes",
+                kwargs={
+                    "model": "shop.productiondayproduct",
+                    "object_id": self.day_products[self.bread.pk].pk,
+                },
+            ),
+            {"content": "Note"},
+        )
+        self.cards()
+        before = self.count_queries()
+        for name in ["Rye bread", "Wheat bread"]:
+            bread = ProductFactory(
+                name=name, category=self.categories["bread"], is_sellable=True
+            )
+            add(bread, self.products["sourdough"], 300)
+            add(bread, self.products["wheat"], 500)
+            ProductionDayProduct.objects.create(
+                production_day=self.production_day, product=bread, max_quantity=5
+            )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.assertEqual(self.count_queries(), before)
+
+
+class CleverUnitTest(SimpleTestCase):
+    def test_clever_unit(self):
+        with translation.override("de"):
+            self.assertEqual(clever_unit(80760), "80,76\xa0kg")
+            self.assertEqual(clever_unit(12345.6), "12,346\xa0kg")
+            self.assertEqual(clever_unit(10000), "10\xa0kg")
+            self.assertEqual(clever_unit(9999.4), "9999\xa0g")
+            self.assertEqual(clever_unit(1250), "1250\xa0g")
+            self.assertEqual(clever_unit(72.94), "72,9\xa0g")
+            self.assertEqual(clever_unit(15000, "ml"), "15\xa0l")
+            self.assertEqual(clever_unit(3, "Stk"), "3\xa0Stk")
+            self.assertEqual(clever_unit(None), "")

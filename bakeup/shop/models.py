@@ -497,6 +497,7 @@ class ProductionDayProduct(CommonBaseClass):
         verbose_name=_("Group"),
         on_delete=models.SET_NULL,
     )
+    notes = GenericRelation(Note)
 
     objects = ProductionDayProductQuerySet.as_manager()
 

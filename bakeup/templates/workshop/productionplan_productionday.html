@@ -1,32 +1,97 @@
 {% extends "workshop/base.html" %}
-{% load crispy_forms_tags %}
-{% load django_bootstrap5 %}
-{% load i18n %}
+{% load i18n workshop_tags %}
 {% block title %}{% trans "Production Plan" %}{% endblock %}
-{% block page_heading %}{% trans "Production Plan" %} <span class="d-none d-print-inline">{{ production_day }}</span>
-<form class="d-inline-block d-print-none" method="post" action="{% url 'workshop:production-plan-next' %}">
-  {% csrf_token %}
-  <div class="input-group">
-    <a class="btn btn-outline-primary{% if not production_day_prev %} disabled{% endif %}" type="button" href="{% if production_day_prev %}{% url 'workshop:production-plan-production-day' pk=production_day_prev.pk %}{% endif %}"><i class="fas fa-chevron-left"></i></a>
-    {{ production_day_form.production_day }}
-    <a class="btn btn-outline-primary{% if not production_day_next %} disabled{% endif %}" type="button" href="{% if production_day_next %}{% url 'workshop:production-plan-production-day' pk=production_day_next.pk %}{% endif %}"><i class="fas fa-chevron-right"></i></a>
-  </div>
-</form>
-{% endblock %}
+{% block page_heading %}{% trans "Production Plan" %}{% endblock %}
 {% block page_heading_action %}
 {% endblock%}
 
 {% block page_content %}
-<div class="row justify-content-end mb-3">
-  <div class="col-auto">
-    <a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_finish %} disabled{% endif %} btn-success btn-sm d-print-none btn-sm me-2"{% if not has_plans_to_finish %} aria-disabled="true"{% endif %}>{% trans "Finish all" %}</a>
-    <a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ production_day.get_production_day_production_plan_url }}" class="btn{% if not has_plans_to_start %} disabled{% endif %} btn-warning btn-sm d-print-none btn-sm me-2"{% if not has_plans_to_start %} aria-disabled="true"{% endif %}>{% trans "Start all" %}</a>
+{% url 'workshop:production-plan-production-day' pk=production_day.pk as day_url %}
+<div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <form class="production-day-switch d-print-none" method="post" action="{% url 'workshop:production-plan-next' %}"
+      hx-post="{% url 'workshop:production-plan-next' %}"
+      hx-trigger="change"
+      hx-target="#production-day"
+      hx-select="#production-day"
+      hx-swap="outerHTML"
+      hx-push-url="true">
+      {% csrf_token %}
+      <div class="input-group">
+        {% if production_day_prev %}
+        {% url 'workshop:production-plan-production-day' pk=production_day_prev.pk as prev_url %}
+        <a class="btn btn-outline-primary" href="{{ prev_url }}" aria-label="{% trans 'Previous production day' %}"
+          hx-get="{{ prev_url }}" hx-target="#production-day" hx-select="#production-day" hx-swap="outerHTML" hx-push-url="true"><i class="fas fa-chevron-left"></i></a>
+        {% else %}
+        <span class="btn btn-outline-primary disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+        {% endif %}
+        {{ production_day_form.production_day }}
+        {% if production_day_next %}
+        {% url 'workshop:production-plan-production-day' pk=production_day_next.pk as next_url %}
+        <a class="btn btn-outline-primary" href="{{ next_url }}" aria-label="{% trans 'Next production day' %}"
+          hx-get="{{ next_url }}" hx-target="#production-day" hx-select="#production-day" hx-swap="outerHTML" hx-push-url="true"><i class="fas fa-chevron-right"></i></a>
+        {% else %}
+        <span class="btn btn-outline-primary disabled" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+        {% endif %}
+      </div>
+    </form>
+    <h2 class="d-none d-print-block mb-0">{% trans "Production Plan" %} {{ production_day }}</h2>
+    <div id="day-actions" class="d-flex flex-wrap gap-2 d-print-none">
+      <button type="button" id="wake-lock-toggle" class="btn btn-outline-success d-none" aria-pressed="false" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun"></i> {% trans "Screen on" %}</button>
+      {% if has_plans_to_start %}
+      <a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ day_url }}" class="btn btn-warning"
+        hx-post="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ day_url }}"
+        hx-target="#production-day" hx-select="#production-day" hx-swap="outerMorph"><i class="fas fa-play"></i> {% trans "Start all" %}</a>
+      {% endif %}
+      {% if has_plans_to_finish %}
+      <a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ day_url }}" class="btn btn-success"
+        hx-post="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ day_url }}"
+        hx-target="#production-day" hx-select="#production-day" hx-swap="outerMorph"><i class="fas fa-check"></i> {% trans "Finish all" %}</a>
+      {% endif %}
+    </div>
   </div>
-</div>
-<div class="row">
-  <div class="col">
-    {% include "workshop/includes/production_plan_table.html" with production_plans=production_plans expand_all=True %}
-  </div>
-</div>
 
+  {% if cards %}
+  <div id="production-summary" class="production-summary row g-2 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="production-stat">
+        <div class="production-stat-value">{{ summary.products }}</div>
+        <div class="production-stat-label">{% trans "Products" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="production-stat">
+        <div class="production-stat-value">{{ summary.pieces|floatformat }}</div>
+        <div class="production-stat-label">{% trans "Pieces" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="production-stat">
+        <div class="production-stat-value">{{ summary.weight|clever_unit }}</div>
+        <div class="production-stat-label">{% trans "Total weight" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="production-stat production-stat-states">
+        {% for state in summary.states %}{% if state.count %}
+        <span class="badge rounded-pill {{ state.css_class }}">{{ state.count }} {{ state.label }}</span>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div id="production-plans">
+    {% for card in cards %}
+      {% include "workshop/includes/production_plan_card.html" %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card production-empty">
+    <div class="card-body text-center text-muted py-5">
+      <p class="mb-3">{% trans "There is no production plan for this day yet." %}</p>
+      <a href="{% url 'workshop:production-plan-add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> {% trans "Create production plan" %}</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

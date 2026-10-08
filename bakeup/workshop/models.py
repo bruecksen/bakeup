@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import connection, models
+from django.db import connection, models, transaction
 from django.db.models import (
     F,
     Prefetch,
@@ -155,10 +155,19 @@ class Product(CommonBaseClass):
     @classmethod
     def duplicate(cls, product):
         children = list(product.parents.all())
+        instruction = Instruction.objects.filter(product_id=product.pk).first()
         product_template_id = product.pk
         product.pk = None
         product.product_template_id = product_template_id
         product.save()
+        # A copy, e.g. of a production plan, keeps the instructions as they
+        # were.
+        if instruction:
+            Instruction.objects.create(
+                product=product,
+                instruction=instruction.instruction,
+                duration=instruction.duration,
+            )
         for child in children:
             duplicate_child = Product.duplicate(child.child)
             ProductHierarchy.objects.create(
@@ -840,6 +849,9 @@ class ProductionPlan(CommonBaseClass):
     )
     quantity = models.FloatField()
     duration = models.PositiveSmallIntegerField(null=True, blank=True)
+    # ProductHierarchy pks of this plan's own product copy that were ticked off
+    # during production.
+    checked_ingredients = models.JSONField(default=list, blank=True)
 
     class Meta:
         ordering = ("-production_day", "product__name")
@@ -923,6 +935,57 @@ class ProductionPlan(CommonBaseClass):
 
     def set_production(self):
         self.set_state(self.State.IN_PRODUCTION)
+
+    def get_root(self):
+        plan = self
+        while plan.parent_plan_id:
+            plan = plan.parent_plan
+        return plan
+
+    def toggle_ingredient(self, row_pk):
+        # Locks the row, two bakers ticking off the same step at once must not
+        # overwrite each other.
+        with transaction.atomic():
+            plan = ProductionPlan.objects.select_for_update().get(pk=self.pk)
+            checked = set(plan.checked_ingredients)
+            checked ^= {row_pk}
+            plan.checked_ingredients = sorted(checked)
+            plan.save(update_fields=["checked_ingredients"])
+        self.checked_ingredients = plan.checked_ingredients
+
+    def toggle_all_ingredients(self):
+        # Ticks off all rows of the step, or none if all were ticked already.
+        rows = set(self.product.parents.values_list("pk", flat=True))
+        with transaction.atomic():
+            plan = ProductionPlan.objects.select_for_update().get(pk=self.pk)
+            checked = set() if rows <= set(plan.checked_ingredients) else rows
+            plan.checked_ingredients = sorted(checked)
+            plan.save(update_fields=["checked_ingredients"])
+        self.checked_ingredients = plan.checked_ingredients
+
+    def get_step(self, root):
+        # The ingredients of this plan as a checklist. Ticking off is possible
+        # while the root plan is in production, afterwards the checks stay
+        # visible.
+        rows = [
+            {
+                "row": row,
+                "weight": row.child.weight_in_base_unit * self.quantity * row.quantity,
+                "checked": row.pk in self.checked_ingredients,
+                "unit": row.child.uom.base_abbr if row.child.uom else "g",
+            }
+            # The order of the recipe page, the heaviest first.
+            for row in self.product.get_children_by_weight()
+        ]
+        return {
+            "plan": self,
+            "rows": rows,
+            "total": sum(row["weight"] for row in rows),
+            "checked_count": sum(row["checked"] for row in rows),
+            "done": bool(rows) and all(row["checked"] for row in rows),
+            "show_checks": root.is_production or root.is_produced,
+            "can_check": root.is_production,
+        }
 
     @classmethod
     def create_all_child_plans(cls, parent, children, quantity_parent):
