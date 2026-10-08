@@ -7,7 +7,16 @@ from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMessage
 from django.db import models, transaction
-from django.db.models import Count, Exists, F, OuterRef, Q, Subquery, Sum
+from django.db.models import (
+    Count,
+    Exists,
+    F,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    prefetch_related_objects,
+)
 from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -19,7 +28,12 @@ from djmoney.money import Money
 
 from bakeup.contrib.models import Note
 from bakeup.core.models import CommonBaseClass
-from bakeup.workshop.models import Product, ProductionPlan
+from bakeup.workshop.models import (
+    Category,
+    Product,
+    ProductionPlan,
+    prefetch_recipe_trees,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -338,34 +352,45 @@ class ProductionDay(CommonBaseClass):
 
     def get_ingredient_summary_list(self):
         ingredients = {}
-        for production_plan in self.production_plans.filter(
-            parent_plan__isnull=True
-        ).exclude(state=ProductionPlan.State.CANCELED):
+        child_plans = [
+            child
+            for production_plan in self.production_plans.filter(
+                parent_plan__isnull=True
+            ).exclude(state=ProductionPlan.State.CANCELED)
             for child in ProductionPlan.objects.filter(
                 Q(parent_plan=production_plan)
                 | Q(parent_plan__parent_plan=production_plan)
                 | Q(parent_plan__parent_plan__parent_plan=production_plan)
                 | Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)
-            ):
-                # print(child.product.name)
-                for ingredient in child.product.get_ingredient_list():
-                    product = ingredient["product"]
-                    quantity = ingredient["quantity"]
-                    # ingredient.product.weight|multiply:plan.quantity|multiply:ingredient.quantity|floatformat:0
-                    category = product.category.get_parent() or product.category
-                    category = ingredients.setdefault(category, {})
-                    product_quantity = category.setdefault(product.product_template, 0)
-                    category_sum = category.setdefault("sum", 0)
-                    product_quantity = product_quantity + (
-                        product.weight_in_base_unit * child.quantity * quantity
-                    )
-                    # if product.name == 'Salz':
-                    # print(product.name, product.weight, child.quantity, quantity, product_quantity)
-                    category[product.product_template] = product_quantity
-                    category_sum = category_sum + (
-                        product.weight_in_base_unit * child.quantity * quantity
-                    )
-                    category["sum"] = category_sum
+            ).select_related("product")
+        ]
+        prefetch_recipe_trees([child.product for child in child_plans])
+        prefetch_related_objects(
+            [row.child for child in child_plans for row in child.product.parents.all()],
+            "product_template",
+        )
+        # The parent category by its treebeard path instead of a get_parent()
+        # query per ingredient.
+        categories = {category.path: category for category in Category.objects.all()}
+        for child in child_plans:
+            for ingredient in child.product.get_ingredient_list():
+                product = ingredient["product"]
+                quantity = ingredient["quantity"]
+                category = (
+                    categories.get(product.category.path[: -Category.steplen])
+                    or product.category
+                )
+                category = ingredients.setdefault(category, {})
+                product_quantity = category.setdefault(product.product_template, 0)
+                category_sum = category.setdefault("sum", 0)
+                product_quantity = product_quantity + (
+                    product.weight_in_base_unit * child.quantity * quantity
+                )
+                category[product.product_template] = product_quantity
+                category_sum = category_sum + (
+                    product.weight_in_base_unit * child.quantity * quantity
+                )
+                category["sum"] = category_sum
         return collections.OrderedDict(
             sorted(ingredients.items(), key=lambda t: t[0].path)
         )
