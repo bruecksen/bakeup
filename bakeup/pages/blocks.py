@@ -24,6 +24,7 @@ from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 from bakeup.contrib.blocks import ImageAlignmentChoiceBlock, RichTextBlock
 from bakeup.newsletter.blocks import NewsletterSubscribeBlock
 from bakeup.shop.models import Product, ProductionDay
+from bakeup.workshop.models import prefetch_product_cards
 
 
 class EmbedBlock(_EmbedBlock):
@@ -330,7 +331,9 @@ class ProductAssortmentBlock(StructBlock):
             products = products.filter(
                 production_days__production_day__day_of_sale__gte=today
             )
-        context["products"] = products.distinct().order_by("category")
+        context["products"] = prefetch_product_cards(
+            list(products.distinct().order_by("category"))
+        )
         return context
 
 

@@ -168,6 +168,8 @@ class Product(CommonBaseClass):
 
     @property
     def sale_price(self):
+        if "sale_prices" in getattr(self, "_prefetched_objects_cache", {}):
+            return min(self.sale_prices.all(), key=lambda price: price.pk, default=None)
         return self.sale_prices.first()
 
     @property
@@ -1149,3 +1151,11 @@ def prefetch_recipe_trees(products):
                     "parents"
                 ]
         level = [child.child for product in to_load for child in product.parents.all()]
+
+
+def prefetch_product_cards(products):
+    # Loads what the product cards of the shop show for every product at once:
+    # the price and the full ingredient list.
+    prefetch_related_objects(products, "sale_prices")
+    prefetch_recipe_trees(products)
+    return products
