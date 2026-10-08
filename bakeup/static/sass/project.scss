@@ -454,6 +454,9 @@ header {
   .navbar {
     --bs-navbar-nav-link-padding-x: 0;
     --bs-navbar-toggler-padding-y: 0;
+    .nav-link {
+      white-space: nowrap;
+    }
     @media (max-width: 991px) {
       background-color: var(--bs-dark);
     }
@@ -510,6 +513,87 @@ nav {
     &:hover,
     &:focus {
       color: $white;
+    }
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+header {
+  .dropdown-toggle::after {
+    width: .4em;
+    height: .4em;
+    margin-left: .45em;
+    border: 0;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    vertical-align: middle;
+    transform: translateY(-.2em) rotate(45deg);
+    transition: transform .15s ease;
+  }
+  .dropdown-toggle.show::after {
+    transform: translateY(.05em) rotate(225deg);
+  }
+  .dropdown-menu {
+    --bs-dropdown-spacer: .5rem;
+    --bs-dropdown-min-width: 13rem;
+    --bs-dropdown-border-width: 0;
+    --bs-dropdown-border-radius: .75rem;
+    --bs-dropdown-padding-x: .375rem;
+    --bs-dropdown-padding-y: .375rem;
+    --bs-dropdown-item-padding-x: .875rem;
+    --bs-dropdown-item-padding-y: .5rem;
+    --bs-dropdown-link-color: var(--bs-dark);
+    --bs-dropdown-link-hover-color: var(--bs-primary);
+    --bs-dropdown-link-hover-bg: rgba(var(--bs-primary-rgb), .08);
+    --bs-dropdown-link-active-color: var(--bs-primary);
+    --bs-dropdown-link-active-bg: rgba(var(--bs-primary-rgb), .14);
+    --bs-dropdown-divider-margin-y: .375rem;
+    box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .18), 0 .125rem .375rem rgba(0, 0, 0, .08);
+    &.show {
+      animation: dropdown-in .14s ease-out;
+    }
+    .dropdown-item {
+      border-radius: .5rem;
+    }
+  }
+  .account-menu {
+    .account-icon {
+      margin-right: .4em;
+      opacity: .85;
+    }
+    .account-name {
+      display: inline-block;
+      max-width: 12rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: bottom;
+    }
+    .dropdown-header {
+      padding-top: .25rem;
+      padding-bottom: .25rem;
+      color: rgba(var(--bs-dark-rgb), .5);
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .dropdown-item-muted {
+      color: rgba(var(--bs-dark-rgb), .65);
+      &:hover,
+      &:focus {
+        color: var(--bs-dark);
+        background-color: rgba(var(--bs-dark-rgb), .06);
+      }
     }
   }
 }
