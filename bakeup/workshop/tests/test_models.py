@@ -178,6 +178,62 @@ class RecipeCalculationTest(RecipeTestCase):
         )
 
 
+class RecipeTreeTest(RecipeTestCase):
+    def key_figures(self, bread):
+        return [
+            bread.total_weight,
+            bread.total_weight_flour,
+            bread.get_dough_yield(),
+            bread.get_salt_ratio(),
+            bread.get_pre_ferment_ratio(),
+            bread.get_fermentation_loss(),
+            [row.pk for row in bread.get_flour_children()],
+            [row.pk for row in bread.get_children_by_weight()],
+            [(p.pk, w) for p, w in bread.get_full_ingredient_list()],
+        ]
+
+    def test_loaded_tree_gives_same_figures(self):
+        self.assertEqual(
+            self.key_figures(self.reload().load_recipe_tree()),
+            self.key_figures(self.reload()),
+        )
+
+    def test_load_recipe_tree_queries_once_per_level(self):
+        bread = self.reload()
+        # bread, its rows, the rows of the sourdough; the starter's ingredients
+        # are already loaded as rows of the bread.
+        with self.assertNumQueries(3):
+            bread.load_recipe_tree()
+        with self.assertNumQueries(0):
+            for row in bread.parents.all():
+                row.is_leaf, row.weight, row.child.category, row.child.uom
+            bread.get_full_ingredient_list()
+            bread.get_children_by_weight()
+
+    def test_key_figures_query_only_categories(self):
+        bread = self.reload().load_recipe_tree()
+        self.key_figures(bread)
+        bread.get_wheats()
+        # Only the flour types of get_wheats() are queried again.
+        with self.assertNumQueries(1):
+            self.key_figures(bread)
+            bread.get_wheats()
+
+    def test_children_by_weight(self):
+        self.assertEqual(
+            [row.pk for row in self.reload().get_children_by_weight()],
+            list(self.bread.parents.with_weights().values_list("pk", flat=True)),
+        )
+
+    def test_mutators_clear_loaded_tree(self):
+        bread = self.reload().load_recipe_tree()
+        self.assertAlmostEqual(bread.total_weight_flour, 810)
+        bread.adjust_total_weight(2364)
+        self.assertAlmostEqual(bread.total_weight_flour, 1620)
+        bread.add_child(ProductFactory(category=self.categories["wheat"]), 0.1)
+        self.assertAlmostEqual(bread.total_weight_flour, 1720)
+
+
 class RecipeAdjustTest(RecipeTestCase):
     def assert_unchanged(self, quantities):
         self.assertEqual(self.quantities(), quantities)

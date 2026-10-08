@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from django_tenants.test.client import TenantClient
@@ -7,6 +9,7 @@ from django_tenants.test.client import TenantClient
 from bakeup.shop.models import ProductionDay, ProductionDayProduct
 from bakeup.users.models import User
 from bakeup.workshop.models import ProductHierarchy
+from bakeup.workshop.tests.factories import ProductFactory, add
 from bakeup.workshop.tests.test_models import RecipeTestCase
 
 
@@ -69,6 +72,47 @@ class ProductDetailViewTest(RecipeViewTestCase):
             self.url("product-main-flour"), {"hierarchy": self.rows["rye"].pk}
         )
         self.assertEqual(self.detail().context["main_flour_pk"], self.rows["rye"].pk)
+
+
+class ProductDetailQueryTest(RecipeViewTestCase):
+    def count_queries(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.detail()
+        return len(queries)
+
+    def grow_recipe(self):
+        # More rows on every level and a fourth level.
+        poolish = ProductFactory(
+            name="Poolish",
+            category=self.categories["pre-dough"],
+            weight=200,
+            is_composable=True,
+        )
+        add(poolish, self.products["wheat"], 100)
+        add(poolish, self.products["water"], 100)
+        add(self.products["starter"], poolish, 5)
+        add(self.products["sourdough"], self.products["salt"], 2)
+        add(self.bread, poolish, 200)
+        for name in ["Seeds", "Oil", "Malt"]:
+            add(
+                self.bread,
+                ProductFactory(name=name, category=self.categories["ingredients"]),
+                10,
+            )
+
+    def assert_constant_queries(self):
+        self.detail()
+        before = self.count_queries()
+        self.grow_recipe()
+        self.detail()
+        self.assertEqual(self.count_queries(), before)
+
+    def test_queries_dont_grow_with_recipe_in_gram_mode(self):
+        self.assert_constant_queries()
+
+    def test_queries_dont_grow_with_recipe_in_percent_mode(self):
+        self.set_percent_mode()
+        self.assert_constant_queries()
 
 
 class RecipeEditViewTest(RecipeViewTestCase):
@@ -142,23 +186,54 @@ class RecipeEditViewTest(RecipeViewTestCase):
 
 
 class ShopProductionDayTest(RecipeViewTestCase):
-    def test_product_card_lists_ingredients(self):
-        production_day = ProductionDay.objects.create(
+    def setUp(self):
+        super().setUp()
+        self.production_day = ProductionDay.objects.create(
             day_of_sale=timezone.now().date() + timedelta(days=3)
         )
+        self.offer(self.bread)
+
+    def offer(self, product):
         ProductionDayProduct.objects.create(
-            production_day=production_day,
-            product=self.bread,
+            production_day=self.production_day,
+            product=product,
             max_quantity=10,
             is_published=True,
         )
+
+    def shop(self):
         response = TenantClient(self.tenant).get(
             reverse(
                 "shop:shop-production-day",
-                kwargs={"production_day": production_day.pk},
+                kwargs={"production_day": self.production_day.pk},
             )
         )
         self.assertEqual(response.status_code, 200)
+        return response
+
+    def recipe_queries(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.shop()
+        return [
+            query["sql"]
+            for query in queries
+            if "workshop_producthierarchy" in query["sql"]
+            or "workshop_productprice" in query["sql"]
+        ]
+
+    def test_recipe_queries_dont_grow_with_products(self):
+        before = len(self.recipe_queries())
+        for name in ["Rye bread", "Wheat bread"]:
+            bread = ProductFactory(
+                name=name, category=self.categories["bread"], is_sellable=True
+            )
+            add(bread, self.products["sourdough"], 300)
+            add(bread, self.products["wheat"], 500)
+            self.offer(bread)
+        self.assertEqual(len(self.recipe_queries()), before)
+
+    def test_product_card_lists_ingredients(self):
+        response = self.shop()
         self.assertContains(
             response, "Wheat flour, Water, Rye flour, Flour, Salt", html=False
         )
