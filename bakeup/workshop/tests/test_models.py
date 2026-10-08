@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from django.utils import timezone
 from django_tenants.test.cases import FastTenantTestCase
 
 from bakeup.core.models import UOM
-from bakeup.workshop.models import Category, Product, ProductHierarchy
+from bakeup.shop.models import ProductionDay
+from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 from bakeup.workshop.tests.factories import ProductFactory, add, create_recipe
 
@@ -364,3 +366,47 @@ class RecipeAdjustTest(RecipeTestCase):
             self.reload(self.products["sourdough"]).adjust_pre_ferment_ratio(20)
         )
         self.assert_unchanged(quantities)
+
+
+class ProductionDaySummaryTest(RecipeTestCase):
+    def plan(self, production_day, quantity, state=ProductionPlan.State.PLANNED):
+        # Like ProductionDay.create_production_plan: plans use a copy.
+        product = Product.duplicate(self.reload())
+        plan = ProductionPlan.objects.create(
+            production_day=production_day,
+            product=product,
+            quantity=quantity,
+            state=state,
+        )
+        ProductionPlan.create_all_child_plans(plan, product.parents.all(), quantity)
+        return plan
+
+    def summary(self, production_day):
+        return [
+            (
+                category.slug,
+                [
+                    (getattr(product, "name", product), round(weight, 6))
+                    for product, weight in products.items()
+                ],
+            )
+            for category, products in production_day.get_ingredient_summary_list().items()
+        ]
+
+    def test_ingredient_summary(self):
+        production_day = ProductionDay.objects.create(day_of_sale=timezone.now().date())
+        self.plan(production_day, 2)
+        self.plan(production_day, 5, ProductionPlan.State.CANCELED)
+        # Ingredients of the sub plans (sourdough and starter) of two breads,
+        # the main dough of the bread itself isn't a sub plan. Ingredients are
+        # grouped by the parent category and summed up per original product.
+        self.assertEqual(
+            self.summary(production_day),
+            [
+                (
+                    "ingredients",
+                    [("Water", 220.0), ("sum", 260.0), ("Starter", 40.0)],
+                ),
+                ("flour", [("Rye flour", 220.0), ("sum", 220.0)]),
+            ],
+        )
