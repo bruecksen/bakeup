@@ -13179,6 +13179,9 @@ header .navbar {
   --bs-navbar-nav-link-padding-x: 0;
   --bs-navbar-toggler-padding-y: 0;
 }
+header .navbar .nav-link {
+  white-space: nowrap;
+}
 @media (max-width: 991px) {
   header .navbar {
     background-color: var(--bs-dark);
@@ -13234,6 +13237,115 @@ nav .nav-link {
 }
 nav .nav-link:hover, nav .nav-link:focus {
   color: #fff;
+}
+
+@-webkit-keyframes dropdown-in {
+  from {
+    opacity: 0;
+    -webkit-transform: translateY(-0.25rem);
+            transform: translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: none;
+            transform: none;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    -webkit-transform: translateY(-0.25rem);
+            transform: translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: none;
+            transform: none;
+  }
+}
+header .dropdown-toggle::after {
+  width: 0.4em;
+  height: 0.4em;
+  margin-left: 0.45em;
+  border: 0;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  vertical-align: middle;
+  -webkit-transform: translateY(-0.2em) rotate(45deg);
+          transform: translateY(-0.2em) rotate(45deg);
+  -webkit-transition: -webkit-transform 0.15s ease;
+  transition: -webkit-transform 0.15s ease;
+  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, -webkit-transform 0.15s ease;
+}
+header .dropdown-toggle.show::after {
+  -webkit-transform: translateY(0.05em) rotate(225deg);
+          transform: translateY(0.05em) rotate(225deg);
+}
+header .dropdown-menu {
+  --bs-dropdown-spacer: 8px;
+  --bs-dropdown-spacer: .5rem;
+  --bs-dropdown-min-width: 208px;
+  --bs-dropdown-min-width: 13rem;
+  --bs-dropdown-border-width: 0;
+  --bs-dropdown-border-radius: 12px;
+  --bs-dropdown-border-radius: .75rem;
+  --bs-dropdown-padding-x: 6px;
+  --bs-dropdown-padding-x: .375rem;
+  --bs-dropdown-padding-y: 6px;
+  --bs-dropdown-padding-y: .375rem;
+  --bs-dropdown-item-padding-x: 14px;
+  --bs-dropdown-item-padding-x: .875rem;
+  --bs-dropdown-item-padding-y: 8px;
+  --bs-dropdown-item-padding-y: .5rem;
+  --bs-dropdown-link-color: var(--bs-dark);
+  --bs-dropdown-link-hover-color: var(--bs-primary);
+  --bs-dropdown-link-hover-bg: rgba(var(--bs-primary-rgb), .08);
+  --bs-dropdown-link-active-color: var(--bs-primary);
+  --bs-dropdown-link-active-bg: rgba(var(--bs-primary-rgb), .14);
+  --bs-dropdown-divider-margin-y: 6px;
+  --bs-dropdown-divider-margin-y: .375rem;
+  -webkit-box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.18), 0 0.125rem 0.375rem rgba(0, 0, 0, 0.08);
+          box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.18), 0 0.125rem 0.375rem rgba(0, 0, 0, 0.08);
+}
+header .dropdown-menu.show {
+  -webkit-animation: dropdown-in 0.14s ease-out;
+          animation: dropdown-in 0.14s ease-out;
+}
+header .dropdown-menu .dropdown-item {
+  border-radius: 0.5rem;
+}
+header .account-menu .account-icon {
+  margin-right: 0.4em;
+  opacity: 0.85;
+}
+header .account-menu .account-name {
+  display: inline-block;
+  max-width: 192px;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+header .account-menu .dropdown-header {
+  padding-top: 4px;
+  padding-top: 0.25rem;
+  padding-bottom: 4px;
+  padding-bottom: 0.25rem;
+  color: rgba(var(--bs-dark-rgb), 0.5);
+  font-size: 11.2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+header .account-menu .dropdown-item-muted {
+  color: rgba(var(--bs-dark-rgb), 0.65);
+}
+header .account-menu .dropdown-item-muted:hover, header .account-menu .dropdown-item-muted:focus {
+  color: var(--bs-dark);
+  background-color: rgba(var(--bs-dark-rgb), 0.06);
 }
 
 .spacer-1 {

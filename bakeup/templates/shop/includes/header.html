@@ -20,21 +20,40 @@
                 </a>
               </li>
               {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'shop:order-list' %}"><i class="fa-solid fa-receipt fa-fw"></i> Bestellungen</a>
+              <li class="nav-item dropdown account-menu d-none d-lg-block">
+                <a class="nav-link btn btn-primary px-3 py-1 mt-1 dropdown-toggle" href="#" id="ddtoggle_account" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-regular fa-user account-icon"></i><span class="account-name" title="{{ request.user.get_full_name }}">{{ request.user.get_full_name|default:"Mein Konto" }}</span></a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ddtoggle_account">
+                  <li><a class="dropdown-item" href="{% url 'shop:order-list' %}">Bestellungen</a></li>
+                  <li><a class="dropdown-item" href="{% url 'shop:user-profile' %}">Profil</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  {% if request.user.is_staff %}
+                  <li><h6 class="dropdown-header">Intern</h6></li>
+                  <li><a class="dropdown-item" href="{% url 'workshop:workshop' %}">{% translate "Workshop" %}</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  {% endif %}
+                  <li>
+                    <form method="post" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item dropdown-item-muted">Abmelden</button>
+                    </form>
+                  </li>
+                </ul>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'shop:user-profile' %}"><i class="fa-solid fa-user fa-fw"></i> Profil</a>
+              <li class="nav-item d-lg-none">
+                <a class="nav-link" href="{% url 'shop:order-list' %}">Bestellungen</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item d-lg-none">
+                <a class="nav-link" href="{% url 'shop:user-profile' %}">Profil</a>
+              </li>
+              <li class="nav-item d-lg-none">
                 <form method="post" action="{% url 'logout' %}">
                   {% csrf_token %}
-                  <button type="submit" class="nav-link border-0 bg-transparent"><i class="fa-solid fa-right-from-bracket fa-fw"></i> Abmelden</button>
+                  <button type="submit" class="nav-link border-0 bg-transparent">Abmelden</button>
                 </form>
               </li>
               {% elif request.tenant.clientsetting.show_login %}
               <li class="nav-item">
-                <a id="log-in-link" class="nav-link btn btn-primary px-2 py-1 mt-1" href="{% url 'shop:login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> Anmelden</a>
+                <a id="log-in-link" class="nav-link btn btn-primary px-3 py-1 mt-1" href="{% url 'shop:login' %}">Anmelden</a>
               </li>
               {% endif %}
             </ul>

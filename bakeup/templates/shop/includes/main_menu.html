@@ -9,8 +9,8 @@
     </li>
 {% endfor %}
     {% if request.user.is_authenticated and request.user.is_staff %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-table-cells"></i> {% translate "Workshop" %}</a>
+        <li class="nav-item d-lg-none">
+            <a class="nav-link" href="{% url 'workshop:workshop' %}">{% translate "Workshop" %}</a>
         </li>
     {% endif %}
 </ul>
