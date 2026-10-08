@@ -356,6 +356,10 @@ SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
 # tables like wagtailcore_site / pages_brandsettings don't exist -> 500).
 DEFAULT_NOT_FOUND_TENANT_VIEW = "bakeup.core.views.tenant_not_found"
 
+# Set the search_path only when the schema changes instead of before every
+# query. Safe because no request switches the tenant mid-transaction.
+TENANT_LIMIT_SET_CALLS = True
+
 # Login is possible via both username and email
 # (replaces the legacy ACCOUNT_AUTHENTICATION_METHOD = "username_email").
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
