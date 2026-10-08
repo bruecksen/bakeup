@@ -114,7 +114,7 @@ class WorkshopView(StaffPermissionsMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["recipies_count"] = Product.objects.filter(is_sellable=True).count()
-        context["products_count"] = Product.objects.all().count()
+        context["products_count"] = Product.objects.filter(is_sellable=False).count()
         context["categories_count"] = Category.objects.all().count()
         context["productionplans_count"] = ProductionPlan.objects.all().count()
         context["productiondays_count"] = ProductionDay.objects.all().count()
@@ -151,6 +151,12 @@ class ProductAddView(StaffPermissionsMixin, CreateView):
         if "pk" in kwargs:
             self.product_parent = get_object_or_404(Product, pk=self.kwargs.get("pk"))
         return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if "sellable" in self.request.GET:
+            initial["is_sellable"] = True
+        return initial
 
     def post(self, request, *args, **kwargs):
         if "add-existing" in request.POST:
@@ -228,10 +234,13 @@ class ProductCopyView(ProductAddView):
 RECIPE_MODE_SESSION_KEY = "recipe_mode"
 
 
-def is_percent_mode(request):
+def is_percent_mode(request, product):
     # In the baker's percentage mode the total flour is the fixed value,
-    # otherwise the total dough weight.
-    return request.session.get(RECIPE_MODE_SESSION_KEY) == UNIT_PERCENT
+    # otherwise the total dough weight. A recipe without flour has no
+    # percentages, it stays in grams.
+    return request.session.get(RECIPE_MODE_SESSION_KEY) == UNIT_PERCENT and bool(
+        product.total_weight_flour
+    )
 
 
 @staff_member_required(login_url="login")
@@ -300,11 +309,8 @@ def product_add_inline_view(request, pk):
                     category=form.cleaned_data["category"],
                     weight=1000,
                     uom=UOM.get_default(),
-                    is_sellable=form.cleaned_data["is_sellable"],
-                    is_buyable=form.cleaned_data["is_buyable"],
-                    is_composable=form.cleaned_data["is_composable"],
                 )
-            if is_percent_mode(request):
+            if is_percent_mode(request, parent_product):
                 # The row starts with a tiny weight, so it doesn't change the
                 # total flour the percentage refers to.
                 main_flour = get_main_flour(request, parent_product)
@@ -377,7 +383,7 @@ class ProductHierarchyUpdateView(StaffPermissionsMixin, FormView):
         amount = form.cleaned_data["amount"]
         if form.cleaned_data["unit"] == UNIT_PERCENT:
             self.object.parent.load_recipe_tree()
-            percent_mode = is_percent_mode(self.request)
+            percent_mode = is_percent_mode(self.request, self.object.parent)
             if not self.object.parent.adjust_child_ratio(
                 self.object,
                 amount,
@@ -444,14 +450,14 @@ class ProductDetailView(StaffPermissionsMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["ingredients"], context["ingredients_unsorted"] = self.get_ingredients()
         context["add_ingredient_form"] = AddIngredientForm(product=self.object)
-        context["percent_mode"] = is_percent_mode(self.request)
+        context["percent_mode"] = is_percent_mode(self.request, self.object)
         if context["percent_mode"]:
             main_flour = get_main_flour(self.request, self.object)
             context["main_flour_pk"] = main_flour and main_flour.pk
             context["flour_pks"] = [
                 child.pk for child in self.object.get_flour_children()
             ]
-        if self.object.is_composable:
+        if self.object.has_recipe:
             context["key_figures_form"] = ProductKeyFiguresForm(
                 initial=self.get_key_figures_inital_data()
             )
@@ -477,7 +483,7 @@ def product_dough_yield_view(request, pk):
     form = ProductDoughYieldForm(request.POST)
     if not form.is_valid() or not product.adjust_dough_yield(
         form.cleaned_data["dough_yield"],
-        keep_total_weight=not is_percent_mode(request),
+        keep_total_weight=not is_percent_mode(request, product),
     ):
         messages.error(
             request,
@@ -492,7 +498,8 @@ def product_salt_view(request, pk):
     product = get_object_or_404(Product, pk=pk).load_recipe_tree()
     form = ProductSaltForm(request.POST)
     if not form.is_valid() or not product.adjust_salt_ratio(
-        form.cleaned_data["salt"], keep_total_weight=not is_percent_mode(request)
+        form.cleaned_data["salt"],
+        keep_total_weight=not is_percent_mode(request, product),
     ):
         messages.error(
             request,
@@ -520,7 +527,7 @@ def product_pre_ferment_view(request, pk):
     form = ProductPreFermentForm(request.POST)
     if not form.is_valid() or not product.adjust_pre_ferment_ratio(
         form.cleaned_data["pre_ferment"],
-        keep_total_weight=not is_percent_mode(request),
+        keep_total_weight=not is_percent_mode(request, product),
     ):
         messages.error(
             request,
@@ -558,8 +565,9 @@ class RecipeListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["object_name"] = _("Recipe")
-        context["object_name_plural"] = _("Recipes")
+        context["object_name_plural"] = _("Product range")
+        context["add_label"] = _("Add new product")
+        context["add_url"] = reverse("workshop:product-add") + "?sellable"
         return context
 
 
@@ -569,10 +577,21 @@ class ProductListView(StaffPermissionsMixin, SingleTableMixin, FilterView):
     filterset_class = ProductFilter
     template_name = "workshop/product_list.html"
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # The category and tag links also list the products that are sold.
+        if "all" not in self.request.GET:
+            qs = qs.filter(is_sellable=False)
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["object_name"] = _("Product")
-        context["object_name_plural"] = _("Products")
+        if "all" in self.request.GET:
+            context["object_name_plural"] = _("All products")
+        else:
+            context["object_name_plural"] = _("Ingredients & doughs")
+        context["add_label"] = _("Add new ingredient")
+        context["add_url"] = reverse("workshop:product-add")
         return context
 
 

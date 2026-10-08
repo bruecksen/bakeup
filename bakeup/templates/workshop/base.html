@@ -11,9 +11,10 @@
 
 {% block content %}
 <div class="container-fluid">
+    <button type="button" class="mobile-menu-toggle d-md-none d-print-none" aria-controls="workshop-sidebar" aria-expanded="false" aria-label="{% trans 'Open menu' %}"><i class="fas fa-bars fa-fw"></i></button>
     <div class="row flex-nowrap">
       {% include "workshop/includes/sidebar.html" %}
-      <div class="col offset-0 offset-md-3 offset-xl-2 mb-4">
+      <div class="col mb-4">
         <div class="row mt-2 d-print-none justify-content-end">
           <div class="col-10">
              <div class="col align-self-center">

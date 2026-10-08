@@ -77,25 +77,32 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
 })
 
 
-// toggle Sidebar
-var sidebarToggler = document.querySelector(".sidebar-toggler");
-if (sidebarToggler) {
-    sidebarToggler.addEventListener('click', toggleSidebar);
-}
-var sidebarTogglerHide = document.querySelector('.sidebar-toggler-hide');
-if (sidebarTogglerHide) {
-    sidebarTogglerHide.addEventListener('click', toggleSidebar);
-}
-function toggleSidebar() {
-    const el = document.querySelector( '.sidebar' );
-    if( window.getComputedStyle( el ).display === "none" ) {
-        el.style.display = "flex";
-        sidebarTogglerHide.style.display = 'block';
-    } else {
-        el.style.display = ""; // unset flex, so it returns to `none` as defined in the CSS.
-        sidebarTogglerHide.style.display = '';
+// Mobile sidebar: a drawer opened from the button in the top left corner, closed with the close
+// button, a tap on the backdrop or Escape.
+var sidebarToggle = document.querySelector(".mobile-menu-toggle");
+
+function setSidebarOpen(open) {
+    document.body.classList.toggle("sidebar-open", open);
+    if (sidebarToggle) sidebarToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+        var close = document.querySelector(".sidebar-close");
+        if (close) close.focus();
+    } else if (sidebarToggle && document.activeElement && document.activeElement.closest(".sidebar")) {
+        sidebarToggle.focus();
     }
 }
+
+if (sidebarToggle) {
+    sidebarToggle.addEventListener("click", function() {
+        setSidebarOpen(true);
+    });
+}
+document.addEventListener("click", function(event) {
+    if (event.target.closest("[data-sidebar-close]")) setSidebarOpen(false);
+});
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) setSidebarOpen(false);
+});
 
 let expandAll = document.getElementById('expand-all');
 if (expandAll) {
@@ -988,44 +995,45 @@ window.addEventListener("beforeunload", function(event) {
     }
 });
 
-// Production plan: remember which cards are collapsed, per browser.
-var collapsedCardsKey = "production-plan-collapsed";
+// Production plan: cards start collapsed, remember which ones were opened,
+// per browser.
+var expandedCardsKey = "production-plan-expanded";
 
-function getCollapsedCards() {
+function getExpandedCards() {
     try {
-        return JSON.parse(localStorage.getItem(collapsedCardsKey)) || [];
+        return JSON.parse(localStorage.getItem(expandedCardsKey)) || [];
     } catch (error) {
         return [];
     }
 }
 
-function setCollapsedCards(ids) {
+function setExpandedCards(ids) {
     try {
-        localStorage.setItem(collapsedCardsKey, JSON.stringify(ids.slice(-200)));
+        localStorage.setItem(expandedCardsKey, JSON.stringify(ids.slice(-200)));
     } catch (error) {}
 }
 
-function restoreCollapsedCards() {
-    getCollapsedCards().forEach(function(id) {
+function restoreExpandedCards() {
+    getExpandedCards().forEach(function(id) {
         var body = document.getElementById(id);
         if (!body || !body.closest(".production-card")) return;
-        body.classList.remove("show");
+        body.classList.add("show");
         var toggle = document.querySelector('[data-bs-target="#' + id + '"]');
-        if (toggle) toggle.setAttribute("aria-expanded", "false");
+        if (toggle) toggle.setAttribute("aria-expanded", "true");
     });
 }
 
-document.addEventListener("DOMContentLoaded", restoreCollapsedCards);
-document.addEventListener("htmx:after:swap", restoreCollapsedCards);
+document.addEventListener("DOMContentLoaded", restoreExpandedCards);
+document.addEventListener("htmx:after:swap", restoreExpandedCards);
 document.addEventListener("shown.bs.collapse", function(event) {
     if (!event.target.closest(".production-card")) return;
-    setCollapsedCards(getCollapsedCards().filter(function(id) { return id !== event.target.id; }));
+    var ids = getExpandedCards().filter(function(id) { return id !== event.target.id; });
+    ids.push(event.target.id);
+    setExpandedCards(ids);
 });
 document.addEventListener("hidden.bs.collapse", function(event) {
     if (!event.target.closest(".production-card")) return;
-    var ids = getCollapsedCards().filter(function(id) { return id !== event.target.id; });
-    ids.push(event.target.id);
-    setCollapsedCards(ids);
+    setExpandedCards(getExpandedCards().filter(function(id) { return id !== event.target.id; }));
 });
 
 // Production plan: keep the screen of a tablet on while baking, with the
@@ -1068,7 +1076,9 @@ function requestWakeLock() {
 }
 
 document.addEventListener("click", function(event) {
-    if (!event.target.closest("#wake-lock-toggle")) return;
+    var toggle = event.target.closest("#wake-lock-toggle");
+    if (!toggle) return;
+    toggle.blur();
     // Safari may refuse the lock without a tap, so a tap on an inactive
     // button always turns it on.
     var wanted = wakeLock === null;

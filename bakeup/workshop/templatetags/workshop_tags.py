@@ -3,9 +3,31 @@ from decimal import Decimal
 from django import template
 from django.db.models import Q
 from django.template.defaultfilters import floatformat
+from django.urls import reverse
 from django.utils import formats
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def workshop_section(context):
+    # The sidebar entry a workshop page belongs to: the first segment of its
+    # URL, e.g. "orders" for /workshop/orders/5/update/. Product pages belong
+    # to the product range when the product is sold. The user pages are the
+    # profile.
+    request = context["request"]
+    match = request.resolver_match
+    if match and match.namespace == "users":
+        return "profile"
+    if not match or match.namespace != "workshop":
+        return ""
+    path = request.path.removeprefix(reverse("workshop:workshop"))
+    section = path.split("/", 1)[0] or "dashboard"
+    if section == "products":
+        product = context.get("object")
+        if getattr(product, "is_sellable", False) or "sellable" in request.GET:
+            return "recipes"
+    return section
 
 
 @register.simple_tag

@@ -27,8 +27,6 @@
       <li class="list-inline-item"><i class="fa-solid fa-tags fa-fw"></i> {{ object.category.name }}</li>
       <li class="list-inline-item">{% for tag in object.tags.all %}<span class="badge rounded-pill bg-secondary me-1"><i class="fas fa-tag"></i> {{ tag }}</span>{% endfor %}</li>
       <li class="list-inline-item">{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
-      <li class="list-inline-item">{% if object.is_buyable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Buyable" %}</li>
-      <li class="list-inline-item">{% if object.is_composable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Composable" %}</li>
     </ul>
     <ul class="list-unstyled list-inline mb-1">
       {% if object.sale_price %}<li class="list-inline-item"><strong>{% trans "Price" %}:</strong> {{ object.sale_price.price }}{% endif %}
@@ -183,10 +181,10 @@
       hx-select="#recipe-figures"
       hx-swap="outerMorph">
       {% csrf_token %}
-      <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Working mode' %}">
+      <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Working mode' %}"{% if not object.total_weight_flour %} title="{% trans 'Percentages refer to the flour weight, please add flour first.' %}"{% endif %}>
         <input type="radio" class="btn-check" name="mode" id="recipe-mode-g" value="g" autocomplete="off"{% if not percent_mode %} checked{% endif %}>
         <label class="btn btn-outline-primary" for="recipe-mode-g" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" title="{% trans 'Recipe mode' %}" data-bs-content="{% trans 'Edit the recipe in grams. When you change a percentage, the dough weight stays fixed and all ingredients are rescaled.' %}">g</label>
-        <input type="radio" class="btn-check" name="mode" id="recipe-mode-percent" value="percent" autocomplete="off"{% if percent_mode %} checked{% endif %}>
+        <input type="radio" class="btn-check" name="mode" id="recipe-mode-percent" value="percent" autocomplete="off"{% if percent_mode %} checked{% endif %}{% if not object.total_weight_flour %} disabled{% endif %}>
         <label class="btn btn-outline-primary" for="recipe-mode-percent" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-placement="top" title="{% trans "Baker's percentage mode" %}" data-bs-content="{% trans 'Develop the recipe in percentages of the flour. The flour stays fixed, only the changed ingredient moves and the dough weight follows.' %}">%</label>
       </div>
     </form>

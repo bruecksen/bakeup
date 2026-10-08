@@ -79,12 +79,79 @@ class ProductDetailViewTest(RecipeViewTestCase):
         self.assertEqual(response.context["main_flour_pk"], self.rows["wheat"].pk)
         self.assertContains(response, "810 g = 100 %")
 
+    def test_recipe_without_flour_stays_in_gram(self):
+        brine = ProductFactory(name="Brine")
+        add(brine, self.products["water"], 100)
+        add(brine, self.products["salt"], 10)
+        self.set_percent_mode()
+        response = self.client.get(self.url("product-detail", brine.pk))
+        self.assertFalse(response.context["percent_mode"])
+        self.assertNotContains(response, "(None)")
+        self.assertContains(response, 'value="percent" autocomplete="off" disabled')
+
     def test_main_flour(self):
         self.set_percent_mode()
         self.client.post(
             self.url("product-main-flour"), {"hierarchy": self.rows["rye"].pk}
         )
         self.assertEqual(self.detail().context["main_flour_pk"], self.rows["rye"].pk)
+
+
+class ProductListViewTest(RecipeViewTestCase):
+    def names(self, **params):
+        response = self.client.get(reverse("workshop:product-list"), params)
+        self.assertEqual(response.status_code, 200)
+        return {row.record.name for row in response.context["table"].rows}
+
+    def test_lists_ingredients_and_doughs(self):
+        ingredients_and_doughs = {
+            "Rye flour",
+            "Wheat flour",
+            "Flour",
+            "Water",
+            "Salt",
+            "Starter",
+            "Sourdough",
+        }
+        self.assertEqual(self.names(), ingredients_and_doughs)
+        self.assertEqual(self.names(all=""), ingredients_and_doughs | {"Bread"})
+
+    def test_add_from_recipes_is_sellable(self):
+        response = self.client.get(reverse("workshop:product-add") + "?sellable")
+        self.assertTrue(response.context["form"].initial["is_sellable"])
+        response = self.client.get(reverse("workshop:product-add"))
+        self.assertNotIn("is_sellable", response.context["form"].initial)
+
+    def test_has_recipe(self):
+        self.assertTrue(self.products["sourdough"].has_recipe)
+        self.assertFalse(self.products["salt"].has_recipe)
+        self.assertTrue(self.reload().load_recipe_tree().has_recipe)
+
+
+class SidebarTest(RecipeViewTestCase):
+    def assert_active(self, url, active_url):
+        response = self.client.get(url)
+        self.assertContains(
+            response, f'aria-current="page" href="{active_url}"', count=1
+        )
+
+    def test_section_from_url(self):
+        self.assert_active(reverse("workshop:workshop"), "/workshop/")
+        self.assert_active(
+            reverse("workshop:category-list"), reverse("workshop:category-list")
+        )
+        self.assert_active(reverse("users:update"), reverse("users:update"))
+
+    def test_product_pages_by_sellable(self):
+        self.assert_active(self.url("product-detail"), reverse("workshop:recipe-list"))
+        self.assert_active(
+            self.url("product-detail", self.products["salt"].pk),
+            reverse("workshop:product-list"),
+        )
+        self.assert_active(
+            reverse("workshop:product-add") + "?sellable",
+            reverse("workshop:recipe-list"),
+        )
 
 
 class ProductDetailQueryTest(RecipeViewTestCase):
@@ -99,7 +166,6 @@ class ProductDetailQueryTest(RecipeViewTestCase):
             name="Poolish",
             category=self.categories["pre-dough"],
             weight=200,
-            is_composable=True,
         )
         add(poolish, self.products["wheat"], 100)
         add(poolish, self.products["water"], 100)

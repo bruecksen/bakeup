@@ -8,12 +8,13 @@
 
 
 {% block page_heading_action %}
-<a href="{% url 'workshop:product-add' %}" class="btn btn-primary btn-sm float-end">{% blocktrans %}Add new {{ object_name }} {% endblocktrans %}</a>
+<a href="{{ add_url }}" class="btn btn-primary btn-sm float-end">{{ add_label }}</a>
 {% endblock page_heading_action %}
 
 {% block page_content %}
   {% if filter %}
   <form action="" method="get" class="form form-inline">
+    {% if "all" in request.GET %}<input type="hidden" name="all">{% endif %}
     <div class="row justify-content-end mb-3">
       <div class="col-3">
         {% bootstrap_field filter.form.search size='sm' wrapper_class='' layout='horizontal' show_label=False horizontal_field_class='col-12' %}
