@@ -1,0 +1,7 @@
+{% load i18n %}
+{% url 'workshop:production-plan-finish' pk=card.root.pk as finish_url %}
+{% url 'workshop:production-plan-production-day' pk=card.root.production_day_id as finish_next_url %}
+<a href="{{ finish_url }}?next={{ finish_next_url }}" class="btn btn-success {{ finish_class }}"
+  hx-post="{{ finish_url }}?next={{ finish_next_url }}"
+  hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
+  hx-select-oob="#production-summary,#day-actions"><i class="fas fa-check"></i><span class="{{ label_class }}"> {% trans "Finish" %}</span></a>

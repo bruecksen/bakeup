@@ -1,0 +1,31 @@
+<div id="steps-{{ card.root.pk }}" class="production-stages{% if card.stages|length > 1 %} has-rail{% endif %}">
+  {% for stage in card.stages %}
+  <div class="production-stage">
+    {% if card.stages|length > 1 %}
+    <div class="production-stage-rail" aria-hidden="true"><span class="stage-number">{{ stage.number }}</span></div>
+    {% endif %}
+    <div class="production-stage-content">
+      {% if card.stages|length > 1 %}
+      <div class="production-stage-label">{{ stage.label }}</div>
+      {% endif %}
+      <div class="row g-3">
+        {% for step in stage.steps %}
+        <div class="{% if card.stages|length == 1 %}col-12{% else %}col-12 col-md-6 col-xxl-4{% endif %}">
+          {% include "workshop/includes/production_plan_step.html" %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% if card.root.is_production %}
+  <div class="production-stage production-stage-finish d-print-none">
+    {% if card.stages|length > 1 %}
+    <div class="production-stage-rail" aria-hidden="true"><span class="stage-number"><i class="fas fa-check"></i></span></div>
+    {% endif %}
+    <div class="production-stage-content">
+      {% include "workshop/includes/production_plan_finish_button.html" %}
+    </div>
+  </div>
+  {% endif %}
+</div>
