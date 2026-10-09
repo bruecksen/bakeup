@@ -88,6 +88,7 @@ from bakeup.workshop.views import (
     production_plan_ingredient_toggle_view,
     production_plan_redirect_view,
     production_plan_start_view,
+    production_plan_steps_view,
     production_plan_update,
     production_plans_finish_view,
     production_plans_start_view,
@@ -261,6 +262,11 @@ urlpatterns = [
         "production-plans/<int:pk>/ingredients/toggle/",
         view=production_plan_ingredient_toggle_view,
         name="production-plan-ingredients-toggle-all",
+    ),
+    path(
+        "production-plans/<int:pk>/steps/",
+        view=production_plan_steps_view,
+        name="production-plan-steps",
     ),
     path(
         "notes/<str:model>/<int:object_id>/",

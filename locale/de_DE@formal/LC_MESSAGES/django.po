@@ -2354,3 +2354,12 @@ msgstr "„%(name)s“ neu anlegen"
 
 msgid "No orders yet, the plan is canceled."
 msgstr "Noch keine Bestellungen, der Plan wird abgebrochen."
+
+msgid "Make this dough next"
+msgstr "Diesen Teig als Nächstes machen"
+
+msgid "In progress"
+msgstr "In Arbeit"
+
+msgid "Next"
+msgstr "Als Nächstes"

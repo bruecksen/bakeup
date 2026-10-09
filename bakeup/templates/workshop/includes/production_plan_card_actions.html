@@ -9,11 +9,7 @@
     hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
     hx-select-oob="#production-summary,#day-actions">{% if card.has_orders %}<i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span>{% else %}<i class="fas fa-ban"></i><span class="d-none d-sm-inline"> {% trans "Cancel" %}</span>{% endif %}</a>
   {% elif root.is_production %}
-  {% url 'workshop:production-plan-finish' pk=root.pk as finish_url %}
-  <a href="{{ finish_url }}?next={{ day_url }}" class="btn btn-success"
-    hx-post="{{ finish_url }}?next={{ day_url }}"
-    hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
-    hx-select-oob="#production-summary,#day-actions"><i class="fas fa-check"></i><span class="d-none d-sm-inline"> {% trans "Finish" %}</span></a>
+  {% include "workshop/includes/production_plan_finish_button.html" with finish_class="production-card-finish" label_class="d-none d-sm-inline" %}
   {% endif %}
   <div class="dropdown">
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'More actions' %}">

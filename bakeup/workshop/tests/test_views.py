@@ -1,4 +1,6 @@
+import json
 from datetime import timedelta
+from urllib.parse import quote
 
 from django.db import connection
 from django.test import SimpleTestCase
@@ -487,7 +489,8 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         row = plan.product.parents.first()
         response = self.toggle(plan, row)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, f'id="step-{plan.pk}"')
+        self.assertContains(response, f'id="steps-{self.root().pk}"')
+        self.assertContains(response, f'id="step-{self.sub_plan("Starter").pk}"')
         self.assertContains(response, 'hx-swap-oob="true"')
         plan.refresh_from_db()
         self.assertEqual(plan.checked_ingredients, [row.pk])
@@ -526,13 +529,104 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         self.start()
         self.assertEqual(current(), ["Starter"])
         starter = self.sub_plan("Starter")
-        self.client.post(
+        toggle_all_url = reverse(
+            "workshop:production-plan-ingredients-toggle-all",
+            kwargs={"pk": starter.pk},
+        )
+        sourdough = self.sub_plan("Sourdough")
+        # The response moves the highlight to the next stage, and back on undo.
+        response = self.client.post(toggle_all_url)
+        self.assertEqual(current(), ["Sourdough"])
+        self.assertContains(
+            response, f'id="step-{sourdough.pk}" class="production-step is-current"'
+        )
+        response = self.client.post(toggle_all_url)
+        self.assertEqual(current(), ["Starter"])
+        self.assertContains(
+            response, f'id="step-{starter.pk}" class="production-step is-current"'
+        )
+        self.assertContains(
+            response, f'id="step-{sourdough.pk}" class="production-step"'
+        )
+
+    def choose(self, plan):
+        self.client.cookies["production_steps"] = quote(
+            json.dumps({self.root().pk: plan.pk})
+        )
+
+    def toggle_all(self, plan):
+        return self.client.post(
             reverse(
                 "workshop:production-plan-ingredients-toggle-all",
-                kwargs={"pk": starter.pk},
+                kwargs={"pk": plan.pk},
             )
         )
-        self.assertEqual(current(), ["Sourdough"])
+
+    def current(self):
+        return [
+            step["plan"].product.name
+            for step in self.cards()[self.bread]["steps"]
+            if step["is_current"]
+        ]
+
+    def test_chosen_dough_is_current_until_done(self):
+        self.start()
+        sourdough = self.sub_plan("Sourdough")
+        self.choose(sourdough)
+        self.assertEqual(self.current(), ["Sourdough"])
+        self.assertEqual(
+            [step["can_choose"] for step in self.cards()[self.bread]["steps"]],
+            [True, False, True],
+        )
+        response = self.toggle_all(sourdough)
+        self.assertContains(
+            response,
+            f'id="step-{self.root().pk}" class="production-step is-current"',
+        )
+        response = self.client.get(
+            reverse("workshop:production-plan-steps", kwargs={"pk": self.root().pk})
+        )
+        self.assertContains(response, f'id="steps-{self.root().pk}"')
+
+    def test_after_the_last_chosen_dough_the_first_open_one_is_current(self):
+        self.start()
+        self.choose(self.root())
+        self.assertEqual(self.current(), ["Bread"])
+        self.toggle_all(self.root())
+        self.assertEqual(self.current(), ["Starter"])
+        self.toggle_all(self.sub_plan("Starter"))
+        self.toggle_all(self.sub_plan("Sourdough"))
+        self.assertEqual(self.current(), [])
+
+    def add_poolish(self):
+        # A second pre dough, made at the same time as the sourdough.
+        poolish = ProductFactory(
+            name="Poolish", category=self.categories["pre-dough"], weight=200
+        )
+        add(poolish, self.products["wheat"], 100)
+        add(poolish, self.products["water"], 100)
+        add(self.bread, poolish, 200)
+        self.client.get(self.url("production-plan-update", self.root().pk))
+        self.start()
+
+    def test_one_dough_of_a_stage_is_current(self):
+        self.add_poolish()
+        self.toggle_all(self.sub_plan("Starter"))
+        self.assertEqual(self.current(), ["Sourdough"])
+        self.toggle_all(self.sub_plan("Sourdough"))
+        self.assertEqual(self.current(), ["Poolish"])
+
+    def test_after_the_chosen_dough_the_highlight_doesnt_go_back(self):
+        self.add_poolish()
+        poolish = self.sub_plan("Poolish")
+        self.choose(poolish)
+        self.toggle_all(poolish)
+        self.assertEqual(self.current(), ["Sourdough"])
+
+    def test_broken_step_cookie_is_ignored(self):
+        self.start()
+        self.client.cookies["production_steps"] = "not json"
+        self.assertEqual(self.current(), ["Starter"])
 
     def test_toggle_rejects_rows_of_other_plans(self):
         self.start()

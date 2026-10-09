@@ -13983,6 +13983,7 @@ li:hover > .row .main-flour-set,
           align-items: center;
   gap: 12px;
   gap: 0.75rem;
+  min-width: 0;
   min-height: 44px;
   padding: 0;
   color: inherit;
@@ -14072,6 +14073,10 @@ button.production-card-title:active {
   margin-left: auto;
 }
 
+.production-card-title[aria-expanded=true] ~ .production-card-actions .production-card-finish {
+  display: none;
+}
+
 .production-card-product {
   -webkit-box-flex: 0;
       -ms-flex: 0 1 auto;
@@ -14103,6 +14108,7 @@ button.production-card-title:active {
   gap: 0.1875rem;
   min-width: 0;
   overflow: hidden;
+  contain: inline-size;
   -webkit-mask-image: -webkit-gradient(linear, left top, right top, from(#000), to(transparent));
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
           mask-image: -webkit-gradient(linear, left top, right top, from(#000), to(transparent));
@@ -14305,6 +14311,24 @@ a.stage-ref {
   background-color: #dee2e6;
 }
 
+.production-stage-finish > .production-stage-rail {
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.production-stage-finish > .production-stage-rail::before {
+  position: absolute;
+  top: 0;
+  bottom: 50%;
+  left: calc(50% - 1px);
+  width: 2px;
+  content: "";
+  background-color: #dee2e6;
+}
+.production-stage-finish > .production-stage-rail .stage-number {
+  background-color: #198754;
+}
+
 .production-stage-label {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -14319,10 +14343,45 @@ a.stage-ref {
   font-weight: 700;
 }
 
-.production-step.is-current {
+.production-step-focus {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  margin-left: auto;
+  padding: 2px 10px;
+  padding: 0.125rem 0.625rem;
+  color: #6c757d;
+  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  background-color: #e9ecef;
+  border: 1px solid transparent;
+  border-radius: 50rem;
+}
+.production-step-focus.is-current {
+  color: #fff;
+  background-color: #CD6646;
+}
+
+.production-step-choose {
+  background-color: transparent;
+  border: 1px dashed #ced4da;
+}
+.production-step-choose:hover, .production-step-choose:focus-visible {
+  color: #CD6646;
   background-color: #fff;
-  -webkit-box-shadow: inset 0 0 0 2px #CD6646;
-          box-shadow: inset 0 0 0 2px #CD6646;
+  border-style: solid;
+  border-color: #CD6646;
+}
+
+.production-step.is-current {
+  background-color: rgba(205, 102, 70, 0.08);
+  -webkit-box-shadow: inset 0 0 0 3px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 0 0 3px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.production-step.is-current .production-step-header {
+  border-bottom-color: rgba(205, 102, 70, 0.4);
 }
 
 .production-step.is-done {
@@ -14523,14 +14582,45 @@ i.step-check-all {
   border-bottom: 0;
 }
 
-.production-instructions > summary {
+.production-disclosure > summary {
+  list-style: none;
   cursor: pointer;
 }
+.production-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.production-disclosure > summary:hover {
+  color: #CD6646;
+}
+.production-disclosure .production-disclosure-chevron {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 16px;
+          flex: 0 0 16px;
+  -ms-flex: 0 0 1rem;
+      flex: 0 0 1rem;
+  font-size: 16px;
+  font-size: 1rem;
+  text-align: center;
+  -webkit-transition: -webkit-transform 0.2s;
+  transition: -webkit-transform 0.2s;
+  transition: transform 0.2s;
+  transition: transform 0.2s, -webkit-transform 0.2s;
+}
+.production-disclosure:not([open]) .production-disclosure-chevron {
+  -webkit-transform: rotate(-90deg);
+          transform: rotate(-90deg);
+}
+
 .production-instructions .instructions-text {
   padding: 8px 12px;
   padding: 0.5rem 0.75rem;
   background-color: #f8f9fa;
   border-radius: 0.25rem;
+}
+
+.production-section-count {
+  color: #6c757d;
+  font-weight: 400;
 }
 
 .production-section-label {
@@ -14720,6 +14810,9 @@ i.step-check-all {
   }
 }
 @media print {
+  .production-stage:has(+ .production-stage-finish) > .production-stage-rail::after {
+    display: none;
+  }
   .production-card {
     -webkit-box-shadow: none;
             box-shadow: none;

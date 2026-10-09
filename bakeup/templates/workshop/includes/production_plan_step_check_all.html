@@ -3,7 +3,7 @@
 <input type="checkbox" class="form-check-input ingredient-check step-check-all"
   hx-post="{{ toggle_all_url }}"
   hx-trigger="change"
-  hx-target="#step-{{ step.plan.pk }}"
+  hx-target="#steps-{{ card.root.pk }}"
   hx-swap="outerMorph"
   title="{% if step.done %}{% trans 'Uncheck all' %}{% else %}{% trans 'Check all' %}{% endif %}"
   aria-label="{% if step.done %}{% trans 'Uncheck all' %}{% else %}{% trans 'Check all' %}{% endif %}"{% if step.done %} checked{% endif %}>

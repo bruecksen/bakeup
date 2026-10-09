@@ -15,6 +15,15 @@
     {% include "workshop/includes/production_plan_step_check_all.html" %}
     <h3 class="production-step-name">{{ step.plan.product.name }}</h3>
     {% if card.stages|length == 1 and step.plan.product.category %}<span class="badge text-bg-light">{{ step.plan.product.category.name }}</span>{% endif %}
+    {% if step.is_current and card.steps|length > 1 %}
+    <span class="production-step-focus is-current d-print-none">{% trans "In progress" %}</span>
+    {% elif step.can_choose %}
+    <button type="button" class="production-step-focus production-step-choose d-print-none" data-card="{{ card.root.pk }}" data-step="{{ step.plan.pk }}"
+      hx-get="{% url 'workshop:production-plan-steps' pk=card.root.pk %}"
+      hx-target="#steps-{{ card.root.pk }}"
+      hx-swap="outerMorph"
+      title="{% trans 'Make this dough next' %}">{% trans "Next" %}</button>
+    {% endif %}
   </header>
   {% include "workshop/includes/production_plan_step_rows.html" %}
   {% endif %}

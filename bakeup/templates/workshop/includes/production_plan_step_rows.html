@@ -7,7 +7,7 @@
       <form method="post" action="{{ toggle_url }}"
         hx-post="{{ toggle_url }}"
         hx-trigger="change"
-        hx-target="#step-{{ step.plan.pk }}"
+        hx-target="#steps-{{ card.root.pk }}"
         hx-swap="outerMorph">
         {% csrf_token %}
         <label class="ingredient-row{% if item.checked %} is-checked{% endif %}">

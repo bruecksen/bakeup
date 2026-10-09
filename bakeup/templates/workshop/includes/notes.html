@@ -2,8 +2,10 @@
 {% with label=object|model_label %}
 {% url 'workshop:notes' model=label object_id=object.pk as notes_url %}
 <div id="notes-{{ label|slugify }}-{{ object.pk }}" class="notes">
-  <h3 class="production-section-label">{% trans "Notes" %}</h3>
-  {% for note in object.notes.all %}
+  {% with notes=object.notes.all %}
+  <details class="production-disclosure"{% if notes or edit_note or form %} open{% endif %}>
+  <summary class="production-section-label"><i class="fas fa-angle-down production-disclosure-chevron d-print-none" aria-hidden="true"></i>{% trans "Notes" %}{% if notes %} <span class="production-section-count">({{ notes|length }})</span>{% endif %}</summary>
+  {% for note in notes %}
   <div class="note">
     {% if edit_note.pk == note.pk %}
     <form class="note-form" method="post" action="{% url 'workshop:note-update' pk=note.pk %}"
@@ -57,5 +59,7 @@
     {% if form.content.errors %}<div class="invalid-feedback d-block">{{ form.content.errors|first }}</div>{% endif %}
   </form>
   {% endif %}
+  </details>
+  {% endwith %}
 </div>
 {% endwith %}

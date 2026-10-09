@@ -1025,11 +1025,75 @@ function restoreExpandedCards() {
 
 document.addEventListener("DOMContentLoaded", restoreExpandedCards);
 document.addEventListener("htmx:after:swap", restoreExpandedCards);
+
+// The server renders every card collapsed, a morph would close an open card
+// until htmx:after:swap opens it again. htmx swaps asynchronously, so the
+// browser may paint in between: the card flickers and the page jumps.
+document.addEventListener("DOMContentLoaded", function() {
+    if (!window.htmx) return;
+    htmx.registerExtension("production-card-open", {
+        htmx_before_morph_attr: function(el, detail) {
+            if (detail.attrName === "class" && el.classList.contains("show") &&
+                el.parentElement && el.parentElement.classList.contains("production-card") &&
+                !/(^|\s)show(\s|$)/.test(detail.newValue)) {
+                return false;
+            }
+            if (detail.attrName === "aria-expanded" && el.matches(".production-card-title") &&
+                el.getAttribute("aria-expanded") === "true") {
+                return false;
+            }
+        }
+    });
+});
+
+// Production plan: the dough a baker chose to make next, per card and browser.
+// A cookie, so the server marks the current dough, see get_chosen_steps.
+var chosenStepsCookie = "production_steps";
+
+function setChosenStep(card, step) {
+    var steps = {};
+    var match = document.cookie.match(new RegExp("(?:^|; )" + chosenStepsCookie + "=([^;]*)"));
+    try {
+        if (match) steps = JSON.parse(decodeURIComponent(match[1]));
+    } catch (error) {}
+    steps[card] = step;
+    // Numeric keys are in ascending order, the oldest plans go first.
+    Object.keys(steps).slice(0, -50).forEach(function(key) { delete steps[key]; });
+    document.cookie = chosenStepsCookie + "=" + encodeURIComponent(JSON.stringify(steps)) +
+        "; path=/; max-age=2592000; SameSite=Lax";
+}
+
+document.addEventListener("htmx:config:request", function(event) {
+    var button = event.target.closest && event.target.closest(".production-step-choose");
+    if (button) setChosenStep(button.dataset.card, Number(button.dataset.step));
+});
+
+// Production plan: keep the card of a start, finish or cancel at its place
+// on the screen. Content above it changes height with the swap, Safari doesn't
+// anchor the scroll position like Chrome and Firefox do.
+var swappedCard = null;
+
+document.addEventListener("htmx:before:swap", function(event) {
+    var card = event.target.closest && event.target.closest(".production-card");
+    swappedCard = card ? {id: card.id, top: card.getBoundingClientRect().top} : null;
+});
+document.addEventListener("htmx:after:swap", function() {
+    if (!swappedCard) return;
+    var card = document.getElementById(swappedCard.id);
+    if (card) window.scrollBy(0, card.getBoundingClientRect().top - swappedCard.top);
+    swappedCard = null;
+});
 document.addEventListener("shown.bs.collapse", function(event) {
-    if (!event.target.closest(".production-card")) return;
+    var card = event.target.closest(".production-card");
+    if (!card) return;
     var ids = getExpandedCards().filter(function(id) { return id !== event.target.id; });
     ids.push(event.target.id);
     setExpandedCards(ids);
+    // A card the baker opened comes into view, if it doesn't fit already.
+    var rect = card.getBoundingClientRect();
+    if (rect.top < 0 || rect.bottom > window.innerHeight) {
+        card.scrollIntoView({behavior: "smooth", block: "start"});
+    }
 });
 document.addEventListener("hidden.bs.collapse", function(event) {
     if (!event.target.closest(".production-card")) return;

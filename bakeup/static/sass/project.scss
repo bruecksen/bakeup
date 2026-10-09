@@ -1134,6 +1134,7 @@ $tap-size: 44px;
     flex: 1 1 16rem;
     align-items: center;
     gap: .75rem;
+    min-width: 0;
     min-height: $tap-size;
     padding: 0;
     color: inherit;
@@ -1187,6 +1188,10 @@ button.production-card-title:active {
     gap: .5rem;
     margin-left: auto;
 }
+// An open card has "Finish" below its last stage instead of in the header.
+.production-card-title[aria-expanded="true"] ~ .production-card-actions .production-card-finish {
+    display: none;
+}
 .production-card-product {
     flex: 0 1 auto;
     min-width: 0;
@@ -1200,6 +1205,8 @@ button.production-card-title:active {
     white-space: nowrap;
 }
 // After the name on the same line, cut off at the end when there is no room.
+// Contained, so the pills don't count for the width of the header: the
+// actions would wrap to the next line instead.
 .production-progress {
     display: flex;
     flex: 1 1 0;
@@ -1207,6 +1214,7 @@ button.production-card-title:active {
     gap: .1875rem;
     min-width: 0;
     overflow: hidden;
+    contain: inline-size;
     mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
     font-size: .875rem;
     font-weight: 400;
@@ -1342,6 +1350,23 @@ a.stage-ref {
     content: "";
     background-color: $gray-300;
 }
+// "Finish" as the last point of the rail, the line goes down to its middle.
+.production-stage-finish > .production-stage-rail {
+    align-items: center;
+
+    &::before {
+        position: absolute;
+        top: 0;
+        bottom: 50%;
+        left: calc(50% - 1px);
+        width: 2px;
+        content: "";
+        background-color: $gray-300;
+    }
+    .stage-number {
+        background-color: $success;
+    }
+}
 .production-stage-label {
     display: flex;
     align-items: center;
@@ -1349,10 +1374,45 @@ a.stage-ref {
     margin-bottom: .5rem;
     font-weight: 700;
 }
+// The pill of the dough to make now, muted on the other open doughs: a tap
+// makes that one the current dough.
+.production-step-focus {
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: .125rem .625rem;
+    color: $gray-600;
+    font-size: .75rem;
+    font-weight: 500;
+    line-height: 1.5;
+    background-color: $gray-200;
+    border: 1px solid transparent;
+    border-radius: 50rem;
+
+    &.is-current {
+        color: $white;
+        background-color: $primary;
+    }
+}
+.production-step-choose {
+    background-color: transparent;
+    border: 1px dashed $gray-400;
+
+    &:hover,
+    &:focus-visible {
+        color: $primary;
+        background-color: $white;
+        border-style: solid;
+        border-color: $primary;
+    }
+}
 
 .production-step.is-current {
-    background-color: $white;
-    box-shadow: inset 0 0 0 2px $primary;
+    background-color: rgba($primary, .08);
+    box-shadow: inset 0 0 0 3px $primary, $box-shadow-sm;
+
+    .production-step-header {
+        border-bottom-color: rgba($primary, .4);
+    }
 }
 .production-step.is-done {
     height: auto;
@@ -1501,15 +1561,38 @@ i.step-check-all {
     border-bottom: 0;
 }
 
-.production-instructions {
+// Instructions and notes open and close, with the chevron like on the card
+// header. The summary as flex has no marker.
+.production-disclosure {
     > summary {
+        list-style: none;
         cursor: pointer;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+        &:hover {
+            color: $primary;
+        }
     }
-    .instructions-text {
-        padding: .5rem .75rem;
-        background-color: $gray-100;
-        border-radius: $border-radius-sm;
+    .production-disclosure-chevron {
+        flex: 0 0 1rem;
+        font-size: 1rem;
+        text-align: center;
+        transition: transform .2s;
     }
+    &:not([open]) .production-disclosure-chevron {
+        transform: rotate(-90deg);
+    }
+}
+.production-instructions .instructions-text {
+    padding: .5rem .75rem;
+    background-color: $gray-100;
+    border-radius: $border-radius-sm;
+}
+.production-section-count {
+    color: $text-muted;
+    font-weight: 400;
 }
 
 .production-section-label {
@@ -1654,6 +1737,9 @@ i.step-check-all {
 }
 
 @media print {
+    .production-stage:has(+ .production-stage-finish) > .production-stage-rail::after {
+        display: none;
+    }
     .production-card {
         box-shadow: none;
         border: 1px solid $gray-400;

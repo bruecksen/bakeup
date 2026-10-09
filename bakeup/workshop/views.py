@@ -1,4 +1,6 @@
+import json
 from typing import Any, OrderedDict
+from urllib.parse import unquote
 
 from dal.views import BaseQuerySetView
 from dal_select2.views import Select2ViewMixin
@@ -618,7 +620,17 @@ def production_plan_redirect_view(request):
     return HttpResponseRedirect(url)
 
 
-def get_production_plan_cards(production_day):
+def get_chosen_steps(request):
+    # The dough a baker chose to make next per card, kept per browser in a
+    # cookie, see project.js.
+    try:
+        steps = json.loads(unquote(request.COOKIES.get("production_steps", "{}")))
+        return {int(root_pk): int(plan_pk) for root_pk, plan_pk in steps.items()}
+    except (ValueError, TypeError, AttributeError):
+        return {}
+
+
+def get_production_plan_cards(production_day, chosen_steps=None):
     # All plans of the day in one query, grouped below their root plan. A card
     # lists the sub plans (pre doughs, main dough, ...) deepest first, which is
     # the order they are made in.
@@ -671,16 +683,33 @@ def get_production_plan_cards(production_day):
             plans_by_depth.append((0, root))
         stages = get_production_plan_stages(root, plans_by_depth)
         steps = [step for stage in stages for step in stage["steps"]]
-        # In production the steps of the first unfinished stage are the ones
-        # to make now, they can be made at the same time.
-        current_stage = next(
-            (step["stage"] for step in steps if not step["done"]), None
+        # In production one dough is made at a time, the first open one. A
+        # dough the baker chose comes first until it's done, then the first
+        # open one from its stage on, so it doesn't jump back to an earlier one.
+        open_steps = [step for step in steps if not step["done"]]
+        chosen = next(
+            (
+                step
+                for step in steps
+                if step["plan"].pk == (chosen_steps or {}).get(root.pk)
+            ),
+            None,
         )
+        if chosen and not chosen["done"]:
+            current = chosen
+        else:
+            first_stage = chosen["stage"] if chosen else 0
+            current = next(
+                (step for step in open_steps if step["stage"] >= first_stage),
+                open_steps[0] if open_steps else None,
+            )
         for step in steps:
-            step["is_current"] = (
+            step["is_current"] = root.is_production and step is current
+            step["can_choose"] = (
                 root.is_production
+                and len(steps) > 1
                 and not step["done"]
-                and step["stage"] == current_stage
+                and not step["is_current"]
             )
         # The dough per piece to divide and weigh out after the last step.
         piece_weight = None
@@ -746,7 +775,9 @@ def get_production_plan_stages(root, plans_by_depth):
                 category = step["plan"].product.category
                 if category and category.name not in names:
                     names.append(category.name)
-            stage["label"] = " · ".join(names)
+            stage["label"] = " · ".join(names) or _("Stage %(number)s") % {
+                "number": stage["number"]
+            }
         for step in stage["steps"]:
             # A row that is made in another step points to that step.
             for row in step["rows"]:
@@ -781,7 +812,9 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cards = get_production_plan_cards(self.production_day)
+        cards = get_production_plan_cards(
+            self.production_day, get_chosen_steps(self.request)
+        )
         context["cards"] = cards
         context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
@@ -821,16 +854,29 @@ def production_plan_ingredient_toggle_view(request, pk, row_pk=None):
     elif root.is_production and plan.product.parents.filter(pk=row_pk).exists():
         plan.toggle_ingredient(row_pk)
         status = 200
-    # The step with the header progress of its card, as the page renders them.
-    for card in get_production_plan_cards(root.production_day):
-        for step in card["steps"]:
-            if step["plan"].pk == plan.pk:
-                return render(
-                    request,
-                    "workshop/includes/production_plan_step_toggled.html",
-                    {"card": card, "step": step},
-                    status=status,
-                )
+    return render_production_plan_steps(request, root, status=status)
+
+
+@staff_member_required(login_url="login")
+def production_plan_steps_view(request, pk):
+    # The steps after the baker chose another dough to make next.
+    root = get_object_or_404(ProductionPlan, pk=pk, parent_plan=None)
+    return render_production_plan_steps(request, root)
+
+
+def render_production_plan_steps(request, root, status=200):
+    # All steps of the card, finishing or undoing one moves the current stage,
+    # with the header progress, as the page renders them.
+    for card in get_production_plan_cards(
+        root.production_day, get_chosen_steps(request)
+    ):
+        if card["root"].pk == root.pk:
+            return render(
+                request,
+                "workshop/includes/production_plan_step_toggled.html",
+                {"card": card},
+                status=status,
+            )
     raise Http404
 
 
