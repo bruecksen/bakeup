@@ -963,7 +963,8 @@ textarea {
     bottom: 0;
     left: 0;
     z-index: 1045;
-    width: min(85vw, 18rem);
+    width: auto;
+    max-width: 85vw;
     height: auto;
     transform: translateX(-100%);
     visibility: hidden;
@@ -985,6 +986,25 @@ textarea {
   .sidebar,
   .sidebar-backdrop {
     transition: none;
+  }
+}
+
+// Messages: top right on larger screens, along the bottom on phones where
+// they don't cover the menu button and the page title.
+#messages {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 1rem;
+  @include media-breakpoint-down(sm) {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    padding: .75rem;
+    .toast {
+      width: 100%;
+    }
   }
 }
 

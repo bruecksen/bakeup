@@ -44,13 +44,7 @@ $.fn.resizeselect = function(settings) {
 
 $(document).ready(function() {
     $("select.resizeselect").resizeselect();
-    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-    var toastList = toastElList.map(function(toastEl) {
-    // Creates an array of toasts (it only initializes them)
-        return new bootstrap.Toast(toastEl) // No need for options; use the default options
-    });
-    console.log(toastList);
-    toastList.forEach(toast => toast.show()); // This show them
+    showMessages();
     if (location.hash) {
         $("button[data-bs-target='" + location.hash + "']").tab("show");
     }
@@ -76,6 +70,14 @@ var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
   return new bootstrap.Popover(popoverTriggerEl)
 })
 
+
+// Messages from the server, hidden again after a few seconds. A toast that
+// was closed already isn't shown again.
+function showMessages() {
+    document.querySelectorAll("#messages .toast:not(.hide)").forEach(function(toastEl) {
+        bootstrap.Toast.getOrCreateInstance(toastEl, {delay: 6000}).show();
+    });
+}
 
 // Mobile sidebar: a drawer opened from the button in the top left corner, closed with the close
 // button, a tap on the backdrop or Escape.
@@ -744,9 +746,7 @@ document.addEventListener("htmx:after:swap", function(event) {
         var el = document.getElementById(id);
         if (el) el.classList.add("show");
     });
-    document.querySelectorAll("#messages .toast").forEach(function(toastEl) {
-        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-    });
+    showMessages();
     var failed = document.querySelector("#messages .toast");
     if (event.target.id === "add-ingredient-form" && !failed) resetAddIngredient();
     var form = event.target.closest(".amount-form");
