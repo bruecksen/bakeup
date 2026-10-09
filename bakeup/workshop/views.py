@@ -643,6 +643,13 @@ def get_production_plan_cards(production_day):
             production_day=production_day
         ).prefetch_related("notes__user")
     }
+    # Ordered quantity per product template, "Start" plans exactly this.
+    ordered_quantities = {}
+    for position in CustomerOrderPosition.objects.filter(
+        order__production_day=production_day
+    ).values("product_id", "product__product_template_id", "quantity"):
+        key = position["product__product_template_id"] or position["product_id"]
+        ordered_quantities[key] = ordered_quantities.get(key, 0) + position["quantity"]
     roots = [plan for plan in plans if plan.parent_plan_id is None]
     sub_plans = {root.pk: [] for root in roots}
     for plan in plans:
@@ -694,6 +701,11 @@ def get_production_plan_cards(production_day):
                 "steps": steps,
                 "stages": stages,
                 "has_recipe": bool(steps),
+                # Without orders "Start" cancels the plan, see _create_production_plan.
+                "has_orders": ordered_quantities.get(
+                    root.product.product_template_id, 0
+                )
+                > 0,
                 "weight": root.quantity * root.product.weight,
                 "piece_weight": piece_weight,
                 "total_weight": root.quantity * piece_weight

@@ -3,10 +3,11 @@
 <div class="d-flex gap-2 d-print-none">
   {% if root.is_planned %}
   {% url 'workshop:production-plan-start' pk=root.pk as start_url %}
-  <a href="{{ start_url }}?next={{ day_url }}" class="btn btn-warning"
+  <a href="{{ start_url }}?next={{ day_url }}" class="btn {% if card.has_orders %}btn-warning{% else %}btn-outline-danger{% endif %}"
+    {% if not card.has_orders %}data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="{% trans 'No orders yet, the plan is canceled.' %}"{% endif %}
     hx-post="{{ start_url }}?next={{ day_url }}"
     hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
-    hx-select-oob="#production-summary,#day-actions"><i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span></a>
+    hx-select-oob="#production-summary,#day-actions">{% if card.has_orders %}<i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span>{% else %}<i class="fas fa-ban"></i><span class="d-none d-sm-inline"> {% trans "Cancel" %}</span>{% endif %}</a>
   {% elif root.is_production %}
   {% url 'workshop:production-plan-finish' pk=root.pk as finish_url %}
   <a href="{{ finish_url }}?next={{ day_url }}" class="btn btn-success"

@@ -2250,3 +2250,6 @@ msgstr "„%(name)s“ neu anlegen"
 #~ msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
 #~ msgstr[0] "Du hast <strong>%(total_quantity)s</strong> Brot bestellt."
 #~ msgstr[1] "Du hast <strong>%(total_quantity)s</strong> Brote bestellt."
+
+msgid "No orders yet, the plan is canceled."
+msgstr "Noch keine Bestellungen, der Plan wird abgebrochen."

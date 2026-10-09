@@ -1119,6 +1119,22 @@ document.addEventListener("toggle", function(event) {
     }
 }, true);
 
+// Production plan: htmx swaps the cards, so their popovers are made on the
+// first hover or focus. They go before a swap, an open one would stay behind.
+["mouseover", "focusin"].forEach(function(type) {
+    document.addEventListener(type, function(event) {
+        var el = event.target.closest('.production-card [data-bs-toggle="popover"]');
+        if (!el || bootstrap.Popover.getInstance(el)) return;
+        bootstrap.Popover.getOrCreateInstance(el).show();
+    });
+});
+document.addEventListener("htmx:before:swap", function() {
+    document.querySelectorAll('.production-card [data-bs-toggle="popover"]').forEach(function(el) {
+        var popover = bootstrap.Popover.getInstance(el);
+        if (popover) popover.dispose();
+    });
+});
+
 document.addEventListener("htmx:after:swap", function() {
     openedDoneSteps.forEach(function(id) {
         var details = document.querySelector("#" + id + " > .production-step-collapsed");
