@@ -1205,3 +1205,89 @@ document.addEventListener("htmx:after:swap", function() {
         if (details) details.open = true;
     });
 });
+
+// Production day: the open tab is kept in the URL hash, so a reload, a
+// redirect to "#orders" or switching the day with htmx shows the same tab.
+function showDayTab(id) {
+    var button = document.querySelector('.day-tabs [data-bs-target="#' + id + '"]');
+    if (button) bootstrap.Tab.getOrCreateInstance(button).show();
+}
+
+var dayTab = location.hash.slice(1);
+
+document.addEventListener("shown.bs.tab", function(event) {
+    if (!event.target.closest(".day-tabs")) return;
+    dayTab = event.target.getAttribute("data-bs-target").slice(1);
+    history.replaceState(history.state, "", "#" + dayTab);
+});
+document.addEventListener("DOMContentLoaded", function() {
+    if (dayTab) showDayTab(dayTab);
+});
+function keepDayTab() {
+    if (!dayTab || !document.querySelector(".day-tabs")) return;
+    showDayTab(dayTab);
+    if (location.hash !== "#" + dayTab) {
+        history.replaceState(history.state, "", "#" + dayTab);
+    }
+}
+document.addEventListener("htmx:after:swap", keepDayTab);
+// htmx pushes the new URL without the hash.
+document.addEventListener("htmx:after:history:push", keepDayTab);
+
+document.addEventListener("click", function(event) {
+    if (event.target.closest("[data-print]")) window.print();
+});
+
+// Pickup emails: the number of recipients follows the chosen point of sale,
+// sending is off without any.
+function updateRecipientCount() {
+    var data = document.getElementById("recipient-counts");
+    var select = document.getElementById("id_point_of_sale");
+    if (!data || !select) return;
+    var count = JSON.parse(data.textContent)[select.value] || 0;
+    document.querySelectorAll("[data-recipient-count], #reminder-send [data-action-badge]").forEach(function(el) {
+        el.textContent = count;
+    });
+    var send = document.getElementById("reminder-send");
+    if (send) send.disabled = count === 0;
+}
+
+document.addEventListener("change", function(event) {
+    if (event.target.id === "id_point_of_sale") updateRecipientCount();
+});
+document.addEventListener("DOMContentLoaded", updateRecipientCount);
+
+// Pickup emails: a placeholder goes in at the cursor of the subject or the
+// text, whichever was used last. The chips keep the focus where it is. The
+// text gets it as a paste, which Draftail handles like any pasted text,
+// typing it would confuse the editor in an empty line.
+var placeholderField = null;
+
+document.addEventListener("focusin", function(event) {
+    if (!document.querySelector(".reminder-tags")) return;
+    if (event.target.id === "id_subject" || event.target.closest(".DraftEditor-root")) {
+        placeholderField = event.target;
+    }
+});
+document.addEventListener("mousedown", function(event) {
+    if (event.target.closest("[data-insert]")) event.preventDefault();
+});
+document.addEventListener("click", function(event) {
+    var tag = event.target.closest("[data-insert]");
+    if (!tag) return;
+    var text = tag.dataset.insert;
+    var field = placeholderField || document.querySelector(".reminder-editor [contenteditable=true]");
+    if (!field) return;
+    if (document.activeElement !== field) field.focus();
+    if (field.setRangeText) {
+        field.setRangeText(text, field.selectionStart, field.selectionEnd, "end");
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+    } else {
+        var data = new DataTransfer();
+        data.setData("text/plain", text);
+        var paste = new Event("paste", { bubbles: true, cancelable: true });
+        Object.defineProperty(paste, "clipboardData", { value: data });
+        field.dispatchEvent(paste);
+    }
+    document.body.dispatchEvent(new Event("reminder-preview"));
+});

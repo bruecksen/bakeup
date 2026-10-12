@@ -13,14 +13,19 @@ register = template.Library()
 def workshop_section(context):
     # The sidebar entry a workshop page belongs to: the first segment of its
     # URL, e.g. "orders" for /workshop/orders/5/update/. Product pages belong
-    # to the product range when the product is sold. The user pages are the
-    # profile.
+    # to the product range when the product is sold. The calendar and the
+    # pickup emails have their own entries, a single production day is the
+    # current day. The user pages are the profile.
     request = context["request"]
     match = request.resolver_match
     if match and match.namespace == "users":
         return "profile"
     if not match or match.namespace != "workshop":
         return ""
+    if match.url_name == "production-day-calendar":
+        return "production-day-calendar"
+    if match.url_name.startswith("production-day-reminder"):
+        return "reminders"
     path = request.path.removeprefix(reverse("workshop:workshop"))
     section = path.split("/", 1)[0] or "dashboard"
     if section == "products":

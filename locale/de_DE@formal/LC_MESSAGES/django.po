@@ -21,7 +21,7 @@ msgstr ""
 #: bakeup/templates/workshop/productionday_detail.html:121
 #: bakeup/workshop/tables.py:200
 msgid "Note"
-msgstr ""
+msgstr "Notiz"
 
 #: bakeup/newsletter/forms.py:25
 msgid "File to import"
@@ -168,7 +168,7 @@ msgstr ""
 
 #: bakeup/pages/blocks.py:186
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: bakeup/pages/blocks.py:191
 msgid "Button"
@@ -587,7 +587,7 @@ msgstr "Abbrechen"
 
 #: bakeup/templates/newsletter/confirm_import.html:30
 msgid "Preview"
-msgstr ""
+msgstr "Vorschau"
 
 #: bakeup/templates/newsletter/import_summary.html:3
 #: bakeup/templates/newsletter/import_summary.html:6
@@ -1610,17 +1610,17 @@ msgstr ""
 #, fuzzy
 #| msgid "Production days"
 msgid "Production day"
-msgstr "Produktionstage"
+msgstr "Produktionstag"
 
 #: bakeup/templates/workshop/productionday_detail.html:28
 #, fuzzy
 #| msgid "Go to products"
 msgid "Delete"
-msgstr "Zu den Produkte"
+msgstr "Löschen"
 
 #: bakeup/templates/workshop/productionday_detail.html:29
 msgid "Copy"
-msgstr ""
+msgstr "Kopieren"
 
 #: bakeup/templates/workshop/productionday_detail.html:30
 msgid "Show orders"
@@ -2342,10 +2342,6 @@ msgstr "„%(name)s“ neu anlegen"
 #~ "Die folgenden Bestellungen sind bereits in Produktion und können nicht "
 #~ "mehr storniert werden"
 
-#, fuzzy
-#~ msgid "Production plan"
-#~ msgstr "Produktionspläne"
-
 #, python-format
 #~ msgid "You ordered <strong>%(total_quantity)s</strong> product."
 #~ msgid_plural "You ordered <strong>%(total_quantity)s</strong> products."
@@ -2363,3 +2359,191 @@ msgstr "In Arbeit"
 
 msgid "Next"
 msgstr "Als Nächstes"
+
+msgid "Production plan"
+msgstr "Produktionsplan"
+
+msgid "Has orders"
+msgstr "hat Bestellungen"
+
+msgid "Print delivery bill"
+msgstr "Lieferschein drucken"
+
+msgid "Show in order list"
+msgstr "In Bestellliste anzeigen"
+
+msgid "Print"
+msgstr "Drucken"
+
+msgid "CW"
+msgstr "KW"
+
+msgid "Sold in shop"
+msgstr "Im Shop verkauft"
+
+msgid "State"
+msgstr "Status"
+
+msgid "Ordered / max."
+msgstr "Bestellt / max."
+
+msgid "Not published"
+msgstr "Nicht veröffentlicht"
+
+msgid "Ordered"
+msgstr "Bestellt"
+
+msgid "No products are planned for this day yet."
+msgstr "Für diesen Tag sind noch keine Produkte geplant."
+
+msgid "Add products"
+msgstr "Produkte hinzufügen"
+
+msgid "All picked up"
+msgstr "Alle abgeholt"
+
+msgid "There are no orders for this day yet."
+msgstr "Für diesen Tag gibt es noch keine Bestellungen."
+
+msgid "Current production day"
+msgstr "Aktueller Produktionstag"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "New production day"
+msgstr "Neuer Produktionstag"
+
+msgid "List"
+msgstr "Liste"
+
+msgid "Today"
+msgstr "Heute"
+
+msgid "Previous month"
+msgstr "Vorheriger Monat"
+
+msgid "Next month"
+msgstr "Nächster Monat"
+
+msgid "Open calendar"
+msgstr "Kalender öffnen"
+
+msgid "Production days of the month. Click a day to open it, or the + of a free day to add one."
+msgstr "Die Produktionstage des Monats. Ein Klick öffnet den Tag, das + an einem freien Tag legt einen neuen an."
+
+msgid "%(counter)s order"
+msgid_plural "%(counter)s orders"
+msgstr[0] "%(counter)s Bestellung"
+msgstr[1] "%(counter)s Bestellungen"
+
+msgid "Pickup emails"
+msgstr "Abhol-E-Mails"
+
+msgid "Drafts"
+msgstr "Entwürfe"
+
+msgid "New email"
+msgstr "Neue E-Mail"
+
+msgid "recipients, one email per order"
+msgstr "Empfänger, eine E-Mail pro Bestellung"
+
+msgid "Placeholders, click to copy"
+msgstr "Platzhalter, zum Kopieren klicken"
+
+msgid "Test email to me"
+msgstr "Testmail an mich"
+
+msgid "Send to"
+msgstr "Senden an"
+
+msgid "Send now?"
+msgstr "Jetzt senden?"
+
+msgid "Being sent"
+msgstr "Wird gesendet"
+
+msgid "Sending"
+msgstr "Wird gesendet"
+
+msgid "Queued"
+msgstr "In Warteschlange"
+
+msgid "All points of sale"
+msgstr "Alle Abholstellen"
+
+msgid "Sent"
+msgstr "Gesendet"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Sent to"
+msgstr "Gesendet an"
+
+msgid "Failed"
+msgstr "Fehlgeschlagen"
+
+msgid "No emails have been sent for this day yet."
+msgstr "Für diesen Tag wurden noch keine E-Mails gesendet."
+
+msgid "Recipients"
+msgstr "Empfänger"
+
+msgid "Subject"
+msgstr "Betreff"
+
+msgid "The email will be sent to %(count)s recipients in a moment."
+msgstr "Die E-Mail wird gleich an %(count)s Empfänger gesendet."
+
+msgid "Test email sent to %(email)s."
+msgstr "Testmail an %(email)s gesendet."
+
+msgid "Email saved."
+msgstr "E-Mail gespeichert."
+
+msgid "%(counter)s recipient"
+msgid_plural "%(counter)s recipients"
+msgstr[0] "%(counter)s Empfänger"
+msgstr[1] "%(counter)s Empfänger"
+
+msgid "%(counter)s sent"
+msgid_plural "%(counter)s sent"
+msgstr[0] "%(counter)s gesendet"
+msgstr[1] "%(counter)s gesendet"
+
+msgid "%(counter)s failed"
+msgid_plural "%(counter)s failed"
+msgstr[0] "%(counter)s fehlgeschlagen"
+msgstr[1] "%(counter)s fehlgeschlagen"
+
+msgid "Send"
+msgstr "Senden"
+
+msgid "Insert placeholder"
+msgstr "Platzhalter einfügen"
+
+msgid "Edit draft"
+msgstr "Entwurf bearbeiten"
+
+msgid "with example data"
+msgstr "mit Beispieldaten"
+
+msgid "No subject yet"
+msgstr "Noch kein Betreff"
+
+msgid "No text yet"
+msgstr "Noch kein Text"
+
+msgid "Write"
+msgstr "Schreiben"
+
+msgid "Emails of this day"
+msgstr "E-Mails dieses Tages"
+
+msgid "Not saved yet"
+msgstr "Noch nicht gespeichert"
+
+msgid "How a customer gets the email, with example data."
+msgstr "So bekommt eine Kundin oder ein Kunde die E-Mail, mit Beispieldaten."

@@ -13,6 +13,7 @@ from bakeup.contrib.models import Note
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
+    PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
@@ -22,6 +23,8 @@ from bakeup.workshop.models import (
     Product,
     ProductHierarchy,
     ProductionPlan,
+    ProductMapping,
+    ReminderMessage,
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
@@ -433,47 +436,38 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         instruction.save()
         self.assertEqual(self.cards()[self.bread]["instructions"], "Knead 10 minutes")
 
-    def test_product_without_recipe_gets_no_plan(self):
-        self.assertNotIn(self.cake, self.cards())
-        self.assertFalse(
-            ProductionPlan.objects.filter(product__product_template=self.cake).exists()
-        )
-        self.assertIsNone(
+    def test_product_without_recipe(self):
+        # A bakery without recipes still plans, starts and locks its products.
+        card = self.cards()[self.cake]
+        self.assertFalse(card["has_recipe"])
+        self.assertEqual(card["steps"], [])
+        self.assertEqual(card["day_product"], self.day_products[self.cake.pk])
+        self.assertEqual(
             ProductionDayProduct.objects.get(
                 pk=self.day_products[self.cake.pk].pk
-            ).production_plan
+            ).production_plan,
+            self.root(self.cake),
         )
 
-    def test_plan_of_product_without_recipe_is_removed(self):
-        # A plan from before products without a recipe were skipped.
-        cake_plan = ProductionPlan.objects.create(
-            production_day=self.production_day,
-            product=Product.duplicate(self.cake),
-            quantity=10,
-            state=ProductionPlan.State.CANCELED,
-        )
-        self.production_day.create_or_update_production_plans(
-            state=ProductionPlan.State.PLANNED, create_max_quantity=True
-        )
-        self.assertFalse(ProductionPlan.objects.filter(pk=cake_plan.pk).exists())
-
-    def test_order_is_locked_without_plan_for_product_without_recipe(self):
+    def test_order_of_product_without_recipe_is_locked_on_start(self):
         order = CustomerOrder.objects.create(
             production_day=self.production_day, address=""
         )
         CustomerOrderPosition.objects.create(
-            order=order, product=self.bread, quantity=1, production_plan=self.root()
+            order=order,
+            product=self.cake,
+            quantity=1,
+            production_plan=self.root(self.cake),
         )
-        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=1)
         self.assertFalse(order.is_locked)
-        self.start()
+        self.root(self.cake).set_production()
         self.assertTrue(order.is_locked)
 
     def test_summary(self):
         response = self.client.get(self.day_url())
         summary = response.context["summary"]
-        self.assertEqual(summary["products"], 1)
-        self.assertEqual(summary["pieces"], 10)
+        self.assertEqual(summary["products"], 2)
+        self.assertEqual(summary["pieces"], 20)
         self.assertContains(response, 'id="production-summary"')
 
     def test_toggle_needs_production(self):
@@ -753,6 +747,384 @@ class ProductionPlanDayQueryTest(ProductionPlanDayViewTest):
             state=ProductionPlan.State.PLANNED, create_max_quantity=True
         )
         self.assertEqual(self.count_queries(), before)
+
+
+class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
+    def setUp(self):
+        super().setUp()
+        day = self.production_day.day_of_sale
+        self.prev_day = ProductionDay.objects.create(day_of_sale=day - timedelta(1))
+        self.next_day = ProductionDay.objects.create(day_of_sale=day + timedelta(1))
+
+    def detail_url(self, production_day=None):
+        return self.url(
+            "production-day-detail", (production_day or self.production_day).pk
+        )
+
+    def detail(self):
+        response = self.client.get(self.detail_url())
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def add_order(self):
+        self.pos = PointOfSale.objects.create(name="Market")
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, point_of_sale=self.pos, address=""
+        )
+        CustomerOrderPosition.objects.create(
+            order=order, product=self.bread, quantity=3, production_plan=self.root()
+        )
+        return order
+
+    def assert_links(self, response, urls):
+        for url in urls:
+            self.assertContains(response, f'"{url}', msg_prefix=url)
+
+    def day_urls(self, *names):
+        pk = self.production_day.pk
+        return [reverse(f"workshop:{name}", kwargs={"pk": pk}) for name in names]
+
+    def test_every_control_of_a_planned_day(self):
+        pk = self.production_day.pk
+        response = self.detail()
+        self.assert_links(
+            response,
+            [
+                self.detail_url(self.prev_day),
+                self.detail_url(self.next_day),
+                reverse("workshop:production-day-calendar"),
+                reverse("workshop:production-day-add"),
+                reverse("workshop:production-day-delete", kwargs={"pk": pk}),
+                reverse("workshop:production-day-copy", kwargs={"pk": pk}),
+                reverse("workshop:order-list") + f"?production_day={pk}",
+                reverse("workshop:production-day-export", kwargs={"pk": pk}),
+                reverse("workshop:order-add", kwargs={"production_day": pk}),
+                reverse(
+                    "workshop:production-day-reminder", kwargs={"production_day": pk}
+                ),
+                reverse(
+                    "workshop:production-plans-start", kwargs={"production_day": pk}
+                ),
+                f"{self.day_url()}#production-plan-{self.root().pk}",
+                *self.day_urls(
+                    "production-day-update",
+                    "production-plan-production-day",
+                    "production-day-meta-product",
+                    "production-day-order-max-quantities",
+                    "order-batch",
+                ),
+            ],
+        )
+        self.assertContains(response, 'id="orders"')
+        self.assertContains(response, "data-print")
+        self.assertNotContains(
+            response,
+            reverse("workshop:production-plans-finish", kwargs={"production_day": pk}),
+        )
+
+    def test_every_control_of_a_day_in_production(self):
+        pk = self.production_day.pk
+        order = self.add_order()
+        self.start()
+        response = self.detail()
+        self.assert_links(
+            response,
+            [
+                reverse(
+                    "workshop:production-plans-finish", kwargs={"production_day": pk}
+                ),
+                reverse(
+                    "workshop:pos-all-picked-up",
+                    kwargs={"production_day": pk, "pos": self.pos.pk},
+                ),
+                reverse("workshop:order-is-picked-up", kwargs={"pk": order.pk}),
+            ],
+        )
+        self.assertNotContains(
+            response,
+            reverse("workshop:production-plans-start", kwargs={"production_day": pk}),
+        )
+        self.assertNotContains(
+            response,
+            reverse("workshop:production-day-order-max-quantities", kwargs={"pk": pk}),
+        )
+        self.assertEqual(response.context["stats"]["orders"], 1)
+        self.assertEqual(response.context["stats"]["pieces"], 3)
+
+    def test_one_filled_button_and_plan_in_menu(self):
+        pk = self.production_day.pk
+        start = reverse(
+            "workshop:production-plans-start", kwargs={"production_day": pk}
+        )
+        finish = reverse(
+            "workshop:production-plans-finish", kwargs={"production_day": pk}
+        )
+
+        def primary_and_menu():
+            actions = self.detail().context["day_actions"]
+            return (
+                [a.url.split("?")[0] for a in actions.buttons if a.kind == "primary"],
+                [a.url.split("?")[0] for a in actions.menu],
+            )
+
+        primary, menu = primary_and_menu()
+        self.assertEqual(primary, [start])
+        self.assertIn(self.day_url(), menu)
+        self.start()
+        primary, menu = primary_and_menu()
+        self.assertEqual(primary, [finish])
+        self.assertNotIn(finish, menu)
+
+    def test_delete_is_disabled_with_orders(self):
+        self.add_order()
+        response = self.detail()
+        delete = [a for a in response.context["day_actions"] if a.danger][0]
+        self.assertTrue(delete.disabled)
+        self.assertNotContains(response, f'href="{delete.url}"')
+
+    def test_product_rows(self):
+        self.add_order()
+        rows = {
+            row["day_product"].product: row
+            for row in self.detail().context["product_rows"]
+        }
+        self.assertEqual(rows[self.bread]["ordered"], 3)
+        self.assertEqual(rows[self.bread]["percent"], 30)
+        self.assertFalse(rows[self.bread]["is_over"])
+
+    def test_product_mapping_only_when_present(self):
+        self.assertNotContains(self.detail(), "day-mappings")
+        ProductMapping.objects.create(
+            source_product=self.cake,
+            target_product=self.bread,
+            production_day=self.production_day,
+            matched_count=2,
+        )
+        self.assertContains(self.detail(), "day-mappings")
+
+    def test_day_forms_return_to_the_day(self):
+        pk = self.production_day.pk
+        for name in ["order-batch", "production-day-meta-product"]:
+            response = self.client.get(reverse(f"workshop:{name}", kwargs={"pk": pk}))
+            self.assertContains(
+                response, f'href="{self.detail_url()}"', msg_prefix=name
+            )
+
+    def test_pos_all_picked_up_returns_to_the_day(self):
+        order = self.add_order()
+        response = self.client.post(
+            reverse(
+                "workshop:pos-all-picked-up",
+                kwargs={"production_day": self.production_day.pk, "pos": self.pos.pk},
+            )
+        )
+        self.assertRedirects(response, self.detail_url())
+        self.assertTrue(order.positions.get().is_picked_up)
+
+
+class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
+    def calendar(self, **params):
+        response = self.client.get(reverse("workshop:production-day-calendar"), params)
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def cells(self, response):
+        return {
+            cell["date"]: cell
+            for week in response.context["calendar"]["weeks"]
+            for cell in week
+        }
+
+    def test_month_shows_production_days(self):
+        self.add_order()
+        self.start()
+        day = self.production_day.day_of_sale
+        response = self.calendar(month=day.strftime("%Y-%m"))
+        cell = self.cells(response)[day]
+        self.assertEqual(cell["day"], self.production_day)
+        self.assertEqual(cell["day"].orders, 1)
+        self.assertEqual(cell["state_css_class"], "bg-warning")
+        self.assertContains(response, f'href="{self.detail_url()}"')
+        self.assertTemplateUsed(response, "workshop/productionday_calendar.html")
+
+    def test_free_future_day_can_be_added(self):
+        free = self.next_day.day_of_sale + timedelta(days=1)
+        response = self.calendar(month=free.strftime("%Y-%m"))
+        self.assertTrue(self.cells(response)[free]["can_add"])
+        self.assertContains(
+            response,
+            f"{reverse('workshop:production-day-add')}?day_of_sale={free.isoformat()}",
+        )
+
+    def test_add_view_takes_the_date(self):
+        response = self.client.get(
+            reverse("workshop:production-day-add"), {"day_of_sale": "2030-05-17"}
+        )
+        self.assertEqual(
+            str(response.context["form"].initial["day_of_sale"]), "2030-05-17"
+        )
+
+    def test_compact_calendar_links_to_the_plan(self):
+        day = self.production_day.day_of_sale
+        response = self.calendar(
+            month=day.strftime("%Y-%m"),
+            compact=1,
+            link="plan",
+            selected=day.isoformat(),
+        )
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+        cell = self.cells(response)[day]
+        self.assertTrue(cell["is_selected"])
+        self.assertEqual(cell["url"], self.day_url())
+        self.assertContains(response, 'hx-target="#production-day"')
+
+    def test_broken_month_falls_back_to_today(self):
+        response = self.calendar(month="nope", link="nope")
+        self.assertEqual(
+            response.context["calendar"]["month"], timezone.now().date().replace(day=1)
+        )
+
+    def test_day_picker_on_both_pages(self):
+        self.assertContains(self.detail(), "day-picker-toggle")
+        self.assertContains(self.client.get(self.day_url()), "day-picker-toggle")
+
+    def test_sidebar(self):
+        self.assertContains(
+            self.calendar(),
+            f'aria-current="page" href="{reverse("workshop:production-day-calendar")}"',
+            count=1,
+        )
+        self.assertContains(
+            self.detail(),
+            f'aria-current="page" href="{reverse("workshop:production-day-next")}"',
+            count=1,
+        )
+
+
+class PickupEmailsViewTest(ProductionDayDetailViewTest):
+    def reminder_url(self, production_day=None):
+        return reverse(
+            "workshop:production-day-reminder",
+            kwargs={"production_day": (production_day or self.production_day).pk},
+        )
+
+    def test_sidebar_opens_the_next_production_day(self):
+        response = self.client.get(reverse("workshop:production-day-reminder-next"))
+        upcoming = ProductionDay.objects.upcoming().first()
+        self.assertRedirects(response, self.reminder_url(upcoming))
+
+    def test_switcher_loads_the_pages(self):
+        response = self.client.get(self.reminder_url())
+        self.assertEqual(response.status_code, 200)
+        switch = response.context["day_switch"]
+        self.assertEqual(switch["previous_url"], self.reminder_url(self.prev_day))
+        self.assertEqual(switch["next_url"], self.reminder_url(self.next_day))
+        self.assertContains(response, f'href="{switch["next_url"]}"')
+        self.assertNotContains(response, f'hx-get="{switch["next_url"]}"')
+        self.assertFalse(switch["calendar"]["can_add_day"])
+        self.assertNotContains(response, reverse("workshop:production-day-add"))
+        self.assertContains(
+            response,
+            f'aria-current="page" href="{reverse("workshop:production-day-reminder-next")}"',
+            count=1,
+        )
+
+
+class PickupEmailsEditorTest(PickupEmailsViewTest):
+    def post(self, button, url=None, **data):
+        return self.client.post(
+            url or self.reminder_url(),
+            {
+                "subject": "Abholung",
+                "body": json.dumps(
+                    {
+                        "blocks": [
+                            {
+                                "key": "a",
+                                "type": "unstyled",
+                                "text": "Hallo {{ first_name }}",
+                                "depth": 0,
+                                "inlineStyleRanges": [],
+                                "entityRanges": [],
+                            }
+                        ],
+                        "entityMap": {},
+                    }
+                ),
+                "point_of_sale": "",
+                "production_day": self.production_day.pk,
+                button: "",
+                **data,
+            },
+        )
+
+    def draft_url(self, draft):
+        return reverse(
+            "workshop:production-day-reminder",
+            kwargs={"production_day": self.production_day.pk, "pk": draft.pk},
+        )
+
+    def test_save_keeps_a_draft(self):
+        response = self.post("save")
+        draft = ReminderMessage.objects.get()
+        self.assertTrue(draft.is_planned)
+        self.assertRedirects(response, self.draft_url(draft))
+        page = self.client.get(self.draft_url(draft))
+        self.assertEqual(list(page.context["drafts"]), [draft])
+        self.assertContains(page, 'class="reminder-item reminder-draft is-active"')
+
+    def test_send_queues_and_starts_a_new_email(self):
+        response = self.post("send")
+        self.assertRedirects(response, self.reminder_url())
+        self.assertTrue(ReminderMessage.objects.get().is_planned_sending)
+
+    def test_preview_fills_in_example_data(self):
+        response = self.post(
+            "preview",
+            url=reverse(
+                "workshop:production-day-reminder-preview",
+                kwargs={"production_day": self.production_day.pk},
+            ),
+            subject="Für {{ first_name }}",
+        )
+        self.assertContains(response, "Für Manu")
+        self.assertContains(response, "Hallo Manu")
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+
+    def test_lists_fill_in_the_shop_name(self):
+        self.post("save", subject="[{{ site_name }}] Abholung")
+        page = self.client.get(self.reminder_url())
+        draft = page.context["drafts"][0]
+        self.assertEqual(draft.display_subject, f"[{self.tenant.name}] Abholung")
+
+    def test_send_needs_recipients(self):
+        def send():
+            actions = self.client.get(self.reminder_url()).context["editor_actions"]
+            return [a for a in actions if a.submit_name == "send"][0]
+
+        self.assertTrue(send().disabled)
+        self.add_order()
+        self.assertFalse(send().disabled)
+        self.assertEqual(send().badge, 1)
+
+    def test_recipients_by_point_of_sale(self):
+        self.add_order()
+        response = self.client.get(self.reminder_url())
+        self.assertEqual(
+            response.context["recipient_counts"], {"": 1, str(self.pos.pk): 1}
+        )
+        self.assertEqual(response.context["recipient_count"], 1)
+
+    def test_delete_draft(self):
+        self.post("save")
+        draft = ReminderMessage.objects.get()
+        self.client.post(
+            reverse(
+                "workshop:production-day-reminder-delete",
+                kwargs={"production_day": self.production_day.pk, "pk": draft.pk},
+            )
+        )
+        self.assertFalse(ReminderMessage.objects.exists())
 
 
 class CleverUnitTest(SimpleTestCase):

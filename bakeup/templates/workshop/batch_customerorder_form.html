@@ -22,7 +22,7 @@
               {% if next %}
               <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">
               {% else %}
-              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">
+              <a href="{{ production_day.get_absolute_url }}" class="btn btn-outline-primary float-end me-2">
               {% endif %}{% trans "Cancel" %}</a>
             </div>
           </div>
@@ -65,7 +65,7 @@
               {% if next %}
               <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">
               {% else %}
-              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">
+              <a href="{{ production_day.get_absolute_url }}" class="btn btn-outline-primary float-end me-2">
               {% endif %}{% trans "Cancel" %}</a>
             </div>
           </div>

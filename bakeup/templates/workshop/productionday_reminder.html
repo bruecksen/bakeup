@@ -1,152 +1,131 @@
 {% extends "workshop/base.html" %}
-{% load crispy_forms_tags %}
 {% load django_bootstrap5 %}
+{% load i18n %}
 
 {% block wagtail_non_admin_draftail_head %}
   {% include "wagtail_non_admin_draftail/draftail_media.html" %}
 {% endblock wagtail_non_admin_draftail_head %}
 
-{% block title %}Send production day reminder{% endblock %}
-{% block page_heading %}
-Production day reminder <small class="text-muted">{{ object }}</small>
-{% endblock %}
+{% block title %}{% trans "Pickup emails" %}{% endblock %}
+{% block page_heading %}{% trans "Pickup emails" %}{% endblock %}
 
 {% block page_content %}
-{% if messages_sending %}
-<div class="row">
-  <div class=" col">
-    {% for message in messages_sending %}
-    <p><span class="badge bg-warning text-dark">{% if message.is_sending %}SENDING{% elif message.is_planned_sending %}PLANNED SENDING{% endif %}</span> {{ message.get_orders.count }} emails to users: <small> {{ message }}</small></p>
-  {% endfor %}
+<div class="day-header">
+  <div class="day-header-top">
+    {% include "workshop/includes/production_day_switch.html" %}
+    {% include "workshop/includes/actions.html" with actions=header_actions %}
   </div>
 </div>
-<hr>
-{% endif %}
-{{ form.errors }}
-<div class="row">
-  <div class="col-sm-10 col">
-    <div class="row">
-      <div class="col-6">
-        <form method="POST" id="select-message-form" action="{% url 'workshop:reminder-message-redirect' pk=production_day.pk %}">
-          {% csrf_token %}
-          {% bootstrap_field select_message_form.message %}
-        </form>
-      </div>
-    </div>
-      <form class="form-horizontal" method="POST">
-      <input type="hidden" name="next" value="{{ next }}" />
+
+<div class="row g-4">
+  <div class="col-12 col-xl-8">
+    <form method="post" class="reminder-editor">
+      {% csrf_token %}
       {{ form.media }}
       {{ form.production_day.as_hidden }}
-      {% csrf_token %}
-      <div class="card p-3">
-        <div class="row">
-          <div class="col">
-            {% bootstrap_field form.point_of_sale %}
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="reminder-write-tab" data-bs-toggle="tab" data-bs-target="#reminder-write" type="button" role="tab" aria-controls="reminder-write" aria-selected="true"><i class="fas fa-pen" aria-hidden="true"></i> {% trans "Write" %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="reminder-preview-tab" data-bs-toggle="tab" data-bs-target="#reminder-preview-pane" type="button" role="tab" aria-controls="reminder-preview-pane" aria-selected="false"><i class="far fa-eye" aria-hidden="true"></i> {% trans "Preview" %}</button>
+        </li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane show active" id="reminder-write" role="tabpanel" aria-labelledby="reminder-write-tab">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-sm-6">
+              {% bootstrap_field form.point_of_sale wrapper_class="mb-0" %}
+            </div>
+            <div class="col-sm-6">
+              <p class="reminder-recipients"><i class="fas fa-user-group" aria-hidden="true"></i> <span data-recipient-count>{{ recipient_count }}</span> {% trans "recipients, one email per order" %}</p>
+            </div>
           </div>
-          <div class="col">
+          {% bootstrap_field form.subject %}
+          {% bootstrap_field form.body show_help=False wrapper_class="mb-2" %}
+          <div class="reminder-tags">
+            <span class="reminder-tags-label">{% trans "Insert placeholder" %}</span>
+            {% for tag in tags %}
+            <button type="button" class="reminder-tag" data-insert="{{ tag }}">{{ tag }}</button>
+            {% endfor %}
           </div>
         </div>
-        <div class="row">
-          <div class="col">
-            {% bootstrap_field form.subject %}
-          </div>
+        <div class="tab-pane" id="reminder-preview-pane" role="tabpanel" aria-labelledby="reminder-preview-tab">
+          <p class="reminder-panel-note">{% trans "How a customer gets the email, with example data." %}</p>
+          <div class="reminder-preview"
+            hx-post="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}"
+            hx-include=".reminder-editor"
+            hx-trigger="load, shown.bs.tab from:#reminder-preview-tab, input delay:600ms from:.reminder-editor, change from:.reminder-editor, reminder-preview delay:400ms from:body"></div>
         </div>
-        <div class="row">
-          <div class="col">
-            {% bootstrap_field form.body %}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <a class="btn btn-outline-primary" href="{% url 'workshop:production-day-detail' pk=production_day.pk %}">Back</a>
-            <button type="submit" class="btn btn-outline-primary" name="save"><i class="far fa-save"></i> Save reminder</button>
-            {% if object and object.is_planned %}<a class="btn btn-outline-primary" href="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}"><i class="fas fa-trash-alt"></i> Delete reminder</a>{% endif %}
-            <button type="submit" class="btn btn-outline-primary" name="send_test"><i class="fas fa-paper-plane"></i> Send test email</button>
-            <button type="submit" class="btn btn-primary" id="send-emails-button" name="send"><i class="fas fa-paper-plane"></i> Send reminder emails</button>
-          </div>
-        </div>
+      </div>
+      <div class="reminder-editor-footer">
+        {% include "workshop/includes/actions.html" with actions=editor_actions %}
       </div>
     </form>
+    {% if object %}
+    <form id="reminder-delete-form" method="post" action="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}">{% csrf_token %}</form>
+    {% endif %}
   </div>
-</div>
-<hr>
-{% if messages_sent %}
-<div class="row mt-4">
-  <div class="col">
-    <h2>Message History</h2>
-  </div>
-</div>
-<div class="row">
-  <div class="col-sm-8 col">
-    {% for message in messages_sent %}
-    <div class="card p-3 mt-3 {% if message.error_log %} card-warning{% endif %}">
-      <div class="row">
-        <div class="col">
-          <p class="small mb-0">{{ message.sent_date }}</p>
-          <h5>{% if message.error_log %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ message }} </h5>
-          <hr>
-          <a data-bs-toggle="collapse" href=".email-body-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail body</a>
-          <div class="collapse email-body-{{ message.pk }}">{{ message.body|safe }}</div>
-          <hr>
-          <p><small>
-            <a data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail send: {{ message.send_log|length }}</a>
-            <span class="collapse email-log-{{ message.pk }}">{{ message.send_log|join:', ' }}</span><br>
-            <a class="" data-bs-toggle="collapse" href=".email-log-{{ message.pk }}" role="button" aria-expanded="false" aria-controls="collapseExample">E-mail errors: {{ message.error_log|length }}</a>
-            <span class="collapse email-log-{{ message.pk }}">{% for email, error in message.error_log.items %} {{ email }}: {{ error }} {% endfor %}</span>
-          </small>
-          </p>
 
+  <div class="col-12 col-xl-4">
+    <section class="reminder-panel">
+      <h2 class="reminder-panel-title">{% trans "Emails of this day" %}</h2>
+
+      <div class="reminder-group">
+        <div class="reminder-group-head">
+          <h3 class="reminder-group-title">{% trans "Drafts" %}</h3>
+          {% if object %}<a class="reminder-panel-link" href="{% url 'workshop:production-day-reminder' production_day=production_day.pk %}"><i class="fas fa-plus" aria-hidden="true"></i> {% trans "New email" %}</a>{% endif %}
         </div>
+        {% if not object %}
+        <div class="reminder-item reminder-draft is-active" aria-current="page">
+          <div class="reminder-item-subject">{% trans "New email" %}</div>
+          <div class="reminder-item-meta">{% trans "Not saved yet" %}</div>
+        </div>
+        {% endif %}
+        {% for draft in drafts %}
+        <a class="reminder-item reminder-draft{% if draft == object %} is-active{% endif %}" href="{% url 'workshop:production-day-reminder' production_day=production_day.pk pk=draft.pk %}"{% if draft == object %} aria-current="page"{% endif %}>
+          <div class="reminder-item-subject">{{ draft.display_subject }}</div>
+          <div class="reminder-item-meta">{% if draft.point_of_sale %}{{ draft.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %}</div>
+        </a>
+        {% endfor %}
       </div>
-    </div>
-  {% endfor %}
+
+      {% if messages_sending %}
+      <div class="reminder-group">
+        <h3 class="reminder-group-title">{% trans "Being sent" %}</h3>
+        {% for message in messages_sending %}
+        <div class="reminder-item">
+          <div class="reminder-item-subject">{{ message.display_subject }}</div>
+          <div class="reminder-item-meta"><span class="badge rounded-pill text-bg-warning">{% if message.is_sending %}{% trans "Sending" %}{% else %}{% trans "Queued" %}{% endif %}</span> {% if message.point_of_sale %}{{ message.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %} · {% blocktrans count counter=message.get_orders.count %}{{ counter }} recipient{% plural %}{{ counter }} recipients{% endblocktrans %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="reminder-group">
+        <h3 class="reminder-group-title">{% trans "Sent" %}</h3>
+        {% for message in messages_sent %}
+        <div class="reminder-item">
+          <div class="reminder-item-subject">{% if message.error_log %}<i class="fas fa-triangle-exclamation text-warning" aria-hidden="true"></i> {% endif %}{{ message.display_subject }}</div>
+          <div class="reminder-item-meta">
+            {{ message.sent_date|date:"SHORT_DATETIME_FORMAT" }} · {% if message.point_of_sale %}{{ message.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %} · {% blocktrans count counter=message.send_log|length %}{{ counter }} sent{% plural %}{{ counter }} sent{% endblocktrans %}{% if message.error_log %} · <span class="text-danger">{% blocktrans count counter=message.error_log|length %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktrans %}</span>{% endif %}
+          </div>
+          <details class="reminder-details production-disclosure">
+            <summary><i class="fas fa-angle-down production-disclosure-chevron" aria-hidden="true"></i> {% trans "Details" %}</summary>
+            <div class="reminder-details-body">{{ message.body|safe }}</div>
+            {% if message.send_log %}<p class="reminder-details-log"><strong>{% trans "Sent to" %}:</strong> {{ message.send_log|join:", " }}</p>{% endif %}
+            {% if message.error_log %}<p class="reminder-details-log text-danger"><strong>{% trans "Failed" %}:</strong> {% for email, error in message.error_log.items %}{{ email }} ({{ error }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+          </details>
+        </div>
+        {% empty %}
+        <p class="reminder-empty">{% trans "No emails have been sent for this day yet." %}</p>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 </div>
-{% endif %}
-{{ emails |json_script:"emails" }}
-<script type="text/javascript">
-  var emails = JSON.parse(document.getElementById('emails').textContent);
-  var select = document.getElementById('id_point_of_sale')
-  select.addEventListener('change', function() {
-    if (this.value) {
-      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails[this.value].length + " reminder emails";
-    } else {
-      document.getElementById('send-emails-button').innerHTML = "<i class='fas fa-paper-plane'></i> Send " + emails['all'].length + " reminder emails";
-    }
-  });
-  select.dispatchEvent(new Event('change'));
-
-  var source = document.getElementById('id_body');
-  var target = document.getElementById('email-body');
-
-  source.addEventListener('input', function() {
-    var sourceValue = source.value;
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*first_name\\s*\\}\\}","g"), 'Manu');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*last_name\\s*\\}\\}","g"), 'Musteruser');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*email\\s*\\}\\}","g"), 'manu@gmail.com');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*production_day\\s*\\}\\}","g"), '16.03.2023');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*site_name\\s*\\}\\}","g"), '{{ request.tenant.name|safe }}');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order\\s*\\}\\}","g"), '1 x Hasenbrot 3,99 €\n2 x Baguette \n1 x Roggenmisch');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order_count\\s*\\}\\}","g"), '4');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*price_total\\s*\\}\\}","g"), '23,99 €');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*point_of_sale\\s*\\}\\}","g"), 'Im Laden');
-    target.value = sourceValue;
-  });
-  source.dispatchEvent(new Event('input'));
-  var source2 = document.getElementById('id_subject');
-  var target2 = document.getElementById('email-subject');
-
-  source2.addEventListener('input', function() {
-    var sourceValue = source2.value;
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*user\\s*\\}\\}","g"), 'Manu Musteruser');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*production_day\\s*\\}\\}","g"), '16.03.2023');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*site_name\\s*\\}\\}","g"), '{{ request.tenant.name|safe }}');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order\\s*\\}\\}","g"), '1 x Hasenbrot 3,99 €\n2 x Baguette \n1 x Roggenmisch');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*order_count\\s*\\}\\}","g"), '4');
-    sourceValue = sourceValue.replace(new RegExp("\\{\\{\\s*price_total\\s*\\}\\}","g"), '23,99 €');
-    target2.value = sourceValue;
-  });
-  source2.dispatchEvent(new Event('input'));
-</script>
+{{ recipient_counts|json_script:"recipient-counts" }}
 {% endblock %}

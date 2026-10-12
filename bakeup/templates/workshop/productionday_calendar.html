@@ -1,0 +1,14 @@
+{% extends "workshop/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Calendar" %}{% endblock %}
+{% block page_heading %}{% trans "Calendar" %}{% endblock %}
+{% block page_heading_action %}{% endblock %}
+
+{% block page_content %}
+<div class="day-header">
+  <p class="day-meta mb-0">{% trans "Production days of the month. Click a day to open it, or the + of a free day to add one." %}</p>
+  {% include "workshop/includes/actions.html" with actions=calendar_actions %}
+</div>
+{% include "workshop/includes/production_day_calendar.html" %}
+{% endblock %}

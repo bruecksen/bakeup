@@ -44,10 +44,10 @@ from bakeup.workshop.views import (
     ProductHierarchyDeleteView,
     ProductHierarchyUpdateView,
     ProductionDayAddView,
+    ProductionDayCalendarView,
     ProductionDayCopyView,
     ProductionDayDeleteView,
     ProductionDayDetailView,
-    ProductionDayListView,
     ProductionDayMetaProductView,
     ProductionDayProductDeleteView,
     ProductionDayReminderDeleteView,
@@ -83,6 +83,8 @@ from bakeup.workshop.views import (
     product_salt_view,
     product_total_dough_weight_view,
     production_day_redirect_view,
+    production_day_reminder_preview_view,
+    production_day_reminder_redirect_view,
     production_plan_cancel_view,
     production_plan_finish_view,
     production_plan_ingredient_toggle_view,
@@ -92,7 +94,6 @@ from bakeup.workshop.views import (
     production_plan_update,
     production_plans_finish_view,
     production_plans_start_view,
-    reminder_message_redirect_view,
 )
 
 app_name = "workshop"
@@ -294,9 +295,9 @@ urlpatterns = [
         name="production-day-next",
     ),
     path(
-        "production-days/list/",
-        view=ProductionDayListView.as_view(),
-        name="production-day-list",
+        "production-days/calendar/",
+        view=ProductionDayCalendarView.as_view(),
+        name="production-day-calendar",
     ),
     path(
         "production-days/add/",
@@ -334,6 +335,11 @@ urlpatterns = [
         name="production-day-meta-product",
     ),
     path(
+        "production-days/pickup-emails/",
+        view=production_day_reminder_redirect_view,
+        name="production-day-reminder-next",
+    ),
+    path(
         "production-days/<int:production_day>/reminder/<int:pk>/",
         view=ProductionDayReminderView.as_view(),
         name="production-day-reminder",
@@ -344,14 +350,14 @@ urlpatterns = [
         name="production-day-reminder-delete",
     ),
     path(
+        "production-days/<int:production_day>/reminder/preview/",
+        view=production_day_reminder_preview_view,
+        name="production-day-reminder-preview",
+    ),
+    path(
         "production-days/<int:production_day>/reminder/",
         view=ProductionDayReminderView.as_view(),
         name="production-day-reminder",
-    ),
-    path(
-        "production-days/<int:pk>/select-reminder/",
-        view=reminder_message_redirect_view,
-        name="reminder-message-redirect",
     ),
     path(
         "production-days/<int:pk>/all-picked-up/",

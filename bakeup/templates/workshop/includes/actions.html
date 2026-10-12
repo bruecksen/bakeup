@@ -1,0 +1,33 @@
+{% load i18n %}
+<div class="action-bar d-print-none">
+  {% for action in actions.buttons %}
+  {% if action.is_print %}
+  <button type="button" class="btn {{ action.css_class }}" data-print title="{{ action.label }}" aria-label="{{ action.label }}">{% if action.icon %}<i class="{{ action.icon }}" aria-hidden="true"></i> {% endif %}<span class="action-label">{{ action.label }}</span></button>
+  {% elif action.is_submit %}
+  <button type="submit" class="btn {{ action.css_class }}{% if action.confirm_label %} confirm-tap{% endif %}"{% if action.id %} id="{{ action.id }}"{% endif %}{% if action.submit_name %} name="{{ action.submit_name }}"{% endif %}{% if action.form %} form="{{ action.form }}"{% endif %}{% if action.confirm_label %} data-confirm-tap{% endif %}{% if action.disabled %} disabled{% endif %}>{% if action.icon %}<i class="{{ action.icon }}" aria-hidden="true"></i> {% endif %}<span class="action-label">{{ action.label }}{% if action.badge is not None %} <span class="action-badge" data-action-badge>{{ action.badge }}</span>{% endif %}</span>{% if action.confirm_label %}<span class="confirm-tap-label">{{ action.confirm_label }}</span>{% endif %}</button>
+  {% else %}
+  <a href="{{ action.url }}" class="btn {{ action.css_class }}"{% if action.is_htmx and target %} hx-post="{{ action.url }}" hx-target="{{ target }}" hx-select="{{ target }}" hx-swap="outerMorph"{% endif %} title="{{ action.label }}" aria-label="{{ action.label }}">{% if action.icon %}<i class="{{ action.icon }}" aria-hidden="true"></i> {% endif %}<span class="action-label">{{ action.label }}</span></a>
+  {% endif %}
+  {% endfor %}
+  {% if actions.menu %}
+  <div class="dropdown">
+    <button type="button" class="btn btn-surface" data-bs-toggle="dropdown"{% if actions.menu_has_confirm %} data-bs-auto-close="outside"{% endif %} aria-expanded="false" aria-label="{% trans 'More actions' %}" title="{% trans 'More actions' %}"><i class="fas fa-ellipsis" aria-hidden="true"></i></button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      {% for action in actions.menu %}
+      {% if action.danger and not forloop.first %}<li><hr class="dropdown-divider"></li>{% endif %}
+      <li>
+        {% if action.disabled %}
+        <span class="dropdown-item disabled" aria-disabled="true"><i class="{{ action.icon }} fa-fw" aria-hidden="true"></i> {{ action.label }}{% if action.disabled_reason %} <small class="text-muted">({{ action.disabled_reason }})</small>{% endif %}</span>
+        {% elif action.is_print %}
+        <button type="button" class="dropdown-item" data-print><i class="{{ action.icon }} fa-fw" aria-hidden="true"></i> {{ action.label }}</button>
+        {% elif action.is_submit %}
+        <button type="submit" class="dropdown-item{% if action.danger %} text-danger{% endif %}{% if action.confirm_label %} confirm-tap{% endif %}"{% if action.submit_name %} name="{{ action.submit_name }}"{% endif %}{% if action.form %} form="{{ action.form }}"{% endif %}{% if action.confirm_label %} data-confirm-tap{% endif %}><i class="{{ action.icon }} fa-fw" aria-hidden="true"></i> <span class="action-label">{{ action.label }}</span>{% if action.confirm_label %}<span class="confirm-tap-label">{{ action.confirm_label }}</span>{% endif %}</button>
+        {% else %}
+        <a class="dropdown-item{% if action.danger %} text-danger{% endif %}" href="{{ action.url }}"{% if action.is_htmx and target %} hx-post="{{ action.url }}" hx-target="{{ target }}" hx-select="{{ target }}" hx-swap="outerMorph"{% endif %}><i class="{{ action.icon }} fa-fw" aria-hidden="true"></i> {{ action.label }}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>

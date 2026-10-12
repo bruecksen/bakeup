@@ -1,6 +1,9 @@
+import calendar
 import json
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any, OrderedDict
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 
 from dal.views import BaseQuerySetView
 from dal_select2.views import Select2ViewMixin
@@ -15,8 +18,10 @@ from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template import Context, Template, TemplateSyntaxError
 from django.urls import reverse, reverse_lazy
 from django.utils.datastructures import MultiValueDict
+from django.utils.dates import WEEKDAYS_ABBR
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
@@ -30,7 +35,6 @@ from django.views.generic import (
     UpdateView,
 )
 from django_filters.views import FilterView
-from django_htmx.http import HttpResponseClientRefresh
 from django_tables2 import SingleTableMixin, SingleTableView
 from django_tables2.export import ExportMixin as TableExportMixin
 from taggit.models import Tag
@@ -80,7 +84,6 @@ from bakeup.workshop.forms import (
     ReminderMessageForm,
     SelectProductForm,
     SelectProductionDayForm,
-    SelectReminderMessageForm,
     ingredient_choices,
 )
 from bakeup.workshop.models import (
@@ -103,7 +106,6 @@ from bakeup.workshop.tables import (
     GroupTable,
     PointOfSaleTable,
     ProductFilter,
-    ProductionDayTable,
     ProductionPlanFilter,
     ProductTable,
 )
@@ -818,22 +820,7 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
         context["cards"] = cards
         context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
-        form = ProductionPlanDayForm(initial={"production_day": self.production_day})
-        # The page switches days with htmx instead of submitting the form.
-        form.fields["production_day"].widget.attrs.pop("onchange")
-        context["production_day_form"] = form
-        try:
-            context["production_day_prev"] = ProductionDay.get_previous_by_day_of_sale(
-                self.production_day
-            )
-        except ProductionDay.DoesNotExist:
-            pass
-        try:
-            context["production_day_next"] = ProductionDay.get_next_by_day_of_sale(
-                self.production_day
-            )
-        except ProductionDay.DoesNotExist:
-            pass
+        context["day_switch"] = get_day_switch(self.production_day, "plan")
         context["has_plans_to_start"] = any(card["root"].is_planned for card in cards)
         context["has_plans_to_finish"] = any(
             card["root"].is_production for card in cards
@@ -1071,7 +1058,7 @@ def production_plans_start_view(request, production_day):
             )
         )
     # raise Exception(production_plans)
-    for production_plan in filter(None, production_plans_updated):
+    for production_plan in production_plans_updated:
         production_plan.production_day.update_order_positions_product(
             production_plan.product
         )
@@ -1085,14 +1072,12 @@ def production_plan_start_view(request, pk):
     production_plan = ProductionPlan.objects.get(pk=pk)
     production_day = production_plan.production_day
     if production_plan.get_next_state() == ProductionPlan.State.IN_PRODUCTION:
-        # None for a product without a recipe, it isn't produced.
         production_plan = production_day.create_or_update_production_plan(
             product=production_plan.product.product_template,
             state=ProductionPlan.State.IN_PRODUCTION,
             create_max_quantity=False,
         )
-        if production_plan:
-            production_day.update_order_positions_product(production_plan.product)
+        production_day.update_order_positions_product(production_plan.product)
     if "next" in request.GET:
         return HttpResponseRedirect(request.GET.get("next"))
     return HttpResponseRedirect(
@@ -1191,7 +1176,9 @@ def pos_order_all_picked_up_view(request, production_day, pos):
     CustomerOrderPosition.objects.filter(
         order__production_day=production_day, order__point_of_sale=pos
     ).update(is_picked_up=True)
-    return HttpResponseClientRefresh()
+    return HttpResponseRedirect(
+        reverse("workshop:production-day-detail", kwargs={"pk": production_day})
+    )
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -1453,18 +1440,277 @@ def production_day_redirect_view(request):
     return HttpResponseRedirect(url)
 
 
-class ProductionDayListView(StaffPermissionsMixin, SingleTableView):
-    model = ProductionDay
-    table_class = ProductionDayTable
-    template_name = "workshop/productionday_list.html"
+@dataclass
+class Action:
+    """A button or a menu item of a page or a section toolbar.
+
+    Primary and secondary actions are buttons, the others go into the menu.
+    """
+
+    label: str
+    url: str = ""
+    icon: str = ""
+    kind: str = "menu"
+    color: str = "primary"
+    danger: bool = False
+    disabled: bool = False
+    disabled_reason: str = ""
+    is_print: bool = False
+    # Runs in place with htmx, the url stays as fallback without JavaScript.
+    is_htmx: bool = False
+    # A submit button instead of a link: its name, and the id of its form
+    # when it sits outside of it.
+    submit_name: str = ""
+    form: str = ""
+    # Asks once more on the first tap, see data-confirm-tap.
+    confirm_label: str = ""
+    # A number after the label, e.g. the recipients of an email.
+    badge: Any = None
+    id: str = ""
+
+    @property
+    def is_submit(self):
+        return bool(self.submit_name or self.form)
+
+    @property
+    def css_class(self):
+        if self.kind == "primary":
+            return f"btn-{self.color}"
+        return "btn-surface"
+
+
+class Actions(list):
+    @property
+    def buttons(self):
+        return [action for action in self if action.kind != "menu"]
+
+    @property
+    def menu_has_confirm(self):
+        # The menu stays open for the second tap.
+        return any(action.confirm_label for action in self.menu)
+
+    @property
+    def menu(self):
+        # Destructive actions come last, the template puts a divider before them.
+        return sorted(
+            (action for action in self if action.kind == "menu"),
+            key=lambda action: action.danger,
+        )
+
+
+def get_production_day_stats(production_day):
+    published = production_day.total_published_quantity
+    sold = production_day.total_published_ordered_quantity
+    counts = dict(
+        production_day.production_plans.filter(parent_plan__isnull=True)
+        .values_list("state")
+        .annotate(count=Count("id"))
+    )
+    return {
+        "orders": production_day.total_orders,
+        "pieces": production_day.total_ordered_quantity,
+        "published": published,
+        "sold": sold,
+        "sold_percent": min(100, round(sold * 100 / published)) if published else 0,
+        "sales": (
+            production_day.total_sales
+            if production_day.has_products_with_price()
+            else None
+        ),
+        "states": [
+            {
+                "label": ProductionPlan.state_display_value(state),
+                "css_class": ProductionPlan.state_css_class(state),
+                "count": counts[state],
+            }
+            for state in ProductionPlan.State
+            if counts.get(state)
+        ],
+    }
+
+
+def get_production_day_product_rows(production_day):
+    rows = []
+    for day_product in production_day.production_day_products.select_related(
+        "product", "group", "production_plan"
+    ):
+        ordered = day_product.get_order_quantity()
+        maximum = day_product.max_quantity or 0
+        rows.append(
+            {
+                "day_product": day_product,
+                "ordered": ordered,
+                "percent": min(100, round(ordered * 100 / maximum)) if maximum else 0,
+                "is_over": ordered > maximum,
+            }
+        )
+    return rows
+
+
+# The state a production day shows in the calendar, the first one that any
+# of its plans has.
+CALENDAR_STATE_ORDER = [
+    ProductionPlan.State.IN_PRODUCTION,
+    ProductionPlan.State.PLANNED,
+    ProductionPlan.State.PRODUCED,
+    ProductionPlan.State.CANCELED,
+]
+
+# Where a day of the calendar or the day switcher leads: the URL name, its
+# argument for the day, and the part of that page htmx swaps. The pickup
+# emails have an editor that doesn't survive a swap, they load the page.
+CALENDAR_LINKS = {
+    "day": ("workshop:production-day-detail", "pk", "#production-day-detail"),
+    "plan": ("workshop:production-plan-production-day", "pk", "#production-day"),
+    "reminder": ("workshop:production-day-reminder", "production_day", None),
+}
+
+
+def get_production_day_url(production_day, link):
+    url_name, kwarg, _target = CALENDAR_LINKS[link]
+    return reverse(url_name, kwargs={kwarg: production_day.pk})
+
+
+def get_production_day_calendar(month, selected=None, link="day", compact=False):
+    """The weeks of a month with its production days, Monday first."""
+    month = month.replace(day=1)
+    target = CALENDAR_LINKS[link][2]
+    weeks = calendar.Calendar().monthdatescalendar(month.year, month.month)
+    production_days = {
+        day.day_of_sale: day
+        for day in ProductionDay.objects.filter(
+            day_of_sale__range=(weeks[0][0], weeks[-1][-1])
+        ).annotate(orders=Count("customer_orders", distinct=True))
+    }
+    states = {}
+    for day_pk, state in ProductionPlan.objects.filter(
+        production_day__in=production_days.values(), parent_plan__isnull=True
+    ).values_list("production_day", "state"):
+        states.setdefault(day_pk, set()).add(state)
+    today = now().date()
+
+    def cell(date):
+        production_day = production_days.get(date)
+        cell = {
+            "date": date,
+            "in_month": date.month == month.month,
+            "is_today": date == today,
+            "is_selected": date == selected,
+            "can_add": not compact and date >= today,
+            "day": production_day,
+        }
+        if production_day:
+            cell["url"] = get_production_day_url(production_day, link)
+            day_states = states.get(production_day.pk, set())
+            state = next((s for s in CALENDAR_STATE_ORDER if s in day_states), None)
+            if state is not None:
+                cell["state_label"] = ProductionPlan.state_display_value(state)
+                cell["state_css_class"] = ProductionPlan.state_css_class(state)
+            if not compact:
+                cell["sold_percent"] = min(100, production_day.sold_percentage)
+        return cell
+
+    def month_url(other):
+        params = {"month": other.strftime("%Y-%m")}
+        if compact:
+            params.update(compact=1, link=link)
+            if selected:
+                params["selected"] = selected.isoformat()
+        return reverse("workshop:production-day-calendar") + "?" + urlencode(params)
+
+    previous_month = (month - timedelta(days=1)).replace(day=1)
+    next_month = (month + timedelta(days=31)).replace(day=1)
+    return {
+        "month": month,
+        "compact": compact,
+        "target": target,
+        # Adding a day belongs to the day pages, not to the plan or the emails.
+        "can_add_day": link == "day",
+        "weekdays": [WEEKDAYS_ABBR[day] for day in range(7)],
+        "weeks": [[cell(date) for date in week] for week in weeks],
+        "previous_url": month_url(previous_month),
+        "next_url": month_url(next_month),
+        "today_url": month_url(today),
+    }
+
+
+def parse_date(value, format):
+    try:
+        return datetime.strptime(value or "", format).date()
+    except ValueError:
+        return None
+
+
+class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
+    template_name = "workshop/productionday_calendar.html"
+
+    def get_template_names(self):
+        if self.request.GET.get("compact"):
+            return ["workshop/includes/production_day_calendar.html"]
+        return [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        params = self.request.GET
+        link = params.get("link") if params.get("link") in CALENDAR_LINKS else "day"
+        context["calendar"] = get_production_day_calendar(
+            parse_date(params.get("month"), "%Y-%m") or now().date(),
+            selected=parse_date(params.get("selected"), "%Y-%m-%d"),
+            link=link,
+            compact=bool(params.get("compact")),
+        )
+        context["calendar_actions"] = Actions(
+            [
+                Action(
+                    _("Add production day"),
+                    reverse("workshop:production-day-add"),
+                    "fas fa-plus",
+                    kind="primary",
+                ),
+            ]
+        )
+        return context
+
+
+def get_day_switch(production_day, link):
+    """The previous and next day and the calendar of the day switcher."""
+    switch = {
+        "production_day": production_day,
+        "target": CALENDAR_LINKS[link][2],
+        "calendar": get_production_day_calendar(
+            production_day.day_of_sale,
+            selected=production_day.day_of_sale,
+            link=link,
+            compact=True,
+        ),
+    }
+    for key, method in [
+        ("previous_url", ProductionDay.get_previous_by_day_of_sale),
+        ("next_url", ProductionDay.get_next_by_day_of_sale),
+    ]:
+        try:
+            switch[key] = get_production_day_url(method(production_day), link)
+        except ProductionDay.DoesNotExist:
+            switch[key] = None
+    return switch
+
+
+@staff_member_required(login_url="login")
+def production_day_reminder_redirect_view(request):
+    """The pickup emails of the next production day, for the sidebar."""
+    production_day = (
+        ProductionDay.objects.upcoming().first() or ProductionDay.objects.first()
+    )
+    if not production_day:
+        return HttpResponseRedirect(reverse("workshop:production-day-add"))
+    return HttpResponseRedirect(get_production_day_url(production_day, "reminder"))
 
 
 class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionDay
     template_name = "workshop/productionday_detail.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_point_of_sales(self):
         point_of_sales = []
         for point_of_sale in PointOfSale.objects.filter(
             customer_orders__production_day=self.object
@@ -1478,11 +1724,9 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             order_summary = positions.values("product__name").annotate(
                 quantity=Sum("quantity")
             )
-            # raise Exception(order_summary)
             orders = CustomerOrder.objects.filter(
                 point_of_sale=point_of_sale, production_day=self.object
             ).order_by("customer__user__last_name")
-            # raise Exception(positions)
             point_of_sales.append(
                 {
                     "point_of_sale": point_of_sale,
@@ -1495,33 +1739,180 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     ).exists(),
                 }
             )
-        # raise Exception(point_of_sales)
-        context["point_of_sales"] = point_of_sales
-        context["production_day_form"] = ProductionPlanDayForm(
-            initial={"production_day": self.object}
+        return point_of_sales
+
+    def get_day_actions(self, has_plans_to_start, has_plans_to_finish):
+        pk = self.object.pk
+        next_url = f"?next={self.object.get_absolute_url()}"
+        actions = Actions(
+            [
+                Action(
+                    _("Edit"),
+                    reverse("workshop:production-day-update", kwargs={"pk": pk})
+                    + next_url,
+                    "fas fa-edit",
+                    kind="secondary",
+                ),
+                Action(
+                    _("New production day"),
+                    reverse("workshop:production-day-add"),
+                    "fas fa-plus",
+                    kind="secondary",
+                ),
+            ]
         )
-        try:
-            context["production_day_prev"] = ProductionDay.get_previous_by_day_of_sale(
-                self.object
+        # One filled button, the next step of the day. Starting comes first,
+        # finishing waits in the menu until nothing is left to start.
+        if has_plans_to_start:
+            actions.append(
+                Action(
+                    _("Start all"),
+                    reverse(
+                        "workshop:production-plans-start", kwargs={"production_day": pk}
+                    )
+                    + next_url,
+                    "fas fa-play",
+                    kind="primary",
+                    is_htmx=True,
+                    color="warning",
+                )
             )
-        except ProductionDay.DoesNotExist:
-            pass
-        try:
-            context["production_day_next"] = ProductionDay.get_next_by_day_of_sale(
-                self.object
+        if has_plans_to_finish:
+            actions.append(
+                Action(
+                    _("Finish all"),
+                    reverse(
+                        "workshop:production-plans-finish",
+                        kwargs={"production_day": pk},
+                    )
+                    + next_url,
+                    "fas fa-check",
+                    kind="menu" if has_plans_to_start else "primary",
+                    is_htmx=True,
+                    color="success",
+                )
             )
-        except ProductionDay.DoesNotExist:
-            pass
-        context["has_plans_to_start"] = ProductionPlan.objects.filter(
+        if self.object.production_plans.exists():
+            actions.append(
+                Action(
+                    _("Production plan"),
+                    reverse(
+                        "workshop:production-plan-production-day", kwargs={"pk": pk}
+                    ),
+                    "fas fa-sliders",
+                )
+            )
+        actions += [
+            Action(
+                _("Copy"),
+                reverse("workshop:production-day-copy", kwargs={"pk": pk}),
+                "fas fa-copy",
+            ),
+            Action(
+                _("Abos"),
+                reverse("workshop:production-day-meta-product", kwargs={"pk": pk})
+                + next_url,
+                "fas fa-retweet",
+            ),
+            Action(
+                _("Pickup emails"),
+                reverse(
+                    "workshop:production-day-reminder", kwargs={"production_day": pk}
+                )
+                + next_url,
+                "fas fa-envelope",
+            ),
+            Action(
+                _("Export as CSV"),
+                reverse("workshop:production-day-export", kwargs={"pk": pk}),
+                "fas fa-file-download",
+            ),
+            Action(
+                _("Delete"),
+                reverse("workshop:production-day-delete", kwargs={"pk": pk}),
+                "fas fa-trash-can",
+                danger=True,
+                disabled=self.object.is_locked,
+                disabled_reason=_("Has orders"),
+            ),
+        ]
+        return actions
+
+    def get_orders_actions(self, has_plans_to_start):
+        pk = self.object.pk
+        next_url = f"?next={self.object.get_absolute_url()}"
+        actions = Actions(
+            [
+                Action(
+                    _("Add order"),
+                    reverse("workshop:order-add", kwargs={"production_day": pk}),
+                    "fas fa-plus-circle",
+                    kind="primary",
+                ),
+                Action(
+                    _("Edit orders"),
+                    reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
+                    "fas fa-edit",
+                    kind="secondary",
+                ),
+                Action(
+                    _("Print delivery bill"),
+                    icon="fas fa-print",
+                    kind="secondary",
+                    is_print=True,
+                ),
+            ]
+        )
+        if has_plans_to_start:
+            actions.append(
+                Action(
+                    _("Order max. quantities"),
+                    reverse(
+                        "workshop:production-day-order-max-quantities",
+                        kwargs={"pk": pk},
+                    )
+                    + next_url,
+                    "fas fa-arrow-up-wide-short",
+                    is_htmx=True,
+                )
+            )
+        actions.append(
+            Action(
+                _("Show in order list"),
+                reverse("workshop:order-list") + f"?production_day={pk}",
+                "fas fa-shopping-basket",
+            )
+        )
+        return actions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        has_plans_to_start = ProductionPlan.objects.filter(
             production_day=self.object,
             state=ProductionPlan.State.PLANNED,
             parent_plan__isnull=True,
         ).exists()
-        context["has_plans_to_finish"] = ProductionPlan.objects.filter(
+        has_plans_to_finish = ProductionPlan.objects.filter(
             production_day=self.object,
             state=ProductionPlan.State.IN_PRODUCTION,
             parent_plan__isnull=True,
         ).exists()
+        context["point_of_sales"] = self.get_point_of_sales()
+        context["stats"] = get_production_day_stats(self.object)
+        context["product_rows"] = get_production_day_product_rows(self.object)
+        context["product_mappings"] = list(
+            self.object.product_mapping.select_related(
+                "source_product", "target_product"
+            )
+        )
+        context["day_actions"] = self.get_day_actions(
+            has_plans_to_start, has_plans_to_finish
+        )
+        context["orders_actions"] = self.get_orders_actions(has_plans_to_start)
+        context["ingredients_actions"] = Actions(
+            [Action(_("Print"), icon="fas fa-print", kind="secondary", is_print=True)]
+        )
+        context["day_switch"] = get_day_switch(self.object, "day")
         return context
 
 
@@ -1647,6 +2038,13 @@ class ProductionDayAddView(NextUrlMixin, ProductionDayMixin, CreateView):
     def get_object(self, queryset=None):
         return None
 
+    def get_initial(self):
+        initial = super().get_initial()
+        day_of_sale = parse_date(self.request.GET.get("day_of_sale"), "%Y-%m-%d")
+        if day_of_sale:
+            initial["day_of_sale"] = day_of_sale
+        return initial
+
 
 class ProductionDayCopyView(NextUrlMixin, ProductionDayMixin, CreateView):
     template_name = "workshop/productionday_form.html"
@@ -1733,29 +2131,6 @@ class ProductionDayDeleteView(StaffPermissionsMixin, DeleteView):
         )
 
 
-@staff_member_required(login_url="login")
-def reminder_message_redirect_view(request, pk):
-    production_day = ProductionDay.objects.get(pk=pk)
-    if request.method == "POST":
-        form = SelectReminderMessageForm(request.POST, production_day=production_day)
-        if form.is_valid():
-            message = form.cleaned_data["message"]
-            if message:
-                url = reverse(
-                    "workshop:production-day-reminder",
-                    kwargs={
-                        "production_day": pk,
-                        "pk": form.cleaned_data["message"].pk,
-                    },
-                )
-            else:
-                url = reverse(
-                    "workshop:production-day-reminder", kwargs={"production_day": pk}
-                )
-            return HttpResponseRedirect(url)
-    return HttpResponseRedirect(reverse("workshop:"))
-
-
 class DummyOrder(object):
     point_of_sale = "Laden"
     total_quantity = 3
@@ -1769,6 +2144,71 @@ class DummyOrder(object):
         """
 
 
+class DummyUser(object):
+    first_name = "Manu"
+    last_name = "Musteruser"
+    email = "manu@example.com"
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+
+def render_reminder_subject(message, client):
+    """The subject as a list shows it: the shop name and day filled in."""
+    context = Context(
+        {
+            "site_name": client.name,
+            "production_day": message.production_day.day_of_sale.strftime("%d.%m.%Y"),
+        }
+    )
+    try:
+        return Template(message.subject).render(context)
+    except TemplateSyntaxError:
+        return message.subject
+
+
+@staff_member_required(login_url="login")
+def production_day_reminder_preview_view(request, production_day):
+    """The email being written, filled with an example customer and order."""
+    production_day = get_object_or_404(ProductionDay, pk=production_day)
+    form = ReminderMessageForm(request.POST)
+    message = ReminderMessage(production_day=production_day)
+    client = connection.get_tenant()
+
+    def fill(text):
+        try:
+            return message.replace_message_tags(
+                text or "", DummyOrder(), DummyUser(), client, production_day
+            )
+        except TemplateSyntaxError:
+            return text or ""
+
+    return render(
+        request,
+        "workshop/includes/reminder_preview.html",
+        {
+            "subject": fill(form["subject"].value()),
+            "body": fill(form["body"].value()),
+        },
+    )
+
+
+# The placeholders of a pickup email, see ReminderMessage.replace_message_tags.
+REMINDER_TAGS = [
+    "first_name",
+    "last_name",
+    "order",
+    "order_count",
+    "price_total",
+    "point_of_sale",
+    "production_day",
+    "order_link",
+    "order_link_text",
+    "site_name",
+    "email",
+]
+
+
 class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView):
     form_class = ReminderMessageForm
     model = ReminderMessage
@@ -1776,40 +2216,102 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["select_message_form"] = self.get_select_message_form()
         context["production_day"] = self.production_day
-        context["emails"] = {}
-        for point_of_sale in PointOfSale.objects.all():
-            context["emails"][point_of_sale.pk] = list(
-                self.production_day.customer_orders.filter(
-                    point_of_sale=point_of_sale
-                ).values_list("customer__user__email", flat=True)
+        context["day_switch"] = get_day_switch(self.production_day, "reminder")
+        context["header_actions"] = Actions(
+            [
+                Action(
+                    _("Production day"),
+                    self.production_day.get_absolute_url(),
+                    "fas fa-calendar-day",
+                    kind="secondary",
+                )
+            ]
+        )
+        client = connection.get_tenant()
+        context["drafts"] = list(
+            ReminderMessage.objects.filter(
+                production_day=self.production_day,
+                state=ReminderMessage.State.PLANNED,
+            ).order_by("pk")
+        )
+        context["tags"] = ["{{ %s }}" % tag for tag in REMINDER_TAGS]
+        # One email per order, by the point of sale the email goes to. The
+        # empty key is all points of sale.
+        orders = self.production_day.customer_orders
+        context["recipient_counts"] = {
+            "": orders.count(),
+            **{
+                str(pos): count
+                for pos, count in orders.exclude(point_of_sale=None)
+                .values_list("point_of_sale")
+                .annotate(count=Count("id"))
+            },
+        }
+        point_of_sale = self.object and self.object.point_of_sale_id
+        self.recipient_count = context["recipient_counts"].get(
+            str(point_of_sale or ""), 0
+        )
+        context["recipient_count"] = self.recipient_count
+        context["editor_actions"] = self.get_editor_actions()
+        context["messages_sent"] = list(
+            ReminderMessage.objects.filter(
+                production_day=self.production_day, state=ReminderMessage.State.SENT
             )
-
-        context["emails"]["all"] = list(
-            self.production_day.customer_orders.all().values_list(
-                "customer__user__email", flat=True
+        )
+        context["messages_sending"] = list(
+            ReminderMessage.objects.filter(
+                production_day=self.production_day,
+                state__in=(
+                    ReminderMessage.State.PLANNED_SENDING,
+                    ReminderMessage.State.SENDING,
+                ),
             )
         )
-        context["messages_sent"] = ReminderMessage.objects.filter(
-            production_day=self.production_day, state=ReminderMessage.State.SENT
-        )
-        context["messages_sending"] = ReminderMessage.objects.filter(
-            production_day=self.production_day,
-            state__in=(
-                ReminderMessage.State.PLANNED_SENDING,
-                ReminderMessage.State.SENDING,
-            ),
-        )
+        for message in (
+            context["drafts"] + context["messages_sending"] + context["messages_sent"]
+        ):
+            message.display_subject = render_reminder_subject(message, client)
         return context
 
-    def get_select_message_form(self):
-        initial = {}
-        if self.object:
-            initial["message"] = self.object.pk
-        return SelectReminderMessageForm(
-            production_day=self.production_day, initial=initial
+    def get_editor_actions(self):
+        actions = Actions(
+            [
+                Action(
+                    _("Test email to me"),
+                    icon="fas fa-flask",
+                    kind="secondary",
+                    submit_name="send_test",
+                ),
+                Action(
+                    _("Save"),
+                    icon="far fa-floppy-disk",
+                    kind="secondary",
+                    submit_name="save",
+                ),
+                Action(
+                    _("Send"),
+                    icon="fas fa-paper-plane",
+                    kind="primary",
+                    submit_name="send",
+                    confirm_label=_("Send now?"),
+                    badge=self.recipient_count,
+                    disabled=not self.recipient_count,
+                    id="reminder-send",
+                ),
+            ]
         )
+        if self.object:
+            actions.append(
+                Action(
+                    _("Delete"),
+                    icon="fas fa-trash-can",
+                    danger=True,
+                    form="reminder-delete-form",
+                    confirm_label=_("Delete?"),
+                )
+            )
+        return actions
 
     def get_object(self, queryset=None):
         self.production_day = ProductionDay.objects.get(
@@ -1849,26 +2351,32 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
     def form_valid(self, form):
         super().form_valid(form)
         if "send" in self.request.POST:
-            messages.add_message(
-                self.request,
-                messages.SUCCESS,
-                "Reminder message saved and will be send to selected orders.",
-            )
             self.object.set_state_to_planned_sending()
-        elif "send_test" in self.request.POST:
+            messages.success(
+                self.request,
+                _("The email will be sent to %(count)s recipients in a moment.")
+                % {"count": self.object.get_orders().count()},
+            )
+            # Sent emails can't be changed, a new one starts empty.
+            return HttpResponseRedirect(
+                reverse(
+                    "workshop:production-day-reminder",
+                    kwargs={"production_day": self.production_day.pk},
+                )
+            )
+        if "send_test" in self.request.POST:
             client = connection.get_tenant()
             self.object.send_email(self.request.user, DummyOrder(), client)
-        else:
-            messages.add_message(
-                self.request, messages.SUCCESS, "Reminder message saved."
+            messages.success(
+                self.request,
+                _("Test email sent to %(email)s.") % {"email": self.request.user.email},
             )
+        else:
+            messages.success(self.request, _("Email saved."))
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self, *args, **kwargs):
-        # if 'save' in self.request.POST:
-        #     return reverse_lazy('workshop:production-day-detail', kwargs={'pk': self.production_day.pk})
-        # else:
-        return reverse_lazy(
+        return reverse(
             "workshop:production-day-reminder",
             kwargs={"production_day": self.production_day.pk, "pk": self.object.pk},
         )
@@ -1891,7 +2399,9 @@ class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateVi
     ]
     template_name = "workshop/production_day_meta_product_form.html"
     production_day = None
-    success_url = reverse_lazy("workshop:production-day-list")
+
+    def get_success_url(self):
+        return self.get_next_page() or self.production_day.get_absolute_url()
 
     def dispatch(self, request, *args, **kwargs):
         self.production_day = ProductionDay.objects.get(pk=kwargs.get("pk"))
@@ -2199,7 +2709,9 @@ class CustomerOrderBatchView(StaffPermissionsMixin, NextUrlMixin, CreateView):
     ]
     template_name = "workshop/batch_customerorder_form.html"
     production_day = None
-    success_url = reverse_lazy("workshop:production-day-list")
+
+    def get_success_url(self):
+        return self.get_next_page() or self.production_day.get_absolute_url()
 
     def dispatch(self, request, *args, **kwargs):
         if "pk" not in kwargs and not request.POST.get("select_production_day", None):

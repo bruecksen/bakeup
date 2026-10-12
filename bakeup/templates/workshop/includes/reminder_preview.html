@@ -1,0 +1,3 @@
+{% load i18n newsletter_tags %}
+<div class="reminder-preview-subject">{{ subject|default:_("No subject yet") }}</div>
+<div class="reminder-preview-body">{% if body %}{{ body|newsletter_richtext }}{% else %}<p class="text-muted">{% trans "No text yet" %}</p>{% endif %}</div>

@@ -16,7 +16,6 @@ from bakeup.shop.models import (
     CustomerOrderTemplatePosition,
     PointOfSale,
     ProductionDay,
-    ProductionDayProduct,
 )
 from bakeup.workshop.models import Category, Product, ProductionPlan
 
@@ -76,28 +75,6 @@ class ProductionPlanTable(tables.Table):
     class Meta:
         model = Product
         fields = ("pk", "start_date", "product", "quantity", "duration")
-
-
-class ProductionDayTable(tables.Table):
-    # pk = tables.LinkColumn('workshop:production-day-update', args=[A('pk')], verbose_name='#')
-    day_of_sale = tables.LinkColumn(
-        "workshop:production-day-detail",
-        args=[A("pk")],
-        text=lambda record: record.day_of_sale.strftime("%d.%m.%Y"),
-    )
-    # name = tables.LinkColumn('workshop:product-detail', args=[A('pk')])
-    summary = tables.TemplateColumn(
-        template_name="tables/production_day_summary_column.html",
-        verbose_name=_("Summary"),
-        orderable=False,
-    )
-    action = tables.TemplateColumn(
-        template_name="tables/production_day_action_column.html", verbose_name=""
-    )
-
-    class Meta:
-        model = ProductionDayProduct
-        fields = ("day_of_sale",)
 
 
 class CustomerOrderFilter(django_filters.FilterSet):

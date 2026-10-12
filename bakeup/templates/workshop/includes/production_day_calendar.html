@@ -1,0 +1,48 @@
+{% load i18n %}
+<div class="day-calendar{% if calendar.compact %} is-compact{% endif %}">
+  <div class="day-calendar-head">
+    <span class="day-calendar-month">{{ calendar.month|date:"F Y" }}</span>
+    <a class="btn btn-sm btn-surface" href="{{ calendar.previous_url }}" aria-label="{% trans 'Previous month' %}"
+      hx-get="{{ calendar.previous_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-left"></i></a>
+    <a class="btn btn-sm btn-surface" href="{{ calendar.today_url }}"
+      hx-get="{{ calendar.today_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}>{% trans "Today" %}</a>
+    <a class="btn btn-sm btn-surface" href="{{ calendar.next_url }}" aria-label="{% trans 'Next month' %}"
+      hx-get="{{ calendar.next_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>
+  </div>
+  <div class="day-calendar-grid">
+    {% for weekday in calendar.weekdays %}
+    <div class="day-calendar-weekday">{{ weekday }}</div>
+    {% endfor %}
+    {% for week in calendar.weeks %}
+    {% for cell in week %}
+    {% if cell.day %}
+    <a href="{{ cell.url }}" class="day-calendar-cell has-day{% if not cell.in_month %} is-outside{% endif %}{% if cell.is_today %} is-today{% endif %}{% if cell.is_selected %} is-selected{% endif %}"{% if calendar.compact and calendar.target %} hx-get="{{ cell.url }}" hx-target="{{ calendar.target }}" hx-select="{{ calendar.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if cell.is_selected %} aria-current="date"{% endif %} title="{{ cell.day }}{% if cell.state_label %} · {{ cell.state_label }}{% endif %}">
+      <span class="day-calendar-date">{{ cell.date.day }}</span>
+      {% if calendar.compact %}
+      <span class="day-calendar-dot {{ cell.state_css_class|default:'bg-primary' }}"></span>
+      {% else %}
+      {% if cell.state_label %}<span class="badge rounded-pill {{ cell.state_css_class }}">{{ cell.state_label }}</span>{% endif %}
+      <span class="day-calendar-info">{% blocktranslate count counter=cell.day.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
+      <span class="progress day-calendar-progress" role="progressbar" aria-label="{% trans 'Sold in shop' %}" aria-valuenow="{{ cell.sold_percent }}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar bg-success" style="width: {{ cell.sold_percent }}%"></span></span>
+      {% endif %}
+    </a>
+    {% else %}
+    <div class="day-calendar-cell{% if not cell.in_month %} is-outside{% endif %}{% if cell.is_today %} is-today{% endif %}">
+      <span class="day-calendar-date">{{ cell.date.day }}</span>
+      {% if cell.can_add %}
+      <a class="day-calendar-add" href="{% url 'workshop:production-day-add' %}?day_of_sale={{ cell.date|date:'Y-m-d' }}" aria-label="{% trans 'Add production day' %} {{ cell.date|date:'SHORT_DATE_FORMAT' }}"><i class="fas fa-plus"></i></a>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+  </div>
+  {% if calendar.compact %}
+  <div class="day-calendar-foot">
+    {% if calendar.can_add_day %}
+    <a class="btn btn-sm btn-surface" href="{% url 'workshop:production-day-add' %}"><i class="fas fa-plus"></i> {% trans "New production day" %}</a>
+    {% endif %}
+    <a class="btn btn-sm btn-link" href="{% url 'workshop:production-day-calendar' %}?month={{ calendar.month|date:'Y-m' }}">{% trans "Open calendar" %}</a>
+  </div>
+  {% endif %}
+</div>

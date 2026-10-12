@@ -46,7 +46,7 @@ Select abo products for <small class="text-muted">{{ production_day }}</small>
               {% if next %}
               <a href="{{ next }}" class="btn btn-outline-primary float-end me-2">Cancel</a>
               {% else %}
-              <a href="{% url 'workshop:production-day-list' %}" class="btn btn-outline-primary float-end me-2">Cancel</a>
+              <a href="{{ production_day.get_absolute_url }}" class="btn btn-outline-primary float-end me-2">Cancel</a>
               {% endif %}
             </div>
           </div>

@@ -16,10 +16,16 @@
           <h6 class="sidebar-heading">{% translate "Production" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> {% translate "Production Days" %}</a>
+              <a class="nav-link{% if section == "production-day-calendar" %} active{% endif %}"{% if section == "production-day-calendar" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-calendar' %}"><i class="fa-solid fa-calendar-days fa-fw"></i> {% translate "Calendar" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> {% translate "Current production day" %}</a>
             </li>
             <li class="nav-item">
               <a class="nav-link{% if section == "production-plans" %} active{% endif %}"{% if section == "production-plans" %} aria-current="page"{% endif %} href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i> {% translate "Production Plans" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "reminders" %} active{% endif %}"{% if section == "reminders" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-reminder-next' %}"><i class="fas fa-envelope fa-fw"></i> {% translate "Pickup emails" %}</a>
             </li>
           </ul>
           <h6 class="sidebar-heading">{% translate "Sales" context "sidebar" %}</h6>
