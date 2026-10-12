@@ -1,8 +1,11 @@
 import json
 from datetime import timedelta
+from io import StringIO
 from urllib.parse import quote
 
+from django.core.management import call_command
 from django.db import connection
+from django.db.models import Sum
 from django.test import SimpleTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -456,6 +459,78 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
             state=ProductionPlan.State.PLANNED, create_max_quantity=True
         )
         self.assertFalse(ProductionPlan.objects.filter(pk=cake_plan.pk).exists())
+
+    def create_plans_without_recipe(self, **options):
+        call_command(
+            "create_production_plans_without_recipe", stdout=StringIO(), **options
+        )
+
+    def test_command_plans_product_without_recipe(self):
+        bread_plan = self.root()
+        self.create_plans_without_recipe()
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 10)
+        self.assertTrue(cake_plan.is_planned)
+        self.assertEqual(
+            ProductionDayProduct.objects.get(
+                pk=self.day_products[self.cake.pk].pk
+            ).production_plan,
+            cake_plan,
+        )
+        self.assertFalse(self.cards()[self.cake]["has_recipe"])
+        self.assertEqual(self.root(), bread_plan)
+
+    def test_command_starts_product_without_recipe(self):
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        position = CustomerOrderPosition.objects.create(
+            order=order, product=self.cake, quantity=3
+        )
+        self.create_plans_without_recipe(
+            day=self.production_day.day_of_sale, state="production"
+        )
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 3)
+        self.assertTrue(cake_plan.is_production)
+        position.refresh_from_db()
+        self.assertEqual(position.production_plan, cake_plan)
+        self.assertEqual(position.product, cake_plan.product)
+        # The workshop keeps a started plan when the day is saved again.
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.create_plans_without_recipe(state="production")
+        self.assertEqual(self.root(self.cake), cake_plan)
+
+    def test_command_sums_the_orders_of_the_day(self):
+        other_day = ProductionDay.objects.create(
+            day_of_sale=self.production_day.day_of_sale + timedelta(days=7)
+        )
+        ProductionDayProduct.objects.create(
+            production_day=other_day, product=self.cake, max_quantity=10
+        )
+        for production_day, product, quantity in [
+            (self.production_day, self.cake, 3),
+            (self.production_day, self.cake, 4),
+            (self.production_day, self.bread, 5),
+            (other_day, self.cake, 6),
+        ]:
+            order = CustomerOrder.objects.create(
+                production_day=production_day, address=""
+            )
+            CustomerOrderPosition.objects.create(
+                order=order, product=product, quantity=quantity
+            )
+        day = self.production_day.day_of_sale
+        self.create_plans_without_recipe(day=day, state="production")
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 7)
+        self.assertEqual(
+            cake_plan.orders.aggregate(Sum("quantity"))["quantity__sum"], 7
+        )
+        self.assertFalse(other_day.production_plans.exists())
+        self.assertTrue(self.root().is_planned)
 
     def test_order_is_locked_without_plan_for_product_without_recipe(self):
         order = CustomerOrder.objects.create(

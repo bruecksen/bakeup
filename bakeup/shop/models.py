@@ -224,23 +224,26 @@ class ProductionDay(CommonBaseClass):
             or 0
         )
 
-    def update_production_plan(self, product, quantity, state, create_max_quantity):
+    def update_production_plan(
+        self, product, quantity, state, create_max_quantity, without_recipe=False
+    ):
         ProductionPlan.objects.filter(
             product__product_template=product, production_day=self
         ).delete()
         return self._create_production_plan(
-            product, quantity, state, create_max_quantity
+            product, quantity, state, create_max_quantity, without_recipe
         )
 
     def _create_production_plan(
-        self, product, quantity, state, create_max_quantity=False
+        self, product, quantity, state, create_max_quantity=False, without_recipe=False
     ):
         # product_product_quantity.get('product'), product_quantity.get('total_quantity')
         product_template = product
-        if not product_template.parents.exists():
+        if not without_recipe and not product_template.parents.exists():
             # A product without a recipe, e.g. the deposit for a bread bag, isn't
             # produced and gets no plan. A plan from before goes, unless it was
-            # started already.
+            # started already. without_recipe is the way around it of the
+            # create_production_plans_without_recipe command.
             ProductionPlan.objects.filter(
                 production_day=self,
                 parent_plan=None,
@@ -259,7 +262,7 @@ class ProductionDay(CommonBaseClass):
         if production_plan.exists() and not production_plan.first().is_locked:
             print("plan exists, plan update: {}".format(product_template))
             return self.update_production_plan(
-                product_template, quantity, state, create_max_quantity
+                product_template, quantity, state, create_max_quantity, without_recipe
             )
         elif production_plan.exists():
             # plan is locked no update
