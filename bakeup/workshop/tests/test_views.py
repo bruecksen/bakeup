@@ -532,6 +532,40 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         self.assertFalse(other_day.production_plans.exists())
         self.assertTrue(self.root().is_planned)
 
+    def test_started_plan_without_recipe_can_be_finished(self):
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=3)
+        self.create_plans_without_recipe(state="production")
+        cake_plan = self.root(self.cake)
+        day = {"production_day": self.production_day.pk}
+        # Starting and finishing the whole day keeps the plan.
+        self.client.get(reverse("workshop:production-plans-start", kwargs=day))
+        self.assertTrue(self.root(self.cake).is_production)
+        self.client.get(reverse("workshop:production-plans-finish", kwargs=day))
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        cake_plan.refresh_from_db()
+        self.assertTrue(cake_plan.is_produced)
+        self.assertEqual(cake_plan.quantity, 3)
+        self.assertTrue(order.is_locked)
+
+    def test_started_plan_without_recipe_can_be_finished_on_its_own(self):
+        self.create_plans_without_recipe(state="production")
+        # Without orders the plan is canceled, there is nothing to finish.
+        self.assertTrue(self.root(self.cake).is_canceled)
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=3)
+        self.create_plans_without_recipe(state="production")
+        cake_plan = self.root(self.cake)
+        self.client.get(self.url("production-plan-finish", cake_plan.pk))
+        cake_plan.refresh_from_db()
+        self.assertTrue(cake_plan.is_produced)
+
     def test_order_is_locked_without_plan_for_product_without_recipe(self):
         order = CustomerOrder.objects.create(
             production_day=self.production_day, address=""

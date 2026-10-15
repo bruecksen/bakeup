@@ -63,6 +63,13 @@ class Command(BaseCommand):
                     quantity = day_product.max_quantity or 0
                 else:
                     quantity = positions.aggregate(Sum("quantity"))["quantity__sum"]
+                # A canceled plan is from a run without orders, it's replaced.
+                ProductionPlan.objects.filter(
+                    production_day=production_day,
+                    parent_plan=None,
+                    product__product_template=product,
+                    state=ProductionPlan.State.CANCELED,
+                ).delete()
                 # A plan in production or produced is locked and stays as it is.
                 plan = production_day._create_production_plan(
                     product, quantity or 0, state, without_recipe=True
