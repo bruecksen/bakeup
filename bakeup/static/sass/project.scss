@@ -22,9 +22,11 @@ html {
 html,
 body {
   height: 100%;
+  overflow-x: clip; /* stray wide content must never push the fixed navbar off-screen */
 }
 
 body {
+  overflow-wrap: break-word; /* let long URLs and product names wrap instead of overflowing */
   background-color: $light;
   @media (max-width: 991px) {
     &.shop {
