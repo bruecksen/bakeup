@@ -13239,6 +13239,18 @@ nav .nav-link:hover, nav .nav-link:focus {
   color: #fff;
 }
 
+.dropdown-menu {
+  --bs-dropdown-link-hover-color: var(--bs-primary);
+  --bs-dropdown-link-hover-bg: rgba(var(--bs-primary-rgb), .08);
+  --bs-dropdown-link-active-color: var(--bs-primary);
+  --bs-dropdown-link-active-bg: rgba(var(--bs-primary-rgb), .14);
+  --bs-dropdown-padding-x: 6px;
+  --bs-dropdown-padding-x: .375rem;
+}
+.dropdown-menu .dropdown-item {
+  border-radius: 0.25rem;
+}
+
 @-webkit-keyframes dropdown-in {
   from {
     opacity: 0;
@@ -13453,18 +13465,19 @@ header .account-menu .dropdown-item-muted:hover, header .account-menu .dropdown-
 }
 
 @media print {
-  tbody {
-    display: block;
-    page-break-inside: avoid;
-    page-break-before: avoid;
-  }
-  table,
-  tr {
+  .production-plan-table {
     width: 100%;
   }
-  .pagebreak {
-    page-break-before: always;
-  } /* page-break-after works, as well */
+  .production-plan-table tbody {
+    display: block;
+    width: 100%;
+    -webkit-column-break-inside: avoid;
+       -moz-column-break-inside: avoid;
+            break-inside: avoid;
+  }
+  .production-plan-table tr {
+    width: 100%;
+  }
 }
 .tr-collapsed > td {
   padding: 0;
@@ -13640,7 +13653,6 @@ textarea {
   -webkit-box-shadow: inset 3px 0 0 #CD6646;
           box-shadow: inset 3px 0 0 #CD6646;
   color: #fff;
-  font-weight: 600;
 }
 .sidebar .nav-item .nav-link.active .fa-fw {
   opacity: 1;
@@ -13710,6 +13722,110 @@ textarea {
   font-weight: normal !important;
 }
 
+.sidebar-collapse {
+  -ms-flex-item-align: end;
+      align-self: flex-end;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  width: 32px;
+  width: 2rem;
+  height: 32px;
+  height: 2rem;
+  margin: -8px 0 0;
+  margin: -0.5rem 0 0;
+  border: 0;
+  border-radius: 0.375rem;
+  background: none;
+  color: rgba(255, 255, 255, 0.6);
+}
+.sidebar-collapse:hover, .sidebar-collapse:focus-visible {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.sidebar-collapse i {
+  -webkit-transition: -webkit-transform 0.2s;
+  transition: -webkit-transform 0.2s;
+  transition: transform 0.2s;
+  transition: transform 0.2s, -webkit-transform 0.2s;
+}
+
+@media (min-width: 768px) {
+  .sidebar.is-collapsed {
+    width: 4.25rem;
+    min-width: 0;
+  }
+  .sidebar.is-collapsed nav {
+    -webkit-box-align: center !important;
+        -ms-flex-align: center !important;
+            align-items: center !important;
+  }
+  .sidebar.is-collapsed .sidebar-collapse {
+    -ms-flex-item-align: center;
+        align-self: center;
+    margin-bottom: 0.75rem;
+  }
+  .sidebar.is-collapsed .sidebar-collapse i {
+    -webkit-transform: rotate(180deg);
+            transform: rotate(180deg);
+  }
+  .sidebar.is-collapsed .nav-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  .sidebar.is-collapsed .sidebar-name,
+  .sidebar.is-collapsed .sidebar-footer {
+    display: none;
+  }
+  .sidebar.is-collapsed .sidebar-heading {
+    height: 1px;
+    margin: 0.375rem 0.5rem 0.625rem;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  .sidebar.is-collapsed .nav-item {
+    margin-bottom: 0.25rem;
+  }
+  .sidebar.is-collapsed .nav-item .nav-link {
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    gap: 0;
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto;
+    padding: 0;
+  }
+  .sidebar.is-collapsed .logo {
+    margin-bottom: 0.75rem !important;
+  }
+  .sidebar.is-collapsed .logo.large {
+    padding: 0.5rem;
+    font-size: 1.5rem;
+  }
+  .sidebar.is-collapsed .logo img {
+    max-height: 2.25rem;
+  }
+  .sidebar.is-collapsed .sidebar-menu {
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .sidebar.is-collapsed .sidebar-bottom {
+    margin-top: 0.75rem;
+  }
+}
 .mobile-menu-toggle {
   position: sticky;
   top: 0;
@@ -13902,8 +14018,8 @@ li:hover > .row .main-flour-set,
 }
 
 .day-picker-menu {
-  width: 336px;
-  width: 21rem;
+  width: 304px;
+  width: 19rem;
   max-width: calc(100vw - 2rem);
   padding: 12px;
   padding: 0.75rem;
@@ -13984,6 +14100,29 @@ li:hover > .row .main-flour-set,
   font-weight: 500;
 }
 
+.day-calendar:not(.is-compact) .day-calendar-cell.is-today {
+  -webkit-box-shadow: inset 0 0 0 2px #CD6646;
+          box-shadow: inset 0 0 0 2px #CD6646;
+}
+.day-calendar:not(.is-compact) .day-calendar-cell.is-today.has-day {
+  -webkit-box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.day-calendar-today {
+  position: absolute;
+  top: 6px;
+  top: 0.375rem;
+  right: 8px;
+  right: 0.5rem;
+  color: #CD6646;
+  font-size: 11px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .day-calendar-date {
   -ms-flex-item-align: start;
       align-self: flex-start;
@@ -14010,41 +14149,98 @@ li:hover > .row .main-flour-set,
 }
 
 .day-calendar-add {
-  text-decoration: none;
   position: absolute;
-  inset: 0;
+  right: 6px;
+  right: 0.375rem;
+  bottom: 6px;
+  bottom: 0.375rem;
+  color: #6c757d;
+  font-size: 16px;
+  font-size: 1rem;
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .day-calendar-add {
+    inset: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    color: #CD6646;
+    font-size: 1.75rem;
+    border-radius: inherit;
+    opacity: 0;
+    -webkit-transition: opacity 0.15s;
+    transition: opacity 0.15s;
+  }
+  .day-calendar-add:hover, .day-calendar-add:focus-visible {
+    opacity: 1;
+  }
+}
+.day-calendar-tip {
+  display: none;
+}
+
+.day-calendar-popover {
+  --bs-popover-max-width: 320px;
+  --bs-popover-max-width: 20rem;
+  --bs-popover-body-padding-x: 12px;
+  --bs-popover-body-padding-x: .75rem;
+  --bs-popover-body-padding-y: 8px;
+  --bs-popover-body-padding-y: .5rem;
+  --bs-popover-font-size: 13px;
+  --bs-popover-font-size: .8125rem;
+  --bs-popover-border-color: transparent;
+  -webkit-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.day-calendar-popover .popover-body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  color: #CD6646;
-  font-size: 28px;
-  font-size: 1.75rem;
-  border-radius: inherit;
-  opacity: 0;
-  -webkit-transition: opacity 0.15s;
-  transition: opacity 0.15s;
-}
-.day-calendar-add:hover, .day-calendar-add:focus-visible {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .day-calendar-add {
-    inset: auto 0.375rem 0.375rem auto;
-    font-size: 1rem;
-    color: #6c757d;
-    opacity: 0.6;
-  }
-}
-.day-calendar.is-compact .day-calendar-grid {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
   gap: 2px;
   gap: 0.125rem;
+}
+
+.day-calendar-tip-title {
+  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.day-calendar-tip-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 8px;
+  gap: 0.5rem;
+}
+
+.day-calendar-tip-qty {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 60px;
+          flex: 0 0 60px;
+  -ms-flex: 0 0 3.75rem;
+      flex: 0 0 3.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.day-calendar.is-compact .day-calendar-grid {
+  gap: 4px;
+  gap: 0.25rem;
 }
 .day-calendar.is-compact .day-calendar-cell {
   -webkit-box-align: center;
@@ -14059,15 +14255,13 @@ li:hover > .row .main-flour-set,
   aspect-ratio: 1;
   padding: 0;
   background: none;
-  border-radius: 50%;
+  border-radius: 0.375rem;
 }
 .day-calendar.is-compact .day-calendar-cell.has-day {
   border-left: 0;
   -webkit-box-shadow: none;
           box-shadow: none;
   background-color: rgba(205, 102, 70, 0.1);
-  -webkit-box-shadow: inset 0 0 0 1px #CD6646;
-          box-shadow: inset 0 0 0 1px #CD6646;
 }
 .day-calendar.is-compact .day-calendar-cell.has-day:hover {
   background-color: rgba(205, 102, 70, 0.2);
@@ -14089,19 +14283,6 @@ li:hover > .row .main-flour-set,
 }
 .day-calendar.is-compact .is-today .day-calendar-date {
   font-weight: 700;
-}
-
-.day-calendar-dot {
-  position: absolute;
-  bottom: 14%;
-  left: 50%;
-  width: 6px;
-  width: 0.375rem;
-  height: 6px;
-  height: 0.375rem;
-  border-radius: 50%;
-  -webkit-transform: translateX(-50%);
-          transform: translateX(-50%);
 }
 
 .day-calendar-foot {
@@ -14171,11 +14352,11 @@ li:hover > .row .main-flour-set,
   --bs-btn-bg: #fff;
   --bs-btn-border-color: #dee2e6;
   --bs-btn-hover-color: #212529;
-  --bs-btn-hover-bg: #f8f9fa;
-  --bs-btn-hover-border-color: #ced4da;
+  --bs-btn-hover-bg: #fbf3f0;
+  --bs-btn-hover-border-color: #d6aa9e;
   --bs-btn-active-color: #212529;
-  --bs-btn-active-bg: #e9ecef;
-  --bs-btn-active-border-color: #ced4da;
+  --bs-btn-active-bg: #f8e8e3;
+  --bs-btn-active-border-color: #d49886;
   --bs-btn-disabled-color: #adb5bd;
   --bs-btn-disabled-bg: #fff;
   --bs-btn-disabled-border-color: #e9ecef;
@@ -14326,19 +14507,40 @@ li:hover > .row .main-flour-set,
   margin-bottom: 16px;
   margin-bottom: 1rem;
 }
+.section-toolbar .btn {
+  --bs-btn-padding-y: 4px;
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-padding-x: 8px;
+  --bs-btn-padding-x: 0.5rem;
+  --bs-btn-font-size: 14px;
+  --bs-btn-font-size: 0.875rem;
+  --bs-btn-border-radius: 4px;
+  --bs-btn-border-radius: 0.25rem;
+}
 
 .day-tabs .badge {
   font-weight: 500;
 }
 
-.day-product-row {
-  -webkit-transform: rotate(0);
-          transform: rotate(0);
-}
-
 .day-product-name {
   font-weight: 500;
   text-decoration: none;
+}
+.day-product-name:hover {
+  text-decoration: underline;
+}
+
+.day-product-plan {
+  margin-left: 6px;
+  margin-left: 0.375rem;
+  padding: 2px 4px;
+  padding: 0.125rem 0.25rem;
+  color: #6c757d;
+  border-radius: 0.25rem;
+}
+.day-product-plan:hover, .day-product-plan:focus-visible {
+  color: #CD6646;
+  background-color: rgba(205, 102, 70, 0.08);
 }
 
 .day-products-fill {
@@ -14379,13 +14581,112 @@ li:hover > .row .main-flour-set,
   margin-top: 1.5rem;
 }
 
-.delivery-bill + .pagebreak + .delivery-bill {
+.delivery-bill + .delivery-bill {
   margin-top: 32px;
   margin-top: 2rem;
 }
 .delivery-bill .table {
   margin-bottom: 0;
   table-layout: fixed;
+}
+
+.delivery-bill-table {
+  min-width: 640px;
+  min-width: 40rem;
+  font-size: 14px;
+  font-size: 0.875rem;
+}
+.delivery-bill-table thead th {
+  color: #6c757d;
+  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.delivery-bill-table td {
+  padding-top: 8px;
+  padding-top: 0.5rem;
+  padding-bottom: 8px;
+  padding-bottom: 0.5rem;
+  vertical-align: top;
+}
+.delivery-bill-table .col-customer {
+  width: 24%;
+}
+.delivery-bill-table .col-price {
+  width: 104px;
+  width: 6.5rem;
+}
+.delivery-bill-table .col-note {
+  width: 26%;
+}
+.delivery-bill-table .col-picked {
+  width: 120px;
+  width: 7.5rem;
+}
+.delivery-bill-table .order-customer {
+  font-weight: 500;
+}
+.delivery-bill-table .text-end {
+  font-variant-numeric: tabular-nums;
+}
+.delivery-bill-table .form-check-input {
+  margin-top: 0;
+}
+.delivery-bill-table .order-positions li {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
+  gap: 6px;
+  gap: 0.375rem;
+}
+.delivery-bill-table .position-name {
+  min-width: 0;
+}
+.delivery-bill-table .position-name .badge {
+  vertical-align: text-bottom;
+}
+.delivery-bill-table .quantity {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  min-width: 36px;
+  min-width: 2.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-note {
+  font-size: 13px;
+  font-size: 0.8125rem;
+}
+.order-note + .order-note {
+  margin-top: 4px;
+  margin-top: 0.25rem;
+}
+
+.picked-head {
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 4px;
+  gap: 0.25rem;
+}
+.picked-head .btn {
+  padding: 0;
+  font-size: 14px;
+  font-size: 0.875rem;
+  line-height: 1;
+  border: 0;
 }
 
 .delivery-bill-title {
@@ -14412,23 +14713,77 @@ li:hover > .row .main-flour-set,
 }
 
 .delivery-bill-summary {
+  margin: 12px 0 20px;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0;
+  font-size: 14px;
+  font-size: 0.875rem;
+  list-style: none;
+  -webkit-columns: 3 14rem;
+     -moz-columns: 3 14rem;
+          columns: 3 14rem;
+  -webkit-column-gap: 2rem;
+     -moz-column-gap: 2rem;
+          column-gap: 2rem;
+}
+.delivery-bill-summary li {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  gap: 6px;
-  gap: 0.375rem;
-  padding: 0;
-  list-style: none;
+  gap: 8px;
+  gap: 0.5rem;
+  padding: 2px 0;
+  padding: 0.125rem 0;
+  border-bottom: 1px solid #e9ecef;
+  -webkit-column-break-inside: avoid;
+     -moz-column-break-inside: avoid;
+          break-inside: avoid;
 }
-.delivery-bill-summary li {
-  padding: 2px 8px;
-  padding: 0.125rem 0.5rem;
-  background-color: #f8f9fa;
-  border-radius: 50rem;
+
+.delivery-bill-summary-qty {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 40px;
+          flex: 0 0 40px;
+  -ms-flex: 0 0 2.5rem;
+      flex: 0 0 2.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.day-ingredients {
+  max-width: 640px;
+  max-width: 40rem;
   font-size: 14px;
   font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.day-ingredients thead th {
+  color: #6c757d;
+  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.day-ingredients td,
+.day-ingredients th {
+  padding-top: 6px;
+  padding-top: 0.375rem;
+  padding-bottom: 6px;
+  padding-bottom: 0.375rem;
+}
+.day-ingredients td:first-child {
+  padding-left: 16px;
+  padding-left: 1rem;
+}
+
+.day-ingredients-category > th {
+  padding-top: 12px;
+  padding-top: 0.75rem;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
 }
 
 .reminder-editor .tab-pane {
@@ -15525,7 +15880,8 @@ i.step-check-all {
     padding: 0.25rem;
   }
   .day-calendar:not(.is-compact) .badge,
-  .day-calendar:not(.is-compact) .day-calendar-info {
+  .day-calendar:not(.is-compact) .day-calendar-info,
+  .day-calendar:not(.is-compact) .day-calendar-today {
     display: none;
   }
   .production-stat {
@@ -15602,8 +15958,34 @@ i.step-check-all {
             box-shadow: none;
     border: 1px solid #ced4da;
   }
-  .delivery-bill-summary li {
-    padding: 0;
+  .delivery-bill + .delivery-bill {
+    margin-top: 0;
+    -webkit-column-break-before: page;
+       -moz-column-break-before: page;
+            break-before: page;
+  }
+  .delivery-bill .table-responsive {
+    overflow: visible;
+  }
+  .delivery-bill-table {
+    min-width: 0;
+  }
+  .delivery-bill-table tr,
+  .day-ingredients tr {
+    -webkit-column-break-inside: avoid;
+       -moz-column-break-inside: avoid;
+            break-inside: avoid;
+  }
+  .day-ingredients-category {
+    -webkit-column-break-after: avoid;
+       -moz-column-break-after: avoid;
+            break-after: avoid;
+  }
+  .delivery-bill-title,
+  .delivery-bill-summary {
+    -webkit-column-break-after: avoid;
+       -moz-column-break-after: avoid;
+            break-after: avoid;
   }
   .production-card-actions,
   .production-stat-states,

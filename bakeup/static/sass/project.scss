@@ -517,6 +517,19 @@ nav {
   }
 }
 
+// All dropdowns hover in the warm tint of the brand colour, like the ones in
+// the shop header below.
+.dropdown-menu {
+  --bs-dropdown-link-hover-color: var(--bs-primary);
+  --bs-dropdown-link-hover-bg: rgba(var(--bs-primary-rgb), .08);
+  --bs-dropdown-link-active-color: var(--bs-primary);
+  --bs-dropdown-link-active-bg: rgba(var(--bs-primary-rgb), .14);
+  --bs-dropdown-padding-x: .375rem;
+  .dropdown-item {
+    border-radius: $border-radius-sm;
+  }
+}
+
 @keyframes dropdown-in {
   from {
     opacity: 0;
@@ -693,17 +706,19 @@ header {
 }
 
 @media print {
-  tbody {
-    display: block;
-    // page-break-after: always;
-    page-break-inside: avoid;
-    page-break-before: avoid;
-  }
-  table,
-  tr  {
+  // The production plan list: a plan, one table body, stays on one page.
+  .production-plan-table {
     width: 100%;
+
+    tbody {
+      display: block;
+      width: 100%;
+      break-inside: avoid;
+    }
+    tr {
+      width: 100%;
+    }
   }
-  .pagebreak { page-break-before: always; } /* page-break-after works, as well */
 }
 
 .tr-collapsed > td {
@@ -846,11 +861,11 @@ textarea {
       outline: 2px solid rgba($white, .75);
       outline-offset: -2px;
     }
+    // No bolder text: a wider label would widen the whole sidebar.
     &.active {
       background-color: rgba($white, .14);
       box-shadow: inset 3px 0 0 $primary;
       color: $white;
-      font-weight: 600;
       .fa-fw {
         opacity: 1;
       }
@@ -902,6 +917,93 @@ textarea {
     color: rgba($white, .6);
     a {
       font-weight: normal !important;
+    }
+  }
+}
+
+// From md up the sidebar collapses to its icons, the button at its top
+// switches. The state is a cookie, the page comes collapsed from the server.
+// The labels stay for screen readers and the tooltips, see project.js.
+.sidebar-collapse {
+  align-self: flex-end;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin: -.5rem 0 0;
+  border: 0;
+  border-radius: $border-radius;
+  background: none;
+  color: rgba($white, .6);
+  &:hover,
+  &:focus-visible {
+    background-color: rgba($white, .08);
+    color: $white;
+  }
+  i {
+    transition: transform .2s;
+  }
+}
+@include media-breakpoint-up(md) {
+  .sidebar.is-collapsed {
+    width: 4.25rem;
+    min-width: 0;
+    nav {
+      align-items: center !important;
+    }
+    .sidebar-collapse {
+      align-self: center;
+      margin-bottom: .75rem;
+      i {
+        transform: rotate(180deg);
+      }
+    }
+    .nav-label {
+      @include visually-hidden;
+    }
+    .sidebar-name,
+    .sidebar-footer {
+      display: none;
+    }
+    .sidebar-heading {
+      height: 1px;
+      margin: .375rem .5rem .625rem;
+      padding: 0;
+      overflow: hidden;
+      font-size: 0;
+      background-color: rgba($white, .15);
+    }
+    // A small square per icon, not a bar across the whole sidebar, with a
+    // gap between two highlighted ones.
+    .nav-item {
+      margin-bottom: .25rem;
+    }
+    .nav-item .nav-link {
+      justify-content: center;
+      gap: 0;
+      width: 2rem;
+      height: 2rem;
+      margin: 0 auto;
+      padding: 0;
+    }
+    // Without the name below it, the logo gets the room and a line to the
+    // menu, like between the sections.
+    .logo {
+      margin-bottom: .75rem !important;
+      &.large {
+        padding: .5rem;
+        font-size: 1.5rem;
+      }
+      img {
+        max-height: 2.25rem;
+      }
+    }
+    .sidebar-menu {
+      padding-top: .75rem;
+      border-top: 1px solid rgba($white, .15);
+    }
+    .sidebar-bottom {
+      margin-top: .75rem;
     }
   }
 }
@@ -1080,7 +1182,7 @@ $tap-size: 44px;
     gap: .5rem;
 }
 .day-picker-menu {
-    width: 21rem;
+    width: 19rem;
     max-width: calc(100vw - 2rem);
     padding: .75rem;
 }
@@ -1140,6 +1242,24 @@ $tap-size: 44px;
         font-weight: 500;
     }
 }
+// Month page: today is framed and labelled, a production day or not.
+.day-calendar:not(.is-compact) .day-calendar-cell.is-today {
+    box-shadow: inset 0 0 0 2px $primary;
+
+    &.has-day {
+        box-shadow: inset 0 0 0 2px $primary, $box-shadow-sm;
+    }
+}
+.day-calendar-today {
+    position: absolute;
+    top: .375rem;
+    right: .5rem;
+    color: $primary;
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
 .day-calendar-date {
     align-self: flex-start;
     min-width: 1.5rem;
@@ -1157,37 +1277,75 @@ $tap-size: 44px;
     height: .25rem;
     margin-top: auto;
 }
-// The whole free cell adds a day, the plus shows on hover. Without hover
-// (touch) a small plus sits in the corner.
+// A free day adds a day: a small plus in the corner. With a mouse the whole
+// cell is the button and the plus shows big on hover. Touch screens keep the
+// small one, a tap would show the big one for a moment.
 .day-calendar-add {
-    text-decoration: none;
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: $primary;
-    font-size: 1.75rem;
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity .15s;
-
-    &:hover,
-    &:focus-visible {
-        opacity: 1;
-    }
+    right: .375rem;
+    bottom: .375rem;
+    color: $text-muted;
+    font-size: 1rem;
+    text-decoration: none;
+    opacity: .6;
 }
-@media (hover: none) {
+@media (hover: hover) and (pointer: fine) {
     .day-calendar-add {
-        inset: auto .375rem .375rem auto;
-        font-size: 1rem;
-        color: $text-muted;
-        opacity: .6;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $primary;
+        font-size: 1.75rem;
+        border-radius: inherit;
+        opacity: 0;
+        transition: opacity .15s;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+        }
     }
 }
+// Month page: the products of a production day, shown in a popover by
+// project.js. Bootstrap places it, flips it above when there's no room.
+.day-calendar-tip {
+    display: none;
+}
+.day-calendar-popover {
+    --bs-popover-max-width: 20rem;
+    --bs-popover-body-padding-x: .75rem;
+    --bs-popover-body-padding-y: .5rem;
+    --bs-popover-font-size: .8125rem;
+    --bs-popover-border-color: transparent;
+    box-shadow: $box-shadow;
+
+    .popover-body {
+        display: flex;
+        flex-direction: column;
+        gap: .125rem;
+    }
+}
+.day-calendar-tip-title {
+    margin-bottom: .25rem;
+    font-weight: 600;
+}
+.day-calendar-tip-row {
+    display: flex;
+    gap: .5rem;
+}
+.day-calendar-tip-qty {
+    flex: 0 0 3.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+// Day picker: rounded squares like the buttons. A production day is tinted,
+// the chosen day is filled, today is orange.
 .day-calendar.is-compact {
     .day-calendar-grid {
-        gap: .125rem;
+        gap: .25rem;
     }
     .day-calendar-cell {
         align-items: center;
@@ -1197,13 +1355,12 @@ $tap-size: 44px;
         aspect-ratio: 1;
         padding: 0;
         background: none;
-        border-radius: 50%;
+        border-radius: $border-radius;
 
         &.has-day {
             border-left: 0;
             box-shadow: none;
             background-color: rgba($primary, .1);
-            box-shadow: inset 0 0 0 1px $primary;
 
             &:hover {
                 background-color: rgba($primary, .2);
@@ -1229,16 +1386,6 @@ $tap-size: 44px;
     .is-today .day-calendar-date {
         font-weight: 700;
     }
-}
-// Under the date, out of the flow, so all dates of a row stay aligned.
-.day-calendar-dot {
-    position: absolute;
-    bottom: 14%;
-    left: 50%;
-    width: .375rem;
-    height: .375rem;
-    border-radius: 50%;
-    transform: translateX(-50%);
 }
 .day-calendar-foot {
     display: flex;
@@ -1285,16 +1432,18 @@ $tap-size: 44px;
 
 // A secondary button on the page background: white like the cards, the
 // icon carries the brand colour.
+// Hover and pressed are a warm tint of the brand colour, like the dropdowns,
+// mixed solid so the page doesn't show through.
 .btn-surface {
     --bs-btn-color: #{$body-color};
     --bs-btn-bg: #{$white};
     --bs-btn-border-color: #{$gray-300};
     --bs-btn-hover-color: #{$body-color};
-    --bs-btn-hover-bg: #{$gray-100};
-    --bs-btn-hover-border-color: #{$gray-400};
+    --bs-btn-hover-bg: #{mix($primary, $white, 8%)};
+    --bs-btn-hover-border-color: #{mix($primary, $gray-300, 45%)};
     --bs-btn-active-color: #{$body-color};
-    --bs-btn-active-bg: #{$gray-200};
-    --bs-btn-active-border-color: #{$gray-400};
+    --bs-btn-active-bg: #{mix($primary, $white, 15%)};
+    --bs-btn-active-border-color: #{mix($primary, $gray-300, 60%)};
     --bs-btn-disabled-color: #{$gray-500};
     --bs-btn-disabled-bg: #{$white};
     --bs-btn-disabled-border-color: #{$gray-200};
@@ -1391,24 +1540,44 @@ $tap-size: 44px;
     flex-wrap: wrap;
     gap: .5rem;
 }
+// Actions of a tab are smaller than the ones of the page.
 .section-toolbar {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 1rem;
+
+    .btn {
+        --bs-btn-padding-y: #{$btn-padding-y-sm};
+        --bs-btn-padding-x: #{$btn-padding-x-sm};
+        --bs-btn-font-size: #{$btn-font-size-sm};
+        --bs-btn-border-radius: #{$btn-border-radius-sm};
+    }
 }
 .day-tabs {
     .badge {
         font-weight: 500;
     }
 }
-// The whole row links to the plan, the transform keeps the stretched link
-// inside the row.
-.day-product-row {
-    transform: rotate(0);
-}
+// The name opens the recipe, the icon after it the product in the plan.
 .day-product-name {
     font-weight: 500;
     text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+.day-product-plan {
+    margin-left: .375rem;
+    padding: .125rem .25rem;
+    color: $text-muted;
+    border-radius: $border-radius-sm;
+
+    &:hover,
+    &:focus-visible {
+        color: $primary;
+        background-color: rgba($primary, .08);
+    }
 }
 .day-products-fill {
     width: 12rem;
@@ -1434,13 +1603,95 @@ $tap-size: 44px;
     margin-top: 1.5rem;
 }
 .delivery-bill {
-    & + .pagebreak + .delivery-bill {
+    & + & {
         margin-top: 2rem;
     }
 
     .table {
         margin-bottom: 0;
         table-layout: fixed;
+    }
+}
+// The products column takes the rest of the width. The picked column has a
+// fixed width, its header with the button doesn't wrap. On a phone the table
+// keeps a minimum width and scrolls sideways instead of squeezing columns.
+.delivery-bill-table {
+    min-width: 40rem;
+    font-size: .875rem;
+
+    thead th {
+        color: $text-muted;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        vertical-align: bottom;
+    }
+    td {
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+        vertical-align: top;
+    }
+    .col-customer {
+        width: 24%;
+    }
+    .col-price {
+        width: 6.5rem;
+    }
+    .col-note {
+        width: 26%;
+    }
+    .col-picked {
+        width: 7.5rem;
+    }
+    .order-customer {
+        font-weight: 500;
+    }
+    .text-end {
+        font-variant-numeric: tabular-nums;
+    }
+    // Keeps its tap size for the counter, only lines up with the text.
+    .form-check-input {
+        margin-top: 0;
+    }
+    // A long product name wraps under the name, not under the quantity.
+    .order-positions li {
+        display: flex;
+        align-items: baseline;
+        gap: .375rem;
+    }
+    .position-name {
+        min-width: 0;
+
+        .badge {
+            vertical-align: text-bottom;
+        }
+    }
+    .quantity {
+        flex: 0 0 auto;
+        min-width: 2.25rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+}
+.order-note {
+    font-size: .8125rem;
+
+    & + & {
+        margin-top: .25rem;
+    }
+}
+.picked-head {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+
+    .btn {
+        padding: 0;
+        font-size: .875rem;
+        line-height: 1;
+        border: 0;
     }
 }
 .delivery-bill-title {
@@ -1456,19 +1707,59 @@ $tap-size: 44px;
         font-size: .875rem;
     }
 }
+// What goes to the point of sale: one product per line, in columns that
+// read top to bottom when there is room.
 .delivery-bill-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .375rem;
+    margin: .75rem 0 1.25rem;
     padding: 0;
+    font-size: .875rem;
     list-style: none;
+    columns: 3 14rem;
+    column-gap: 2rem;
 
     li {
-        padding: .125rem .5rem;
-        background-color: $gray-100;
-        border-radius: $border-radius-pill;
-        font-size: .875rem;
+        display: flex;
+        gap: .5rem;
+        padding: .125rem 0;
+        border-bottom: 1px solid $gray-200;
+        break-inside: avoid;
     }
+}
+.delivery-bill-summary-qty {
+    flex: 0 0 2.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+// Ingredients of the day, by category. Narrow enough that name and amount
+// stay close, the amounts line up.
+.day-ingredients {
+    max-width: 40rem;
+    font-size: .875rem;
+    font-variant-numeric: tabular-nums;
+
+    thead th {
+        color: $text-muted;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+    td,
+    th {
+        padding-top: .375rem;
+        padding-bottom: .375rem;
+    }
+    td:first-child {
+        padding-left: 1rem;
+    }
+}
+.day-ingredients-category > th {
+    padding-top: .75rem;
+    font-weight: 600;
+    background-color: $gray-100;
+    border-top: 2px solid $gray-300;
 }
 
 // Pickup emails: the editor with its preview as tabs like on the day page,
@@ -2258,7 +2549,8 @@ i.step-check-all {
             padding: .25rem;
         }
         .badge,
-        .day-calendar-info {
+        .day-calendar-info,
+        .day-calendar-today {
             display: none;
         }
     }
@@ -2333,8 +2625,28 @@ i.step-check-all {
         box-shadow: none;
         border: 1px solid $gray-400;
     }
-    .delivery-bill-summary li {
-        padding: 0;
+    // One point of sale per page, its table may run over several pages
+    // with the header on each.
+    .delivery-bill + .delivery-bill {
+        margin-top: 0;
+        break-before: page;
+    }
+    .delivery-bill .table-responsive {
+        overflow: visible;
+    }
+    .delivery-bill-table {
+        min-width: 0;
+    }
+    .delivery-bill-table tr,
+    .day-ingredients tr {
+        break-inside: avoid;
+    }
+    .day-ingredients-category {
+        break-after: avoid;
+    }
+    .delivery-bill-title,
+    .delivery-bill-summary {
+        break-after: avoid;
     }
     .production-card-actions,
     .production-stat-states,

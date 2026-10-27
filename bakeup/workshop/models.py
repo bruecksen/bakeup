@@ -924,6 +924,27 @@ class ProductionPlan(CommonBaseClass):
     def get_state_css_class(self):
         return ProductionPlan.state_css_class(self.state)
 
+    def get_card_url(self):
+        """The plan page of its day, at this plan's card.
+
+        The card is named after the product of the day, like in
+        get_production_plan_cards: starting recreates the plan.
+        """
+        from bakeup.shop.models import ProductionDayProduct
+
+        day_product = ProductionDayProduct.objects.filter(
+            production_day=self.production_day,
+            product=self.product.product_template,
+        ).first()
+        anchor = f"card-{day_product.pk}" if day_product else f"card-plan-{self.pk}"
+        return "{}#{}".format(
+            reverse(
+                "workshop:production-plan-production-day",
+                kwargs={"pk": self.production_day_id},
+            ),
+            anchor,
+        )
+
     def get_next_state(self):
         if self.is_planned:
             return self.State.IN_PRODUCTION

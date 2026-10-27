@@ -106,6 +106,41 @@ document.addEventListener("keydown", function(event) {
     if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) setSidebarOpen(false);
 });
 
+// Sidebar from md up: collapses to its icons. The state is a cookie, so the
+// next page comes collapsed from the server without flicker. Collapsed, the
+// labels show as tooltips to the right of the icons.
+function sidebarLinks() {
+    return document.querySelectorAll("#workshop-sidebar .nav-link");
+}
+
+document.addEventListener("click", function(event) {
+    var button = event.target.closest("[data-sidebar-collapse]");
+    if (!button) return;
+    var sidebar = document.getElementById("workshop-sidebar");
+    var collapsed = !sidebar.classList.contains("is-collapsed");
+    sidebar.classList.toggle("is-collapsed", collapsed);
+    button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    document.cookie = "sidebar_collapsed=" + (collapsed ? "1" : "0") + "; path=/; max-age=31536000; samesite=lax";
+    sidebarLinks().forEach(function(link) {
+        var tooltip = bootstrap.Tooltip.getInstance(link);
+        if (tooltip) tooltip.dispose();
+    });
+});
+
+["mouseover", "focusin"].forEach(function(type) {
+    document.addEventListener(type, function(event) {
+        var link = event.target.closest("#workshop-sidebar.is-collapsed .nav-link");
+        if (!link || bootstrap.Tooltip.getInstance(link)) return;
+        var label = link.querySelector(".nav-label");
+        if (!label) return;
+        bootstrap.Tooltip.getOrCreateInstance(link, {
+            title: label.textContent.trim(),
+            placement: "right",
+            trigger: "hover focus",
+        }).show();
+    });
+});
+
 let expandAll = document.getElementById('expand-all');
 if (expandAll) {
     document.getElementById('expand-all').onclick = function(){
@@ -1026,6 +1061,27 @@ function restoreExpandedCards() {
 document.addEventListener("DOMContentLoaded", restoreExpandedCards);
 document.addEventListener("htmx:after:swap", restoreExpandedCards);
 
+// A link to a card, e.g. the plan button on the production day, opens it and
+// remembers it as open, so it stays open after the next swap.
+function openLinkedCard() {
+    var id = location.hash.slice(1);
+    var card = id && document.getElementById(id);
+    if (!card || !card.classList.contains("production-card")) return;
+    var body = document.getElementById(id + "-body");
+    if (body && body.classList.contains("collapse")) {
+        body.classList.add("show");
+        var toggle = document.querySelector('[data-bs-target="#' + body.id + '"]');
+        if (toggle) toggle.setAttribute("aria-expanded", "true");
+        var ids = getExpandedCards().filter(function(other) { return other !== body.id; });
+        ids.push(body.id);
+        setExpandedCards(ids);
+    }
+    card.scrollIntoView({ block: "start" });
+}
+
+document.addEventListener("DOMContentLoaded", openLinkedCard);
+window.addEventListener("hashchange", openLinkedCard);
+
 // The server renders every card collapsed, a morph would close an open card
 // until htmx:after:swap opens it again. htmx swaps asynchronously, so the
 // browser may paint in between: the card flickers and the page jumps.
@@ -1290,4 +1346,32 @@ document.addEventListener("click", function(event) {
         field.dispatchEvent(paste);
     }
     document.body.dispatchEvent(new Event("reminder-preview"));
+});
+
+// Month calendar: the products of a day in a popover, which Bootstrap places
+// where there is room. Made on the first hover or focus, htmx swaps the
+// months. Touch screens have no hover, a tap opens the day.
+["mouseover", "focusin"].forEach(function(type) {
+    document.addEventListener(type, function(event) {
+        var cell = event.target.closest(".day-calendar:not(.is-compact) .day-calendar-cell.has-day");
+        if (!cell || bootstrap.Popover.getInstance(cell)) return;
+        if (window.matchMedia("(hover: none)").matches) return;
+        var tip = cell.querySelector(".day-calendar-tip");
+        if (!tip) return;
+        bootstrap.Popover.getOrCreateInstance(cell, {
+            content: tip.innerHTML,
+            html: true,
+            trigger: "hover focus",
+            placement: "bottom",
+            fallbackPlacements: ["top", "right", "left"],
+            container: "body",
+            customClass: "day-calendar-popover",
+        }).show();
+    });
+});
+document.addEventListener("htmx:before:swap", function() {
+    document.querySelectorAll(".day-calendar-cell.has-day").forEach(function(cell) {
+        var popover = bootstrap.Popover.getInstance(cell);
+        if (popover) popover.dispose();
+    });
 });

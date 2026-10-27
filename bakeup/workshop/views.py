@@ -14,7 +14,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.db.models import Count, ProtectedError, Q, Sum
-from django.db.models.functions import Lower
+from django.db.models.functions import Coalesce, Lower
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1167,18 +1167,31 @@ def order_max_quantities_view(request, pk):
         request.user.customer.point_of_sale and request.user.customer.point_of_sale.pk,
     )
     return HttpResponseRedirect(
-        "{}#orders".format(reverse("workshop:production-day-detail", kwargs={"pk": pk}))
+        "{}#products".format(
+            reverse("workshop:production-day-detail", kwargs={"pk": pk})
+        )
     )
 
 
 @staff_member_required(login_url="login")
 def pos_order_all_picked_up_view(request, production_day, pos):
-    CustomerOrderPosition.objects.filter(
-        order__production_day=production_day, order__point_of_sale=pos
-    ).update(is_picked_up=True)
-    return HttpResponseRedirect(
-        reverse("workshop:production-day-detail", kwargs={"pk": production_day})
+    """Ticks all orders of a point of sale, or none when all are ticked."""
+    production_day = get_object_or_404(ProductionDay, pk=production_day)
+    point_of_sale = get_object_or_404(PointOfSale, pk=pos)
+    positions = CustomerOrderPosition.objects.filter(
+        order__production_day=production_day, order__point_of_sale=point_of_sale
     )
+    positions.update(is_picked_up=positions.filter(is_picked_up=False).exists())
+    if request.htmx:
+        return render(
+            request,
+            "workshop/includes/delivery_bill.html",
+            {
+                "bill": get_delivery_bills(production_day, point_of_sale)[0],
+                "production_day": production_day,
+            },
+        )
+    return HttpResponseRedirect(f"{production_day.get_absolute_url()}#orders")
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -1571,6 +1584,38 @@ def get_production_day_url(production_day, link):
     return reverse(url_name, kwargs={kwarg: production_day.pk})
 
 
+def get_calendar_products(production_days):
+    """The products of each day with ordered and maximum quantity.
+
+    A position is of the product itself or of its copy in the plan, like in
+    ProductionDayProduct.get_order_quantity.
+    """
+    ordered = {
+        (day, product): quantity
+        for day, product, quantity in CustomerOrderPosition.objects.filter(
+            order__production_day__in=production_days
+        )
+        .annotate(day_product=Coalesce("product__product_template", "product"))
+        .values_list("order__production_day", "day_product")
+        .annotate(quantity=Sum("quantity"))
+    }
+    products = {}
+    for day_product in (
+        ProductionDayProduct.objects.filter(production_day__in=production_days)
+        .select_related("product")
+        .order_by("product__name")
+    ):
+        key = (day_product.production_day_id, day_product.product_id)
+        products.setdefault(day_product.production_day_id, []).append(
+            {
+                "name": day_product.product.name,
+                "ordered": ordered.get(key, 0),
+                "max": day_product.max_quantity,
+            }
+        )
+    return products
+
+
 def get_production_day_calendar(month, selected=None, link="day", compact=False):
     """The weeks of a month with its production days, Monday first."""
     month = month.replace(day=1)
@@ -1587,6 +1632,7 @@ def get_production_day_calendar(month, selected=None, link="day", compact=False)
         production_day__in=production_days.values(), parent_plan__isnull=True
     ).values_list("production_day", "state"):
         states.setdefault(day_pk, set()).add(state)
+    products = {} if compact else get_calendar_products(production_days.values())
     today = now().date()
 
     def cell(date):
@@ -1608,6 +1654,7 @@ def get_production_day_calendar(month, selected=None, link="day", compact=False)
                 cell["state_css_class"] = ProductionPlan.state_css_class(state)
             if not compact:
                 cell["sold_percent"] = min(100, production_day.sold_percentage)
+                cell["products"] = products.get(production_day.pk, [])
         return cell
 
     def month_url(other):
@@ -1706,40 +1753,54 @@ def production_day_reminder_redirect_view(request):
     return HttpResponseRedirect(get_production_day_url(production_day, "reminder"))
 
 
+def get_delivery_bills(production_day, only=None):
+    """The orders of a day by point of sale, for the delivery bills."""
+    point_of_sales = []
+    points_of_sale = PointOfSale.objects.filter(
+        customer_orders__production_day=production_day
+    ).distinct()
+    if only:
+        points_of_sale = points_of_sale.filter(pk=only.pk)
+    for point_of_sale in points_of_sale:
+        positions = CustomerOrderPosition.objects.exclude(
+            Q(production_plan__state=ProductionPlan.State.CANCELED)
+            | Q(production_plan__isnull=True)
+        ).filter(
+            order__point_of_sale=point_of_sale, order__production_day=production_day
+        )
+        order_summary = positions.values("product__name").annotate(
+            quantity=Sum("quantity")
+        )
+        orders = list(
+            CustomerOrder.objects.filter(
+                point_of_sale=point_of_sale, production_day=production_day
+            )
+            .select_related("customer__user")
+            .prefetch_related(
+                "notes", "positions__product", "positions__production_plan"
+            )
+            .order_by("customer__user__last_name")
+        )
+        point_of_sales.append(
+            {
+                "point_of_sale": point_of_sale,
+                "orders": orders,
+                # Without any note the column goes, the others get its room.
+                "has_notes": any(order.notes.all() for order in orders),
+                "summary": order_summary,
+                "all_picked_up": not CustomerOrderPosition.objects.filter(
+                    order__production_day=production_day,
+                    order__point_of_sale=point_of_sale,
+                    is_picked_up=False,
+                ).exists(),
+            }
+        )
+    return point_of_sales
+
+
 class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionDay
     template_name = "workshop/productionday_detail.html"
-
-    def get_point_of_sales(self):
-        point_of_sales = []
-        for point_of_sale in PointOfSale.objects.filter(
-            customer_orders__production_day=self.object
-        ).distinct():
-            positions = CustomerOrderPosition.objects.exclude(
-                Q(production_plan__state=ProductionPlan.State.CANCELED)
-                | Q(production_plan__isnull=True)
-            ).filter(
-                order__point_of_sale=point_of_sale, order__production_day=self.object
-            )
-            order_summary = positions.values("product__name").annotate(
-                quantity=Sum("quantity")
-            )
-            orders = CustomerOrder.objects.filter(
-                point_of_sale=point_of_sale, production_day=self.object
-            ).order_by("customer__user__last_name")
-            point_of_sales.append(
-                {
-                    "point_of_sale": point_of_sale,
-                    "orders": orders,
-                    "summary": order_summary,
-                    "all_picked_up": not CustomerOrderPosition.objects.filter(
-                        order__production_day=self.object,
-                        order__point_of_sale=point_of_sale,
-                        is_picked_up=False,
-                    ).exists(),
-                }
-            )
-        return point_of_sales
 
     def get_day_actions(self, has_plans_to_start, has_plans_to_finish):
         pk = self.object.pk
@@ -1799,7 +1860,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     reverse(
                         "workshop:production-plan-production-day", kwargs={"pk": pk}
                     ),
-                    "fas fa-sliders",
+                    "fas fa-clipboard-list",
                 )
             )
         actions += [
@@ -1838,7 +1899,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         ]
         return actions
 
-    def get_orders_actions(self, has_plans_to_start):
+    def get_products_actions(self, has_plans_to_start):
         pk = self.object.pk
         next_url = f"?next={self.object.get_absolute_url()}"
         actions = Actions(
@@ -1854,12 +1915,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
                     "fas fa-edit",
                     kind="secondary",
-                ),
-                Action(
-                    _("Print delivery bill"),
-                    icon="fas fa-print",
-                    kind="secondary",
-                    is_print=True,
                 ),
             ]
         )
@@ -1897,7 +1952,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             state=ProductionPlan.State.IN_PRODUCTION,
             parent_plan__isnull=True,
         ).exists()
-        context["point_of_sales"] = self.get_point_of_sales()
+        context["point_of_sales"] = get_delivery_bills(self.object)
         context["stats"] = get_production_day_stats(self.object)
         context["product_rows"] = get_production_day_product_rows(self.object)
         context["product_mappings"] = list(
@@ -1908,9 +1963,26 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         context["day_actions"] = self.get_day_actions(
             has_plans_to_start, has_plans_to_finish
         )
-        context["orders_actions"] = self.get_orders_actions(has_plans_to_start)
+        context["products_actions"] = self.get_products_actions(has_plans_to_start)
+        context["delivery_bill_actions"] = Actions(
+            [
+                Action(
+                    _("Print delivery bill"),
+                    icon="fas fa-print",
+                    kind="primary",
+                    is_print=True,
+                )
+            ]
+        )
         context["ingredients_actions"] = Actions(
-            [Action(_("Print"), icon="fas fa-print", kind="secondary", is_print=True)]
+            [
+                Action(
+                    _("Print ingredients"),
+                    icon="fas fa-print",
+                    kind="primary",
+                    is_print=True,
+                )
+            ]
         )
         context["day_switch"] = get_day_switch(self.object, "day")
         return context
@@ -2279,7 +2351,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
             [
                 Action(
                     _("Test email to me"),
-                    icon="fas fa-flask",
+                    icon="far fa-paper-plane",
                     kind="secondary",
                     submit_name="send_test",
                 ),

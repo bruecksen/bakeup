@@ -1,5 +1,5 @@
-<ul class="list-unstyled mb-0">
+<ul class="list-unstyled mb-0 order-positions">
     {% for position in positions %}
-    <li><span class="quantity">{{ position.quantity}} x</span> {{ position.product }}{% if position.price_total %}<small class="text-muted"> {{ position.price_total }}</small>{% endif %}{% if not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with state_css_class=position.production_plan.get_state_css_class label=position.production_plan.get_state_display_value %}{% endif %}</li>
+    <li><span class="quantity">{{ position.quantity}} x</span> <span class="position-name">{{ position.product }}{% if position.price_total %}<small class="text-muted text-nowrap"> {{ position.price_total }}</small>{% endif %}{% if canceled_only %}{% if position.production_plan.is_canceled %} {% include "workshop/includes/production_plan_state.html" with state_css_class=position.production_plan.get_state_css_class label=position.production_plan.get_state_display_value %}{% endif %}{% elif not position.production_plan.is_produced %} {% include "workshop/includes/production_plan_state.html" with state_css_class=position.production_plan.get_state_css_class label=position.production_plan.get_state_display_value %}{% endif %}</span></li>
     {% endfor %}
 </ul>

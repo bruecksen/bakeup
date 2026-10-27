@@ -1,61 +1,63 @@
 {% load i18n utils workshop_tags %}
 {% workshop_section as section %}
 <div class="sidebar-backdrop d-md-none" data-sidebar-close></div>
-<div id="workshop-sidebar" class="sidebar col-auto px-2 bg-dark d-print-none">
+{% with collapsed=request.COOKIES.sidebar_collapsed %}
+<div id="workshop-sidebar" class="sidebar col-auto px-2 bg-dark d-print-none{% if collapsed == '1' %} is-collapsed{% endif %}">
   <button type="button" class="sidebar-close d-md-none" data-sidebar-close aria-label="{% trans 'Close menu' %}"><i class="fas fa-xmark fa-fw"></i></button>
   <nav class="d-flex flex-column align-items-center align-items-sm-start min-vh-100 py-3">
+    <button type="button" class="sidebar-collapse d-none d-md-flex" data-sidebar-collapse aria-controls="workshop-sidebar" aria-expanded="{% if collapsed == '1' %}false{% else %}true{% endif %}" aria-label="{% trans 'Collapse or expand the menu' %}" title="{% trans 'Collapse or expand the menu' %}"><i class="fas fa-angles-left fa-fw" aria-hidden="true"></i></button>
     {% include "includes/logo.html" with logo_size='large' home_url='home' client_logo=settings.pages.BrandSettings.logo %}
       <h3 class="sidebar-name text-center text-light w-100">{{ request.tenant.name }}</h3>
           <div class="sidebar-menu w-100 mb-sm-auto">
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "dashboard" %} active{% endif %}"{% if section == "dashboard" %} aria-current="page"{% endif %} href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> {% translate "Dashboard" %}</a>
+              <a class="nav-link{% if section == "dashboard" %} active{% endif %}"{% if section == "dashboard" %} aria-current="page"{% endif %} href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> <span class="nav-label">{% translate "Dashboard" %}</span></a>
             </li>
           </ul>
           {% if request.user.is_authenticated and request.user.is_staff %}
           <h6 class="sidebar-heading">{% translate "Production" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "production-day-calendar" %} active{% endif %}"{% if section == "production-day-calendar" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-calendar' %}"><i class="fa-solid fa-calendar-days fa-fw"></i> {% translate "Calendar" %}</a>
+              <a class="nav-link{% if section == "production-day-calendar" %} active{% endif %}"{% if section == "production-day-calendar" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-calendar' %}"><i class="fa-solid fa-calendar-days fa-fw"></i> <span class="nav-label">{% translate "Calendar" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> {% translate "Current production day" %}</a>
+              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> <span class="nav-label">{% translate "Current production day" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "production-plans" %} active{% endif %}"{% if section == "production-plans" %} aria-current="page"{% endif %} href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-sliders fa-fw"></i> {% translate "Production Plans" %}</a>
+              <a class="nav-link{% if section == "production-plans" %} active{% endif %}"{% if section == "production-plans" %} aria-current="page"{% endif %} href="{% url 'workshop:production-plan-next' %}"><i class="fa-solid fa-clipboard-list fa-fw"></i> <span class="nav-label">{% translate "Production Plans" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "reminders" %} active{% endif %}"{% if section == "reminders" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-reminder-next' %}"><i class="fas fa-envelope fa-fw"></i> {% translate "Pickup emails" %}</a>
+              <a class="nav-link{% if section == "reminders" %} active{% endif %}"{% if section == "reminders" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-reminder-next' %}"><i class="fas fa-envelope fa-fw"></i> <span class="nav-label">{% translate "Pickup emails" %}</span></a>
             </li>
           </ul>
           <h6 class="sidebar-heading">{% translate "Sales" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "orders" %} active{% endif %}"{% if section == "orders" %} aria-current="page"{% endif %} href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i> {% translate "Orders" %}</a>
+              <a class="nav-link{% if section == "orders" %} active{% endif %}"{% if section == "orders" %} aria-current="page"{% endif %} href="{% url 'workshop:order-list' %}"><i class="fa-solid fa-shopping-basket fa-fw"></i> <span class="nav-label">{% translate "Orders" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "subscriptions" %} active{% endif %}"{% if section == "subscriptions" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-order-template-overview' %}"><i class="fas fa-repeat fa-fw"></i> {% trans "Subscriptions" %}</a>
+              <a class="nav-link{% if section == "subscriptions" %} active{% endif %}"{% if section == "subscriptions" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-order-template-overview' %}"><i class="fas fa-repeat fa-fw"></i> <span class="nav-label">{% trans "Subscriptions" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "customers" %} active{% endif %}"{% if section == "customers" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-list' %}"><i class="fas fa-user fa-fw"></i> {% translate "Customers" %}</a>
+              <a class="nav-link{% if section == "customers" %} active{% endif %}"{% if section == "customers" %} aria-current="page"{% endif %} href="{% url 'workshop:customer-list' %}"><i class="fas fa-user fa-fw"></i> <span class="nav-label">{% translate "Customers" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "points-of-sale" %} active{% endif %}"{% if section == "points-of-sale" %} aria-current="page"{% endif %} href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i> {% translate "Points of sale" %}</a>
+              <a class="nav-link{% if section == "points-of-sale" %} active{% endif %}"{% if section == "points-of-sale" %} aria-current="page"{% endif %} href="{% url 'workshop:point-of-sale-list' %}"><i class="fas fa-warehouse fa-fw"></i> <span class="nav-label">{% translate "Points of sale" %}</span></a>
             </li>
           </ul>
           <h6 class="sidebar-heading">{% translate "Products" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "recipes" %} active{% endif %}"{% if section == "recipes" %} aria-current="page"{% endif %} href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-cookie-bite fa-fw"></i> {% translate "Product range" %}</a>
+              <a class="nav-link{% if section == "recipes" %} active{% endif %}"{% if section == "recipes" %} aria-current="page"{% endif %} href="{% url 'workshop:recipe-list' %}"><i class="fa-solid fa-cookie-bite fa-fw"></i> <span class="nav-label">{% translate "Product range" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "products" %} active{% endif %}"{% if section == "products" %} aria-current="page"{% endif %} href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-wheat-awn fa-fw"></i> {% translate "Ingredients & doughs" %}</a>
+              <a class="nav-link{% if section == "products" %} active{% endif %}"{% if section == "products" %} aria-current="page"{% endif %} href="{% url 'workshop:product-list' %}"><i class="fa-solid fa-wheat-awn fa-fw"></i> <span class="nav-label">{% translate "Ingredients & doughs" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "categories" %} active{% endif %}"{% if section == "categories" %} aria-current="page"{% endif %} href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> {% translate "Categories" %}</a>
+              <a class="nav-link{% if section == "categories" %} active{% endif %}"{% if section == "categories" %} aria-current="page"{% endif %} href="{% url 'workshop:category-list' %}"><i class="fa-solid fa-list fa-fw"></i> <span class="nav-label">{% translate "Categories" %}</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link{% if section == "tags" %} active{% endif %}"{% if section == "tags" %} aria-current="page"{% endif %} href="{% url 'workshop:tag-list' %}"><i class="fa-solid fa-tags fa-fw"></i> {% translate "Tags" %}</a>
+              <a class="nav-link{% if section == "tags" %} active{% endif %}"{% if section == "tags" %} aria-current="page"{% endif %} href="{% url 'workshop:tag-list' %}"><i class="fa-solid fa-tags fa-fw"></i> <span class="nav-label">{% translate "Tags" %}</span></a>
             </li>
           </ul>
           {% endif %}
@@ -63,28 +65,29 @@
           <ul class="nav nav-pills flex-column mb-0 w-100 sidebar-bottom">
             {% if request.user.is_authenticated and request.user.is_customer %}
             <li class="nav-item">
-              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop fa-fw"></i> {% translate "Shop" %}</a>
+              <a class="nav-link" href="/shop/"><i class="fa-solid fa-shop fa-fw"></i> <span class="nav-label">{% translate "Shop" %}</span></a>
             </li>
             {% endif %}
             {% if request.user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i> {% translate "CMS" %}</a>
+                <a class="nav-link" href="{% url 'wagtailadmin_home' %}"><i class="fa-solid fa-file-lines fa-fw"></i> <span class="nav-label">{% translate "CMS" %}</span></a>
               </li>
               <li class="nav-item">
-                <a class="nav-link{% if section == "profile" %} active{% endif %}"{% if section == "profile" %} aria-current="page"{% endif %} href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> {% translate "Profile" %}</a>
+                <a class="nav-link{% if section == "profile" %} active{% endif %}"{% if section == "profile" %} aria-current="page"{% endif %} href="{% url 'users:update' %}"><i class="fa-solid fa-user fa-fw"></i> <span class="nav-label">{% translate "Profile" %}</span></a>
               </li>
               <li class="nav-item">
                 <form method="post" action="{% url 'logout' %}">
                   {% csrf_token %}
-                  <button type="submit" class="nav-link border-0 text-start"><i class="fa-solid fa-right-from-bracket fa-fw"></i> {% translate "Logout" %}</button>
+                  <button type="submit" class="nav-link border-0 text-start"><i class="fa-solid fa-right-from-bracket fa-fw"></i> <span class="nav-label">{% translate "Logout" %}</span></button>
                 </form>
               </li>
             {% else %}
               <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> {% translate "Login" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}"><i class="fa-solid fa-right-to-bracket fa-fw"></i> <span class="nav-label">{% translate "Login" %}</span></a>
               </li>
             {% endif %}
           </ul>
          <p class="sidebar-footer mb-0 text-center w-100">Gebacken mit <a href="https://bakeup.org" class="fw-bold">bakeup.org</a> <br> <a href="https://github.com/bruecksen/bakeup/releases/latest" target="_blank">{% current_git_tag %}</a></p>
         </nav>
 </div>
+{% endwith %}

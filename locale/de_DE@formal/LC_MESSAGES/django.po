@@ -1644,7 +1644,7 @@ msgstr "Zutaten"
 
 #: bakeup/templates/workshop/productionday_detail.html:46
 msgid "Delivery bill"
-msgstr ""
+msgstr "Lieferschein"
 
 #: bakeup/templates/workshop/productionday_detail.html:53
 #, fuzzy
@@ -1747,7 +1747,7 @@ msgstr ""
 
 #: bakeup/templates/workshop/productionday_detail.html:163
 msgid "Ingredients Summary"
-msgstr ""
+msgstr "Zusammenfassung Zutaten"
 
 #: bakeup/templates/workshop/productionday_detail.html:166
 #: bakeup/workshop/forms.py:123
@@ -2400,7 +2400,7 @@ msgid "Add products"
 msgstr "Produkte hinzufügen"
 
 msgid "All picked up"
-msgstr "Alle abgeholt"
+msgstr "Alle als abgeholt markieren"
 
 msgid "There are no orders for this day yet."
 msgstr "Für diesen Tag gibt es noch keine Bestellungen."
@@ -2547,3 +2547,12 @@ msgstr "Noch nicht gespeichert"
 
 msgid "How a customer gets the email, with example data."
 msgstr "So bekommt eine Kundin oder ein Kunde die E-Mail, mit Beispieldaten."
+
+msgid "None picked up"
+msgstr "Alle als nicht abgeholt markieren"
+
+msgid "Print ingredients"
+msgstr "Zutaten drucken"
+
+msgid "Collapse or expand the menu"
+msgstr "Menü ein- oder ausklappen"

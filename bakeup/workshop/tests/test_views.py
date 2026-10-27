@@ -147,6 +147,22 @@ class SidebarTest(RecipeViewTestCase):
         )
         self.assert_active(reverse("users:update"), reverse("users:update"))
 
+    def test_collapsed_from_the_cookie(self):
+        url = reverse("workshop:workshop")
+        self.assertNotContains(
+            self.client.get(url),
+            "sidebar col-auto px-2 bg-dark d-print-none is-collapsed",
+        )
+        self.client.cookies["sidebar_collapsed"] = "1"
+        response = self.client.get(url)
+        self.assertContains(
+            response, "sidebar col-auto px-2 bg-dark d-print-none is-collapsed"
+        )
+        self.assertContains(
+            response,
+            'data-sidebar-collapse aria-controls="workshop-sidebar" aria-expanded="false"',
+        )
+
     def test_product_pages_by_sellable(self):
         self.assert_active(self.url("product-detail"), reverse("workshop:recipe-list"))
         self.assert_active(
@@ -766,6 +782,12 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         self.assertEqual(response.status_code, 200)
         return response
 
+    def start_day(self):
+        for plan in ProductionPlan.objects.filter(
+            production_day=self.production_day, parent_plan=None
+        ):
+            plan.set_production()
+
     def add_order(self):
         self.pos = PointOfSale.objects.create(name="Market")
         order = CustomerOrder.objects.create(
@@ -805,7 +827,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
                 reverse(
                     "workshop:production-plans-start", kwargs={"production_day": pk}
                 ),
-                f"{self.day_url()}#production-plan-{self.root().pk}",
+                f"{self.day_url()}#card-{self.day_products[self.bread.pk].pk}",
                 *self.day_urls(
                     "production-day-update",
                     "production-plan-production-day",
@@ -825,7 +847,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
     def test_every_control_of_a_day_in_production(self):
         pk = self.production_day.pk
         order = self.add_order()
-        self.start()
+        self.start_day()
         response = self.detail()
         self.assert_links(
             response,
@@ -870,10 +892,35 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         primary, menu = primary_and_menu()
         self.assertEqual(primary, [start])
         self.assertIn(self.day_url(), menu)
-        self.start()
+        self.start_day()
         primary, menu = primary_and_menu()
         self.assertEqual(primary, [finish])
         self.assertNotIn(finish, menu)
+
+    def test_delivery_bill_shows_the_short_point_of_sale_name(self):
+        self.add_order()
+        self.pos.short_name = "MKT"
+        self.pos.save()
+        response = self.detail()
+        self.assertContains(response, '<h3 class="delivery-bill-title">MKT ')
+
+    def test_delivery_bill_only_marks_canceled_products(self):
+        self.add_order()
+        bill = self.detail().content.decode().split('id="orders"')[1]
+        self.assertNotIn("geplant", bill)
+        plan = self.root()
+        plan.state = ProductionPlan.State.CANCELED
+        plan.save()
+        bill = self.detail().content.decode().split('id="orders"')[1]
+        self.assertIn("abgebrochen", bill)
+
+    def test_note_column_only_with_notes(self):
+        order = self.add_order()
+        self.assertNotContains(self.detail(), 'class="col-note"')
+        Note.objects.create(content_object=order, user=self.user, content="Geschnitten")
+        response = self.detail()
+        self.assertContains(response, 'class="col-note"')
+        self.assertContains(response, "Geschnitten")
 
     def test_delete_is_disabled_with_orders(self):
         self.add_order()
@@ -881,6 +928,20 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         delete = [a for a in response.context["day_actions"] if a.danger][0]
         self.assertTrue(delete.disabled)
         self.assertNotContains(response, f'href="{delete.url}"')
+
+    def test_product_row_links_to_recipe_and_plan(self):
+        response = self.detail()
+        self.assertContains(
+            response, f'href="{self.url("product-detail", self.bread.pk)}"'
+        )
+        card = f"card-{self.day_products[self.bread.pk].pk}"
+        self.assertContains(response, f'href="{self.day_url()}#{card}"')
+        self.assertContains(self.client.get(self.day_url()), f'id="{card}"')
+        self.assertNotContains(response, "stretched-link day-product-name")
+
+    def test_plan_card_url_matches_the_card(self):
+        card = f"card-{self.day_products[self.bread.pk].pk}"
+        self.assertEqual(self.root().get_card_url(), f"{self.day_url()}#{card}")
 
     def test_product_rows(self):
         self.add_order()
@@ -918,8 +979,25 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
                 kwargs={"production_day": self.production_day.pk, "pos": self.pos.pk},
             )
         )
-        self.assertRedirects(response, self.detail_url())
+        self.assertRedirects(
+            response, f"{self.detail_url()}#orders", fetch_redirect_response=False
+        )
         self.assertTrue(order.positions.get().is_picked_up)
+
+    def test_pick_up_toggle_swaps_only_its_delivery_bill(self):
+        order = self.add_order()
+        url = reverse(
+            "workshop:pos-all-picked-up",
+            kwargs={"production_day": self.production_day.pk, "pos": self.pos.pk},
+        )
+        response = self.client.post(url, HTTP_HX_REQUEST="true")
+        self.assertTrue(order.positions.get().is_picked_up)
+        self.assertTemplateUsed(response, "workshop/includes/delivery_bill.html")
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+        self.assertContains(response, f'id="delivery-bill-{self.pos.pk}"')
+        self.assertContains(response, "checked")
+        self.client.post(url, HTTP_HX_REQUEST="true")
+        self.assertFalse(order.positions.get().is_picked_up)
 
 
 class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
@@ -946,6 +1024,16 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertEqual(cell["state_css_class"], "bg-warning")
         self.assertContains(response, f'href="{self.detail_url()}"')
         self.assertTemplateUsed(response, "workshop/productionday_calendar.html")
+
+    def test_month_lists_the_products_of_a_day(self):
+        self.add_order()
+        day = self.production_day.day_of_sale
+        response = self.calendar(month=day.strftime("%Y-%m"))
+        products = {p["name"]: p for p in self.cells(response)[day]["products"]}
+        self.assertEqual(products["Bread"]["ordered"], 3)
+        self.assertEqual(products["Bread"]["max"], 10)
+        self.assertEqual(products["Cake"]["ordered"], 0)
+        self.assertContains(response, 'class="day-calendar-tip"')
 
     def test_free_future_day_can_be_added(self):
         free = self.next_day.day_of_sale + timedelta(days=1)

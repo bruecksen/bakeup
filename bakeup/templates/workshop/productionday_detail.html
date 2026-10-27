@@ -58,7 +58,7 @@
       <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="true">{% trans "Products" %} <span class="badge rounded-pill text-bg-light">{{ product_rows|length }}</span></button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">{% trans "Orders" %} <span class="badge rounded-pill text-bg-light">{{ stats.orders }}</span></button>
+      <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">{% trans "Delivery bill" %} <span class="badge rounded-pill text-bg-light">{{ stats.orders }}</span></button>
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">{% trans "Ingredients" %}</button>
@@ -67,6 +67,9 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
+      <div class="section-toolbar">
+        {% include "workshop/includes/actions.html" with actions=products_actions target="#production-day-detail" %}
+      </div>
       <h2 class="d-none d-print-block">{% trans "Products" %} {{ object }}</h2>
       {% if product_rows %}
       <div class="table-responsive">
@@ -82,14 +85,11 @@
           <tbody>
             {% for row in product_rows %}
             {% with product=row.day_product %}
-            <tr class="day-product-row{% if row.is_over %} table-danger{% endif %}">
+            <tr{% if row.is_over %} class="table-danger"{% endif %}>
               <td>
-                {% if product.production_plan %}
-                <a class="stretched-link day-product-name" href="{% url 'workshop:production-plan-production-day' pk=object.pk %}#production-plan-{{ product.production_plan.pk }}">{{ product.product }}</a>
-                {% else %}
-                <span class="day-product-name">{{ product.product }}</span>
-                {% endif %}
+                <a class="day-product-name" href="{% url 'workshop:product-detail' pk=product.product.pk %}">{{ product.product }}</a>
                 {% if product.group %}<span class="badge text-bg-dark ms-1">{{ product.group }}</span>{% endif %}
+                {% if product.production_plan %}<a class="day-product-plan d-print-none" href="{% url 'workshop:production-plan-production-day' pk=object.pk %}#card-{{ product.pk }}" title="{% trans 'Production plan' %}" aria-label="{% trans 'Production plan' %}: {{ product.product }}"><i class="fas fa-clipboard-list" aria-hidden="true"></i></a>{% endif %}
               </td>
               <td>{% include "workshop/includes/production_plan_state.html" with state_css_class=product.production_plan.get_state_css_class label=product.production_plan.get_state_display_value %}</td>
               <td class="text-center">{% if product.is_published %}<i class="fas fa-check text-success" title="{% trans 'Published' %}" aria-label="{% trans 'Published' %}"></i>{% endif %}</td>
@@ -137,65 +137,10 @@
 
     <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
       <div class="section-toolbar">
-        {% include "workshop/includes/actions.html" with actions=orders_actions target="#production-day-detail" %}
+        {% include "workshop/includes/actions.html" with actions=delivery_bill_actions %}
       </div>
       {% for point_of_sale in point_of_sales %}
-      <section class="delivery-bill">
-        <h3 class="delivery-bill-title">{{ point_of_sale.point_of_sale }} <small class="text-muted">{{ object }}</small></h3>
-        <ul class="delivery-bill-summary">
-          {% for order_summary in point_of_sale.summary %}
-          <li><span class="quantity">{{ order_summary.quantity }} x</span> {{ order_summary.product__name }}</li>
-          {% endfor %}
-        </ul>
-        <div class="table-responsive">
-          <table class="table delivery-bill-table">
-            <tr>
-              <th class="align-middle">{% trans "User" %}</th>
-              <th width="30%" class="align-middle">{% trans "Products" %}</th>
-              {% if object.has_products_with_price %}<th width="10%">{% trans "Price" %}</th>{% endif %}
-              <th width="30%" class="align-middle">{% trans "Note" %}</th>
-              <th width="15%" class="text-center align-middle">
-                <nobr>{% trans "Picked" %} <button type="button" class="btn btn-link d-print-none btn-sm py-0" title="{% trans 'All picked up' %}" aria-label="{% trans 'All picked up' %}"
-                hx-post="{% url 'workshop:pos-all-picked-up' production_day=object.pk pos=point_of_sale.point_of_sale.pk %}"
-                hx-target="#production-day-detail"
-                hx-select="#production-day-detail"
-                hx-swap="outerMorph"
-                ><i class="far fa-square-check fa-xl"></i></button></nobr>
-              </th>
-            </tr>
-            {% for order in point_of_sale.orders %}
-            <tr>
-              <td>
-                {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
-                {{ order.customer }}
-                {% else %}
-                {{ order.customer.user.short_name }}
-                {% endif %}
-              </td>
-              <td>
-                {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
-              </td>
-              {% if object.has_products_with_price %}<td>{% if order.price_total %}{{ order.price_total }} €{% endif %}</td>{% endif %}
-              <td>{{ order.notes.first.content|default:'' }}</td>
-              <td class="text-center">
-                <form method="POST">
-                  {% csrf_token %}
-                  <input
-                  {% if order.is_picked_up %}checked {% endif %}
-                  class="form-check-input form-input-lg border-dark rounded-0"
-                  type="checkbox"
-                  aria-label="{% trans 'is picked up' %}"
-                  hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
-                  hx-trigger="click"
-                  >
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </table>
-        </div>
-      </section>
-      <div class="pagebreak"></div>
+      {% include "workshop/includes/delivery_bill.html" with bill=point_of_sale production_day=object %}
       {% empty %}
       <div class="day-empty">
         <p>{% trans "There are no orders for this day yet." %}</p>
@@ -208,25 +153,29 @@
       <div class="section-toolbar">
         {% include "workshop/includes/actions.html" with actions=ingredients_actions %}
       </div>
-      <h2 class="d-none d-print-block">{% trans "Ingredients Summary" %} {{ object }}</h2>
+      <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Ingredients Summary" %} <small class="text-muted">{{ object }}</small></h3>
       <table class="table day-ingredients">
-        <tr>
-          <th>{% trans "Ingredient" %}</th>
-          <th>{% trans "Amount" %}</th>
-        </tr>
+        <thead>
+          <tr>
+            <th>{% trans "Ingredient" %}</th>
+            <th class="text-end">{% trans "Amount" %}</th>
+          </tr>
+        </thead>
         {% for category, products in object.get_ingredient_summary_list.items %}
-        <tr class="table-active">
-          <td><strong>{{ category.name }}</strong></td>
-          <td><strong>{{ products.sum|clever_rounding }} g</strong></td>
-        </tr>
-        {% for ingredient, quantity in products.items %}
-        {% if ingredient != 'sum' %}
-        <tr>
-          <td>{{ ingredient }}</td>
-          <td>{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
-        </tr>
-        {% endif %}
-        {% endfor %}
+        <tbody>
+          <tr class="day-ingredients-category">
+            <th scope="rowgroup">{{ category.name }}</th>
+            <th class="text-end">{{ products.sum|clever_rounding }} g</th>
+          </tr>
+          {% for ingredient, quantity in products.items %}
+          {% if ingredient != 'sum' %}
+          <tr>
+            <td>{{ ingredient }}</td>
+            <td class="text-end">{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
         {% endfor %}
       </table>
     </div>

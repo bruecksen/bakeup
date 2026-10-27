@@ -102,7 +102,7 @@ function initBrowserSync() {
     ], {
       // https://www.browsersync.io/docs/options/#option-proxy
       proxy:  {
-        target: '127.0.0.1:8000',
+        target: '127.0.0.1:8001',
         proxyReq: [
           function(proxyReq, req) {
             // Assign proxy "host" header same as current request at Browsersync server
