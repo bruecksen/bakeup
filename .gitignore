@@ -278,3 +278,6 @@ bakeup/media/
 # *.min.js
 .env
 package-lock.json
+
+# Dev container
+.devcontainer/.user-claude.md
