@@ -169,8 +169,9 @@ class CustomerOrderTable(tables.Table):
         args=[A("production_day.pk")],
         verbose_name=_("Production Day"),
     )
-    customer = tables.LinkColumn(
-        "workshop:customer-detail", args=[A("customer.pk")], verbose_name=_("Customer")
+    customer = tables.TemplateColumn(
+        template_name="tables/customer_order_customer_column.html",
+        verbose_name=_("Customer"),
     )
     email = tables.TemplateColumn(
         "{{ record.customer.user.email }}", verbose_name=_("eMail"), orderable=False
@@ -186,9 +187,15 @@ class CustomerOrderTable(tables.Table):
         orderable=False,
     )
     collected = tables.TemplateColumn(
-        "{% if record.is_picked_up %}x{% endif %}",
+        template_name="tables/customer_order_collected_column.html",
         verbose_name=_("Collected"),
         orderable=False,
+        attrs={"th": {"class": "text-center"}, "td": {"class": "text-center"}},
+    )
+    # Shown as a badge in the customer column, a column of its own only in the
+    # export.
+    first_order = tables.Column(
+        empty_values=(), verbose_name=_("First order"), visible=False
     )
     actions = tables.TemplateColumn(
         template_name="tables/customer_order_actions_column.html",
@@ -212,7 +219,17 @@ class CustomerOrderTable(tables.Table):
             "positions",
             "price_total",
             "note",
+            "first_order",
         )
+
+    def value_customer(self, record):
+        return record.customer or ""
+
+    def value_collected(self, record):
+        return "x" if record.is_picked_up else ""
+
+    def value_first_order(self, record):
+        return "x" if record.is_first_order else ""
 
     def value_positions(self, value):
         return "\n".join(
@@ -288,6 +305,7 @@ class CustomerTable(tables.Table):
     postal_code = tables.Column(visible=False)
     city = tables.Column(visible=False)
     telephone_number = tables.Column(visible=False)
+    first_order_date = tables.DateColumn(verbose_name=_("First order"))
 
     class Meta:
         model = Customer
@@ -297,6 +315,7 @@ class CustomerTable(tables.Table):
             "user__first_name",
             "user__last_name",
             "user__date_joined",
+            "first_order_date",
             "user__is_active",
             "point_of_sale",
             "abos",

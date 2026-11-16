@@ -134,6 +134,7 @@
             {% else %}
             {{ order.customer.user.short_name }}
             {% endif %}
+            {% if order.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}
           <td>
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </td>

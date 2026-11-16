@@ -2299,3 +2299,9 @@ msgstr "Bitte wählen …"
 #, python-format
 msgid "Your pick-up location <strong>%(name)s</strong> is not available on this baking day.<br>Please choose another one for this order."
 msgstr "Dein Abholort <strong>%(name)s</strong> ist an diesem Backtag nicht verfügbar.<br>Bitte wähle für diese Bestellung einen anderen."
+
+msgid "First order"
+msgstr "Erstbestellung"
+
+msgid "New"
+msgstr "Neu"

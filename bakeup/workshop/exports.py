@@ -286,7 +286,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     def get_data(self):
         column_count = (
-            6 + self.production_day.production_day_products.published().count()
+            7 + self.production_day.production_day_products.published().count()
         )
         rows = []
         top_header = [""] * column_count
@@ -302,6 +302,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
             headers.append(product.product.get_short_name())
         headers.append("Abholstelle")
         headers.append("Anmerkung")
+        headers.append("Erstbestellung")
         rows.append(headers)
         for order in self.object_list.all():
             row = []
@@ -324,6 +325,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
             row.append(
                 order.notes.first() and order.notes.first().content or "",
             )
+            row.append("x" if order.is_first_order else "")
             rows.append(row)
         # add footer
 
@@ -345,8 +347,8 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
         for product in production_day_products:
             footer.append(product.get_order_quantity())
             footer2.append(product.max_quantity)
-        footer.append("")
-        footer2.append("")
+        footer.extend(["", ""])
+        footer2.extend(["", ""])
         rows.append(footer)
         rows.append(footer2)
         return rows
@@ -356,7 +358,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(production_day=self.production_day)
+        return queryset.filter(production_day=self.production_day).with_is_first_order()
 
     @property
     def export_name(self):

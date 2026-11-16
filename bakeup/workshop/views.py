@@ -1479,9 +1479,13 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 quantity=Sum("quantity")
             )
             # raise Exception(order_summary)
-            orders = CustomerOrder.objects.filter(
-                point_of_sale=point_of_sale, production_day=self.object
-            ).order_by("customer__user__last_name")
+            orders = (
+                CustomerOrder.objects.filter(
+                    point_of_sale=point_of_sale, production_day=self.object
+                )
+                .with_is_first_order()
+                .order_by("customer__user__last_name")
+            )
             # raise Exception(positions)
             point_of_sales.append(
                 {
@@ -2017,6 +2021,9 @@ class CustomerListView(
     filterset_class = CustomerFilter
     template_name = "workshop/customer_list.html"
 
+    def get_queryset(self):
+        return super().get_queryset().with_first_order_date()
+
     @property
     def export_name(self):
         return "customers-{}".format(now().strftime("%Y%m%d-%H%M%S"))
@@ -2099,6 +2106,9 @@ class CustomerDetailView(StaffPermissionsMixin, DetailView):
     model = Customer
     template_name = "workshop/customer_detail.html"
 
+    def get_queryset(self):
+        return super().get_queryset().with_first_order_date()
+
 
 class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
     template_name = "workshop/customer_form.html"
@@ -2132,6 +2142,9 @@ class CustomerOrderListView(
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
     template_name = "workshop/order_list.html"
+
+    def get_queryset(self):
+        return super().get_queryset().with_is_first_order()
 
     @property
     def export_name(self):
