@@ -58,6 +58,7 @@ class ProductForm(ModelForm):
             "max_recurring_order_qty",
             "max_order_qty",
             "is_bio_certified",
+            "price_display",
             "vat_rate",
         ]
         labels = {"is_sellable": _("Sold in the shop")}

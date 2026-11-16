@@ -66,6 +66,15 @@ WEIGHT_UNIT_CHOICES = [
     ("kg", _("Kilograms")),
 ]
 
+PRICE_DISPLAY_BASE = "base"
+PRICE_DISPLAY_UNIT = "unit"
+PRICE_DISPLAY_NONE = "none"
+PRICE_DISPLAY_CHOICES = [
+    (PRICE_DISPLAY_BASE, _("Base price per kg")),
+    (PRICE_DISPLAY_UNIT, _("Price per piece")),
+    (PRICE_DISPLAY_NONE, _("No price label")),
+]
+
 
 def validate_video_file(value):
     # Check that the uploaded file is a video file
@@ -124,6 +133,13 @@ class Product(CommonBaseClass):
     is_recurring = models.BooleanField(default=False, verbose_name=_("Is abo product?"))
     is_bio_certified = models.BooleanField(
         default=False, verbose_name=_("Is bio certified?")
+    )
+    price_display = models.CharField(
+        max_length=10,
+        choices=PRICE_DISPLAY_CHOICES,
+        default=PRICE_DISPLAY_BASE,
+        verbose_name=_("Price display"),
+        help_text=_("Shown next to the price in the shop."),
     )
     max_recurring_order_qty = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_("Max abo quantity?")
@@ -194,6 +210,14 @@ class Product(CommonBaseClass):
     @property
     def unit(self):
         return "g"
+
+    @property
+    def is_unit_price(self):
+        return self.price_display == PRICE_DISPLAY_UNIT
+
+    @property
+    def is_base_price(self):
+        return self.price_display == PRICE_DISPLAY_BASE
 
     @property
     def weight_in_base_unit(self):

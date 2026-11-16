@@ -2080,6 +2080,24 @@ msgstr "Zu den Produkte"
 msgid "Is bio certified?"
 msgstr "Produkt ist bio zertifiziert?"
 
+msgid "Base price per kg"
+msgstr "Grundpreis pro kg"
+
+msgid "Price per piece"
+msgstr "Stückpreis"
+
+msgid "No price label"
+msgstr "Keine Angabe"
+
+msgid "Price display"
+msgstr "Preisangabe"
+
+msgid "Shown next to the price in the shop."
+msgstr "Wird im Shop neben dem Preis angezeigt."
+
+msgid "piece"
+msgstr "Stück"
+
 #: bakeup/workshop/models.py:124
 msgid "Max abo quantity?"
 msgstr ""
