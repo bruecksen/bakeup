@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, ListView, TemplateView
 
 from bakeup.contrib.calenderweek import CalendarWeek
@@ -130,13 +131,38 @@ def customer_order_add_or_update(request, production_day):
                 for k, v in request.POST.items()
                 if k.startswith("product-")
             }
+            customer = request.user.customer
+            existing_order = CustomerOrder.objects.filter(
+                production_day=production_day, customer=customer
+            ).first()
+            # The select is disabled on a locked order and posts nothing, the
+            # order keeps the point of sale it has.
+            point_of_sale = request.POST.get("point_of_sale") or (
+                existing_order
+                and existing_order.point_of_sale_id
+                or customer.point_of_sale_id
+            )
+            # The checkout asks for another point of sale when the customer's
+            # own isn't offered on this day, this is the net below it.
+            if (
+                production_day.point_of_sales.exists()
+                and not production_day.point_of_sales.filter(pk=point_of_sale).exists()
+                and not (
+                    existing_order
+                    and str(existing_order.point_of_sale_id) == str(point_of_sale)
+                )
+            ):
+                messages.error(
+                    request, _("Please choose a pick-up location for this order.")
+                )
+                return HttpResponseRedirect(next_url or "/shop/")
             order, created, changes_detected = (
                 CustomerOrder.create_or_update_customer_order(
                     request,
                     production_day,
-                    request.user.customer,
+                    customer,
                     products,
-                    request.POST.get("point_of_sale", None),
+                    point_of_sale,
                 )
             )
             products_recurring = {

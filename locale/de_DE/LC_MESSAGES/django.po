@@ -2289,3 +2289,13 @@ msgstr "In Arbeit"
 
 msgid "Next"
 msgstr "Als Nächstes"
+
+msgid "Please choose a pick-up location for this order."
+msgstr "Bitte wähle einen Abholort für diese Bestellung."
+
+msgid "Please choose …"
+msgstr "Bitte wählen …"
+
+#, python-format
+msgid "Your pick-up location <strong>%(name)s</strong> is not available on this baking day.<br>Please choose another one for this order."
+msgstr "Dein Abholort <strong>%(name)s</strong> ist an diesem Backtag nicht verfügbar.<br>Bitte wähle für diese Bestellung einen anderen."
