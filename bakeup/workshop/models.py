@@ -76,6 +76,11 @@ def validate_video_file(value):
         )
 
 
+class VatRate(models.IntegerChoices):
+    REDUCED = 7, "7 %"
+    STANDARD = 19, "19 %"
+
+
 # Item
 class Product(CommonBaseClass):
     product_template = models.ForeignKey(
@@ -125,6 +130,9 @@ class Product(CommonBaseClass):
     )
     max_order_qty = models.PositiveSmallIntegerField(
         blank=True, null=True, verbose_name=_("Max order quantity?")
+    )
+    vat_rate = models.PositiveSmallIntegerField(
+        choices=VatRate.choices, default=VatRate.REDUCED, verbose_name=_("VAT rate")
     )
 
     tags = TaggableManager(blank=True, ordering=["name"])

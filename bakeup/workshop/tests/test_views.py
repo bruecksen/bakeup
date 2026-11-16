@@ -25,6 +25,7 @@ from bakeup.workshop.models import (
     Product,
     ProductHierarchy,
     ProductionPlan,
+    VatRate,
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
@@ -910,3 +911,27 @@ class CleverUnitTest(SimpleTestCase):
             self.assertEqual(clever_unit(15000, "ml"), "15\xa0l")
             self.assertEqual(clever_unit(3, "Stk"), "3\xa0Stk")
             self.assertEqual(clever_unit(None), "")
+
+
+class CustomerOrderExportTest(NumberCircleTestCase):
+    def test_easybill_export_uses_vat_rate_of_position(self):
+        order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+        for product in [ProductFactory(), ProductFactory(vat_rate=VatRate.STANDARD)]:
+            CustomerOrderPosition.objects.create(
+                order=order, product=product, quantity=1
+            )
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:order-export-easybill"))
+        self.assertEqual(response.status_code, 200)
+        rows = [
+            row.split(";") for row in response.content.decode("iso-8859-1").splitlines()
+        ]
+        column = rows[0].index("vat_percent")
+        self.assertEqual(sorted(row[column] for row in rows[1:]), ["19.0000", "7.0000"])

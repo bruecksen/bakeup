@@ -32,6 +32,7 @@ from bakeup.workshop.models import (
     Category,
     Product,
     ProductionPlan,
+    VatRate,
     prefetch_recipe_trees,
 )
 
@@ -708,6 +709,10 @@ class CustomerOrderPosition(BasePositionClass):
     price_total = MoneyField(
         blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
     )
+    # the product's rate at the time of the order
+    vat_rate = models.PositiveSmallIntegerField(
+        choices=VatRate.choices, default=VatRate.REDUCED
+    )
 
     objects = CustomerOrderPositionQuerySet.as_manager()
 
@@ -718,6 +723,8 @@ class CustomerOrderPosition(BasePositionClass):
         return "{}x {}".format(self.quantity, self.product)
 
     def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.vat_rate = self.get_product().vat_rate
         if not self.price and self.get_product().sale_price:
             self.price = self.get_product().sale_price.price.amount
         if self.price and self.quantity:

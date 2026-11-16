@@ -5,9 +5,15 @@ from django.utils import timezone
 from django_tenants.test.cases import FastTenantTestCase
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import CustomerOrder, ProductionDay
+from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay
 from bakeup.users.models import User
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
+from bakeup.workshop.models import (
+    Category,
+    Product,
+    ProductHierarchy,
+    ProductionPlan,
+    VatRate,
+)
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 from bakeup.workshop.tests.factories import ProductFactory, add, create_recipe
 
@@ -452,3 +458,28 @@ class NumberCircleTest(NumberCircleTestCase):
         self.set_start(customer_number_start=20000, order_number_start=50000)
         self.assertEqual(self.customer.customer_number, 20000 + self.customer.pk)
         self.assertEqual(self.order.order_nr, 50000 + self.order.pk)
+
+
+class VatRateTest(NumberCircleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+
+    def test_position_keeps_vat_rate_of_order_time(self):
+        product = ProductFactory(vat_rate=VatRate.STANDARD)
+        position = CustomerOrderPosition.objects.create(
+            order=self.order, product=product, quantity=1
+        )
+        self.assertEqual(position.vat_rate, 19)
+        product.vat_rate = VatRate.REDUCED
+        product.save()
+        position.quantity = 2
+        position.save()
+        position.refresh_from_db()
+        self.assertEqual(position.vat_rate, 19)
