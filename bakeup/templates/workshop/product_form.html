@@ -19,15 +19,27 @@
   <form class="form-horizontal" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.media }}
-    {{ form.name|as_crispy_field }}
-    {{ form.display_name|as_crispy_field }}
-    {{ form.sku|as_crispy_field }}
-    {{ form.description|as_crispy_field }}
-    {{ form.image|as_crispy_field }}
-    {{ form.image_secondary|as_crispy_field }}
-    {{ form.video_file|as_crispy_field }}
-    {{ form.category|as_crispy_field }}
-    {{ form.tags|as_crispy_field }}
+    <div class="row">
+      <div class="col-12 col-md-8 col-lg-6">
+        {{ form.name|as_crispy_field }}
+        {{ form.display_name|as_crispy_field }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col col-md-6 col-lg-4">
+        {{ form.sku|as_crispy_field }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12 col-md-8 col-lg-6">
+        {{ form.description|as_crispy_field }}
+        {{ form.image|as_crispy_field }}
+        {{ form.image_secondary|as_crispy_field }}
+        {{ form.video_file|as_crispy_field }}
+        {{ form.category|as_crispy_field }}
+        {{ form.tags|as_crispy_field }}
+      </div>
+    </div>
     <div class="row">
       <div class="col col-md-6 col-lg-4">
         <div id="div_id_weight" class="mb-3">
@@ -42,8 +54,12 @@
     </div>
     {{ form.is_sellable|as_crispy_field }}
     {{ form.is_recurring|as_crispy_field }}
-    {{ form.max_recurring_order_qty|as_crispy_field }}
-    {{ form.max_order_qty|as_crispy_field }}
+    <div class="row">
+      <div class="col col-md-6 col-lg-4">
+        {{ form.max_recurring_order_qty|as_crispy_field }}
+        {{ form.max_order_qty|as_crispy_field }}
+      </div>
+    </div>
     {{ form.is_bio_certified|as_crispy_field }}
     <div class="row">
       <div class="col col-md-6 col-lg-4">
@@ -53,6 +69,11 @@
             <span class="input-group-text">€</span>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col col-md-6 col-lg-4">
+        {{ form.price_display|as_crispy_field }}
       </div>
     </div>
     <div class="row">
