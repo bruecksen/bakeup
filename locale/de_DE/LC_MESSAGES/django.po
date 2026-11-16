@@ -1446,6 +1446,11 @@ msgid "Price"
 msgstr "Preis"
 
 #: bakeup/templates/workshop/product_detail.html:33
+#: bakeup/workshop/models.py:131
+msgid "VAT rate"
+msgstr "MwSt."
+
+#: bakeup/templates/workshop/product_detail.html:33
 msgid "recurring product"
 msgstr "abofähiges Produkt"
 

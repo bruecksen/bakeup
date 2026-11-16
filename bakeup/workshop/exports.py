@@ -450,7 +450,7 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
                         "0",  # Versandkosten Netto
                         "0",  # Versandkosten Brutto
                         "0",  # Nachnahmegebühr
-                        "7",  # MwSt. %
+                        customer_order_position.vat_rate,  # MwSt. %
                         customer_order_position.quantity,
                         "",  # Preis Netto
                         price_total,  # Preis Brutto
@@ -562,15 +562,9 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                             position.price.amount, ".", decimal_pos=4, use_l10n=False
                         )
 
-                    # Determine VAT percentage (default to 7%, adjust as needed)
-                    vat_percent = "7.0000"
-                    if hasattr(position.product, "vat_rate"):
-                        vat_percent = numberformat.format(
-                            position.product.vat_rate,
-                            ".",
-                            decimal_pos=4,
-                            use_l10n=False,
-                        )
+                    vat_percent = numberformat.format(
+                        position.vat_rate, ".", decimal_pos=4, use_l10n=False
+                    )
 
                     # Format dates
                     purchase_date = order.created.strftime("%Y-%m-%d")

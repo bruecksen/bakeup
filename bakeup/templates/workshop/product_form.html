@@ -55,6 +55,11 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col col-md-6 col-lg-4">
+        {{ form.vat_rate|as_crispy_field }}
+      </div>
+    </div>
     <div class="control-group">
       <div class="controls">
         <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>

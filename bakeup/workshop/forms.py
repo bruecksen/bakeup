@@ -58,6 +58,7 @@ class ProductForm(ModelForm):
             "max_recurring_order_qty",
             "max_order_qty",
             "is_bio_certified",
+            "vat_rate",
         ]
         labels = {"is_sellable": _("Sold in the shop")}
         help_texts = {
@@ -68,6 +69,7 @@ class ProductForm(ModelForm):
         widgets = {
             "tags": autocomplete.TaggitSelect2("workshop:tag-autocomplete"),
             "uom": forms.Select(attrs={"class": "form-select"}),
+            "vat_rate": forms.Select(attrs={"class": "form-select"}),
             "weight": forms.NumberInput(attrs={"class": "form-control numberinput"}),
         }
 
