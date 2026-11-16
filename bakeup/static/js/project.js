@@ -385,6 +385,7 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         form.find('table').show();
         form.find('.message-empty-checkout').addClass('d-none').hide();
         form.find('.message-abo-orders').addClass('d-none');
+        updatePosHint(form.find('.pos-select'));
 
         // var basket = $('#basket');
         // $('header .shopping-basket .order-quantity').hide();
@@ -395,6 +396,20 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         // basket.find('.empty').show();
         // basket.find('.current-order').show();
      });
+});
+
+// The pick-up location has to be chosen when the usual one isn't offered on
+// that production day, the hint stays as a note once that is done.
+function updatePosHint(select) {
+    var missing = select.prop('required') && !select.val();
+    select.toggleClass('border-danger', missing);
+    select.closest('form').find('.pos-hint').toggleClass('text-danger', missing).toggleClass('text-muted', !missing);
+}
+$('.pos-select').on('invalid', function() {
+    this.setCustomValidity($(this).data('required-message') || '');
+}).on('change', function() {
+    this.setCustomValidity('');
+    updatePosHint($(this));
 });
 
 var aboProductDays = {};

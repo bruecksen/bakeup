@@ -16,6 +16,7 @@ from bakeup.contrib.models import Note
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
+    PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
@@ -333,6 +334,72 @@ class ShopProductionDayTest(RecipeViewTestCase):
         self.assertContains(
             response, "Wheat flour, Water, Rye flour, Flour, Salt", html=False
         )
+
+
+class CheckoutPointOfSaleTest(RecipeViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.production_day = ProductionDay.objects.create(
+            day_of_sale=timezone.now().date() + timedelta(days=3)
+        )
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day,
+            product=self.bread,
+            max_quantity=10,
+            is_published=True,
+        )
+        self.own = PointOfSale.objects.create(name="Depot Nord")
+        self.other = PointOfSale.objects.create(name="TukTuk Café")
+        self.customer = self.user.customer
+        self.customer.point_of_sale = self.own
+        self.customer.save()
+        self.production_day.point_of_sales.set([self.other])
+
+    def checkout(self):
+        response = self.client.get(
+            reverse(
+                "shop:shop-production-day",
+                kwargs={"production_day": self.production_day.pk},
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def order(self, **data):
+        self.client.post(
+            reverse(
+                "shop:customer-order-add",
+                kwargs={"production_day": self.production_day.pk},
+            ),
+            {"create": "", f"product-{self.bread.pk}": 1, **data},
+        )
+        return CustomerOrder.objects.filter(
+            production_day=self.production_day, customer=self.customer
+        ).first()
+
+    def test_asks_for_point_of_sale_when_own_is_unavailable(self):
+        response = self.checkout()
+        self.assertContains(response, "pos-hint")
+        self.assertContains(response, '<option value="" selected disabled>')
+
+    def test_preselects_own_point_of_sale_when_available(self):
+        self.production_day.point_of_sales.add(self.own)
+        response = self.checkout()
+        self.assertNotContains(response, "pos-hint")
+        self.assertContains(response, f'<option value="{self.own.pk}"  selected>')
+
+    def test_order_needs_an_available_point_of_sale(self):
+        self.assertIsNone(self.order())
+        self.assertIsNone(self.order(point_of_sale=self.own.pk))
+        self.assertEqual(
+            self.order(point_of_sale=self.other.pk).point_of_sale, self.other
+        )
+
+    def test_order_keeps_its_point_of_sale_when_none_is_posted(self):
+        self.order(point_of_sale=self.other.pk)
+        self.customer.point_of_sale = None
+        self.customer.save()
+        self.assertEqual(self.order().point_of_sale, self.other)
 
 
 class ProductionPlanDayViewTest(RecipeViewTestCase):
