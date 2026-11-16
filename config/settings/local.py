@@ -15,6 +15,11 @@ ALLOWED_HOSTS = ["localhost", "ole.localhost", "0.0.0.0", "127.0.0.1", "*"]
 
 WAGTAILADMIN_BASE_URL = "localhost"
 
+# Cookies are scoped by host, not port, so other Django projects running on
+# localhost would overwrite the default sessionid/csrftoken cookies.
+SESSION_COOKIE_NAME = "bakeup_sessionid"
+CSRF_COOKIE_NAME = "bakeup_csrftoken"
+
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
