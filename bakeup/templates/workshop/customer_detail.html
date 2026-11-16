@@ -115,6 +115,14 @@ Customer {{ object }}
       </div>
       <div class="row">
         <div class="col-4 fw-bold">
+          {% trans "First order" %}:
+        </div>
+        <div class="col-8">
+          {{ object.first_order_date|default:"-" }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
           {% trans "last login" %}:
         </div>
         <div class="col-8">

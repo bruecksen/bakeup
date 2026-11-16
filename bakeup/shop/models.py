@@ -11,6 +11,7 @@ from django.db.models import (
     Count,
     Exists,
     F,
+    Min,
     OuterRef,
     Q,
     Subquery,
@@ -738,6 +739,13 @@ class CustomerOrderPosition(BasePositionClass):
             return self.product
 
 
+class CustomerQuerySet(models.QuerySet):
+    def with_first_order_date(self):
+        return self.annotate(
+            first_order_date=Min("orders__production_day__day_of_sale")
+        )
+
+
 class Customer(CommonBaseClass):
     user = models.OneToOneField("users.User", on_delete=models.CASCADE)
     point_of_sale = models.ForeignKey(
@@ -763,6 +771,8 @@ class Customer(CommonBaseClass):
     telephone_number = models.CharField(
         max_length=20, blank=True, null=True, verbose_name=_("Telephone Number")
     )
+
+    objects = CustomerQuerySet.as_manager()
 
     class Meta:
         ordering = ("user__email",)
@@ -810,6 +820,17 @@ class CustomerOrderQuerySet(models.QuerySet):
                     )
                 )
             )
+        )
+
+    def with_is_first_order(self):
+        # The first order is the one on the customer's earliest production
+        # day, no matter when it was placed or how many are already planned.
+        earlier_orders = CustomerOrder.objects.filter(
+            customer=OuterRef("customer"),
+            production_day__day_of_sale__lt=OuterRef("production_day__day_of_sale"),
+        )
+        return self.annotate(
+            is_first_order=Q(customer__isnull=False) & ~Exists(earlier_orders)
         )
 
 

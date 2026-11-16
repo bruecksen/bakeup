@@ -14,6 +14,7 @@ from django_tenants.test.client import TenantClient
 
 from bakeup.contrib.models import Note
 from bakeup.shop.models import (
+    Customer,
     CustomerOrder,
     CustomerOrderPosition,
     PointOfSale,
@@ -400,6 +401,108 @@ class CheckoutPointOfSaleTest(RecipeViewTestCase):
         self.customer.point_of_sale = None
         self.customer.save()
         self.assertEqual(self.order().point_of_sale, self.other)
+
+
+class FirstOrderTest(RecipeViewTestCase):
+    def setUp(self):
+        super().setUp()
+        today = timezone.now().date()
+        self.first_day = ProductionDay.objects.create(day_of_sale=today)
+        self.second_day = ProductionDay.objects.create(
+            day_of_sale=today + timedelta(days=7)
+        )
+        self.depot = PointOfSale.objects.create(name="Depot Nord")
+        self.regular = self.user.customer
+        self.newcomer = User.objects.create_user(
+            username="new", email="new@example.com", last_name="Neu"
+        ).customer
+        # The regular's later order is placed first: the production day
+        # decides, not the time of ordering.
+        self.order(self.regular, self.second_day)
+        self.order(self.regular, self.first_day)
+        self.order(self.newcomer, self.second_day)
+
+    def order(self, customer, production_day):
+        return CustomerOrder.objects.create(
+            customer=customer, production_day=production_day, point_of_sale=self.depot
+        )
+
+    def first_orders(self, production_day):
+        return {
+            order.customer: order.is_first_order
+            for order in CustomerOrder.objects.filter(
+                production_day=production_day
+            ).with_is_first_order()
+        }
+
+    def test_first_order_is_on_the_earliest_production_day(self):
+        self.assertEqual(self.first_orders(self.first_day), {self.regular: True})
+        self.assertEqual(
+            self.first_orders(self.second_day),
+            {self.regular: False, self.newcomer: True},
+        )
+
+    def test_order_without_customer_is_no_first_order(self):
+        self.order(None, self.first_day)
+        self.assertEqual(self.first_orders(self.first_day)[None], False)
+
+    def test_first_order_date(self):
+        without_order = User.objects.create_user(
+            username="none", email="none@example.com"
+        ).customer
+        dates = {
+            customer: customer.first_order_date
+            for customer in Customer.objects.with_first_order_date()
+        }
+        self.assertEqual(dates[self.regular], self.first_day.day_of_sale)
+        self.assertEqual(dates[self.newcomer], self.second_day.day_of_sale)
+        self.assertIsNone(dates[without_order])
+
+    def test_customer_export_has_first_order_date(self):
+        response = self.client.get(
+            reverse("workshop:customer-list"), {"_export": "csv"}
+        )
+        rows = response.content.decode().splitlines()
+        row = next(row for row in rows if "new@example.com" in row)
+        self.assertIn(self.second_day.day_of_sale.isoformat(), row)
+
+    def test_customer_detail_shows_first_order_date(self):
+        response = self.client.get(
+            reverse("workshop:customer-detail", kwargs={"pk": self.newcomer.pk})
+        )
+        self.assertEqual(
+            response.context["object"].first_order_date, self.second_day.day_of_sale
+        )
+
+    def test_delivery_bill_marks_first_orders(self):
+        response = self.client.get(
+            reverse("workshop:production-day-detail", kwargs={"pk": self.second_day.pk})
+        )
+        self.assertContains(response, "badge-first-order", count=1)
+
+    def test_order_list_marks_first_orders(self):
+        params = {"production_day": self.second_day.pk}
+        response = self.client.get(reverse("workshop:order-list"), params)
+        self.assertContains(response, "badge-first-order", count=1)
+        response = self.client.get(
+            reverse("workshop:order-list"), {**params, "_export": "csv"}
+        )
+        header, *rows = [
+            row.split(",") for row in response.content.decode().splitlines()
+        ]
+        rows = [dict(zip(header, row)) for row in rows]
+        self.assertEqual(
+            {row["E-Mail"]: row["Erstbestellung"] for row in rows},
+            {"baker@example.com": "", "new@example.com": "x"},
+        )
+
+    def test_production_day_export_marks_first_orders(self):
+        response = self.client.get(
+            reverse("workshop:production-day-export", kwargs={"pk": self.second_day.pk})
+        )
+        rows = [row.split(",") for row in response.content.decode().splitlines()]
+        marks = {row[2]: row[-1] for row in rows if "@" in row[2]}
+        self.assertEqual(marks, {"baker@example.com": "", "new@example.com": "x"})
 
 
 class ProductionPlanDayViewTest(RecipeViewTestCase):
