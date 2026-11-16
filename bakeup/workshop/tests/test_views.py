@@ -878,6 +878,25 @@ class CustomerExportTest(NumberCircleTestCase):
             [str(20000 + self.customer.pk)],
         )
 
+    def test_easybill_export_matches_import_template(self):
+        self.user.first_name = "Matthias"
+        self.user.last_name = "Brück"
+        self.user.save()
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:customer-export-easybill"))
+        self.assertEqual(response.status_code, 200)
+        rows = response.content.decode("iso-8859-1").splitlines()
+        self.assertEqual(
+            rows[0],
+            "Kundennummer,Name,Vorname,Straße/Hausnummer,Postleitzahl,Ort,"
+            "Telefon 1,E-Mail",
+        )
+        self.assertEqual(
+            rows[1].split(",")[:3],
+            [str(self.customer.customer_number), "Brück", "Matthias"],
+        )
+
 
 class CleverUnitTest(SimpleTestCase):
     def test_clever_unit(self):

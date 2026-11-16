@@ -236,6 +236,46 @@ class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         return "sevDesk-{}".format(now().strftime("%d-%m-%Y"))
 
 
+class CustomerEasybillExportView(StaffPermissionsMixin, ExportMixin, FilterView):
+    filterset_class = CustomerFilter
+    model = Customer
+
+    def get_headers(self):
+        headers = [
+            "Kundennummer",
+            "Name",
+            "Vorname",
+            "Straße/Hausnummer",
+            "Postleitzahl",
+            "Ort",
+            "Telefon 1",
+            "E-Mail",
+        ]
+        return headers
+
+    def get_data(self):
+        customers = self.object_list.order_by("pk")
+        rows = []
+        for customer in customers:
+            rows.append(
+                [
+                    customer.customer_number,
+                    customer.user.last_name,
+                    customer.user.first_name,
+                    customer.address_line,
+                    customer.postal_code,
+                    customer.city,
+                    customer.telephone_number,
+                    customer.user.email,
+                ]
+            )
+        return rows
+
+    @property
+    def export_name(self):
+        return "easybill-kunden-{}".format(now().strftime("%d-%m-%Y"))
+
+
 class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
     model = CustomerOrder
     template_name = "workshop/order_list.html"
