@@ -1,10 +1,12 @@
 from decimal import Decimal
 
+from django.db import connection
 from django.utils import timezone
 from django_tenants.test.cases import FastTenantTestCase
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import ProductionDay
+from bakeup.shop.models import CustomerOrder, ProductionDay
+from bakeup.users.models import User
 from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 from bakeup.workshop.tests.factories import ProductFactory, add, create_recipe
@@ -410,3 +412,43 @@ class ProductionDaySummaryTest(RecipeTestCase):
                 ("flour", [("Rye flour", 220.0), ("sum", 220.0)]),
             ],
         )
+
+
+class NumberCircleTestCase(FastTenantTestCase):
+    def setUp(self):
+        super().setUp()
+        # The client setting is cached on the tenant and survives the rollback
+        # of the previous test, a request replaces the tenant of the connection.
+        connection.set_tenant(self.tenant)
+        self.setting = self.tenant.clientsetting
+        self.setting.refresh_from_db()
+        self.user = User.objects.create_user(
+            username="baker", email="baker@example.com", password="x", is_staff=True
+        )
+        self.customer = self.user.customer
+
+    def set_start(self, **values):
+        for field, value in values.items():
+            setattr(self.setting, field, value)
+        self.setting.save()
+
+
+class NumberCircleTest(NumberCircleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+
+    def test_numbers_default_to_pk(self):
+        self.assertEqual(self.customer.customer_number, self.customer.pk)
+        self.assertEqual(self.order.order_nr, self.order.pk)
+
+    def test_numbers_add_start(self):
+        self.set_start(customer_number_start=20000, order_number_start=50000)
+        self.assertEqual(self.customer.customer_number, 20000 + self.customer.pk)
+        self.assertEqual(self.order.order_nr, 50000 + self.order.pk)

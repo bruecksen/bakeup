@@ -265,6 +265,7 @@ class GroupTable(tables.Table):
 
 
 class CustomerTable(tables.Table):
+    customer_number = tables.Column(verbose_name="#", order_by="pk")
     email = tables.LinkColumn(
         "workshop:customer-detail",
         args=[A("pk")],
@@ -291,6 +292,7 @@ class CustomerTable(tables.Table):
     class Meta:
         model = Customer
         fields = (
+            "customer_number",
             "email",
             "user__first_name",
             "user__last_name",

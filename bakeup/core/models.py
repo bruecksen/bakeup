@@ -141,6 +141,20 @@ class ClientSetting(models.Model):
     )
     account_signup_email_enter_twice = models.BooleanField(default=False)
     is_newsletter_enabled = models.BooleanField(default=False)
+    customer_number_start = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Added to the internal id to build the customer number, "
+            "e.g. 20000 turns customer 9 into 20009."
+        ),
+    )
+    order_number_start = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Added to the internal id to build the order number, "
+            "e.g. 20000 turns order 9 into 20009."
+        ),
+    )
     wagtail_reference_index_ignore = True
 
 

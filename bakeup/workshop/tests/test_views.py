@@ -28,7 +28,7 @@ from bakeup.workshop.models import (
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
-from bakeup.workshop.tests.test_models import RecipeTestCase
+from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
 
 
 class RecipeViewTestCase(RecipeTestCase):
@@ -862,6 +862,21 @@ class ProductionPlanDayQueryTest(ProductionPlanDayViewTest):
             state=ProductionPlan.State.PLANNED, create_max_quantity=True
         )
         self.assertEqual(self.count_queries(), before)
+
+
+class CustomerExportTest(NumberCircleTestCase):
+    def test_ready2order_uses_customer_number(self):
+        self.set_start(customer_number_start=20000)
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:customer-export-ready-2-order"))
+        self.assertEqual(response.status_code, 200)
+        rows = response.content.decode("iso-8859-1").splitlines()
+        self.assertEqual(rows[0].split(",")[0], "kundennummer")
+        self.assertEqual(
+            [row.split(",")[0] for row in rows[1:]],
+            [str(20000 + self.customer.pk)],
+        )
 
 
 class CleverUnitTest(SimpleTestCase):
