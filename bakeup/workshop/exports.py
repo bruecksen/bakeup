@@ -39,7 +39,7 @@ class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterVi
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     customer.user.get_full_name(),
                     "Kunden",
                     customer.user.email,
@@ -102,7 +102,7 @@ class CustomerBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     customer.user.get_full_name(),
                     customer.user.email,
                     "",
@@ -190,7 +190,7 @@ class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     "",
                     "",
                     customer.user.last_name,
@@ -397,7 +397,7 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
                     price_total = numberformat.format(decimal_value, ",", use_l10n=True)
                 rows.append(
                     [
-                        customer_order_position.order.id,
+                        customer_order_position.order.order_nr,
                         customer_order_position.product.pk,
                         customer_order.created.strftime(
                             "%Y-%m-%d %H:%M:%S"
@@ -510,7 +510,7 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
         for customer_id, orders in customer_groups.items():
             # Get the first order for the order number and customer data
             first_order = min(orders, key=lambda x: x.created)
-            order_number = first_order.id
+            order_number = first_order.order_nr
 
             # Collect all positions from all orders of this customer
             for order in orders:
@@ -546,7 +546,9 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         "",  # payment_type - add if available
                         "",
                         (  # payment_reference - add if available
-                            str(first_order.customer.id) if first_order.customer else ""
+                            str(first_order.customer.customer_number)
+                            if first_order.customer
+                            else ""
                         ),
                         (
                             first_order.customer.user.email

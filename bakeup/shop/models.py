@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMessage
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import (
     Count,
     Exists,
@@ -764,6 +764,10 @@ class Customer(CommonBaseClass):
         return "{}".format(self.user)
 
     @property
+    def customer_number(self):
+        return connection.tenant.clientsetting.customer_number_start + self.pk
+
+    @property
     def total_ordered_positions(self):
         return CustomerOrderPosition.objects.filter(order__customer=self).count()
 
@@ -883,7 +887,7 @@ class CustomerOrder(CommonBaseClass):
         """
         Return an order number for a given basket
         """
-        return 100000 + self.pk
+        return connection.tenant.clientsetting.order_number_start + self.pk
 
     @property
     def has_abo(self):

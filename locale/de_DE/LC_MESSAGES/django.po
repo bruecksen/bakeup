@@ -897,6 +897,10 @@ msgstr ""
 msgid "Account"
 msgstr "Benuzterkonto"
 
+#: bakeup/templates/workshop/customer_detail.html:24
+msgid "Customer number"
+msgstr "Kundennummer"
+
 #: bakeup/templates/workshop/customer_detail.html:32
 #: bakeup/workshop/forms.py:317
 msgid "First name"
