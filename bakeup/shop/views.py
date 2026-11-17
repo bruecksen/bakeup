@@ -146,7 +146,11 @@ def customer_order_add_or_update(request, production_day):
             # own isn't offered on this day, this is the net below it.
             if (
                 production_day.point_of_sales.exists()
-                and not production_day.point_of_sales.filter(pk=point_of_sale).exists()
+                and not production_day.point_of_sales.selectable_by(
+                    customer, existing_order
+                )
+                .filter(pk=point_of_sale)
+                .exists()
                 and not (
                     existing_order
                     and str(existing_order.point_of_sale_id) == str(point_of_sale)
@@ -406,7 +410,11 @@ class ShopView(TemplateView):
             )
             prefetch_product_cards([pdp.product for pdp in production_day_products])
             context["production_day_products"] = production_day_products
-            context["point_of_sales"] = self.production_day.point_of_sales.all()
+            context["point_of_sales"] = (
+                self.production_day.point_of_sales.selectable_by(
+                    customer, current_customer_order
+                )
+            )
         context["show_remaining_products"] = (
             self.request.tenant.clientsetting.show_remaining_products
         )

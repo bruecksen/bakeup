@@ -403,7 +403,14 @@ class PointOfSaleTable(tables.Table):
     class Meta:
         model = PointOfSale
         order_by = "production_day"
-        fields = ("name", "short_name", "is_primary", "customers", "actions")
+        fields = (
+            "name",
+            "short_name",
+            "is_primary",
+            "is_internal",
+            "customers",
+            "actions",
+        )
 
 
 class CustomerOrderTemplateTable(tables.Table):

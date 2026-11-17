@@ -2468,7 +2468,7 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
 
 class PointOfSaleCreateView(StaffPermissionsMixin, CreateView):
     model = PointOfSale
-    fields = ("name", "short_name", "is_primary")
+    fields = ("name", "short_name", "is_primary", "is_internal")
     template_name = "workshop/point_of_sale_form.html"
 
     def get_success_url(self):
@@ -2483,7 +2483,7 @@ class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
 
 class PointOfSaleUpdateView(StaffPermissionsMixin, UpdateView):
     model = PointOfSale
-    fields = ("name", "short_name", "is_primary")
+    fields = ("name", "short_name", "is_primary", "is_internal")
     template_name = "workshop/point_of_sale_form.html"
 
     def get_success_url(self):

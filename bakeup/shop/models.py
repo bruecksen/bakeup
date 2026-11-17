@@ -632,6 +632,21 @@ class ProductionDayProduct(CommonBaseClass):
         return False
 
 
+class PointOfSaleQuerySet(models.QuerySet):
+    def selectable_by(self, customer=None, order=None):
+        # Internal points of sale are assigned by the bakery. A customer only
+        # gets one offered when it is already their own or their order's.
+        own = [
+            pk
+            for pk in (
+                customer and customer.point_of_sale_id,
+                order and order.point_of_sale_id,
+            )
+            if pk
+        ]
+        return self.filter(Q(is_internal=False) | Q(pk__in=own))
+
+
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
     short_name = models.CharField(
@@ -641,6 +656,16 @@ class PointOfSale(CommonBaseClass):
         "contrib.Address", on_delete=models.PROTECT, blank=True, null=True
     )
     is_primary = models.BooleanField(default=False, verbose_name=_("Primary?"))
+    is_internal = models.BooleanField(
+        default=False,
+        verbose_name=_("Internal?"),
+        help_text=_(
+            "Internal points of sale can't be chosen by customers, neither when"
+            " signing up nor when ordering. Only the bakery can assign them."
+        ),
+    )
+
+    objects = PointOfSaleQuerySet.as_manager()
 
     def __str__(self):
         return self.short_name or self.name
@@ -890,6 +915,9 @@ class CustomerOrder(CommonBaseClass):
         return self.positions.aggregate(price_total=Sum("price_total", default=0))[
             "price_total"
         ]
+
+    def get_selectable_point_of_sales(self):
+        return self.production_day.point_of_sales.selectable_by(self.customer, self)
 
     @property
     def total_quantity(self):

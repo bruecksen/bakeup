@@ -402,6 +402,22 @@ class CheckoutPointOfSaleTest(RecipeViewTestCase):
         self.customer.save()
         self.assertEqual(self.order().point_of_sale, self.other)
 
+    def test_internal_point_of_sale_is_not_offered(self):
+        internal = PointOfSale.objects.create(name="Lieferung Café", is_internal=True)
+        self.production_day.point_of_sales.add(self.own, internal)
+        self.assertNotContains(self.checkout(), internal.name)
+        self.assertEqual(self.order(point_of_sale=internal.pk), None)
+
+    def test_internal_point_of_sale_is_offered_to_its_own_customer(self):
+        internal = PointOfSale.objects.create(name="Lieferung Café", is_internal=True)
+        self.production_day.point_of_sales.add(internal)
+        self.customer.point_of_sale = internal
+        self.customer.save()
+        self.assertContains(
+            self.checkout(), f'<option value="{internal.pk}"  selected>'
+        )
+        self.assertEqual(self.order().point_of_sale, internal)
+
 
 class FirstOrderTest(RecipeViewTestCase):
     def setUp(self):
