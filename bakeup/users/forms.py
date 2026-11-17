@@ -61,16 +61,19 @@ class UserFormMixin:
         for field in request.tenant.clientsetting.user_registration_fields:
             field_settings = settings.USER_REGISTRATION_FORM_FIELDS.get(field)
             self.fields[field] = forms.CharField(**field_settings)
-        if PointOfSale.objects.count() > 1:
+        point_of_sales = PointOfSale.objects.selectable_by(
+            getattr(request.user, "customer", None)
+        )
+        if point_of_sales.count() > 1:
             self.fields["point_of_sale"] = forms.ModelChoiceField(
-                queryset=PointOfSale.objects.all(),
+                queryset=point_of_sales,
                 label="Abholstelle",
                 help_text="Bitte wähle eine Abholstelle aus.",
                 empty_label=None,
             )
             self.fields["point_of_sale"].label_from_instance = lambda obj: f"{obj.name}"
-            if PointOfSale.objects.filter(is_primary=True).exists():
-                self.fields["point_of_sale"].initial = PointOfSale.objects.get(
+            if point_of_sales.filter(is_primary=True).exists():
+                self.fields["point_of_sale"].initial = point_of_sales.get(
                     is_primary=True
                 )
         elif "point_of_sale" in self.fields:

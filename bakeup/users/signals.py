@@ -32,8 +32,8 @@ def create_group_token(sender, instance, created, **kwargs):
 def create_user_customer(sender, instance, created, **kwargs):
     if not kwargs.get("raw", False) and not hasattr(instance, "customer"):
         point_of_sale = (
-            PointOfSale.objects.all().count() == 1
-            and PointOfSale.objects.first()
+            PointOfSale.objects.selectable_by().count() == 1
+            and PointOfSale.objects.selectable_by().first()
             or None
         )
         Customer.objects.create(

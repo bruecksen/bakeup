@@ -299,6 +299,19 @@ msgstr "Kurzbezeichnung"
 msgid "Primary?"
 msgstr "Primär?"
 
+#: bakeup/shop/models.py
+msgid "Internal?"
+msgstr "Intern?"
+
+#: bakeup/shop/models.py
+msgid ""
+"Internal points of sale can't be chosen by customers, neither when signing "
+"up nor when ordering. Only the bakery can assign them."
+msgstr ""
+"Interne Abholstellen können von Kund*innen nicht ausgewählt werden, weder "
+"bei der Registrierung noch bei der Bestellung. Nur die Bäckerei kann sie "
+"zuweisen."
+
 #: bakeup/shop/models.py:739 bakeup/shop/models.py:824 bakeup/shop/tables.py:10
 msgid "Point of Sale"
 msgstr "Abholstelle"

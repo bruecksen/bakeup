@@ -23,7 +23,7 @@ class PointOfSaleOpeningHourInline(admin.StackedInline):
 
 @admin.register(PointOfSale)
 class PointOfSaleAdmin(BaseAdmin):
-    list_display = ("name", "is_primary", "address")
+    list_display = ("name", "is_primary", "is_internal", "address")
     inlines = (PointOfSaleOpeningHourInline,)
 
 
