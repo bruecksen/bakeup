@@ -15,13 +15,14 @@
 <div class="jumbotron" style="background-image: url('{{ banner_image.url }}');">
   <div class="container h-100">
     <div class="row h-100">
-      <div class="col-12 align-self-{{ page.banner_position }} z-1000">
-        <div class="text-center text-white mt-4 text-shadow">
+      <div class="col-12 col-lg-8 mx-auto align-self-{{ page.banner_position }} z-1000">
+        <div class="banner-text text-center text-white mt-4 text-shadow">
+          {% if page.banner_eyebrow %}<p class="eyebrow banner-eyebrow">{{ page.banner_eyebrow }}</p>{% endif %}
           {{ page.banner_text|richtext }}
         </div>
-        <div class="mb-0 mb-sm-5 text-center text-white mt-3">
+        <div class="banner-cta mb-0 mb-sm-5 text-center text-white mt-3">
             {% for cta in page.banner_cta %}
-              <a class="btn btn-primary mb-3 me-2" href="{{ cta.value.link.href }}">{{ cta.value.text }}</a>
+              <a class="btn btn-primary btn-cms mb-3 mx-1" href="{{ cta.value.link.href }}">{{ cta.value.text }}</a>
             {% endfor %}
         </div>
       </div>
@@ -29,6 +30,8 @@
   </div>
 </div>
 {% endblock jumbotron %}
+
+{% block page_content_class %} page-content{% endblock page_content_class %}
 
 {% block page_content %}
 {% if page.show_production_day %}

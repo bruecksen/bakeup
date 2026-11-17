@@ -1,0 +1,6 @@
+{% if eyebrow or heading %}
+<div class="block-heading{% if centered %} text-center{% endif %}">
+    {% if eyebrow %}<p class="eyebrow">{{ eyebrow }}</p>{% endif %}
+    {% if heading %}<h2>{{ heading }}</h2>{% endif %}
+</div>
+{% endif %}

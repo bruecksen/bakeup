@@ -1,0 +1,21 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<div class="image-text-block">
+    <div class="row align-items-center g-4 g-lg-5">
+        <div class="col-12 col-lg-6 image-text-image {% if value.image_position == "right" %}order-lg-2{% else %}order-lg-1{% endif %}">
+            {% image value.image fill-900x700 class="img-fluid rounded" %}
+        </div>
+        <div class="col-12 col-lg-6 image-text-body {% if value.image_position == "right" %}order-lg-1{% else %}order-lg-2{% endif %}">
+            {% include "blocks/includes/block_heading.html" with eyebrow=value.eyebrow heading=value.heading %}
+            <div class="richtext-body">
+                {{ value.text|richtext }}
+            </div>
+            {% if value.buttons %}
+            <div class="image-text-buttons">
+                {% for button in value.buttons %}
+                <a class="btn btn-primary btn-cms mb-3 me-2" href="{{ button.link.href }}">{{ button.text }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

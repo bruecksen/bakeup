@@ -11,6 +11,7 @@ from wagtail.blocks.field_block import (
     IntegerBlock,
     PageChooserBlock,
     RawHTMLBlock,
+    TextBlock,
     URLBlock,
 )
 from wagtail.blocks.field_block import RichTextBlock as _RichTextBlock
@@ -42,6 +43,7 @@ class ColourThemeChoiceBlock(ChoiceBlock):
         ("info", "Blue"),
         ("light", "Light"),
         ("dark", "Dark"),
+        ("white", "White"),
     ]
 
 
@@ -218,6 +220,80 @@ class CarouselBlock(StructBlock):
         return context
 
 
+class FaqItemBlock(StructBlock):
+    question = CharBlock(label=_("Question"))
+    answer = _RichTextBlock(
+        label=_("Answer"), features=["bold", "italic", "link", "ol", "ul"]
+    )
+
+
+class FaqBlock(StructBlock):
+    """
+    Questions only, each answer opens when the question is clicked.
+    """
+
+    heading = CharBlock(label=_("Heading"), required=False)
+    items = ListBlock(FaqItemBlock(), label=_("Questions"))
+
+    class Meta:
+        icon = "help"
+        label = _("FAQ")
+        template = "blocks/faq_block.html"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context["uuid"] = uuid.uuid4()
+        return context
+
+
+class ImageTextBlock(StructBlock):
+    image = _ImageChooserBlock(label=_("Image"))
+    image_position = ChoiceBlock(
+        choices=[("left", _("Left")), ("right", _("Right"))],
+        default="left",
+        label=_("Image position"),
+    )
+    eyebrow = CharBlock(
+        label=_("Eyebrow"),
+        required=False,
+        help_text=_("A short line above the heading, for example: Our bakery."),
+    )
+    heading = CharBlock(label=_("Heading"), required=False)
+    text = _RichTextBlock(label=_("Text"))
+    buttons = ListBlock(ButtonBlock(), label=_("Buttons"), default=[])
+
+    class Meta:
+        icon = "image"
+        label = _("Image and text")
+        template = "blocks/image_text_block.html"
+
+
+class StepItemBlock(StructBlock):
+    label = CharBlock(
+        label=_("Label"),
+        required=False,
+        help_text=_("A short line above the title, for example: Step 1."),
+    )
+    title = CharBlock(label=_("Title"))
+    text = TextBlock(label=_("Text"), required=False)
+
+
+class StepsBlock(StructBlock):
+    heading = CharBlock(label=_("Heading"), required=False)
+    items = ListBlock(StepItemBlock(), label=_("Steps"))
+
+    class Meta:
+        icon = "list-ol"
+        label = _("Steps")
+        template = "blocks/steps_block.html"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        # One row on large screens for up to four steps, more steps wrap.
+        context["columns"] = min(max(len(value["items"]), 1), 4)
+        return context
+
+
 class CommonBlocks(StreamBlock):
     # heading = HeadingBlock(group="Common")
     text = RichTextBlock(group="Common")
@@ -232,7 +308,9 @@ class CommonBlocks(StreamBlock):
     hr = HorizontalRuleBlock(group="Common")
     carousel = CarouselBlock(group="Common")
     newsletter = NewsletterSubscribeBlock(group="Common")
-    # accordion = AccordionBlock(child_block=AccordionElement(), group="Common")
+    faq = FaqBlock(group="Common")
+    image_text = ImageTextBlock(group="Common")
+    steps = StepsBlock(group="Common")
     # tile = TileBlock(group="Common")
 
 
@@ -346,5 +424,48 @@ class ContentBlocks(CommonBlocks, ColumnBlocks):
     pass
 
 
-class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks):
+class SectionBackgroundChoiceBlock(ChoiceBlock):
+    choices = [
+        ("transparent", _("None")),
+        ("white", _("White")),
+        ("light", _("Light")),
+        ("dark", _("Dark")),
+        ("primary", _("Primary")),
+        ("secondary", _("Secondary")),
+    ]
+
+
+class SectionBlock(StructBlock):
+    """
+    A band across the full width of the page with its own background colour.
+    """
+
+    background = SectionBackgroundChoiceBlock(default="white", label=_("Background"))
+    eyebrow = CharBlock(label=_("Eyebrow"), required=False)
+    heading = CharBlock(label=_("Heading"), required=False)
+    content = ContentBlocks(label=_("Blocks"))
+
+    class Meta:
+        icon = "placeholder"
+        label = _("Section")
+        template = "blocks/section_block.html"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        background = value.get("background")
+        if background == "transparent":
+            context["background_class"] = ""
+        elif background == "white":
+            # Bootstrap has no text-bg-white, the text keeps the body colour.
+            context["background_class"] = "bg-white"
+        else:
+            context["background_class"] = "text-bg-{}".format(background)
+        return context
+
+
+class LayoutBlocks(StreamBlock):
+    section = SectionBlock(group="Layout")
+
+
+class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks, LayoutBlocks):
     pass

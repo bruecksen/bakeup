@@ -1,0 +1,5 @@
+{% load wagtailcore_tags %}
+<section class="section-band section-band-{{ value.background }} {{ background_class }} py-5">
+    {% include "blocks/includes/block_heading.html" with eyebrow=value.eyebrow heading=value.heading centered=True %}
+    {% include_block value.content %}
+</section>
