@@ -2508,9 +2508,6 @@ msgstr "Sekundärfarbe"
 msgid "Background"
 msgstr "Hintergrund"
 
-#: bakeup/pages/blocks.py
-msgid "Blocks"
-msgstr "Bausteine"
 
 #: bakeup/pages/blocks.py
 msgid "Section"

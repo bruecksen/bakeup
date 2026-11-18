@@ -443,7 +443,7 @@ class SectionBlock(StructBlock):
     background = SectionBackgroundChoiceBlock(default="white", label=_("Background"))
     eyebrow = CharBlock(label=_("Eyebrow"), required=False)
     heading = CharBlock(label=_("Heading"), required=False)
-    content = ContentBlocks(label=_("Blocks"))
+    content = ContentBlocks()
 
     class Meta:
         icon = "placeholder"
