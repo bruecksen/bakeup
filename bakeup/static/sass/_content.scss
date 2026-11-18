@@ -1,0 +1,410 @@
+// Pages built from CMS blocks: content pages and the shop home page.
+//
+// Everything is scoped to body.shop and to class names only the CMS block
+// templates use, so the workshop, checkout and Wagtail admin are unaffected.
+// Existing blocks only get spacing and typography details here; the bigger
+// changes come with the opt-in blocks (FAQ, section, image and text, steps)
+// and the opt-in banner options.
+
+$content-measure: 46rem;
+$band-spacing: 3rem;
+
+body.shop {
+  // Section bands reach out to the edges of the window. clip, unlike hidden,
+  // doesn't create a scroll container, so sticky elements keep working.
+  overflow-x: clip;
+
+  .eyebrow {
+    margin-bottom: .5rem;
+    color: var(--bs-primary);
+    font-size: .8125rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .btn-cms {
+    --bs-btn-padding-x: 1.25rem;
+
+    &.btn-lg {
+      --bs-btn-padding-x: 1.75rem;
+    }
+  }
+
+  // Text blocks. Not .block-text: that is the wrapper Wagtail puts around
+  // every block inside columns and sections.
+  .page-content .richtext-body {
+    line-height: 1.7;
+    text-wrap: pretty;
+
+    :is(h1, h2, h3, h4) {
+      line-height: 1.25;
+      text-wrap: balance;
+    }
+    :is(h2, h3, h4):not(:first-child) {
+      margin-top: 2rem;
+    }
+  }
+  // A readable measure for text at the top level of a page or a section, not
+  // inside columns, cards or the footer.
+  :is(.page-content, .section-band > .block-text) > .row > .col > .richtext-body {
+    max-width: $content-measure;
+
+    &.text-center {
+      margin-inline: auto;
+    }
+    &.text-end {
+      margin-left: auto;
+    }
+  }
+
+  // Heading of the new blocks: eyebrow and heading.
+  .block-heading {
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin-bottom: 0;
+      text-wrap: balance;
+    }
+  }
+
+  .faq-block,
+  .image-text-block,
+  .steps-block {
+    margin-block: $band-spacing;
+  }
+  // No extra space at the top and bottom of a column or a section, nor
+  // between the heading of a section and its first block.
+  :is(.column, .section-band) > :first-child > :is(.faq-block, .image-text-block, .steps-block),
+  .section-band > .block-heading + * > :is(.faq-block, .image-text-block, .steps-block) {
+    margin-top: 0;
+  }
+  :is(.column, .section-band) > :last-child > :is(.faq-block, .image-text-block, .steps-block) {
+    margin-bottom: 0;
+  }
+
+  // FAQ: questions only, divided by hairlines, "+" opens and "−" closes an
+  // answer. The selector beats the .accordion rules of the brand theme.
+  .accordion.faq {
+    --bs-accordion-bg: transparent;
+    --bs-accordion-active-bg: transparent;
+    --bs-accordion-color: currentColor;
+    --bs-accordion-btn-color: currentColor;
+    --bs-accordion-active-color: var(--bs-primary);
+    --bs-accordion-border-color: rgba(0, 0, 0, .15);
+    --bs-accordion-btn-padding-x: 0;
+    --bs-accordion-btn-padding-y: 1.25rem;
+    --bs-accordion-body-padding-x: 0;
+    --bs-accordion-body-padding-y: 0;
+    --bs-accordion-btn-focus-box-shadow: none;
+    --bs-accordion-btn-icon-width: 1rem;
+
+    .accordion-item {
+      border-top: var(--bs-accordion-border-width) solid var(--bs-accordion-border-color);
+
+      &:last-child {
+        border-bottom: var(--bs-accordion-border-width) solid var(--bs-accordion-border-color);
+      }
+    }
+    .accordion-header {
+      margin: 0;
+    }
+    .accordion-button {
+      gap: 1rem;
+      font-size: 1.125rem;
+      font-weight: 500;
+      line-height: 1.4;
+      text-align: start;
+
+      &:not(.collapsed) {
+        box-shadow: none;
+      }
+      &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+      // The icon follows the text colour, so it takes the brand colour too.
+      &::after {
+        background-color: currentColor;
+        background-image: none;
+        transform: none;
+        -webkit-mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M8 2v12M2 8h12' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3e%3c/svg%3e") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M8 2v12M2 8h12' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3e%3c/svg%3e") center / contain no-repeat;
+      }
+      &:not(.collapsed)::after {
+        -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M2 8h12' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3e%3c/svg%3e");
+        mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M2 8h12' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3e%3c/svg%3e");
+      }
+    }
+    .accordion-body {
+      padding-bottom: 1.25rem;
+      line-height: 1.7;
+
+      > :last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    @include media-breakpoint-up(lg) {
+      .accordion-button {
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  // Steps: a dot on a thin line, vertical on phones, horizontal from lg.
+  .steps {
+    margin-bottom: 0;
+  }
+  .step-inner {
+    position: relative;
+    padding-left: 2rem;
+
+    &::before {
+      position: absolute;
+      top: .3rem;
+      left: 0;
+      width: .875rem;
+      height: .875rem;
+      content: "";
+      background-color: var(--bs-primary);
+      border-radius: 50%;
+    }
+  }
+  .step:not(:last-child) .step-inner::after {
+    position: absolute;
+    top: 1.5rem;
+    bottom: calc(-1 * var(--bs-gutter-y) + .25rem);
+    left: calc(.4375rem - 1px);
+    width: 2px;
+    content: "";
+    background-color: rgba(var(--bs-primary-rgb), .3);
+  }
+  .step-title {
+    font-size: 1.25rem;
+  }
+  .step-text {
+    margin-bottom: 0;
+    line-height: 1.7;
+  }
+  @include media-breakpoint-up(lg) {
+    .step-inner {
+      padding-top: 2rem;
+      padding-left: 0;
+
+      &::before {
+        top: 0;
+      }
+    }
+    .step:not(:last-child) .step-inner::after {
+      top: calc(.4375rem - 1px);
+      right: calc(-1 * var(--bs-gutter-x) + .25rem);
+      bottom: auto;
+      left: 1.25rem;
+      width: auto;
+      height: 2px;
+    }
+    // No line out of the last step of a row.
+    .steps-4 .step:nth-child(4n) .step-inner::after {
+      display: none;
+    }
+  }
+
+  // Section: a band across the full width of the window. The band breaks out
+  // of the page column, the padding keeps its content in line with the page.
+  .section-band {
+    margin-block: $band-spacing;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50%);
+
+    + .section-band {
+      margin-top: -$band-spacing;
+    }
+    .block-heading {
+      margin-bottom: 2rem;
+    }
+  }
+  .section-band:is(.text-bg-dark, .text-bg-primary, .text-bg-secondary) {
+    .eyebrow {
+      color: inherit;
+      opacity: .8;
+    }
+    a:not(.btn) {
+      color: inherit;
+    }
+    .accordion.faq {
+      --bs-accordion-active-color: currentColor;
+      --bs-accordion-border-color: rgba(255, 255, 255, .3);
+    }
+    .step-inner::before {
+      background-color: currentColor;
+    }
+    .step:not(:last-child) .step-inner::after {
+      background-color: currentColor;
+      opacity: .35;
+    }
+  }
+  // A white or light surface inside a coloured band, for example the
+  // newsletter block, keeps the normal text, link and button colours.
+  .section-band :is(.bg-white, .bg-light, .card) {
+    color: var(--bs-body-color);
+
+    a:not(.btn) {
+      color: var(--bs-link-color);
+    }
+  }
+  .section-band.text-bg-primary .btn-primary:not(:is(.bg-white, .bg-light, .card) *) {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-bg: var(--bs-white);
+    --bs-btn-border-color: var(--bs-white);
+    --bs-btn-hover-color: var(--bs-primary);
+    --bs-btn-hover-bg: rgba(255, 255, 255, .85);
+    --bs-btn-hover-border-color: rgba(255, 255, 255, .85);
+    --bs-btn-active-color: var(--bs-primary);
+    --bs-btn-active-bg: rgba(255, 255, 255, .85);
+    --bs-btn-active-border-color: rgba(255, 255, 255, .85);
+  }
+
+  // Image carousel: every slide has the same shape, so the page does not jump
+  // between images of different sizes.
+  .carousel-cms {
+    overflow: hidden;
+    border-radius: var(--bs-border-radius-lg);
+
+    .carousel-item {
+      aspect-ratio: 16 / 9;
+      max-height: 70vh;
+      background-color: var(--bs-dark);
+
+      @include media-breakpoint-down(md) {
+        aspect-ratio: 4 / 3;
+      }
+      // Darkens the lower edge for the caption and the dots.
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 50% 0 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .55));
+        pointer-events: none;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+    .carousel-caption {
+      display: block !important;
+      z-index: 1;
+      bottom: 2.25rem;
+      padding-block: 0;
+      font-size: 1.125rem;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+
+      > :last-child {
+        margin-bottom: 0;
+      }
+      @include media-breakpoint-down(md) {
+        bottom: 1.75rem;
+        font-size: .9375rem;
+      }
+    }
+    .carousel-indicators {
+      margin-bottom: .75rem;
+
+      [data-bs-target] {
+        width: .5rem;
+        height: .5rem;
+        margin-inline: .25rem;
+        border: 0;
+        border-radius: 50%;
+      }
+    }
+    .carousel-control-prev,
+    .carousel-control-next {
+      width: 4.5rem;
+      opacity: .85;
+
+      &:hover,
+      &:focus {
+        opacity: 1;
+      }
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, .35);
+      background-size: 45%;
+    }
+  }
+
+  // Banner of the shop home page.
+  .jumbotron {
+    &::after {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .3) 45%, rgba(0, 0, 0, .4) 100%);
+    }
+    .banner-eyebrow {
+      margin-bottom: 1rem;
+      color: inherit;
+      font-size: .875rem;
+    }
+    h1 {
+      margin-bottom: 0;
+      font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+      font-weight: 400;
+      letter-spacing: -.01em;
+      line-height: 1.15;
+      text-wrap: balance;
+
+      b,
+      strong {
+        font-weight: inherit;
+      }
+    }
+    // The content sits in the middle of the visible banner: no uneven margins
+    // above and below it, the same padding on both sides for the top and
+    // bottom position. On desktop the transparent navigation covers the top
+    // of the banner, so that part does not count.
+    .row > [class*="col-"] {
+      padding-top: 3rem;
+      padding-bottom: 3rem;
+
+      @include media-breakpoint-up(lg) {
+        padding-top: calc(3rem + 65px);
+      }
+    }
+    .banner-text {
+      margin-top: 0 !important;
+
+      > :last-child {
+        margin-bottom: 0;
+      }
+    }
+    .banner-cta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .75rem;
+      margin-top: 2rem !important;
+      margin-bottom: 0 !important;
+
+      .btn {
+        margin: 0 !important;
+      }
+    }
+    .btn-cms {
+      --bs-btn-padding-x: 1.5rem;
+      --bs-btn-padding-y: .625rem;
+      --bs-btn-font-size: 1.125rem;
+
+      @include media-breakpoint-down(md) {
+        --bs-btn-padding-x: 1.125rem;
+        --bs-btn-padding-y: .5rem;
+        --bs-btn-font-size: 1rem;
+      }
+    }
+  }
+}

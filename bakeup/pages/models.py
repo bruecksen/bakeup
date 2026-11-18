@@ -1,10 +1,11 @@
 from django.db import models
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
+from django.http import Http404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
-from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
+from wagtail.admin.panels import FieldPanel, HelpPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseGenericSetting, register_setting
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
@@ -32,6 +33,43 @@ class ContentPage(Page):
     ]
 
 
+class BlockReferencePage(Page):
+    """
+    Shows every content block as an example for bakers. Visitors and customers
+    get a 404 page.
+    """
+
+    content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
+
+    parent_page_types = ["pages.ShopPage"]
+    subpage_types = []
+    max_count = 1
+    show_in_menus_default = False
+    content_panels = Page.content_panels + [
+        HelpPanel(
+            content=constants.BLOCK_REFERENCE_PAGE_HELP_TEXT,
+            template="pages/panels/help_block_panel.html",
+        ),
+        FieldPanel("content"),
+    ]
+
+    class Meta:
+        verbose_name = _("Block overview")
+
+    def serve(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise Http404
+        return super().serve(request, *args, **kwargs)
+
+    def get_sitemap_urls(self, request=None):
+        return []
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["help_text"] = constants.BLOCK_REFERENCE_PAGE_HELP_TEXT
+        return context
+
+
 class ShopPage(Page):
     banner_image = models.ForeignKey(
         "wagtailimages.Image",
@@ -57,6 +95,12 @@ class ShopPage(Page):
         default="center",
         verbose_name="Banner Inhalt Position",
     )
+    banner_eyebrow = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Eyebrow"),
+        help_text=_("A short line above the banner text, for example: Since 1924."),
+    )
 
     show_production_day = models.BooleanField(
         default=True, verbose_name="Produktionstag anzeigen?"
@@ -74,6 +118,7 @@ class ShopPage(Page):
             [
                 FieldPanel("banner_image"),
                 FieldPanel("banner_position"),
+                FieldPanel("banner_eyebrow"),
                 FieldPanel("banner_text"),
                 FieldPanel("banner_cta"),
             ],

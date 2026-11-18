@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 EMAIL_ORDER_CONFIRM_DEFAULT = """
 <p>Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!</p>
 <p>Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:<br/>
@@ -15,3 +17,10 @@ Gesamtpreis: <strong>{{ price_total }}</strong><br/>
 EMAIL_ORDER_CANCELLATION_DEFAULT = """
 <p>Sie haben soeben Ihre komplette Bestellung für den <strong>{{ production_day }}</strong> gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten Backwaren bitte wieder neu.</p>
 """  # noqa: E501
+
+# Slug of the content page that shows every CMS block, see the
+# create_block_reference_page command.
+BLOCK_REFERENCE_PAGE_SLUG = "bausteine"
+BLOCK_REFERENCE_PAGE_HELP_TEXT = _(
+    "This page is only visible to bakers. Visitors and customers cannot open it."
+)

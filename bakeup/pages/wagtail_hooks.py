@@ -1,9 +1,11 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from wagtail import hooks
+from wagtail.admin.menu import MenuItem
+from wagtail.admin.ui.sidebar import LinkMenuItem
 from wagtailmenus.models import MainMenu
 
-from bakeup.pages.models import GeneralSettings
+from bakeup.pages.models import BlockReferencePage, GeneralSettings
 
 
 @hooks.register("construct_settings_menu")
@@ -47,3 +49,40 @@ def add_abo_menu_item(menu_items, request, menu_instance, **kwargs):
                 ]
             )
     return menu_items
+
+
+class BlockReferenceMenuItem(MenuItem):
+    """
+    Links to the block reference page on the site, if the tenant has one.
+    Menu items are created once for all tenants, so the URL is looked up per
+    request.
+    """
+
+    def _get_page(self, request):
+        if not hasattr(request, "_block_reference_page"):
+            request._block_reference_page = BlockReferencePage.objects.live().first()
+        return request._block_reference_page
+
+    def is_shown(self, request):
+        return self._get_page(request) is not None
+
+    def render_component(self, request):
+        return LinkMenuItem(
+            self.name,
+            self.label,
+            self._get_page(request).get_url(request),
+            icon_name=self.icon_name,
+            classname=self.classname,
+            attrs={"target": "_blank"},
+        )
+
+
+@hooks.register("register_admin_menu_item")
+def register_block_reference_menu_item():
+    return BlockReferenceMenuItem(
+        _("Block overview"),
+        url="",
+        name="block-reference",
+        icon_name="placeholder",
+        order=250,
+    )

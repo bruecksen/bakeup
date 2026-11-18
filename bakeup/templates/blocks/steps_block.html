@@ -1,0 +1,14 @@
+<div class="steps-block">
+    {% include "blocks/includes/block_heading.html" with heading=value.heading centered=True %}
+    <ol class="row row-cols-1 row-cols-lg-{{ columns }} g-4 list-unstyled steps steps-{{ columns }}">
+        {% for step in value.items %}
+        <li class="col step">
+            <div class="step-inner">
+                {% if step.label %}<p class="eyebrow">{{ step.label }}</p>{% endif %}
+                <h3 class="step-title">{{ step.title }}</h3>
+                {% if step.text %}<p class="step-text">{{ step.text|linebreaksbr }}</p>{% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ol>
+</div>

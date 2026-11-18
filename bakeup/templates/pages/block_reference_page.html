@@ -1,0 +1,8 @@
+{% extends "pages/content_page.html" %}
+
+{% block page_content %}
+    <div class="alert alert-info" role="alert">
+        <i class="fa-solid fa-eye-slash me-2"></i>{{ help_text }}
+    </div>
+    {{ block.super }}
+{% endblock %}
