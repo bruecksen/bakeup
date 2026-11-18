@@ -1630,6 +1630,14 @@ msgstr "Zutaten"
 msgid "Delivery bill"
 msgstr "Lieferschein"
 
+#: bakeup/templates/workshop/productionday_detail.html:110
+msgid "Filter by name"
+msgstr "Nach Namen filtern"
+
+#: bakeup/templates/workshop/productionday_detail.html:111
+msgid "No orders match this name."
+msgstr "Keine Bestellungen zu diesem Namen gefunden."
+
 #: bakeup/templates/workshop/productionday_detail.html:53
 msgid "Point of sales"
 msgstr "Abholstellen"
