@@ -86,3 +86,8 @@ def register_block_reference_menu_item():
         icon_name="placeholder",
         order=250,
     )
+
+
+@hooks.register("register_icons")
+def register_block_icons(icons):
+    return icons + ["pages/icons/spacer.svg", "pages/icons/line.svg"]

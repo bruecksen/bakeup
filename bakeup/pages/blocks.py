@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime
 
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import StructValue
@@ -32,20 +32,21 @@ from bakeup.workshop.models import prefetch_product_cards
 
 class EmbedBlock(_EmbedBlock):
     class Meta:
+        label = _("Video")
         template = "blocks/embed_block.html"
 
 
 class ColourThemeChoiceBlock(ChoiceBlock):
     choices = [
-        ("primary", "Primary"),
-        ("secondary", "Secondary"),
-        ("success", "Green"),
-        ("danger", "Red"),
-        ("warning", "Yellow"),
-        ("info", "Blue"),
-        ("light", "Light"),
-        ("dark", "Dark"),
-        ("white", "White"),
+        ("primary", _("Primary")),
+        ("secondary", _("Secondary")),
+        ("success", _("Green")),
+        ("danger", _("Red")),
+        ("warning", _("Yellow")),
+        ("info", _("Blue")),
+        ("light", _("Light")),
+        ("dark", _("Dark")),
+        ("white", _("White")),
     ]
 
 
@@ -53,29 +54,32 @@ class SpacerBlock(StructBlock):
     space = ChoiceBlock(
         choices=[(0, "0"), (1, "16px"), (2, "32px"), (3, "48px"), (4, "64px")],
         default=1,
+        label=_("Space"),
     )
     space_mobile = ChoiceBlock(
         choices=[(0, "0"), (1, "16px"), (2, "32px"), (3, "48px"), (4, "64px")],
         default=0,
+        label=_("Space on mobile"),
     )
 
     class Meta:
-        icon = "fa-arrows-v"
+        icon = "spacer"
+        label = _("Space")
         template = "blocks/spacer_block.html"
 
 
 class SimpleCard(StructBlock):
     background = ColourThemeChoiceBlock(
-        default="bg-transparent", label="Card Background Colour"
+        default="bg-transparent", label=_("Card background colour")
     )
     text = RichTextBlock(
-        label="Card Body Text",
-        help_text="Body text for this card.",
+        label=_("Card text"),
+        help_text=_("Body text for this card."),
     )
 
     class Meta:
         template = "blocks/simple_card_block.html"
-        label = "Simple Card (Text Only)"
+        label = _("Simple card (text only)")
         icon = "form"
 
 
@@ -149,18 +153,19 @@ class LinkBlock(StructBlock):
 
 
 class ImageChooserBlock(StructBlock):
-    image = _ImageChooserBlock()
+    image = _ImageChooserBlock(label=_("Image"))
     max_width = IntegerBlock(
+        label=_("Maximum width"),
         required=False,
         help_text=_("Set a maximum width for the image in pixels."),
         min_value=0,
     )
-    alignment = ImageAlignmentChoiceBlock(default="start")
+    alignment = ImageAlignmentChoiceBlock(default="start", label=_("Alignment"))
     link = LinkBlock(required=False)
 
     class Meta:
         template = "blocks/image_block.html"
-        label = "Image"
+        label = _("Image")
         icon = "image"
 
     def get_context(self, value, parent_context=None):
@@ -198,18 +203,18 @@ class ButtonBlock(StructBlock):
 
 class HorizontalRuleBlock(StructBlock):
     class Meta:
-        icon = "horizontalrule"
-        label = _("Horizontal Rule")
+        icon = "line"
+        label = _("Line")
         template = "blocks/hr_block.html"
 
 
 class CarouselItemBlock(StructBlock):
-    image = _ImageChooserBlock()
-    caption = _RichTextBlock()
+    image = _ImageChooserBlock(label=_("Image"))
+    caption = _RichTextBlock(label=_("Caption"))
 
 
 class CarouselBlock(StructBlock):
-    items = ListBlock(CarouselItemBlock())
+    items = ListBlock(CarouselItemBlock(), label=_("Images"))
 
     class Meta:
         icon = "image"
@@ -326,30 +331,30 @@ class PointsOfSaleBlock(StructBlock):
 
 
 class CommonBlocks(StreamBlock):
-    # heading = HeadingBlock(group="Common")
-    text = RichTextBlock(group="Common")
-    # text_collapse = TextCollapse(group="Common")
-    image = ImageChooserBlock(group="Common")
-    button = ButtonBlock(group="Common")
-    # round_image = RoundImageChooserBlock(group="Common")
-    video = EmbedBlock(group="Common")
-    html = RawHTMLBlock(group="Common")
-    space = SpacerBlock(group="Common")
-    card = SimpleCard(group="Common")
-    hr = HorizontalRuleBlock(group="Common")
-    carousel = CarouselBlock(group="Common")
-    newsletter = NewsletterSubscribeBlock(group="Common")
-    faq = FaqBlock(group="Common")
-    image_text = ImageTextBlock(group="Common")
-    steps = StepsBlock(group="Common")
+    # heading = HeadingBlock(group=_("Common"))
+    text = RichTextBlock(group=_("Common"))
+    # text_collapse = TextCollapse(group=_("Common"))
+    image = ImageChooserBlock(group=_("Common"))
+    button = ButtonBlock(group=_("Common"))
+    # round_image = RoundImageChooserBlock(group=_("Common"))
+    video = EmbedBlock(group=_("Common"))
+    html = RawHTMLBlock(group=_("Common"), label=_("HTML"))
+    space = SpacerBlock(group=_("Common"))
+    card = SimpleCard(group=_("Common"))
+    hr = HorizontalRuleBlock(group=_("Common"))
+    carousel = CarouselBlock(group=_("Common"))
+    newsletter = NewsletterSubscribeBlock(group=_("Common"))
+    faq = FaqBlock(group=_("Common"))
+    image_text = ImageTextBlock(group=_("Common"))
+    steps = StepsBlock(group=_("Common"))
     # In the common blocks, so that it also fits into sections and columns.
-    points_of_sale = PointsOfSaleBlock(group="Bakeup")
-    # tile = TileBlock(group="Common")
+    points_of_sale = PointsOfSaleBlock(group=_("Bakeup"))
+    # tile = TileBlock(group=_("Common"))
 
 
 class BaseColumnTwo(StructBlock):
-    left = CommonBlocks(required=False)
-    right = CommonBlocks(required=False)
+    left = CommonBlocks(required=False, label=_("Left"))
+    right = CommonBlocks(required=False, label=_("Right"))
 
     class Meta:
         icon = "table"
@@ -358,47 +363,50 @@ class BaseColumnTwo(StructBlock):
 class Column11(BaseColumnTwo):
     class Meta:
         template = "blocks/column11_block.html"
-        label = "Column (1|1)"
+        label = _("Columns (1|1)")
 
 
 class Column21(BaseColumnTwo):
     class Meta:
         template = "blocks/column21_block.html"
-        label = "Column (2|1)"
+        label = _("Columns (2|1)")
 
 
 class Column12(BaseColumnTwo):
     class Meta:
         template = "blocks/column12_block.html"
-        label = "Column (1|2)"
+        label = _("Columns (1|2)")
 
 
 class Column111(StructBlock):
-    left = CommonBlocks(required=False)
-    middle = CommonBlocks(required=False)
-    right = CommonBlocks(required=False)
+    left = CommonBlocks(required=False, label=_("Left"))
+    middle = CommonBlocks(required=False, label=_("Middle"))
+    right = CommonBlocks(required=False, label=_("Right"))
 
     class Meta:
         template = "blocks/column111_block.html"
         icon = "table"
-        label = "Column (1|1|1)"
+        label = _("Columns (1|1|1)")
 
 
 class ColumnBlocks(StreamBlock):
-    column11 = Column11(group="Columns")
-    column111 = Column111(group="Columns")
-    column12 = Column12(group="Columns")
-    column21 = Column21(group="Columns")
+    column11 = Column11(group=_("Columns"))
+    column111 = Column111(group=_("Columns"))
+    column12 = Column12(group=_("Columns"))
+    column21 = Column21(group=_("Columns"))
 
 
 class ProductionDaysBlock(StructBlock):
-    production_day_limit = IntegerBlock(default=4, required=False)
+    production_day_limit = IntegerBlock(
+        default=4, required=False, label=_("Maximum number of production days")
+    )
     text_no_production_day = RichTextBlock(
         required=False,
-        help_text="This text is displayed if no production day is planned.",
+        label=_("Text without production days"),
+        help_text=_("This text is displayed if no production day is planned."),
     )
     cta_button_text = CharBlock(
-        default="Zum Backtag", required=False, label="Button Text (Zum Backtag)"
+        default="Zum Backtag", required=False, label=_("Button text")
     )
 
     class Meta:
@@ -427,30 +435,53 @@ class ProductionDaysBlock(StructBlock):
 
 
 class ProductAssortmentBlock(StructBlock):
-    only_planned_products = BooleanBlock(default=True, required=False)
+    only_planned_products = BooleanBlock(
+        default=True, required=False, label=_("Only planned products")
+    )
 
     class Meta:
         template = "blocks/product_assortment_block.html"
-        label = _("Product Assortment")
+        label = _("Assortment")
         icon = "list-ul"
 
     def get_context(self, value, parent_context=None):
         context = super().get_context(value, parent_context)
         products = Product.objects.filter(is_sellable=True)
         if value.get("only_planned_products"):
-            today = datetime.now().date()
             products = products.filter(
-                production_days__production_day__day_of_sale__gte=today
+                production_days__production_day__day_of_sale__gte=timezone.localdate()
             )
-        context["products"] = prefetch_product_cards(
-            list(products.distinct().order_by("category"))
+        products = prefetch_product_cards(
+            list(
+                products.select_related("category")
+                .distinct()
+                .order_by("category__name", "name")
+            )
         )
+        # One entry per category, products without a category come last.
+        categories = {}
+        for product in products:
+            category = categories.setdefault(
+                product.category_id,
+                {
+                    "key": product.category_id or "other",
+                    "name": product.category.name if product.category else _("Other"),
+                    "products": [],
+                },
+            )
+            category["products"].append(product)
+        other = categories.pop(None, None)
+        context["categories"] = list(categories.values()) + ([other] if other else [])
+        # A single category has nothing to choose from, so it is shown open.
+        context["expanded"] = len(context["categories"]) == 1
+        # Several assortments on one page need different collapse ids.
+        context["uuid"] = uuid.uuid4()
         return context
 
 
 class BakeupBlocks(StreamBlock):
-    production_days = ProductionDaysBlock(group="Bakeup")
-    product_assortment = ProductAssortmentBlock(group="Bakeup")
+    production_days = ProductionDaysBlock(group=_("Bakeup"))
+    product_assortment = ProductAssortmentBlock(group=_("Bakeup"))
 
 
 class ContentBlocks(CommonBlocks, ColumnBlocks):
@@ -497,7 +528,7 @@ class SectionBlock(StructBlock):
 
 
 class LayoutBlocks(StreamBlock):
-    section = SectionBlock(group="Layout")
+    section = SectionBlock(group=_("Layout"))
 
 
 class AllBlocks(BakeupBlocks, CommonBlocks, ColumnBlocks, LayoutBlocks):

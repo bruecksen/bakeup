@@ -240,3 +240,55 @@ def test_points_of_sale_block_on_the_page_replaces_the_automatic_list(
 
     # Once from the block, not a second time from the page itself.
     assert [card["name"] for card in cards(response)] == ["Hofladen"]
+
+
+def heading(title):
+    return {
+        "type": "text",
+        "value": {"text": "<h2>{}</h2><p>Text</p>".format(title), "alignment": "start"},
+    }
+
+
+def test_block_reference_page_sections_get_anchors_from_their_headings(shop_page):
+    page = BlockReferencePageFactory(
+        parent=shop_page,
+        title="Bausteine",
+        content=[
+            INTRO,
+            heading("FAQ in einer Spalte (1|2)"),
+            {"type": "hr", "value": {}},
+            heading("Abstand &amp; <b>Größe</b>"),
+            heading("FAQ in einer Spalte (1|2)"),
+        ],
+    )
+
+    sections = [
+        (section["anchor"], section["title"], [b.block_type for b in section["blocks"]])
+        for section in page.get_sections()
+    ]
+
+    assert sections == [
+        ("", "", ["text"]),
+        (
+            "baustein-faq-in-einer-spalte-12",
+            "FAQ in einer Spalte (1|2)",
+            ["text", "hr"],
+        ),
+        ("baustein-abstand-groesse", "Abstand & Größe", ["text"]),
+        ("baustein-faq-in-einer-spalte-12-2", "FAQ in einer Spalte (1|2)", ["text"]),
+    ]
+
+
+def test_staff_user_can_jump_to_a_section_of_the_block_reference_page(
+    client, shop_page
+):
+    page = BlockReferencePageFactory(
+        parent=shop_page, title="Bausteine", content=[INTRO, heading("Schritte")]
+    )
+    client.force_login(UserFactory(is_staff=True))
+
+    response = client.get(page.url)
+
+    html = response.content.decode()
+    assert '<a href="#baustein-schritte">Schritte</a>' in html
+    assert '<section id="baustein-schritte"' in html

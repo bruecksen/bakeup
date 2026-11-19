@@ -179,7 +179,6 @@ class Command(InteractiveTenantOption, BaseCommand):
                 " Bäcker:innen seht sie. Öffnet sie im Editor, um zu sehen, wie jeder"
                 " Baustein eingestellt ist.</p>"
             ),
-            space(),
             intro(
                 "FAQ",
                 "Für häufige Fragen: Nur die Fragen sind zu sehen, die Antwort"
@@ -192,21 +191,18 @@ class Command(InteractiveTenantOption, BaseCommand):
                 " in die rechte Spalte, einen Text in die linke.",
             ),
             faq_in_column,
-            space(),
             intro(
                 "Bild und Text",
                 "Ein großes Foto neben einem kurzen Text, das Bild links oder rechts.",
             ),
             image_text("left"),
             image_text("right"),
-            space(),
             intro(
                 "Schritte",
                 "Für einen kurzen Ablauf in zwei bis vier Schritten, zum Beispiel"
                 " wie Bestellen und Abholen funktioniert.",
             ),
             steps,
-            space(),
             intro(
                 "Abschnitt",
                 "Ein farbiges Band über die ganze Breite, um eine Seite zu gliedern."
@@ -218,7 +214,6 @@ class Command(InteractiveTenantOption, BaseCommand):
             section("dark", "Dunkel", [faq_in_column]),
             section("primary", "Primärfarbe", [newsletter]),
             section("secondary", "Sekundärfarbe", [three_columns]),
-            space(),
             intro("Text", "Für Fließtext mit Überschriften, Listen und Links."),
             text(LOREM + LOREM),
             text(LOREM, alignment="center"),
