@@ -823,11 +823,38 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
         context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
         context["day_switch"] = get_day_switch(self.production_day, "plan")
-        context["has_plans_to_start"] = any(card["root"].is_planned for card in cards)
-        context["has_plans_to_finish"] = any(
-            card["root"].is_production for card in cards
-        )
+        context["day_actions"] = self.get_day_actions(cards)
         return context
+
+    def get_day_actions(self, cards):
+        # Both run in place, the page comes back with the plans in their new
+        # state.
+        day = {"production_day": self.production_day.pk}
+        next_url = "?next=" + get_production_day_url(self.production_day, "plan")
+        actions = Actions()
+        if any(card["root"].is_planned for card in cards):
+            actions.append(
+                Action(
+                    _("Start all"),
+                    reverse("workshop:production-plans-start", kwargs=day) + next_url,
+                    "fas fa-play",
+                    kind="primary",
+                    color="warning",
+                    is_htmx=True,
+                )
+            )
+        if any(card["root"].is_production for card in cards):
+            actions.append(
+                Action(
+                    _("Finish all"),
+                    reverse("workshop:production-plans-finish", kwargs=day) + next_url,
+                    "fas fa-check",
+                    kind="primary",
+                    color="success",
+                    is_htmx=True,
+                )
+            )
+        return actions
 
 
 @require_POST
@@ -1582,6 +1609,14 @@ CALENDAR_LINKS = {
 }
 
 
+# The parts of the calendar a day page loads, by the parameter that asks for
+# them: the week strip in its head and the calendar in its layer.
+CALENDAR_MODE_TEMPLATES = {
+    "strip": "workshop/includes/production_day_week_strip.html",
+    "overlay": "workshop/includes/production_day_calendar.html",
+}
+
+
 def get_production_day_url(production_day, link):
     url_name, kwarg, _target = CALENDAR_LINKS[link]
     return reverse(url_name, kwargs={kwarg: production_day.pk})
@@ -1619,13 +1654,15 @@ def get_calendar_products(production_days):
     return products
 
 
-def get_production_day_calendar(
-    month, selected=None, link="day", compact=False, week=None
-):
+def get_production_day_calendar(month, selected=None, link="day", week=None, mode=None):
     """The weeks of a month with its production days, Monday first.
 
-    With week, any date of it, only that week: the page shows it with the
-    products of each day.
+    With week, any date of it, only that week, with the products of each day.
+
+    The calendar is a page of its own without a mode. The day pages use it in
+    two modes that keep their section (link) and their day (selected): "strip"
+    is the week in the head of the page, "overlay" the calendar in the layer
+    the head opens.
     """
     target = CALENDAR_LINKS[link][2]
     if week:
@@ -1648,7 +1685,8 @@ def get_production_day_calendar(
         production_day__in=production_days.values(), parent_plan__isnull=True
     ).values_list("production_day", "state"):
         states.setdefault(day_pk, set()).add(state)
-    products = {} if compact else get_calendar_products(production_days.values())
+    is_strip = mode == "strip"
+    products = {} if is_strip else get_calendar_products(production_days.values())
     today = now().date()
 
     def cell(date):
@@ -1658,7 +1696,7 @@ def get_production_day_calendar(
             "in_month": bool(week) or date.month == month.month,
             "is_today": date == today,
             "is_selected": date == selected,
-            "can_add": not compact and date >= today,
+            "can_add": date >= today,
             "day": production_day,
         }
         if production_day:
@@ -1668,30 +1706,28 @@ def get_production_day_calendar(
             if state is not None:
                 cell["state_label"] = ProductionPlan.state_display_value(state)
                 cell["state_css_class"] = ProductionPlan.state_css_class(state)
-            if not compact:
+            if not is_strip:
                 cell["sold_percent"] = min(100, production_day.sold_percentage)
                 cell["products"] = products.get(production_day.pk, [])
         return cell
 
-    def month_url(other):
-        params = {"month": other.strftime("%Y-%m")}
-        if compact:
-            params.update(compact=1, link=link)
+    def calendar_url(mode=mode, **params):
+        if mode:
+            params.update({mode: 1, "link": link})
             if selected:
                 params["selected"] = selected.isoformat()
         return reverse("workshop:production-day-calendar") + "?" + urlencode(params)
 
+    def month_url(other, **kwargs):
+        return calendar_url(month=other.strftime("%Y-%m"), **kwargs)
+
     def week_url(other):
         monday = other - timedelta(days=other.weekday())
-        return (
-            reverse("workshop:production-day-calendar")
-            + "?"
-            + urlencode({"week": monday.isoformat()})
-        )
+        return calendar_url(week=monday.isoformat())
 
     data = {
         "month": month,
-        "compact": compact,
+        "mode": mode,
         "target": target,
         # Adding a day belongs to the day pages, not to the plan or the emails.
         "can_add_day": link == "day",
@@ -1728,6 +1764,14 @@ def get_production_day_calendar(
             month_view_url=month_url(month),
             week_view_url=week_url(today if in_month else month),
         )
+    if is_strip:
+        # The strip opens the calendar in the layer, on the month of the
+        # chosen day. Its page is the fallback without JavaScript.
+        opens_on = selected or weeks[0][0]
+        data.update(
+            overlay_url=month_url(opens_on, mode="overlay"),
+            page_url=month_url(opens_on, mode=None),
+        )
     return data
 
 
@@ -1741,39 +1785,88 @@ def parse_date(value, format):
 class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
     template_name = "workshop/productionday_calendar.html"
 
+    def get_mode(self):
+        for mode in CALENDAR_MODE_TEMPLATES:
+            if self.request.GET.get(mode):
+                return mode
+
     def get_template_names(self):
-        if self.request.GET.get("compact"):
-            return ["workshop/includes/production_day_calendar.html"]
-        return [self.template_name]
+        return [CALENDAR_MODE_TEMPLATES.get(self.get_mode(), self.template_name)]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         params = self.request.GET
+        mode = self.get_mode()
         link = params.get("link") if params.get("link") in CALENDAR_LINKS else "day"
+        week = parse_date(params.get("week"), "%Y-%m-%d")
+        if mode == "strip":
+            # The strip is always a week.
+            week = week or now().date()
         context["calendar"] = get_production_day_calendar(
             parse_date(params.get("month"), "%Y-%m") or now().date(),
             selected=parse_date(params.get("selected"), "%Y-%m-%d"),
             link=link,
-            compact=bool(params.get("compact")),
-            # The day picker is always a month.
-            week=None
-            if params.get("compact")
-            else parse_date(params.get("week"), "%Y-%m-%d"),
+            week=week,
+            mode=mode,
         )
         return context
 
 
+def get_day_tabs(production_day, active):
+    """The sections of a production day, the tab row of its pages.
+
+    Products, delivery bill and ingredients are panes of the day page, there
+    they switch without loading. From the plan and the pickup emails they
+    link to the day page, the hash opens the pane.
+    """
+    on_day = active == "day"
+    day_url = production_day.get_absolute_url()
+    tabs = [
+        {
+            "key": "products",
+            "label": _("Products"),
+            "badge": production_day.production_day_products.count(),
+            "is_active": on_day,
+        },
+        {
+            "key": "orders",
+            "label": _("Delivery bill"),
+            "badge": production_day.customer_orders.count(),
+        },
+        {"key": "ingredients", "label": _("Ingredients")},
+    ]
+    for tab in tabs:
+        tab.update(is_pane=on_day, url=f"{day_url}#{tab['key']}")
+    for link, label in [
+        ("plan", _("Production plan")),
+        ("reminder", _("Pickup emails")),
+    ]:
+        tabs.append(
+            {
+                "key": link,
+                "label": label,
+                "url": get_production_day_url(production_day, link),
+                "is_active": active == link,
+            }
+        )
+    return tabs
+
+
 def get_day_switch(production_day, link):
-    """The previous and next day and the calendar of the day switcher."""
+    """The head of the pages of a production day.
+
+    The week of the day as a strip, the previous and the next day, and the
+    tab row. link is the page, the days of the strip and of the calendar
+    lead to the same page of another day.
+    """
+    day = production_day.day_of_sale
     switch = {
         "production_day": production_day,
         "target": CALENDAR_LINKS[link][2],
-        "calendar": get_production_day_calendar(
-            production_day.day_of_sale,
-            selected=production_day.day_of_sale,
-            link=link,
-            compact=True,
+        "week": get_production_day_calendar(
+            day, selected=day, link=link, week=day, mode="strip"
         ),
+        "tabs": get_day_tabs(production_day, link),
     }
     for key, method in [
         ("previous_url", ProductionDay.get_previous_by_day_of_sale),
@@ -1786,7 +1879,6 @@ def get_day_switch(production_day, link):
     return switch
 
 
-@staff_member_required(login_url="login")
 def production_day_reminder_redirect_view(request):
     """The pickup emails of the next production day, for the sidebar."""
     production_day = (
@@ -1898,16 +1990,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     color="success",
                 )
             )
-        if self.object.production_plans.exists():
-            actions.append(
-                Action(
-                    _("Production plan"),
-                    reverse(
-                        "workshop:production-plan-production-day", kwargs={"pk": pk}
-                    ),
-                    "fas fa-clipboard-list",
-                )
-            )
         actions += [
             Action(
                 _("Copy"),
@@ -1919,14 +2001,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 reverse("workshop:production-day-meta-product", kwargs={"pk": pk})
                 + next_url,
                 "fas fa-retweet",
-            ),
-            Action(
-                _("Pickup emails"),
-                reverse(
-                    "workshop:production-day-reminder", kwargs={"production_day": pk}
-                )
-                + next_url,
-                "fas fa-envelope",
             ),
             Action(
                 _("Export as CSV"),
@@ -2333,16 +2407,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, NextUrlMixin, UpdateView)
         context = super().get_context_data(**kwargs)
         context["production_day"] = self.production_day
         context["day_switch"] = get_day_switch(self.production_day, "reminder")
-        context["header_actions"] = Actions(
-            [
-                Action(
-                    _("Production day"),
-                    self.production_day.get_absolute_url(),
-                    "fas fa-calendar-day",
-                    kind="secondary",
-                )
-            ]
-        )
         client = connection.get_tenant()
         context["drafts"] = list(
             ReminderMessage.objects.filter(

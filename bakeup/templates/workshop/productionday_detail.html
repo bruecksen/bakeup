@@ -9,6 +9,7 @@
 {% block page_content %}
 <div id="production-day-detail" class="production-day-detail" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <div class="day-header d-print-none">
+    {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
     <div class="day-header-top">
       {% include "workshop/includes/production_day_switch.html" %}
       {% include "workshop/includes/actions.html" with actions=day_actions target="#production-day-detail" %}
@@ -53,17 +54,7 @@
     {% endif %}
   </dl>
 
-  <ul class="nav nav-tabs day-tabs d-print-none" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="true">{% trans "Products" %} <span class="badge rounded-pill text-bg-light">{{ product_rows|length }}</span></button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">{% trans "Delivery bill" %} <span class="badge rounded-pill text-bg-light">{{ stats.orders }}</span></button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">{% trans "Ingredients" %}</button>
-    </li>
-  </ul>
+  {% include "workshop/includes/production_day_tabs.html" %}
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
@@ -190,6 +181,7 @@
     </div>
   </div>
 </div>
+{% include "workshop/includes/production_day_calendar_modal.html" %}
 {% endblock %}
 
 {% block inline_javascript %}

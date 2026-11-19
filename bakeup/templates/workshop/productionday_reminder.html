@@ -11,11 +11,13 @@
 
 {% block page_content %}
 <div class="day-header">
+  {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
   <div class="day-header-top">
     {% include "workshop/includes/production_day_switch.html" %}
-    {% include "workshop/includes/actions.html" with actions=header_actions %}
   </div>
 </div>
+{% include "workshop/includes/production_day_tabs.html" %}
+{% include "workshop/includes/production_day_calendar_modal.html" %}
 
 <div class="row g-4">
   <div class="col-12 col-xl-8">

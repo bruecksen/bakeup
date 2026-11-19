@@ -6,6 +6,7 @@ from urllib.parse import quote
 from django.core.management import call_command
 from django.db import connection
 from django.db.models import Sum
+from django.http import QueryDict
 from django.test import SimpleTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -1195,7 +1196,8 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
 
         primary, menu = primary_and_menu()
         self.assertEqual(primary, [start])
-        self.assertIn(self.day_url(), menu)
+        # The plan and the pickup emails are tabs, not actions.
+        self.assertNotIn(self.day_url(), menu)
         self.start_day()
         primary, menu = primary_and_menu()
         self.assertEqual(primary, [finish])
@@ -1356,19 +1358,60 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
             str(response.context["form"].initial["day_of_sale"]), "2030-05-17"
         )
 
-    def test_compact_calendar_links_to_the_plan(self):
+    def test_overlay_is_the_calendar_alone_and_links_to_the_plan(self):
         day = self.production_day.day_of_sale
-        response = self.calendar(
-            month=day.strftime("%Y-%m"),
-            compact=1,
-            link="plan",
-            selected=day.isoformat(),
-        )
+        params = {"overlay": 1, "link": "plan", "selected": day.isoformat()}
+        response = self.calendar(month=day.strftime("%Y-%m"), **params)
         self.assertTemplateNotUsed(response, "workshop/base.html")
+        calendar = response.context["calendar"]
         cell = self.cells(response)[day]
         self.assertTrue(cell["is_selected"])
         self.assertEqual(cell["url"], self.day_url())
         self.assertContains(response, 'hx-target="#production-day"')
+        # Month, week and the arrows stay in the layer, section and day.
+        for key in ["previous_url", "next_url", "month_view_url", "week_view_url"]:
+            query = QueryDict(calendar[key].split("?")[1])
+            self.assertEqual(
+                {name: query[name] for name in params},
+                {name: str(value) for name, value in params.items()},
+                msg=key,
+            )
+        # Only choosing a day changes the URL of the page behind the layer.
+        days = [cell for cell in self.cells(response).values() if cell["day"]]
+        self.assertContains(response, "hx-push-url", count=len(days))
+        # Adding a day belongs to the day pages.
+        self.assertNotContains(response, reverse("workshop:production-day-add"))
+
+    def test_strip_is_the_week_alone_and_moves_by_a_week(self):
+        day = self.production_day.day_of_sale
+        monday = day - timedelta(days=day.weekday())
+        response = self.calendar(
+            strip=1,
+            week=(monday + timedelta(days=7)).isoformat(),
+            link="plan",
+            selected=day.isoformat(),
+        )
+        self.assertTemplateUsed(
+            response, "workshop/includes/production_day_week_strip.html"
+        )
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+        calendar = response.context["calendar"]
+        self.assertEqual(
+            [cell["date"] for cell in calendar["weeks"][0]],
+            [monday + timedelta(days=7 + offset) for offset in range(7)],
+        )
+        url = reverse("workshop:production-day-calendar")
+        self.assertEqual(
+            calendar["previous_url"],
+            f"{url}?week={monday.isoformat()}&strip=1&link=plan"
+            f"&selected={day.isoformat()}",
+        )
+        # The layer opens on the day of the page, not on the week shown.
+        self.assertEqual(
+            calendar["overlay_url"],
+            f"{url}?month={day.strftime('%Y-%m')}&overlay=1&link=plan"
+            f"&selected={day.isoformat()}",
+        )
 
     def test_week_shows_its_seven_days_with_products(self):
         self.add_order()
@@ -1406,10 +1449,6 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertFalse(calendar["is_week"])
         self.assertEqual(calendar["week_view_url"], f"{url}?week=2030-04-29")
 
-    def test_day_picker_stays_a_month(self):
-        response = self.calendar(week="2030-05-17", compact=1)
-        self.assertFalse(response.context["calendar"]["is_week"])
-
     def test_broken_week_falls_back_to_the_month(self):
         response = self.calendar(week="nope")
         self.assertFalse(response.context["calendar"]["is_week"])
@@ -1424,17 +1463,123 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertContains(self.detail(), "day-picker-toggle")
         self.assertContains(self.client.get(self.day_url()), "day-picker-toggle")
 
-    def test_sidebar(self):
-        self.assertContains(
-            self.calendar(),
-            f'aria-current="page" href="{reverse("workshop:production-day-calendar")}"',
-            count=1,
+    def section_urls(self, production_day=None):
+        production_day = production_day or self.production_day
+        return {
+            "day": self.detail_url(production_day),
+            "plan": self.url("production-plan-production-day", production_day.pk),
+            "reminder": reverse(
+                "workshop:production-day-reminder",
+                kwargs={"production_day": production_day.pk},
+            ),
+        }
+
+    def test_strip_keeps_the_section_on_every_day_page(self):
+        day = self.production_day.day_of_sale
+        monday = day - timedelta(days=day.weekday())
+        # The neighbours of the day that are in its week.
+        others = [
+            other
+            for other in (self.prev_day, self.next_day)
+            if 0 <= (other.day_of_sale - monday).days < 7
+        ]
+        self.assertTrue(others)
+        for link, url in self.section_urls().items():
+            with self.subTest(link=link):
+                response = self.client.get(url)
+                strip = response.context["day_switch"]["week"]
+                cells = {cell["date"]: cell for cell in strip["weeks"][0]}
+                self.assertEqual(
+                    list(cells), [monday + timedelta(days=n) for n in range(7)]
+                )
+                self.assertEqual(
+                    [date for date, cell in cells.items() if cell["is_selected"]],
+                    [day],
+                )
+                for other in others:
+                    other_url = self.section_urls(other)[link]
+                    self.assertEqual(cells[other.day_of_sale]["url"], other_url)
+                    self.assertContains(response, f'href="{other_url}"')
+                self.assertContains(response, 'id="day-calendar-modal"', count=1)
+                self.assertContains(
+                    response, f'hx-get="{strip["overlay_url"]}"'.replace("&", "&amp;")
+                )
+
+    def test_tabs_keep_the_day_on_every_day_page(self):
+        self.add_order()
+        urls = self.section_urls()
+        day_url = urls["day"]
+        for link, url in urls.items():
+            with self.subTest(link=link):
+                tabs = self.client.get(url).context["day_switch"]["tabs"]
+                self.assertEqual(
+                    [(tab["key"], tab["url"]) for tab in tabs],
+                    [
+                        ("products", f"{day_url}#products"),
+                        ("orders", f"{day_url}#orders"),
+                        ("ingredients", f"{day_url}#ingredients"),
+                        ("plan", urls["plan"]),
+                        ("reminder", urls["reminder"]),
+                    ],
+                )
+                active = "products" if link == "day" else link
+                self.assertEqual(
+                    [tab["key"] for tab in tabs if tab.get("is_active")], [active]
+                )
+                # Only the day page switches its three panes in place.
+                self.assertEqual(
+                    [tab["key"] for tab in tabs if tab.get("is_pane")],
+                    ["products", "orders", "ingredients"] if link == "day" else [],
+                )
+                badges = {tab["key"]: tab.get("badge") for tab in tabs}
+                self.assertEqual(badges["products"], 2)
+                self.assertEqual(badges["orders"], 1)
+
+    def test_tab_row_links_and_panes(self):
+        urls = self.section_urls()
+        response = self.detail()
+        self.assertContains(response, 'data-bs-target="#orders"')
+        self.assertContains(response, f'class="nav-link" href="{urls["plan"]}"')
+        response = self.client.get(urls["plan"])
+        self.assertNotContains(response, 'data-bs-target="#orders"')
+        self.assertContains(response, f'class="nav-link" href="{urls["day"]}#orders"')
+        self.assertContains(response, f'class="nav-link active" href="{urls["plan"]}"')
+
+    def test_plan_page_starts_and_finishes_all_in_place(self):
+        pk = self.production_day.pk
+        start = reverse(
+            "workshop:production-plans-start", kwargs={"production_day": pk}
         )
-        self.assertContains(
-            self.detail(),
-            f'aria-current="page" href="{reverse("workshop:production-day-next")}"',
-            count=1,
+        finish = reverse(
+            "workshop:production-plans-finish", kwargs={"production_day": pk}
         )
+        response = self.client.get(self.day_url())
+        self.assertContains(response, f'hx-post="{start}?next={self.day_url()}"')
+        self.assertNotContains(response, finish)
+        self.start_day()
+        response = self.client.get(self.day_url())
+        self.assertContains(response, f'hx-post="{finish}?next={self.day_url()}"')
+        self.assertNotContains(response, start)
+        self.assertContains(response, 'id="wake-lock-toggle"')
+
+    def test_sidebar_has_one_entry_for_the_day_pages(self):
+        entry = f'aria-current="page" href="{reverse("workshop:production-day-next")}"'
+        pages = {
+            **self.section_urls(),
+            "calendar": self.calendar().request["PATH_INFO"],
+        }
+        for name, url in pages.items():
+            with self.subTest(page=name):
+                response = self.client.get(url)
+                self.assertContains(response, entry, count=1)
+                for gone in ["production-plan-next", "production-day-reminder-next"]:
+                    self.assertNotContains(
+                        response, f'href="{reverse(f"workshop:{gone}")}"'
+                    )
+                self.assertNotContains(
+                    response,
+                    f'class="nav-link" href="{reverse("workshop:production-day-calendar")}"',
+                )
 
 
 class PickupEmailsViewTest(ProductionDayDetailViewTest):
@@ -1457,13 +1602,8 @@ class PickupEmailsViewTest(ProductionDayDetailViewTest):
         self.assertEqual(switch["next_url"], self.reminder_url(self.next_day))
         self.assertContains(response, f'href="{switch["next_url"]}"')
         self.assertNotContains(response, f'hx-get="{switch["next_url"]}"')
-        self.assertFalse(switch["calendar"]["can_add_day"])
+        self.assertFalse(switch["week"]["can_add_day"])
         self.assertNotContains(response, reverse("workshop:production-day-add"))
-        self.assertContains(
-            response,
-            f'aria-current="page" href="{reverse("workshop:production-day-reminder-next")}"',
-            count=1,
-        )
 
 
 class PickupEmailsEditorTest(PickupEmailsViewTest):

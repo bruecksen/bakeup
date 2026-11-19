@@ -1,0 +1,32 @@
+{% load i18n %}
+<div class="day-week-strip d-print-none">
+  <div class="btn-group btn-group-sm day-week-strip-nav" role="group">
+    <button type="button" class="btn btn-sm btn-surface" aria-label="{{ calendar.previous_label }}" title="{{ calendar.previous_label }}"
+      hx-get="{{ calendar.previous_url }}" hx-target="closest .day-week-strip" hx-swap="outerHTML"><i class="fas fa-chevron-left"></i></button>
+    <span class="btn btn-sm btn-surface disabled day-week-strip-week">{% trans "CW" %} {{ calendar.week_number }}</span>
+    <button type="button" class="btn btn-sm btn-surface" aria-label="{{ calendar.next_label }}" title="{{ calendar.next_label }}"
+      hx-get="{{ calendar.next_url }}" hx-target="closest .day-week-strip" hx-swap="outerHTML"><i class="fas fa-chevron-right"></i></button>
+  </div>
+  <div class="day-week-strip-days">
+    {% for cell in calendar.weeks.0 %}
+    {% if cell.day %}
+    <a href="{{ cell.url }}" class="day-week-chip has-day{% if cell.is_today %} is-today{% endif %}{% if cell.is_selected %} is-selected{% endif %}"{% if calendar.target %} hx-get="{{ cell.url }}" hx-target="{{ calendar.target }}" hx-select="{{ calendar.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if cell.is_selected %} aria-current="date"{% endif %} title="{{ cell.day }}{% if cell.state_label %} · {{ cell.state_label }}{% endif %}">
+      <span class="day-week-chip-date"><span class="day-week-chip-weekday">{{ cell.date|date:"D" }}</span> {{ cell.date.day }}.</span>
+      <span class="day-week-chip-info">{% if cell.state_label %}<span class="day-week-chip-state {{ cell.state_css_class }}"></span>{% endif %}<span class="day-week-chip-orders">{% blocktranslate count counter=cell.day.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span></span>
+    </a>
+    {% elif cell.can_add and calendar.can_add_day %}
+    <a href="{% url 'workshop:production-day-add' %}?day_of_sale={{ cell.date|date:'Y-m-d' }}" class="day-week-chip can-add{% if cell.is_today %} is-today{% endif %}" aria-label="{% trans 'Add production day' %} {{ cell.date|date:'SHORT_DATE_FORMAT' }}" title="{% trans 'Add production day' %}">
+      <span class="day-week-chip-date"><span class="day-week-chip-weekday">{{ cell.date|date:"D" }}</span> {{ cell.date.day }}.</span>
+      <span class="day-week-chip-info"><i class="fas fa-plus" aria-hidden="true"></i></span>
+    </a>
+    {% else %}
+    <span class="day-week-chip{% if cell.is_today %} is-today{% endif %}">
+      <span class="day-week-chip-date"><span class="day-week-chip-weekday">{{ cell.date|date:"D" }}</span> {{ cell.date.day }}.</span>
+    </span>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <a class="btn btn-sm btn-surface day-week-strip-calendar" href="{{ calendar.page_url }}" title="{% trans 'Open calendar' %}" aria-label="{% trans 'Open calendar' %}"
+    data-bs-toggle="modal" data-bs-target="#day-calendar-modal"
+    hx-get="{{ calendar.overlay_url }}" hx-target="#day-calendar-modal-body"><i class="fas fa-calendar-days" aria-hidden="true"></i> <span class="action-label">{% trans "Calendar" %}</span></a>
+</div>

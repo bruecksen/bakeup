@@ -1202,14 +1202,9 @@ $tap-size: 44px;
     align-items: center;
     gap: .5rem;
 }
-.day-picker-menu {
-    width: 19rem;
-    max-width: calc(100vw - 2rem);
-    padding: .75rem;
-}
 
-// Month calendar of the production days: a full page, and compact in the
-// day picker.
+// Calendar of the production days: a page of its own, and the layer the
+// day pages open.
 .day-calendar-head {
     display: flex;
     align-items: center;
@@ -1263,8 +1258,8 @@ $tap-size: 44px;
         font-weight: 500;
     }
 }
-// Month page: today is framed and labelled, a production day or not.
-.day-calendar:not(.is-compact) .day-calendar-cell.is-today {
+// Today is framed and labelled, a production day or not.
+.day-calendar .day-calendar-cell.is-today {
     box-shadow: inset 0 0 0 2px $primary;
 
     &.has-day {
@@ -1414,63 +1409,138 @@ $tap-size: 44px;
     }
 }
 
-// Day picker: rounded squares like the buttons. A production day is tinted,
-// the chosen day is filled, today is orange.
-.day-calendar.is-compact {
-    .day-calendar-grid {
-        gap: .25rem;
-    }
-    .day-calendar-cell {
-        align-items: center;
-        justify-content: center;
-        gap: .125rem;
-        min-height: 0;
-        aspect-ratio: 1;
-        padding: 0;
-        background: none;
-        border-radius: $border-radius;
-
-        &.has-day {
-            border-left: 0;
-            box-shadow: none;
-            background-color: rgba($primary, .1);
-
-            &:hover {
-                background-color: rgba($primary, .2);
-            }
-        }
-        &.is-selected,
-        &.is-selected:hover {
-            color: $white;
-            background-color: $primary;
-
-            .day-calendar-date {
-                color: inherit;
-            }
-        }
-    }
-    .day-calendar-date {
-        align-self: center;
-        font-weight: 400;
-    }
-    .has-day .day-calendar-date {
-        font-weight: 600;
-    }
-    .is-today .day-calendar-date {
-        font-weight: 700;
-    }
+// Calendar layer of the day pages: the day the page shows is tinted. The
+// layer has the colour of the page, so the white days stand out as there.
+.day-calendar-cell.is-selected {
+    background-color: rgba($primary, .12);
 }
-.day-calendar-foot {
+.day-calendar-modal .modal-content {
+    background-color: $body-bg;
+}
+
+// Week strip in the head of the day pages: the days of the week as chips
+// that look like the days of the calendar. A production day is a white card
+// with the primary edge, the day of the page is filled, a free day is plain.
+.day-week-strip {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: .5rem;
+}
+.day-week-strip-nav,
+.day-week-strip-calendar {
+    flex: 0 0 auto;
+}
+.day-week-strip-week {
+    min-width: 3.75rem;
+    opacity: 1;
+    font-variant-numeric: tabular-nums;
+}
+.day-week-strip-days {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: .375rem;
+    min-width: 0;
+}
+.day-week-chip {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: .125rem;
+    min-height: 2.75rem;
+    padding: .25rem .5rem;
+    color: $text-muted;
+    font-size: .8125rem;
+    line-height: 1.25;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    border-radius: $border-radius;
 
-    > :only-child {
-        margin-left: auto;
+    &.has-day {
+        color: $body-color;
+        background-color: $white;
+        border-left-color: $primary;
+        box-shadow: $box-shadow-sm;
+
+        &:hover {
+            background-color: rgba($primary, .08);
+        }
     }
-    margin-top: .75rem;
-    padding-top: .75rem;
-    border-top: 1px solid $gray-200;
+    &.can-add:hover,
+    &.can-add:focus-visible {
+        color: $primary;
+        background-color: rgba($primary, .08);
+    }
+    &.is-today .day-week-chip-date {
+        color: $primary;
+        font-weight: 700;
+    }
+    &.is-selected,
+    &.is-selected:hover {
+        color: $white;
+        background-color: $primary;
+
+        .day-week-chip-date,
+        .day-week-chip-info {
+            color: inherit;
+        }
+    }
+}
+.day-week-chip-date {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.day-week-chip-weekday {
+    font-weight: 400;
+}
+.day-week-chip-info {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    overflow: hidden;
+    color: $text-muted;
+    font-size: .75rem;
+    white-space: nowrap;
+}
+// The state of the day as a dot in the colour of its badge.
+.day-week-chip-state {
+    flex: 0 0 auto;
+    width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px $white;
+}
+// Narrow screens: the days get the full width in a row of their own, a chip
+// is weekday over date with the dot, the number of orders goes.
+@include media-breakpoint-down(lg) {
+    .day-week-strip {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .day-week-strip-days {
+        flex: 1 1 100%;
+        order: 3;
+        gap: .25rem;
+    }
+    .day-week-chip {
+        align-items: center;
+        padding: .25rem;
+        border-left-width: 0;
+        border-bottom: 3px solid transparent;
+
+        &.has-day {
+            border-bottom-color: $primary;
+        }
+    }
+    .day-week-chip-date {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .day-week-chip-orders {
+        display: none;
+    }
 }
 
 .production-stat {
@@ -2622,7 +2692,7 @@ i.step-check-all {
     .day-picker-toggle {
         min-width: 0;
     }
-    .day-calendar:not(.is-compact):not(.is-week) {
+    .day-calendar:not(.is-week) {
         .day-calendar-grid {
             gap: .25rem;
         }

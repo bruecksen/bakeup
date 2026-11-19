@@ -2485,6 +2485,9 @@ msgstr "Woche"
 msgid "View"
 msgstr "Ansicht"
 
+msgid "Close"
+msgstr "Schließen"
+
 msgid "Open calendar"
 msgstr "Kalender öffnen"
 

@@ -6,16 +6,12 @@
   {% else %}
   <span class="btn btn-surface disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
   {% endif %}
-  <div class="btn-group" role="group">
-    <button type="button" class="btn btn-surface day-picker-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-      <i class="fas fa-calendar-days" aria-hidden="true"></i>
-      <span>{{ day_switch.production_day.day_of_sale|date:"D, j. M Y" }}</span>
-      <i class="fas fa-angle-down" aria-hidden="true"></i>
-    </button>
-    <div class="dropdown-menu day-picker-menu">
-      {% include "workshop/includes/production_day_calendar.html" with calendar=day_switch.calendar %}
-    </div>
-  </div>
+  <a class="btn btn-surface day-picker-toggle" href="{{ day_switch.week.page_url }}" title="{% trans 'Open calendar' %}"
+    data-bs-toggle="modal" data-bs-target="#day-calendar-modal"
+    hx-get="{{ day_switch.week.overlay_url }}" hx-target="#day-calendar-modal-body">
+    <i class="fas fa-calendar-days" aria-hidden="true"></i>
+    <span>{{ day_switch.production_day.day_of_sale|date:"D, j. M Y" }}</span>
+  </a>
   {% if day_switch.next_url %}
   <a class="btn btn-surface" href="{{ day_switch.next_url }}" aria-label="{% trans 'Next production day' %}"{% if day_switch.target %}
     hx-get="{{ day_switch.next_url }}" hx-target="{{ day_switch.target }}" hx-select="{{ day_switch.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>

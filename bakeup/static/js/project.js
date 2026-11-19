@@ -1357,7 +1357,9 @@ document.addEventListener("DOMContentLoaded", function() {
     if (dayTab) showDayTab(dayTab);
 });
 function keepDayTab() {
-    if (!dayTab || !document.querySelector(".day-tabs")) return;
+    // Only a pane of the day page: the plan and the emails have the tab row
+    // too, there the hash is something else, e.g. a card of the plan.
+    if (!dayTab || !document.getElementById(dayTab + "-tab")) return;
     showDayTab(dayTab);
     if (location.hash !== "#" + dayTab) {
         history.replaceState(history.state, "", "#" + dayTab);
@@ -1425,12 +1427,21 @@ document.addEventListener("click", function(event) {
     document.body.dispatchEvent(new Event("reminder-preview"));
 });
 
+// Calendar layer of the day pages: choosing a day closes it, htmx swaps the
+// page behind it or the browser loads the day.
+document.addEventListener("click", function(event) {
+    var modal = event.target.closest("#day-calendar-modal");
+    if (modal && event.target.closest(".day-calendar-cell.has-day")) {
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
+    }
+});
+
 // Month calendar: the products of a day in a popover, which Bootstrap places
 // where there is room. Made on the first hover or focus, htmx swaps the
 // months. Touch screens have no hover, a tap opens the day.
 ["mouseover", "focusin"].forEach(function(type) {
     document.addEventListener(type, function(event) {
-        var cell = event.target.closest(".day-calendar:not(.is-compact) .day-calendar-cell.has-day");
+        var cell = event.target.closest(".day-calendar .day-calendar-cell.has-day");
         if (!cell || bootstrap.Popover.getInstance(cell)) return;
         if (window.matchMedia("(hover: none)").matches) return;
         var tip = cell.querySelector(".day-calendar-tip");

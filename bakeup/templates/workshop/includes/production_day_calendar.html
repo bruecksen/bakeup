@@ -1,22 +1,20 @@
 {% load i18n %}
-<div class="day-calendar{% if calendar.compact %} is-compact{% endif %}{% if calendar.is_week %} is-week{% endif %}">
+<div class="day-calendar{% if calendar.is_week %} is-week{% endif %}">
   <div class="day-calendar-head">
     <span class="day-calendar-month">{% if calendar.is_week %}{% trans "CW" %} {{ calendar.week_number }} <small class="text-muted">{{ calendar.week_start|date:"j. N" }} – {{ calendar.week_end|date:"j. N Y" }}</small>{% else %}{{ calendar.month|date:"F Y" }}{% endif %}</span>
-    {% if not calendar.compact %}
     <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'View' %}">
       <a class="btn btn-sm btn-surface{% if not calendar.is_week %} active{% endif %}" href="{{ calendar.month_view_url }}"{% if not calendar.is_week %} aria-current="true"{% endif %}
-        hx-get="{{ calendar.month_view_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML" hx-push-url="true">{% trans "Month" %}</a>
+        hx-get="{{ calendar.month_view_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}>{% trans "Month" %}</a>
       <a class="btn btn-sm btn-surface{% if calendar.is_week %} active{% endif %}" href="{{ calendar.week_view_url }}"{% if calendar.is_week %} aria-current="true"{% endif %}
-        hx-get="{{ calendar.week_view_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML" hx-push-url="true">{% trans "Week" %}</a>
+        hx-get="{{ calendar.week_view_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}>{% trans "Week" %}</a>
     </div>
-    {% endif %}
     <div class="btn-group btn-group-sm" role="group">
       <a class="btn btn-sm btn-surface" href="{{ calendar.previous_url }}" aria-label="{{ calendar.previous_label }}"
-        hx-get="{{ calendar.previous_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-left"></i></a>
+        hx-get="{{ calendar.previous_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-left"></i></a>
       <a class="btn btn-sm btn-surface" href="{{ calendar.today_url }}"
-        hx-get="{{ calendar.today_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}>{% trans "Today" %}</a>
+        hx-get="{{ calendar.today_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}>{% trans "Today" %}</a>
       <a class="btn btn-sm btn-surface" href="{{ calendar.next_url }}" aria-label="{{ calendar.next_label }}"
-        hx-get="{{ calendar.next_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.compact %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>
+        hx-get="{{ calendar.next_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>
     </div>
   </div>
   <div class="day-calendar-grid">
@@ -28,10 +26,9 @@
     {% for week in calendar.weeks %}
     {% for cell in week %}
     {% if cell.day %}
-    <a href="{{ cell.url }}" class="day-calendar-cell has-day{% if not cell.in_month %} is-outside{% endif %}{% if cell.is_today %} is-today{% endif %}{% if cell.is_selected %} is-selected{% endif %}"{% if calendar.compact and calendar.target %} hx-get="{{ cell.url }}" hx-target="{{ calendar.target }}" hx-select="{{ calendar.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if cell.is_selected %} aria-current="date"{% endif %}{% if calendar.compact %} title="{{ cell.day }}{% if cell.state_label %} · {{ cell.state_label }}{% endif %}"{% endif %}>
+    <a href="{{ cell.url }}" class="day-calendar-cell has-day{% if not cell.in_month %} is-outside{% endif %}{% if cell.is_today %} is-today{% endif %}{% if cell.is_selected %} is-selected{% endif %}"{% if calendar.mode and calendar.target %} hx-get="{{ cell.url }}" hx-target="{{ calendar.target }}" hx-select="{{ calendar.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}{% if cell.is_selected %} aria-current="date"{% endif %}>
       <span class="day-calendar-date">{% if calendar.is_week %}<span class="day-calendar-weekday-name">{{ cell.date|date:"D" }}</span> {% endif %}{{ cell.date.day }}{% if calendar.is_week %}.{% endif %}</span>
-      {% if cell.is_today and not calendar.compact %}<span class="day-calendar-today">{% trans "Today" %}</span>{% endif %}
-      {% if not calendar.compact %}
+      {% if cell.is_today %}<span class="day-calendar-today">{% trans "Today" %}</span>{% endif %}
       {% if cell.state_label %}<span class="badge rounded-pill {{ cell.state_css_class }}">{{ cell.state_label }}</span>{% endif %}
       <span class="day-calendar-info">{% blocktranslate count counter=cell.day.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
       <span class="progress day-calendar-progress" role="progressbar" aria-label="{% trans 'Sold in shop' %}" aria-valuenow="{{ cell.sold_percent }}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar bg-success" style="width: {{ cell.sold_percent }}%"></span></span>
@@ -49,13 +46,12 @@
         {% endfor %}
       </span>
       {% endif %}
-      {% endif %}
     </a>
     {% else %}
     <div class="day-calendar-cell{% if not cell.in_month %} is-outside{% endif %}{% if cell.is_today %} is-today{% endif %}">
       <span class="day-calendar-date">{% if calendar.is_week %}<span class="day-calendar-weekday-name">{{ cell.date|date:"D" }}</span> {% endif %}{{ cell.date.day }}{% if calendar.is_week %}.{% endif %}</span>
-      {% if cell.is_today and not calendar.compact %}<span class="day-calendar-today">{% trans "Today" %}</span>{% endif %}
-      {% if cell.can_add %}
+      {% if cell.is_today %}<span class="day-calendar-today">{% trans "Today" %}</span>{% endif %}
+      {% if cell.can_add and calendar.can_add_day %}
       <a class="day-calendar-add" href="{% url 'workshop:production-day-add' %}?day_of_sale={{ cell.date|date:'Y-m-d' }}" aria-label="{% trans 'Add production day' %} {{ cell.date|date:'SHORT_DATE_FORMAT' }}"><i class="fas fa-plus"></i></a>
       {% endif %}
     </div>
@@ -63,12 +59,4 @@
     {% endfor %}
     {% endfor %}
   </div>
-  {% if calendar.compact %}
-  <div class="day-calendar-foot">
-    {% if calendar.can_add_day %}
-    <a class="btn btn-sm btn-surface" href="{% url 'workshop:production-day-add' %}"><i class="fas fa-plus"></i> {% trans "New production day" %}</a>
-    {% endif %}
-    <a class="btn btn-sm btn-link" href="{% url 'workshop:production-day-calendar' %}?month={{ calendar.month|date:'Y-m' }}">{% trans "Open calendar" %}</a>
-  </div>
-  {% endif %}
 </div>

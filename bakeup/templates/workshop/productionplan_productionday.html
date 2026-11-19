@@ -6,26 +6,19 @@
 {% endblock%}
 
 {% block page_content %}
-{% url 'workshop:production-plan-production-day' pk=production_day.pk as day_url %}
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-    {% include "workshop/includes/production_day_switch.html" %}
-    <h2 class="d-none d-print-block mb-0">{% trans "Production Plan" %} {{ production_day }}</h2>
-    <div id="day-actions" class="d-flex flex-wrap gap-2 d-print-none">
-      <a href="{% url 'workshop:production-day-detail' pk=production_day.pk %}" class="btn btn-surface"><i class="fas fa-calendar-day"></i> {% trans "Production day" %}</a>
-      <button type="button" id="wake-lock-toggle" class="btn btn-outline-success d-none" aria-pressed="false" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun"></i> {% trans "Screen on" %}</button>
-      {% if has_plans_to_start %}
-      <a href="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ day_url }}" class="btn btn-warning"
-        hx-post="{% url 'workshop:production-plans-start' production_day=production_day.pk %}?next={{ day_url }}"
-        hx-target="#production-day" hx-select="#production-day" hx-swap="outerMorph"><i class="fas fa-play"></i> {% trans "Start all" %}</a>
-      {% endif %}
-      {% if has_plans_to_finish %}
-      <a href="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ day_url }}" class="btn btn-success"
-        hx-post="{% url 'workshop:production-plans-finish' production_day=production_day.pk %}?next={{ day_url }}"
-        hx-target="#production-day" hx-select="#production-day" hx-swap="outerMorph"><i class="fas fa-check"></i> {% trans "Finish all" %}</a>
-      {% endif %}
+  <div class="day-header d-print-none">
+    {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
+    <div class="day-header-top">
+      {% include "workshop/includes/production_day_switch.html" %}
+      <div id="day-actions" class="d-flex flex-wrap gap-2">
+        <button type="button" id="wake-lock-toggle" class="btn btn-outline-success d-none" aria-pressed="false" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun"></i> <span class="action-label">{% trans "Screen on" %}</span></button>
+        {% include "workshop/includes/actions.html" with actions=day_actions target="#production-day" %}
+      </div>
     </div>
   </div>
+  <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
+  {% include "workshop/includes/production_day_tabs.html" %}
 
   {% if cards %}
   <div id="production-summary" class="production-summary row g-2 mb-3">
@@ -70,4 +63,5 @@
   </div>
   {% endif %}
 </div>
+{% include "workshop/includes/production_day_calendar_modal.html" %}
 {% endblock %}
