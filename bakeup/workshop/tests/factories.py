@@ -1,6 +1,10 @@
-from factory import Sequence
+from datetime import timedelta
+
+from django.utils import timezone
+from factory import Sequence, SubFactory
 from factory.django import DjangoModelFactory
 
+from bakeup.shop.models import ProductionDay, ProductionDayProduct
 from bakeup.workshop.models import Category, Product, ProductHierarchy
 
 
@@ -15,6 +19,22 @@ class ProductFactory(DjangoModelFactory):
 class ProductHierarchyFactory(DjangoModelFactory):
     class Meta:
         model = ProductHierarchy
+
+
+class ProductionDayFactory(DjangoModelFactory):
+    day_of_sale = Sequence(lambda n: timezone.now().date() + timedelta(days=n + 1))
+
+    class Meta:
+        model = ProductionDay
+
+
+class ProductionDayProductFactory(DjangoModelFactory):
+    production_day = SubFactory(ProductionDayFactory)
+    product = SubFactory(ProductFactory, is_sellable=True)
+    max_quantity = 10
+
+    class Meta:
+        model = ProductionDayProduct
 
 
 def create_categories():

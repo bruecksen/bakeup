@@ -226,6 +226,20 @@ class ProductionDay(CommonBaseClass):
             or 0
         )
 
+    def delete_stale_production_plans(self):
+        # A plan is stale when its product is no longer a product of the day,
+        # e.g. after the product of a row was swapped or the row was deleted.
+        # Started and produced plans are production history and stay.
+        stale_plans = self.production_plans.filter(
+            parent_plan=None,
+            state__in=[ProductionPlan.State.PLANNED, ProductionPlan.State.CANCELED],
+        ).exclude(
+            product__product_template__in=self.production_day_products.values("product")
+        )
+        # One by one: ProductionPlan.delete() also removes the copied product.
+        for plan in stale_plans:
+            plan.delete()
+
     def update_production_plan(
         self, product, quantity, state, create_max_quantity, without_recipe=False
     ):
@@ -317,6 +331,7 @@ class ProductionDay(CommonBaseClass):
         return plan
 
     def create_or_update_production_plans(self, state, create_max_quantity=False):
+        self.delete_stale_production_plans()
         plans = []
         positions = None
         if create_max_quantity:

@@ -5,7 +5,12 @@ from django.utils import timezone
 from django_tenants.test.cases import FastTenantTestCase
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import CustomerOrder, CustomerOrderPosition, ProductionDay
+from bakeup.shop.models import (
+    CustomerOrder,
+    CustomerOrderPosition,
+    ProductionDay,
+    ProductionDayProduct,
+)
 from bakeup.users.models import User
 from bakeup.workshop.models import (
     Category,
@@ -483,3 +488,59 @@ class VatRateTest(NumberCircleTestCase):
         position.save()
         position.refresh_from_db()
         self.assertEqual(position.vat_rate, 19)
+
+
+def root_plans(production_day):
+    return list(
+        ProductionPlan.objects.filter(production_day=production_day, parent_plan=None)
+        .order_by("product__product_template__name")
+        .values_list("product__product_template__name", "state")
+    )
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_deleting_day_product_deletes_its_planned_plan(
+    planned_production_day, sellable_products
+):
+    bread = sellable_products["Bread"]
+    assert root_plans(planned_production_day) == [
+        ("Bread", ProductionPlan.State.PLANNED),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]
+
+    ProductionDayProduct.objects.get(
+        production_day=planned_production_day, product=bread
+    ).delete()
+
+    assert root_plans(planned_production_day) == [
+        ("Brötchen", ProductionPlan.State.PLANNED)
+    ]
+    # The plan's copy of the product goes with it.
+    assert list(Product.objects.filter(product_template=bread)) == []
+    # So do its sub plans for the sourdough and the starter.
+    assert list(
+        ProductionPlan.objects.filter(
+            production_day=planned_production_day
+        ).values_list("product__name", flat=True)
+    ) == ["Brötchen"]
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_deleting_day_product_keeps_its_plan_in_production(
+    planned_production_day, sellable_products
+):
+    bread = sellable_products["Bread"]
+    ProductionPlan.objects.filter(
+        production_day=planned_production_day,
+        parent_plan=None,
+        product__product_template=bread,
+    ).update(state=ProductionPlan.State.IN_PRODUCTION)
+
+    ProductionDayProduct.objects.get(
+        production_day=planned_production_day, product=bread
+    ).delete()
+
+    assert root_plans(planned_production_day) == [
+        ("Bread", ProductionPlan.State.IN_PRODUCTION),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]
