@@ -15201,11 +15201,6 @@ li:hover > .row .main-flour-set,
   color: inherit;
 }
 
-.production-day-detail {
-  max-width: 1152px;
-  max-width: 72rem;
-}
-
 .day-header {
   display: -webkit-box;
   display: -ms-flexbox;

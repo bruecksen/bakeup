@@ -1640,10 +1640,6 @@ $tap-size: 44px;
 
 // Production day: the day is switched and acted on in one header row, the
 // buttons and the ⋯ menu come from includes/actions.html.
-// Lines of a wide screen get hard to follow, the page keeps a readable width.
-.production-day-detail {
-    max-width: 72rem;
-}
 .day-header {
     display: flex;
     flex-direction: column;
