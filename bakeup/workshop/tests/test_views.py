@@ -1500,6 +1500,18 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                     [tab["key"] for tab in tabs if tab.get("is_pane")],
                     ["products", "orders", "ingredients"] if link == "day" else [],
                 )
+                # Day page and plan swap into each other, the emails load.
+                swaps = {
+                    "day": {"plan": urls["plan"]},
+                    "plan": dict.fromkeys(
+                        ["products", "orders", "ingredients"], day_url
+                    ),
+                    "reminder": {},
+                }[link]
+                self.assertEqual(
+                    {tab["key"]: tab["swap_url"] for tab in tabs if "swap_url" in tab},
+                    swaps,
+                )
                 badges = {tab["key"]: tab.get("badge") for tab in tabs}
                 self.assertEqual(badges["products"], 2)
                 self.assertEqual(badges["orders"], 1)
@@ -1511,6 +1523,11 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertContains(response, f'class="nav-link" href="{urls["plan"]}"')
         response = self.client.get(urls["plan"])
         self.assertNotContains(response, 'data-bs-target="#orders"')
+        self.assertContains(
+            response,
+            f'data-day-pane="orders" hx-get="{urls["day"]}" hx-target="#day-page"',
+        )
+        self.assertContains(response, 'id="day-page"', count=1)
         self.assertContains(response, f'class="nav-link" href="{urls["day"]}#orders"')
         self.assertContains(response, f'class="nav-link active" href="{urls["plan"]}"')
 

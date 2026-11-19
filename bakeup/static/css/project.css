@@ -14959,12 +14959,6 @@ li:hover > .row .main-flour-set,
           align-items: stretch;
   gap: 12px;
   gap: 0.75rem;
-  padding: 8px;
-  padding: 0.5rem;
-  background-color: #fff;
-  border-radius: 0.5rem;
-  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
 .day-bar .production-day-switch {
@@ -14982,12 +14976,9 @@ li:hover > .row .main-flour-set,
       -ms-flex: 1 1 auto;
           flex: 1 1 auto;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  gap: 0.25rem;
+  gap: 6px;
+  gap: 0.375rem;
   min-width: 0;
-  padding-left: 12px;
-  padding-left: 0.75rem;
-  border-left: 1px solid #e9ecef;
 }
 
 .day-week-chip {
@@ -15003,8 +14994,8 @@ li:hover > .row .main-flour-set,
           justify-content: flex-start;
   gap: 2px;
   gap: 0.125rem;
-  min-height: 44px;
-  min-height: 2.75rem;
+  min-height: 46px;
+  min-height: 2.875rem;
   padding: 5px 10px;
   padding: 0.3125rem 0.625rem;
   color: #6c757d;
@@ -15012,18 +15003,30 @@ li:hover > .row .main-flour-set,
   font-size: 0.8125rem;
   line-height: 1.25;
   text-decoration: none;
+  background-color: #fff;
+  border-left: 3px solid transparent;
   border-radius: 0.375rem;
 }
 .day-week-chip.has-day {
   color: #212529;
-  background-color: #faf0ed;
+  border-left-color: #CD6646;
+  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .day-week-chip.has-day:hover {
-  background-color: #f5e0da;
+  background-color: #fbf3f0;
 }
 .day-week-chip.can-add:hover, .day-week-chip.can-add:focus-visible {
   color: #CD6646;
   background-color: #fbf3f0;
+}
+.day-week-chip.is-today {
+  -webkit-box-shadow: inset 0 0 0 2px #CD6646;
+          box-shadow: inset 0 0 0 2px #CD6646;
+}
+.day-week-chip.is-today.has-day {
+  -webkit-box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .day-week-chip.is-today .day-week-chip-date {
   color: #CD6646;
@@ -15107,16 +15110,17 @@ li:hover > .row .main-flour-set,
             justify-content: center;
   }
   .day-week-strip {
-    padding-top: 0.5rem;
-    padding-left: 0;
-    border-top: 1px solid #e9ecef;
-    border-left: 0;
+    gap: 0.25rem;
   }
   .day-week-chip {
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
     padding: 0.25rem;
+    border-left-width: 0;
+  }
+  .day-week-chip.has-day {
+    border-bottom: 3px solid #CD6646;
   }
   .day-week-chip-date {
     display: -webkit-box;

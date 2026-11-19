@@ -1434,18 +1434,14 @@ $tap-size: 44px;
 // Head of the day pages, in three separate areas: the bar that chooses the
 // day, the line that describes it with its actions, and the tab row of its
 // sections.
-//
-// The bar is one white card: the date with the previous and next production
-// day, and the week of the day as chips. A production day is tinted, the day
-// of the page is filled, a free day is plain.
+// The bar chooses the day: the date with the previous and next production
+// day, and the week of the day. The days are the cells of the calendar in
+// small: every day a white card on the page, a production day with the
+// primary edge and a shadow, today framed. The day of the page is filled.
 .day-bar {
     display: flex;
     align-items: stretch;
     gap: .75rem;
-    padding: .5rem;
-    background-color: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: $box-shadow-sm;
 }
 .day-bar .production-day-switch {
     align-self: center;
@@ -1457,10 +1453,8 @@ $tap-size: 44px;
     display: grid;
     flex: 1 1 auto;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: .25rem;
+    gap: .375rem;
     min-width: 0;
-    padding-left: .75rem;
-    border-left: 1px solid $gray-200;
 }
 // The date is the first line of every chip, so the dates of the week are on
 // one line whether a day has a second line or not.
@@ -1469,20 +1463,23 @@ $tap-size: 44px;
     flex-direction: column;
     justify-content: flex-start;
     gap: .125rem;
-    min-height: 2.75rem;
+    min-height: 2.875rem;
     padding: .3125rem .625rem;
     color: $text-muted;
     font-size: .8125rem;
     line-height: 1.25;
     text-decoration: none;
+    background-color: $white;
+    border-left: 3px solid transparent;
     border-radius: $border-radius;
 
     &.has-day {
         color: $body-color;
-        background-color: mix($primary, $white, 10%);
+        border-left-color: $primary;
+        box-shadow: $box-shadow-sm;
 
         &:hover {
-            background-color: mix($primary, $white, 20%);
+            background-color: mix($primary, $white, 8%);
         }
     }
     &.can-add:hover,
@@ -1490,9 +1487,16 @@ $tap-size: 44px;
         color: $primary;
         background-color: mix($primary, $white, 8%);
     }
-    &.is-today .day-week-chip-date {
-        color: $primary;
-        font-weight: 700;
+    &.is-today {
+        box-shadow: inset 0 0 0 2px $primary;
+
+        &.has-day {
+            box-shadow: inset 0 0 0 2px $primary, $box-shadow-sm;
+        }
+        .day-week-chip-date {
+            color: $primary;
+            font-weight: 700;
+        }
     }
     &.is-selected,
     &.is-selected:hover {
@@ -1556,14 +1560,16 @@ $tap-size: 44px;
         }
     }
     .day-week-strip {
-        padding-top: .5rem;
-        padding-left: 0;
-        border-top: 1px solid $gray-200;
-        border-left: 0;
+        gap: .25rem;
     }
     .day-week-chip {
         align-items: center;
         padding: .25rem;
+        border-left-width: 0;
+
+        &.has-day {
+            border-bottom: 3px solid $primary;
+        }
     }
     .day-week-chip-date {
         display: flex;

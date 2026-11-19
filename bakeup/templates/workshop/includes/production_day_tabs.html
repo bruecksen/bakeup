@@ -4,7 +4,7 @@
     {% if tab.is_pane %}
     <button class="nav-link{% if tab.is_active %} active{% endif %}" id="{{ tab.key }}-tab" data-bs-toggle="tab" data-bs-target="#{{ tab.key }}" type="button" role="tab" aria-controls="{{ tab.key }}" aria-selected="{% if tab.is_active %}true{% else %}false{% endif %}">{{ tab.label }}{% if tab.badge is not None %} <span class="badge rounded-pill text-bg-light">{{ tab.badge }}</span>{% endif %}</button>
     {% else %}
-    <a class="nav-link{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}"{% if tab.is_active %} aria-current="true"{% endif %}>{{ tab.label }}{% if tab.badge is not None %} <span class="badge rounded-pill text-bg-light">{{ tab.badge }}</span>{% endif %}</a>
+    <a class="nav-link{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}"{% if tab.is_active %} aria-current="true"{% endif %}{% if tab.swap_url %} data-day-pane="{{ tab.key }}" hx-get="{{ tab.swap_url }}" hx-target="#day-page" hx-select="#day-page" hx-swap="outerHTML" hx-push-url="true"{% endif %}>{{ tab.label }}{% if tab.badge is not None %} <span class="badge rounded-pill text-bg-light">{{ tab.badge }}</span>{% endif %}</a>
     {% endif %}
   </li>
   {% endfor %}

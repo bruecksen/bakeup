@@ -1817,6 +1817,10 @@ def get_day_tabs(production_day, active):
     Products, delivery bill and ingredients are panes of the day page, there
     they switch without loading. From the plan and the pickup emails they
     link to the day page, the hash opens the pane.
+
+    Between the day page and the plan htmx swaps the page (swap_url), a full
+    load felt slow. The pickup emails load: their editor needs the scripts of
+    its page and doesn't survive a swap.
     """
     on_day = active == "day"
     day_url = production_day.get_absolute_url()
@@ -1836,6 +1840,8 @@ def get_day_tabs(production_day, active):
     ]
     for tab in tabs:
         tab.update(is_pane=on_day, url=f"{day_url}#{tab['key']}")
+        if active == "plan":
+            tab["swap_url"] = day_url
     for link, label in [
         ("plan", _("Production plan")),
         ("reminder", _("Pickup emails")),
@@ -1848,6 +1854,8 @@ def get_day_tabs(production_day, active):
                 "is_active": active == link,
             }
         )
+        if link == "plan" and on_day:
+            tabs[-1]["swap_url"] = tabs[-1]["url"]
     return tabs
 
 

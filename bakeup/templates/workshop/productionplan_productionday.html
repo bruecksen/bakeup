@@ -6,6 +6,7 @@
 {% endblock%}
 
 {% block page_content %}
+<div id="day-page">
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
   {% include "workshop/includes/production_day_head.html" with wake_lock=True %}
@@ -52,6 +53,7 @@
     </div>
   </div>
   {% endif %}
+</div>
 </div>
 {% include "workshop/includes/production_day_calendar_modal.html" %}
 {% endblock %}

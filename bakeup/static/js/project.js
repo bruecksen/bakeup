@@ -1362,6 +1362,12 @@ document.addEventListener("shown.bs.tab", function(event) {
 document.addEventListener("DOMContentLoaded", function() {
     if (dayTab) showDayTab(dayTab);
 });
+// A tab of the plan that leads to a pane of the day page: htmx swaps the
+// page, the pane opens after the swap.
+document.addEventListener("click", function(event) {
+    var link = event.target.closest(".day-tabs [data-day-pane]");
+    if (link) dayTab = link.dataset.dayPane;
+});
 function keepDayTab() {
     // Only a pane of the day page: the plan and the emails have the tab row
     // too, there the hash is something else, e.g. a card of the plan.
@@ -1432,6 +1438,35 @@ document.addEventListener("click", function(event) {
     }
     document.body.dispatchEvent(new Event("reminder-preview"));
 });
+
+// Delivery bill: the name filter hides the orders of other customers and the
+// points of sale without a match. It runs again after a swap, e.g. when the
+// orders of a point of sale are ticked as picked up.
+function normalizeName(text) {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+function filterDeliveryBills() {
+    var input = document.getElementById("delivery-bill-filter");
+    if (!input) return;
+    var query = normalizeName(input.value);
+    var matches = 0;
+    document.querySelectorAll(".delivery-bill").forEach(function(section) {
+        var sectionMatches = 0;
+        section.querySelectorAll(".delivery-bill-order").forEach(function(row) {
+            var isMatch = normalizeName(row.querySelector(".delivery-bill-name").textContent).includes(query);
+            row.hidden = !isMatch;
+            sectionMatches += isMatch ? 1 : 0;
+        });
+        section.hidden = query !== "" && sectionMatches === 0;
+        section.querySelector(".delivery-bill-summary").hidden = query !== "";
+        matches += sectionMatches;
+    });
+    document.getElementById("delivery-bill-filter-empty").hidden = query === "" || matches > 0;
+}
+document.addEventListener("input", function(event) {
+    if (event.target.id === "delivery-bill-filter") filterDeliveryBills();
+});
+document.addEventListener("htmx:after:swap", filterDeliveryBills);
 
 // Calendar layer of the day pages: choosing a day closes it, htmx swaps the
 // page behind it or the browser loads the day.

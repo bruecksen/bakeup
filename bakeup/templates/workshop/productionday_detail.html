@@ -7,6 +7,7 @@
 {% block page_heading_action %}{% endblock %}
 
 {% block page_content %}
+<div id="day-page">
 <div id="production-day-detail" class="production-day-detail" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include "workshop/includes/production_day_head.html" %}
 
@@ -162,40 +163,6 @@
     </div>
   </div>
 </div>
+</div>
 {% include "workshop/includes/production_day_calendar_modal.html" %}
 {% endblock %}
-
-{% block inline_javascript %}
-{{ block.super }}
-<script>
-  (() => {
-    const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-    const filterDeliveryBills = () => {
-      const input = document.getElementById('delivery-bill-filter');
-      if (!input) {
-        return;
-      }
-      const query = normalize(input.value);
-      let matches = 0;
-      document.querySelectorAll('.delivery-bill').forEach((section) => {
-        let sectionMatches = 0;
-        section.querySelectorAll('.delivery-bill-order').forEach((row) => {
-          const isMatch = normalize(row.querySelector('.delivery-bill-name').textContent).includes(query);
-          row.hidden = !isMatch;
-          sectionMatches += isMatch ? 1 : 0;
-        });
-        section.hidden = query !== '' && sectionMatches === 0;
-        section.querySelector('.delivery-bill-summary').hidden = query !== '';
-        matches += sectionMatches;
-      });
-      document.getElementById('delivery-bill-filter-empty').hidden = query === '' || matches > 0;
-    };
-    document.addEventListener('input', (event) => {
-      if (event.target.id === 'delivery-bill-filter') {
-        filterDeliveryBills();
-      }
-    });
-    document.addEventListener('htmx:after:swap', filterDeliveryBills);
-  })();
-</script>
-{% endblock inline_javascript %}
