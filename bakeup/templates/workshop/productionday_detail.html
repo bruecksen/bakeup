@@ -8,25 +8,7 @@
 
 {% block page_content %}
 <div id="production-day-detail" class="production-day-detail" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <div class="day-header d-print-none">
-    {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
-    <div class="day-header-top">
-      {% include "workshop/includes/production_day_switch.html" %}
-      {% include "workshop/includes/actions.html" with actions=day_actions target="#production-day-detail" %}
-    </div>
-    <div class="day-meta">
-      <span><i class="fas fa-calendar-week fa-fw" aria-hidden="true"></i> {% trans "CW" %} {{ object.calendar_week }}</span>
-      {% if object.point_of_sales.exists %}
-      <span><i class="fas fa-warehouse fa-fw" aria-hidden="true"></i> {% for pos in object.point_of_sales.all %}{{ pos.get_short_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
-      {% endif %}
-      {% for state in stats.states %}
-      <span class="badge rounded-pill {{ state.css_class }}">{{ state.count }} {{ state.label }}</span>
-      {% endfor %}
-    </div>
-    {% if object.description %}
-    <p class="day-description">{{ object.description }}</p>
-    {% endif %}
-  </div>
+  {% include "workshop/includes/production_day_head.html" %}
 
   <dl class="day-stats d-print-none">
     <div class="day-stat">
@@ -54,7 +36,6 @@
     {% endif %}
   </dl>
 
-  {% include "workshop/includes/production_day_tabs.html" %}
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">

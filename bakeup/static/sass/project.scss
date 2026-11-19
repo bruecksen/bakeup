@@ -1409,67 +1409,86 @@ $tap-size: 44px;
     }
 }
 
-// Calendar layer of the day pages: the day the page shows is tinted. The
-// layer has the colour of the page, so the white days stand out as there.
+// Calendar layer of the day pages: it fills the screen in the colour of the
+// page, so the white days stand out as on the calendar page. The day the
+// page shows is tinted.
 .day-calendar-cell.is-selected {
-    background-color: rgba($primary, .12);
+    background-color: mix($primary, $white, 14%);
 }
-.day-calendar-modal .modal-content {
-    background-color: $body-bg;
+.day-calendar-modal {
+    .modal-content {
+        background-color: $light;
+    }
+    .modal-header {
+        background-color: $white;
+    }
+    .modal-body {
+        padding: 1.25rem;
+    }
+    .day-calendar {
+        max-width: 90rem;
+        margin: 0 auto;
+    }
 }
 
-// Week strip in the head of the day pages: the days of the week as chips
-// that look like the days of the calendar. A production day is a white card
-// with the primary edge, the day of the page is filled, a free day is plain.
-.day-week-strip {
+// Head of the day pages, in three separate areas: the bar that chooses the
+// day, the line that describes it with its actions, and the tab row of its
+// sections.
+//
+// The bar is one white card: the date with the previous and next production
+// day, and the week of the day as chips. A production day is tinted, the day
+// of the page is filled, a free day is plain.
+.day-bar {
     display: flex;
-    align-items: center;
-    gap: .5rem;
+    align-items: stretch;
+    gap: .75rem;
+    padding: .5rem;
+    background-color: $white;
+    border-radius: $border-radius-lg;
+    box-shadow: $box-shadow-sm;
 }
-.day-week-strip-nav,
-.day-week-strip-calendar {
-    flex: 0 0 auto;
+.day-bar .production-day-switch {
+    align-self: center;
 }
-.day-week-strip-week {
-    min-width: 3.75rem;
-    opacity: 1;
-    font-variant-numeric: tabular-nums;
+.day-picker-date {
+    font-weight: 600;
 }
-.day-week-strip-days {
+.day-week-strip {
     display: grid;
     flex: 1 1 auto;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: .375rem;
+    gap: .25rem;
     min-width: 0;
+    padding-left: .75rem;
+    border-left: 1px solid $gray-200;
 }
+// The date is the first line of every chip, so the dates of the week are on
+// one line whether a day has a second line or not.
 .day-week-chip {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     gap: .125rem;
     min-height: 2.75rem;
-    padding: .25rem .5rem;
+    padding: .3125rem .625rem;
     color: $text-muted;
     font-size: .8125rem;
     line-height: 1.25;
     text-decoration: none;
-    border-left: 3px solid transparent;
     border-radius: $border-radius;
 
     &.has-day {
         color: $body-color;
-        background-color: $white;
-        border-left-color: $primary;
-        box-shadow: $box-shadow-sm;
+        background-color: mix($primary, $white, 10%);
 
         &:hover {
-            background-color: rgba($primary, .08);
+            background-color: mix($primary, $white, 20%);
         }
     }
     &.can-add:hover,
     &.can-add:focus-visible {
         color: $primary;
-        background-color: rgba($primary, .08);
+        background-color: mix($primary, $white, 8%);
     }
     &.is-today .day-week-chip-date {
         color: $primary;
@@ -1497,41 +1516,54 @@ $tap-size: 44px;
 .day-week-chip-info {
     display: flex;
     align-items: center;
-    gap: .25rem;
-    overflow: hidden;
+    gap: .375rem;
     color: $text-muted;
     font-size: .75rem;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
-// The state of the day as a dot in the colour of its badge.
+// The state of the day as a plain dot in the colour of its badge.
 .day-week-chip-state {
     flex: 0 0 auto;
-    width: .5rem;
-    height: .5rem;
+    width: .4375rem;
+    height: .4375rem;
     border-radius: 50%;
-    box-shadow: 0 0 0 1px $white;
 }
-// Narrow screens: the days get the full width in a row of their own, a chip
+// With a mouse the plus of a free day shows on hover, the bar stays calm.
+@media (hover: hover) and (pointer: fine) {
+    .day-week-chip.can-add .day-week-chip-info {
+        visibility: hidden;
+    }
+    .day-week-chip.can-add:hover .day-week-chip-info,
+    .day-week-chip.can-add:focus-visible .day-week-chip-info {
+        visibility: visible;
+        color: inherit;
+    }
+}
+// Narrow screens: the date gets a row of its own, the days the next. A chip
 // is weekday over date with the dot, the number of orders goes.
 @include media-breakpoint-down(lg) {
-    .day-week-strip {
-        flex-wrap: wrap;
-        justify-content: space-between;
+    .day-bar {
+        flex-direction: column;
+        gap: .5rem;
     }
-    .day-week-strip-days {
-        flex: 1 1 100%;
-        order: 3;
-        gap: .25rem;
+    .day-bar .production-day-switch {
+        align-self: stretch;
+
+        .day-picker-toggle {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+    }
+    .day-week-strip {
+        padding-top: .5rem;
+        padding-left: 0;
+        border-top: 1px solid $gray-200;
+        border-left: 0;
     }
     .day-week-chip {
         align-items: center;
         padding: .25rem;
-        border-left-width: 0;
-        border-bottom: 3px solid transparent;
-
-        &.has-day {
-            border-bottom-color: $primary;
-        }
     }
     .day-week-chip-date {
         display: flex;
@@ -1609,15 +1641,23 @@ $tap-size: 44px;
 .day-header {
     display: flex;
     flex-direction: column;
-    gap: .5rem;
-    margin-bottom: 1rem;
+    gap: .75rem;
+    margin-bottom: .75rem;
 }
+// What the day is on the left, what can be done with it on the right.
 .day-header-top {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: .5rem 1rem;
+    min-height: 2.375rem;
+}
+.day-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-left: auto;
 }
 .production-day-switch {
     flex: 0 0 auto;
@@ -1705,10 +1745,50 @@ $tap-size: 44px;
         --bs-btn-border-radius: #{$btn-border-radius-sm};
     }
 }
+// The sections of the day: a line with the open one underlined, not folder
+// tabs, the row isn't attached to what follows. It stays one row and scrolls
+// sideways on a phone.
 .day-tabs {
-    .badge {
-        font-weight: 500;
+    flex-wrap: nowrap;
+    gap: .25rem;
+    margin-bottom: 1.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: 1px solid rgba($black, .12);
+    scrollbar-width: none;
+
+    .nav-link {
+        margin-bottom: 0;
+        padding: .5rem .875rem;
+        color: $body-color;
+        white-space: nowrap;
+        background: none;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+
+        &:hover,
+        &:focus-visible {
+            border-bottom-color: mix($primary, $white, 40%);
+        }
+        &.active {
+            color: $primary;
+            font-weight: 600;
+            background: none;
+            border-bottom-color: $primary;
+        }
     }
+    // The row sits on the page colour, which is the one of the light badge.
+    .badge {
+        color: inherit !important;
+        font-weight: 500;
+        background-color: rgba($black, .08) !important;
+    }
+}
+// The panes of the day page are a card of their own under the tab row.
+.production-day-detail .tab-content > .tab-pane {
+    border-radius: $border-radius;
+    box-shadow: $box-shadow-sm;
 }
 // The name opens the recipe, the icon after it the product in the plan.
 .day-product-name {

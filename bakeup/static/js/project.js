@@ -129,6 +129,8 @@ document.addEventListener("click", function(event) {
 
 ["mouseover", "focusin"].forEach(function(type) {
     document.addEventListener(type, function(event) {
+        // After a swap the focus can land on the document itself.
+        if (!(event.target instanceof Element)) return;
         var link = event.target.closest("#workshop-sidebar.is-collapsed .nav-link");
         if (!link || bootstrap.Tooltip.getInstance(link)) return;
         var label = link.querySelector(".nav-label");
@@ -837,6 +839,8 @@ document.addEventListener("htmx:before:request", function(event) {
     refreshAmountForms();
 });
 document.addEventListener("htmx:finally:request", function(event) {
+    // A request that swapped its own element out ends on the document.
+    if (!(event.target instanceof Element)) return;
     var form = event.target.closest(".amount-form");
     if (!form || !event.detail.ctx.amountCounted) return;
     amountInflight[form.id] -= 1;
@@ -1320,6 +1324,8 @@ document.addEventListener("toggle", function(event) {
 // first hover or focus. They go before a swap, an open one would stay behind.
 ["mouseover", "focusin"].forEach(function(type) {
     document.addEventListener(type, function(event) {
+        // After a swap the focus can land on the document itself.
+        if (!(event.target instanceof Element)) return;
         var el = event.target.closest('.production-card [data-bs-toggle="popover"]');
         if (!el || bootstrap.Popover.getInstance(el)) return;
         bootstrap.Popover.getOrCreateInstance(el).show();
@@ -1441,6 +1447,8 @@ document.addEventListener("click", function(event) {
 // months. Touch screens have no hover, a tap opens the day.
 ["mouseover", "focusin"].forEach(function(type) {
     document.addEventListener(type, function(event) {
+        // After a swap the focus can land on the document itself.
+        if (!(event.target instanceof Element)) return;
         var cell = event.target.closest(".day-calendar .day-calendar-cell.has-day");
         if (!cell || bootstrap.Popover.getInstance(cell)) return;
         if (window.matchMedia("(hover: none)").matches) return;

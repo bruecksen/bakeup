@@ -1,24 +1,14 @@
 {% extends "workshop/base.html" %}
 {% load i18n workshop_tags %}
 {% block title %}{% trans "Production Plan" %}{% endblock %}
-{% block page_heading %}{% trans "Production Plan" %}{% endblock %}
+{% block page_heading %}{% trans "Production day" %}{% endblock %}
 {% block page_heading_action %}
 {% endblock%}
 
 {% block page_content %}
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <div class="day-header d-print-none">
-    {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
-    <div class="day-header-top">
-      {% include "workshop/includes/production_day_switch.html" %}
-      <div id="day-actions" class="d-flex flex-wrap gap-2">
-        <button type="button" id="wake-lock-toggle" class="btn btn-outline-success d-none" aria-pressed="false" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun"></i> <span class="action-label">{% trans "Screen on" %}</span></button>
-        {% include "workshop/includes/actions.html" with actions=day_actions target="#production-day" %}
-      </div>
-    </div>
-  </div>
   <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
-  {% include "workshop/includes/production_day_tabs.html" %}
+  {% include "workshop/includes/production_day_head.html" with wake_lock=True %}
 
   {% if cards %}
   <div id="production-summary" class="production-summary row g-2 mb-3">

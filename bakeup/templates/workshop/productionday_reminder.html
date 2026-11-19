@@ -7,16 +7,10 @@
 {% endblock wagtail_non_admin_draftail_head %}
 
 {% block title %}{% trans "Pickup emails" %}{% endblock %}
-{% block page_heading %}{% trans "Pickup emails" %}{% endblock %}
+{% block page_heading %}{% trans "Production day" %}{% endblock %}
 
 {% block page_content %}
-<div class="day-header">
-  {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
-  <div class="day-header-top">
-    {% include "workshop/includes/production_day_switch.html" %}
-  </div>
-</div>
-{% include "workshop/includes/production_day_tabs.html" %}
+{% include "workshop/includes/production_day_head.html" %}
 {% include "workshop/includes/production_day_calendar_modal.html" %}
 
 <div class="row g-4">

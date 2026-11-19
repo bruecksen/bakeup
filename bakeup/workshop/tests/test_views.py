@@ -1382,37 +1382,6 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         # Adding a day belongs to the day pages.
         self.assertNotContains(response, reverse("workshop:production-day-add"))
 
-    def test_strip_is_the_week_alone_and_moves_by_a_week(self):
-        day = self.production_day.day_of_sale
-        monday = day - timedelta(days=day.weekday())
-        response = self.calendar(
-            strip=1,
-            week=(monday + timedelta(days=7)).isoformat(),
-            link="plan",
-            selected=day.isoformat(),
-        )
-        self.assertTemplateUsed(
-            response, "workshop/includes/production_day_week_strip.html"
-        )
-        self.assertTemplateNotUsed(response, "workshop/base.html")
-        calendar = response.context["calendar"]
-        self.assertEqual(
-            [cell["date"] for cell in calendar["weeks"][0]],
-            [monday + timedelta(days=7 + offset) for offset in range(7)],
-        )
-        url = reverse("workshop:production-day-calendar")
-        self.assertEqual(
-            calendar["previous_url"],
-            f"{url}?week={monday.isoformat()}&strip=1&link=plan"
-            f"&selected={day.isoformat()}",
-        )
-        # The layer opens on the day of the page, not on the week shown.
-        self.assertEqual(
-            calendar["overlay_url"],
-            f"{url}?month={day.strftime('%Y-%m')}&overlay=1&link=plan"
-            f"&selected={day.isoformat()}",
-        )
-
     def test_week_shows_its_seven_days_with_products(self):
         self.add_order()
         day = self.production_day.day_of_sale

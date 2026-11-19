@@ -1541,14 +1541,27 @@ class Actions(list):
         )
 
 
-def get_production_day_stats(production_day):
-    published = production_day.total_published_quantity
-    sold = production_day.total_published_ordered_quantity
+def get_production_day_states(production_day):
+    """How many plans of the day are in each state, the badges of its head."""
     counts = dict(
         production_day.production_plans.filter(parent_plan__isnull=True)
         .values_list("state")
         .annotate(count=Count("id"))
     )
+    return [
+        {
+            "label": ProductionPlan.state_display_value(state),
+            "css_class": ProductionPlan.state_css_class(state),
+            "count": counts[state],
+        }
+        for state in ProductionPlan.State
+        if counts.get(state)
+    ]
+
+
+def get_production_day_stats(production_day):
+    published = production_day.total_published_quantity
+    sold = production_day.total_published_ordered_quantity
     return {
         "orders": production_day.total_orders,
         "pieces": production_day.total_ordered_quantity,
@@ -1560,15 +1573,6 @@ def get_production_day_stats(production_day):
             if production_day.has_products_with_price()
             else None
         ),
-        "states": [
-            {
-                "label": ProductionPlan.state_display_value(state),
-                "css_class": ProductionPlan.state_css_class(state),
-                "count": counts[state],
-            }
-            for state in ProductionPlan.State
-            if counts.get(state)
-        ],
     }
 
 
@@ -1609,10 +1613,9 @@ CALENDAR_LINKS = {
 }
 
 
-# The parts of the calendar a day page loads, by the parameter that asks for
-# them: the week strip in its head and the calendar in its layer.
+# The part of the calendar a day page loads, by the parameter that asks for
+# it: the calendar in its layer.
 CALENDAR_MODE_TEMPLATES = {
-    "strip": "workshop/includes/production_day_week_strip.html",
     "overlay": "workshop/includes/production_day_calendar.html",
 }
 
@@ -1661,8 +1664,8 @@ def get_production_day_calendar(month, selected=None, link="day", week=None, mod
 
     The calendar is a page of its own without a mode. The day pages use it in
     two modes that keep their section (link) and their day (selected): "strip"
-    is the week in the head of the page, "overlay" the calendar in the layer
-    the head opens.
+    is the week of the day in the head of the page, "overlay" the calendar in
+    the layer the date of the head opens.
     """
     target = CALENDAR_LINKS[link][2]
     if week:
@@ -1798,15 +1801,11 @@ class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
         params = self.request.GET
         mode = self.get_mode()
         link = params.get("link") if params.get("link") in CALENDAR_LINKS else "day"
-        week = parse_date(params.get("week"), "%Y-%m-%d")
-        if mode == "strip":
-            # The strip is always a week.
-            week = week or now().date()
         context["calendar"] = get_production_day_calendar(
             parse_date(params.get("month"), "%Y-%m") or now().date(),
             selected=parse_date(params.get("selected"), "%Y-%m-%d"),
             link=link,
-            week=week,
+            week=parse_date(params.get("week"), "%Y-%m-%d"),
             mode=mode,
         )
         return context
@@ -1855,8 +1854,8 @@ def get_day_tabs(production_day, active):
 def get_day_switch(production_day, link):
     """The head of the pages of a production day.
 
-    The week of the day as a strip, the previous and the next day, and the
-    tab row. link is the page, the days of the strip and of the calendar
+    The week of the day as a strip, the previous and the next day, the
+    states of its plans and the tab row. link is the page, the days of the strip and of the calendar
     lead to the same page of another day.
     """
     day = production_day.day_of_sale
@@ -1866,6 +1865,7 @@ def get_day_switch(production_day, link):
         "week": get_production_day_calendar(
             day, selected=day, link=link, week=day, mode="strip"
         ),
+        "states": get_production_day_states(production_day),
         "tabs": get_day_tabs(production_day, link),
     }
     for key, method in [
