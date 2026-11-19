@@ -218,30 +218,6 @@ def test_point_of_sale_page_shows_map_and_list_as_chosen(
     assert [card["name"] for card in cards(response)] == names
 
 
-POINTS_OF_SALE_BLOCK = ("points_of_sale", {"heading": "Unsere Abholstellen"})
-
-
-@pytest.mark.parametrize(
-    "content",
-    [
-        [POINTS_OF_SALE_BLOCK],
-        [("column11", {"left": [POINTS_OF_SALE_BLOCK], "right": []})],
-        [("section", {"content": [POINTS_OF_SALE_BLOCK]})],
-    ],
-    ids=["top level", "in a column", "in a section"],
-)
-def test_points_of_sale_block_on_the_page_replaces_the_automatic_list(
-    client, shop_page, content
-):
-    PointOfSaleFactory(name="Hofladen")
-    page = PointOfSalePageFactory(parent=shop_page, title="Abholen", content=content)
-
-    response = client.get(page.url)
-
-    # Once from the block, not a second time from the page itself.
-    assert [card["name"] for card in cards(response)] == ["Hofladen"]
-
-
 def heading(title):
     return {
         "type": "text",

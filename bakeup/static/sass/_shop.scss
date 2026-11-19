@@ -141,6 +141,8 @@ body.shop {
     gap: 1.5rem;
 }
 .pos-card {
+    // Its own text colour: in a dark or coloured section the text around it is light.
+    color: var(--bs-body-color);
     transition: border-color 0.2s, box-shadow 0.2s;
     .pos-description {
         margin-top: 0.4rem;

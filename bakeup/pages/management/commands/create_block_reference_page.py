@@ -335,6 +335,20 @@ class Command(InteractiveTenantOption, BaseCommand):
                     ],
                 },
             },
+            {
+                "type": "section",
+                "value": {
+                    "background": "primary",
+                    "eyebrow": "Abschnitt",
+                    "heading": "Abholstellen auf einer Hintergrundfarbe",
+                    "content": [
+                        {
+                            "type": "points_of_sale",
+                            "value": {"heading": "", "display": "map_and_list"},
+                        }
+                    ],
+                },
+            },
         ]
 
     def handle(self, *args, **options):
