@@ -21,6 +21,8 @@ EMAIL_ORDER_CANCELLATION_DEFAULT = """
 # Slug of the content page that shows every CMS block, see the
 # create_block_reference_page command.
 BLOCK_REFERENCE_PAGE_SLUG = "bausteine"
+# Prefix of the anchors of the headings on that page, e.g. #baustein-faq.
+BLOCK_REFERENCE_ANCHOR_PREFIX = "baustein-"
 BLOCK_REFERENCE_PAGE_HELP_TEXT = _(
     "This page is only visible to bakers. Visitors and customers cannot open it."
 )

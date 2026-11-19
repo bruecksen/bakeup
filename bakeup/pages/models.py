@@ -1,7 +1,12 @@
+import html
+import re
+
 from django.db import models
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
 from django.http import Http404
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
@@ -20,6 +25,11 @@ from bakeup.shop.models import (
     ProductionDayProduct,
 )
 from bakeup.workshop.models import prefetch_product_cards
+
+GERMAN_TRANSLITERATION = str.maketrans(
+    {"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "ae", "Ö": "oe", "Ü": "ue", "ß": "ss"}
+)
+BLOCK_REFERENCE_HEADING = re.compile(r"\s*<h2[^>]*>(.*?)</h2>", re.DOTALL)
 
 
 # Create your models here.
@@ -67,7 +77,40 @@ class BlockReferencePage(Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["help_text"] = constants.BLOCK_REFERENCE_PAGE_HELP_TEXT
+        context["sections"] = self.get_sections()
         return context
+
+    def get_sections(self):
+        """
+        Group the blocks into sections, a new one starts at every text block
+        that begins with a second level heading. A section gets an anchor made
+        of the heading, so it can be linked to, for example `#baustein-faq`.
+        """
+        sections = []
+        anchors = set()
+        for block in self.content:
+            title = ""
+            if block.block_type == "text":
+                match = BLOCK_REFERENCE_HEADING.match(block.value["text"].source)
+                if match:
+                    title = html.unescape(strip_tags(match.group(1))).strip()
+            slug = slugify(title.translate(GERMAN_TRANSLITERATION))
+            if slug:
+                anchor = "{}{}".format(constants.BLOCK_REFERENCE_ANCHOR_PREFIX, slug)
+                number = 2
+                while anchor in anchors:
+                    # The same heading twice, both stay reachable.
+                    anchor = "{}{}-{}".format(
+                        constants.BLOCK_REFERENCE_ANCHOR_PREFIX, slug, number
+                    )
+                    number += 1
+                anchors.add(anchor)
+                sections.append({"title": title, "anchor": anchor, "blocks": []})
+            elif not sections:
+                # Everything above the first heading, without an anchor.
+                sections.append({"title": "", "anchor": "", "blocks": []})
+            sections[-1]["blocks"].append(block)
+        return sections
 
 
 class ShopPage(Page):

@@ -147,10 +147,8 @@ msgid "Document"
 msgstr "Dokument"
 
 #: bakeup/pages/blocks.py:85
-#, fuzzy
-#| msgid "External link"
 msgid "Internal link"
-msgstr "Externer Link"
+msgstr "Interner Link"
 
 #: bakeup/pages/blocks.py:86
 msgid "External link"
@@ -162,31 +160,31 @@ msgstr "Ankerlink"
 
 #: bakeup/pages/blocks.py:90
 msgid "An anchor in the current page, for example: <code>#target-id</code>."
-msgstr "Füge Ankerlink zur aktuellen Seite hinzu, zB: <code>#target-id</code>."
+msgstr "Ein Anker auf der aktuellen Seite, zum Beispiel: <code>#target-id</code>."
 
 #: bakeup/pages/blocks.py:129
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: bakeup/pages/blocks.py:151
 msgid "Set a maximum width for the image in pixels."
-msgstr ""
+msgstr "Maximale Breite des Bildes in Pixeln."
 
 #: bakeup/pages/blocks.py:186
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: bakeup/pages/blocks.py:191
 msgid "Button"
-msgstr ""
+msgstr "Button"
 
 #: bakeup/pages/blocks.py:198
-msgid "Horizontal Rule"
-msgstr "Horizontale Regel"
+msgid "Line"
+msgstr "Linie"
 
 #: bakeup/pages/blocks.py:212
 msgid "Image carousel"
-msgstr "Bildkarusell"
+msgstr "Bildkarussell"
 
 #: bakeup/pages/blocks.py:295
 #: bakeup/templates/workshop/includes/sidebar.html:19
@@ -194,8 +192,8 @@ msgid "Production Days"
 msgstr "Produktionstage"
 
 #: bakeup/pages/blocks.py:323
-msgid "Product Assortment"
-msgstr ""
+msgid "Assortment"
+msgstr "Sortiment"
 
 #: bakeup/pages/models.py:66
 msgid "No production days planned"
@@ -2452,3 +2450,143 @@ msgstr "Vorheriges Bild"
 #: bakeup/templates/blocks/carousel_block.html
 msgid "Next image"
 msgstr "Nächstes Bild"
+
+#: bakeup/pages/blocks.py
+msgid "Centre"
+msgstr "Zentriert"
+
+#: bakeup/pages/blocks.py
+msgid "Justified"
+msgstr "Blocksatz"
+
+#: bakeup/pages/blocks.py
+msgid "Text alignment"
+msgstr "Textausrichtung"
+
+#: bakeup/pages/blocks.py
+msgid "Caption"
+msgstr "Bildunterschrift"
+
+#: bakeup/pages/blocks.py
+msgid "HTML"
+msgstr "HTML"
+
+#: bakeup/pages/blocks.py
+msgid "Button text"
+msgstr "Button-Text"
+
+#: bakeup/pages/blocks.py
+msgid "Newsletter sign-up"
+msgstr "Newsletter-Anmeldung"
+
+#: bakeup/pages/blocks.py
+msgid "Green"
+msgstr "Grün"
+
+#: bakeup/pages/blocks.py
+msgid "Red"
+msgstr "Rot"
+
+#: bakeup/pages/blocks.py
+msgid "Yellow"
+msgstr "Gelb"
+
+#: bakeup/pages/blocks.py
+msgid "Blue"
+msgstr "Blau"
+
+#: bakeup/pages/blocks.py
+msgid "Space"
+msgstr "Abstand"
+
+#: bakeup/pages/blocks.py
+msgid "Space on mobile"
+msgstr "Abstand auf Mobilgeräten"
+
+#: bakeup/pages/blocks.py
+msgid "Card background colour"
+msgstr "Hintergrundfarbe der Karte"
+
+#: bakeup/pages/blocks.py
+msgid "Card text"
+msgstr "Text der Karte"
+
+#: bakeup/pages/blocks.py
+msgid "Body text for this card."
+msgstr "Der Text dieser Karte."
+
+#: bakeup/pages/blocks.py
+msgid "Simple card (text only)"
+msgstr "Einfache Karte (nur Text)"
+
+#: bakeup/pages/blocks.py
+msgid "Video"
+msgstr "Video"
+
+#: bakeup/pages/blocks.py
+msgid "Maximum width"
+msgstr "Maximale Breite"
+
+#: bakeup/pages/blocks.py
+msgid "Alignment"
+msgstr "Ausrichtung"
+
+#: bakeup/pages/blocks.py
+msgid "Images"
+msgstr "Bilder"
+
+#: bakeup/pages/blocks.py
+msgid "Common"
+msgstr "Allgemein"
+
+#: bakeup/pages/blocks.py
+msgid "Middle"
+msgstr "Mitte"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|1)"
+msgstr "Spalten (1|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (2|1)"
+msgstr "Spalten (2|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|2)"
+msgstr "Spalten (1|2)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|1|1)"
+msgstr "Spalten (1|1|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns"
+msgstr "Spalten"
+
+#: bakeup/pages/blocks.py
+msgid "Maximum number of production days"
+msgstr "Maximale Anzahl der Backtage"
+
+#: bakeup/pages/blocks.py
+msgid "Text without production days"
+msgstr "Text ohne Backtage"
+
+#: bakeup/pages/blocks.py
+msgid "This text is displayed if no production day is planned."
+msgstr "Dieser Text wird angezeigt, wenn kein Backtag geplant ist."
+
+#: bakeup/pages/blocks.py
+msgid "Only planned products"
+msgstr "Nur geplante Produkte"
+
+#: bakeup/pages/blocks.py
+msgid "Bakeup"
+msgstr "Bakeup"
+
+#: bakeup/pages/blocks.py
+msgid "Layout"
+msgstr "Layout"
+
+#: bakeup/templates/pages/block_reference_page.html
+msgid "Blocks on this page"
+msgstr "Bausteine auf dieser Seite"
