@@ -2689,3 +2689,7 @@ msgstr "Layout"
 #: bakeup/templates/pages/block_reference_page.html
 msgid "Blocks on this page"
 msgstr "Bausteine auf dieser Seite"
+
+#: bakeup/pages/blocks.py
+msgid "Other"
+msgstr "Weitere"

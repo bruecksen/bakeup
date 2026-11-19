@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime
 
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import StructValue
@@ -415,13 +415,34 @@ class ProductAssortmentBlock(StructBlock):
         context = super().get_context(value, parent_context)
         products = Product.objects.filter(is_sellable=True)
         if value.get("only_planned_products"):
-            today = datetime.now().date()
             products = products.filter(
-                production_days__production_day__day_of_sale__gte=today
+                production_days__production_day__day_of_sale__gte=timezone.localdate()
             )
-        context["products"] = prefetch_product_cards(
-            list(products.distinct().order_by("category"))
+        products = prefetch_product_cards(
+            list(
+                products.select_related("category")
+                .distinct()
+                .order_by("category__name", "name")
+            )
         )
+        # One entry per category, products without a category come last.
+        categories = {}
+        for product in products:
+            category = categories.setdefault(
+                product.category_id,
+                {
+                    "key": product.category_id or "other",
+                    "name": product.category.name if product.category else _("Other"),
+                    "products": [],
+                },
+            )
+            category["products"].append(product)
+        other = categories.pop(None, None)
+        context["categories"] = list(categories.values()) + ([other] if other else [])
+        # A single category has nothing to choose from, so it is shown open.
+        context["expanded"] = len(context["categories"]) == 1
+        # Several assortments on one page need different collapse ids.
+        context["uuid"] = uuid.uuid4()
         return context
 
 

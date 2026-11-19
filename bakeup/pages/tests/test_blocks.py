@@ -3,6 +3,11 @@ from bs4 import BeautifulSoup
 
 from bakeup.pages.blocks import FaqBlock, ImageTextBlock, SectionBlock
 from bakeup.pages.tests.factories import ContentPageFactory, ImageFactory
+from bakeup.workshop.models import Category
+from bakeup.workshop.tests.factories import (
+    ProductFactory,
+    ProductionDayProductFactory,
+)
 
 QUESTIONS = [
     {
@@ -161,3 +166,92 @@ def test_section_renders_its_heading_and_nested_blocks():
     assert section.select_one(".accordion-button").get_text(strip=True) == (
         "Wann kann ich bestellen?"
     )
+
+
+def assortment(only_planned_products=False):
+    return {
+        "type": "product_assortment",
+        "value": {"only_planned_products": only_planned_products},
+    }
+
+
+def get_assortment_categories(client, page):
+    """The categories of every assortment on the page: name, open, product names."""
+    html = BeautifulSoup(client.get(page.url).content, "html.parser")
+    categories = []
+    for item in html.select(".product-assortment .accordion-item"):
+        button = item.select_one(".accordion-button")
+        badge = button.select_one(".badge").extract()
+        collapse = item.select_one(".accordion-collapse")
+        assert button["data-bs-target"] == "#" + collapse["id"]
+        is_open = "show" in collapse["class"]
+        assert ("collapsed" in button["class"]) is not is_open
+        assert button["aria-expanded"] == ("true" if is_open else "false")
+        # The first text of the title is the name, the weight follows in a span.
+        names = [next(t.stripped_strings) for t in item.select(".card-title")]
+        assert badge.get_text(strip=True) == str(len(names))
+        categories.append((button.get_text(strip=True), is_open, names))
+    return categories
+
+
+def test_assortment_with_several_categories_is_collapsed(client, shop_page):
+    bread = Category.add_root(name="Brot & Brötchen", slug="brot")
+    cake = Category.add_root(name="Kuchen", slug="kuchen")
+    ProductFactory(name="Roggenbrot", category=bread, is_sellable=True)
+    ProductFactory(name="Dinkelbrot", category=bread, is_sellable=True)
+    ProductFactory(name="Käsekuchen", category=cake, is_sellable=True)
+    ProductFactory(name="Gutschein", category=None, is_sellable=True)
+    ProductFactory(name="Sauerteig", category=bread, is_sellable=False)
+    page = ContentPageFactory(parent=shop_page, content=[assortment()])
+
+    assert get_assortment_categories(client, page) == [
+        ("Brot & Brötchen", False, ["Dinkelbrot", "Roggenbrot"]),
+        ("Kuchen", False, ["Käsekuchen"]),
+        ("Weitere", False, ["Gutschein"]),
+    ]
+
+
+def test_assortment_with_a_single_category_is_open(client, shop_page):
+    bread = Category.add_root(name="Brot", slug="brot")
+    ProductFactory(name="Roggenbrot", category=bread, is_sellable=True)
+    ProductFactory(name="Dinkelbrot", category=bread, is_sellable=True)
+    page = ContentPageFactory(parent=shop_page, content=[assortment()])
+
+    assert get_assortment_categories(client, page) == [
+        ("Brot", True, ["Dinkelbrot", "Roggenbrot"]),
+    ]
+
+
+def test_assortment_of_planned_products_leaves_out_unplanned_categories(
+    client, shop_page
+):
+    bread = Category.add_root(name="Brot", slug="brot")
+    cake = Category.add_root(name="Kuchen", slug="kuchen")
+    planned = ProductFactory(name="Roggenbrot", category=bread, is_sellable=True)
+    ProductFactory(name="Käsekuchen", category=cake, is_sellable=True)
+    ProductionDayProductFactory(product=planned)
+    page = ContentPageFactory(
+        parent=shop_page, content=[assortment(only_planned_products=True)]
+    )
+
+    assert get_assortment_categories(client, page) == [("Brot", True, ["Roggenbrot"])]
+
+
+def test_assortment_without_products_renders_nothing(client, shop_page):
+    page = ContentPageFactory(parent=shop_page, content=[assortment()])
+
+    html = BeautifulSoup(client.get(page.url).content, "html.parser")
+
+    assert html.select(".product-assortment") == []
+
+
+def test_two_assortments_on_one_page_get_different_collapse_ids(client, shop_page):
+    bread = Category.add_root(name="Brot", slug="brot")
+    ProductFactory(name="Roggenbrot", category=bread, is_sellable=True)
+    page = ContentPageFactory(parent=shop_page, content=[assortment(), assortment()])
+
+    html = BeautifulSoup(client.get(page.url).content, "html.parser")
+
+    ids = [c["id"] for c in html.select(".product-assortment .accordion-collapse")]
+    assert len(ids) == 2, "expected one category per assortment block"
+    assert ids[0] != ids[1]
