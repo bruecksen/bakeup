@@ -729,8 +729,13 @@ header {
       width: 100%;
     }
   }
-  // _print.scss strips every background, the outline keeps it a marker on paper.
-  .badge-first-order { border: 1px solid #000; }
+  // Paper has no backgrounds, so the badge is an outline with black text.
+  // .text-bg-dark sets both with !important, which beats the reset of _print.scss.
+  .badge-first-order {
+    border: 1px solid #000;
+    color: #000 !important;
+    background-color: transparent !important;
+  }
 }
 
 .tr-collapsed > td {
@@ -1357,6 +1362,58 @@ $tap-size: 44px;
     text-align: right;
 }
 
+// Week page: the days are tall and list their products, there is no popover.
+// Weekday and date are one line in the cell. On a phone the days are rows.
+.day-calendar.is-week {
+    .day-calendar-cell {
+        min-height: 16rem;
+    }
+    .day-calendar-date {
+        padding-left: 0;
+    }
+    .day-calendar-weekday-name {
+        color: $text-muted;
+        font-weight: 400;
+    }
+    .is-today .day-calendar-weekday-name {
+        color: inherit;
+    }
+    .day-calendar-products {
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+        margin: .25rem 0 .5rem;
+        font-size: .8125rem;
+    }
+    .day-calendar-product {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+    .day-calendar-product-qty {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+    .day-calendar-product-name {
+        overflow-wrap: anywhere;
+    }
+    @include media-breakpoint-down(lg) {
+        .day-calendar-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .day-calendar-cell {
+            min-height: 3rem;
+        }
+        .day-calendar-product {
+            flex-direction: row;
+            gap: .5rem;
+        }
+        .day-calendar-product-qty {
+            flex: 0 0 4rem;
+        }
+    }
+}
+
 // Day picker: rounded squares like the buttons. A production day is tinted,
 // the chosen day is filled, today is orange.
 .day-calendar.is-compact {
@@ -1559,8 +1616,17 @@ $tap-size: 44px;
 // Actions of a tab are smaller than the ones of the page.
 .section-toolbar {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
+    gap: .5rem;
     margin-bottom: 1rem;
+
+    // A filter of the tab, in the row of its actions.
+    .section-toolbar-filter {
+        flex: 0 1 16rem;
+        width: auto;
+    }
 
     .btn {
         --bs-btn-padding-y: #{$btn-padding-y-sm};
@@ -2556,7 +2622,7 @@ i.step-check-all {
     .day-picker-toggle {
         min-width: 0;
     }
-    .day-calendar:not(.is-compact) {
+    .day-calendar:not(.is-compact):not(.is-week) {
         .day-calendar-grid {
             gap: .25rem;
         }

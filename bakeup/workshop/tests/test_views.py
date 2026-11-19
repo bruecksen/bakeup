@@ -641,18 +641,29 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         instruction.save()
         self.assertEqual(self.cards()[self.bread]["instructions"], "Knead 10 minutes")
 
-    def test_product_without_recipe(self):
-        # A bakery without recipes still plans, starts and locks its products.
-        card = self.cards()[self.cake]
-        self.assertFalse(card["has_recipe"])
-        self.assertEqual(card["steps"], [])
-        self.assertEqual(card["day_product"], self.day_products[self.cake.pk])
-        self.assertEqual(
+    def test_product_without_recipe_gets_no_plan(self):
+        self.assertNotIn(self.cake, self.cards())
+        self.assertFalse(
+            ProductionPlan.objects.filter(product__product_template=self.cake).exists()
+        )
+        self.assertIsNone(
             ProductionDayProduct.objects.get(
                 pk=self.day_products[self.cake.pk].pk
-            ).production_plan,
-            self.root(self.cake),
+            ).production_plan
         )
+
+    def test_plan_of_product_without_recipe_is_removed(self):
+        # A plan from before products without a recipe were skipped.
+        cake_plan = ProductionPlan.objects.create(
+            production_day=self.production_day,
+            product=Product.duplicate(self.cake),
+            quantity=10,
+            state=ProductionPlan.State.CANCELED,
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.assertFalse(ProductionPlan.objects.filter(pk=cake_plan.pk).exists())
 
     def create_plans_without_recipe(self, **options):
         call_command(
@@ -760,25 +771,23 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         cake_plan.refresh_from_db()
         self.assertTrue(cake_plan.is_produced)
 
-    def test_order_of_product_without_recipe_is_locked_on_start(self):
+    def test_order_is_locked_without_plan_for_product_without_recipe(self):
         order = CustomerOrder.objects.create(
             production_day=self.production_day, address=""
         )
         CustomerOrderPosition.objects.create(
-            order=order,
-            product=self.cake,
-            quantity=1,
-            production_plan=self.root(self.cake),
+            order=order, product=self.bread, quantity=1, production_plan=self.root()
         )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=1)
         self.assertFalse(order.is_locked)
-        self.root(self.cake).set_production()
+        self.start()
         self.assertTrue(order.is_locked)
 
     def test_summary(self):
         response = self.client.get(self.day_url())
         summary = response.context["summary"]
-        self.assertEqual(summary["products"], 2)
-        self.assertEqual(summary["pieces"], 20)
+        self.assertEqual(summary["products"], 1)
+        self.assertEqual(summary["pieces"], 10)
         self.assertContains(response, 'id="production-summary"')
 
     def test_toggle_needs_production(self):
@@ -1360,6 +1369,50 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertTrue(cell["is_selected"])
         self.assertEqual(cell["url"], self.day_url())
         self.assertContains(response, 'hx-target="#production-day"')
+
+    def test_week_shows_its_seven_days_with_products(self):
+        self.add_order()
+        day = self.production_day.day_of_sale
+        monday = day - timedelta(days=day.weekday())
+        # Any date of the week opens it.
+        response = self.calendar(week=day.isoformat())
+        calendar = response.context["calendar"]
+        self.assertTrue(calendar["is_week"])
+        self.assertEqual(
+            [cell["date"] for week in calendar["weeks"] for cell in week],
+            [monday + timedelta(days=offset) for offset in range(7)],
+        )
+        cell = self.cells(response)[day]
+        self.assertEqual(cell["day"], self.production_day)
+        products = {product["name"]: product for product in cell["products"]}
+        self.assertEqual(products["Bread"]["ordered"], 3)
+        self.assertEqual(products["Bread"]["max"], 10)
+        self.assertContains(response, 'class="day-calendar-products"')
+        self.assertNotContains(response, 'class="day-calendar-tip"')
+        self.assertContains(response, f'href="{self.detail_url()}"')
+
+    def test_week_links_to_its_neighbours_and_its_month(self):
+        url = reverse("workshop:production-day-calendar")
+        # Thursday 1 January 2026: the week starts in December.
+        calendar = self.calendar(week="2026-01-01").context["calendar"]
+        self.assertEqual(calendar["week_number"], 1)
+        self.assertEqual(calendar["previous_url"], f"{url}?week=2025-12-22")
+        self.assertEqual(calendar["next_url"], f"{url}?week=2026-01-05")
+        self.assertEqual(calendar["month_view_url"], f"{url}?month=2026-01")
+
+    def test_month_links_to_its_first_week(self):
+        url = reverse("workshop:production-day-calendar")
+        calendar = self.calendar(month="2030-05").context["calendar"]
+        self.assertFalse(calendar["is_week"])
+        self.assertEqual(calendar["week_view_url"], f"{url}?week=2030-04-29")
+
+    def test_day_picker_stays_a_month(self):
+        response = self.calendar(week="2030-05-17", compact=1)
+        self.assertFalse(response.context["calendar"]["is_week"])
+
+    def test_broken_week_falls_back_to_the_month(self):
+        response = self.calendar(week="nope")
+        self.assertFalse(response.context["calendar"]["is_week"])
 
     def test_broken_month_falls_back_to_today(self):
         response = self.calendar(month="nope", link="nope")

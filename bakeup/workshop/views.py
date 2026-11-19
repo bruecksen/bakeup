@@ -1060,7 +1060,7 @@ def production_plans_start_view(request, production_day):
             )
         )
     # raise Exception(production_plans)
-    for production_plan in production_plans_updated:
+    for production_plan in filter(None, production_plans_updated):
         production_plan.production_day.update_order_positions_product(
             production_plan.product
         )
@@ -1079,7 +1079,8 @@ def production_plan_start_view(request, pk):
             state=ProductionPlan.State.IN_PRODUCTION,
             create_max_quantity=False,
         )
-        production_day.update_order_positions_product(production_plan.product)
+        if production_plan:
+            production_day.update_order_positions_product(production_plan.product)
     if "next" in request.GET:
         return HttpResponseRedirect(request.GET.get("next"))
     return HttpResponseRedirect(
@@ -1618,11 +1619,24 @@ def get_calendar_products(production_days):
     return products
 
 
-def get_production_day_calendar(month, selected=None, link="day", compact=False):
-    """The weeks of a month with its production days, Monday first."""
-    month = month.replace(day=1)
+def get_production_day_calendar(
+    month, selected=None, link="day", compact=False, week=None
+):
+    """The weeks of a month with its production days, Monday first.
+
+    With week, any date of it, only that week: the page shows it with the
+    products of each day.
+    """
     target = CALENDAR_LINKS[link][2]
-    weeks = calendar.Calendar().monthdatescalendar(month.year, month.month)
+    if week:
+        monday = week - timedelta(days=week.weekday())
+        weeks = [[monday + timedelta(days=offset) for offset in range(7)]]
+        # The month the week counts to, the one of its Thursday like the
+        # calendar week. The month view opens there.
+        month = monday + timedelta(days=3)
+    month = month.replace(day=1)
+    if not week:
+        weeks = calendar.Calendar().monthdatescalendar(month.year, month.month)
     production_days = {
         day.day_of_sale: day
         for day in ProductionDay.objects.filter(
@@ -1641,7 +1655,7 @@ def get_production_day_calendar(month, selected=None, link="day", compact=False)
         production_day = production_days.get(date)
         cell = {
             "date": date,
-            "in_month": date.month == month.month,
+            "in_month": bool(week) or date.month == month.month,
             "is_today": date == today,
             "is_selected": date == selected,
             "can_add": not compact and date >= today,
@@ -1667,20 +1681,54 @@ def get_production_day_calendar(month, selected=None, link="day", compact=False)
                 params["selected"] = selected.isoformat()
         return reverse("workshop:production-day-calendar") + "?" + urlencode(params)
 
-    previous_month = (month - timedelta(days=1)).replace(day=1)
-    next_month = (month + timedelta(days=31)).replace(day=1)
-    return {
+    def week_url(other):
+        monday = other - timedelta(days=other.weekday())
+        return (
+            reverse("workshop:production-day-calendar")
+            + "?"
+            + urlencode({"week": monday.isoformat()})
+        )
+
+    data = {
         "month": month,
         "compact": compact,
         "target": target,
         # Adding a day belongs to the day pages, not to the plan or the emails.
         "can_add_day": link == "day",
         "weekdays": [WEEKDAYS_ABBR[day] for day in range(7)],
-        "weeks": [[cell(date) for date in week] for week in weeks],
-        "previous_url": month_url(previous_month),
-        "next_url": month_url(next_month),
-        "today_url": month_url(today),
+        "weeks": [[cell(date) for date in dates] for dates in weeks],
     }
+    if week:
+        data.update(
+            is_week=True,
+            week_start=weeks[0][0],
+            week_end=weeks[0][-1],
+            week_number=weeks[0][0].isocalendar().week,
+            previous_url=week_url(weeks[0][0] - timedelta(days=7)),
+            next_url=week_url(weeks[0][0] + timedelta(days=7)),
+            today_url=week_url(today),
+            previous_label=_("Previous week"),
+            next_label=_("Next week"),
+            month_view_url=month_url(month),
+            week_view_url=week_url(weeks[0][0]),
+        )
+    else:
+        previous_month = (month - timedelta(days=1)).replace(day=1)
+        next_month = (month + timedelta(days=31)).replace(day=1)
+        # The week view opens on this week when the month has it, on the
+        # first week of the month otherwise.
+        in_month = today.replace(day=1) == month
+        data.update(
+            is_week=False,
+            previous_url=month_url(previous_month),
+            next_url=month_url(next_month),
+            today_url=month_url(today),
+            previous_label=_("Previous month"),
+            next_label=_("Next month"),
+            month_view_url=month_url(month),
+            week_view_url=week_url(today if in_month else month),
+        )
+    return data
 
 
 def parse_date(value, format):
@@ -1707,16 +1755,10 @@ class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
             selected=parse_date(params.get("selected"), "%Y-%m-%d"),
             link=link,
             compact=bool(params.get("compact")),
-        )
-        context["calendar_actions"] = Actions(
-            [
-                Action(
-                    _("Add production day"),
-                    reverse("workshop:production-day-add"),
-                    "fas fa-plus",
-                    kind="primary",
-                ),
-            ]
+            # The day picker is always a month.
+            week=None
+            if params.get("compact")
+            else parse_date(params.get("week"), "%Y-%m-%d"),
         )
         return context
 

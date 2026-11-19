@@ -2470,11 +2470,26 @@ msgstr "Vorheriger Monat"
 msgid "Next month"
 msgstr "Nächster Monat"
 
+msgid "Previous week"
+msgstr "Vorherige Woche"
+
+msgid "Next week"
+msgstr "Nächste Woche"
+
+msgid "Month"
+msgstr "Monat"
+
+msgid "Week"
+msgstr "Woche"
+
+msgid "View"
+msgstr "Ansicht"
+
 msgid "Open calendar"
 msgstr "Kalender öffnen"
 
-msgid "Production days of the month. Click a day to open it, or the + of a free day to add one."
-msgstr "Die Produktionstage des Monats. Ein Klick öffnet den Tag, das + an einem freien Tag legt einen neuen an."
+msgid "Click a production day to open it, or the + of a free day to add one."
+msgstr "Ein Klick auf einen Produktionstag öffnet ihn, das + an einem freien Tag legt einen neuen an."
 
 msgid "%(counter)s order"
 msgid_plural "%(counter)s orders"
