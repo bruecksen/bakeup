@@ -1,0 +1,30 @@
+{% extends "pages/content_page.html" %}
+{% load i18n wagtailcore_tags %}
+
+{% block page_content %}
+    <div class="alert alert-info" role="alert">
+        <i class="fa-solid fa-eye-slash me-2"></i>{{ help_text }}
+    </div>
+    {% for section in sections %}
+        {% if section.anchor %}
+            <section id="{{ section.anchor }}" class="mt-5 pt-4">
+                {% for block in section.blocks %}
+                    {% include_block block %}
+                {% endfor %}
+            </section>
+        {% else %}
+            {% for block in section.blocks %}
+                {% include_block block %}
+            {% endfor %}
+            <nav class="mt-4" aria-label="{% translate "Blocks on this page" %}">
+                <ul class="list-inline mb-0">
+                    {% for target in sections %}
+                        {% if target.anchor %}
+                            <li class="list-inline-item me-3 mb-2"><a href="#{{ target.anchor }}">{{ target.title }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% endfor %}
+{% endblock %}

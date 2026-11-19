@@ -139,6 +139,17 @@
       <div class="section-toolbar">
         {% include "workshop/includes/actions.html" with actions=delivery_bill_actions %}
       </div>
+      {% if point_of_sales %}
+      <div class="row g-2 justify-content-end mb-3 d-print-none">
+        <div class="col-12 col-md-5 col-lg-4">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+            <input type="search" id="delivery-bill-filter" class="form-control" placeholder="{% trans 'Filter by name' %}" aria-label="{% trans 'Filter by name' %}" autocomplete="off">
+          </div>
+        </div>
+      </div>
+      <p id="delivery-bill-filter-empty" class="text-muted d-print-none" hidden>{% trans "No orders match this name." %}</p>
+      {% endif %}
       {% for point_of_sale in point_of_sales %}
       {% include "workshop/includes/delivery_bill.html" with bill=point_of_sale production_day=object %}
       {% empty %}
@@ -182,3 +193,38 @@
   </div>
 </div>
 {% endblock %}
+
+{% block inline_javascript %}
+{{ block.super }}
+<script>
+  (() => {
+    const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const filterDeliveryBills = () => {
+      const input = document.getElementById('delivery-bill-filter');
+      if (!input) {
+        return;
+      }
+      const query = normalize(input.value);
+      let matches = 0;
+      document.querySelectorAll('.delivery-bill').forEach((section) => {
+        let sectionMatches = 0;
+        section.querySelectorAll('.delivery-bill-order').forEach((row) => {
+          const isMatch = normalize(row.querySelector('.delivery-bill-name').textContent).includes(query);
+          row.hidden = !isMatch;
+          sectionMatches += isMatch ? 1 : 0;
+        });
+        section.hidden = query !== '' && sectionMatches === 0;
+        section.querySelector('.delivery-bill-summary').hidden = query !== '';
+        matches += sectionMatches;
+      });
+      document.getElementById('delivery-bill-filter-empty').hidden = query === '' || matches > 0;
+    };
+    document.addEventListener('input', (event) => {
+      if (event.target.id === 'delivery-bill-filter') {
+        filterDeliveryBills();
+      }
+    });
+    document.addEventListener('htmx:after:swap', filterDeliveryBills);
+  })();
+</script>
+{% endblock inline_javascript %}

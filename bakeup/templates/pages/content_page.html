@@ -1,6 +1,8 @@
 {% extends "shop/base_page.html" %}
 {% load wagtailcore_tags %}
 
+{% block page_content_class %} page-content{% endblock page_content_class %}
+
 {% block page_content %}
     {% for block in page.content %}
         {% include_block block %}

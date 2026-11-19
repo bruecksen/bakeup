@@ -1,11 +1,24 @@
 from decimal import Decimal
 
+from django.db import connection
 from django.utils import timezone
 from django_tenants.test.cases import FastTenantTestCase
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import ProductionDay
-from bakeup.workshop.models import Category, Product, ProductHierarchy, ProductionPlan
+from bakeup.shop.models import (
+    CustomerOrder,
+    CustomerOrderPosition,
+    ProductionDay,
+    ProductionDayProduct,
+)
+from bakeup.users.models import User
+from bakeup.workshop.models import (
+    Category,
+    Product,
+    ProductHierarchy,
+    ProductionPlan,
+    VatRate,
+)
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 from bakeup.workshop.tests.factories import ProductFactory, add, create_recipe
 
@@ -410,3 +423,124 @@ class ProductionDaySummaryTest(RecipeTestCase):
                 ("flour", [("Rye flour", 220.0), ("sum", 220.0)]),
             ],
         )
+
+
+class NumberCircleTestCase(FastTenantTestCase):
+    def setUp(self):
+        super().setUp()
+        # The client setting is cached on the tenant and survives the rollback
+        # of the previous test, a request replaces the tenant of the connection.
+        connection.set_tenant(self.tenant)
+        self.setting = self.tenant.clientsetting
+        self.setting.refresh_from_db()
+        self.user = User.objects.create_user(
+            username="baker", email="baker@example.com", password="x", is_staff=True
+        )
+        self.customer = self.user.customer
+
+    def set_start(self, **values):
+        for field, value in values.items():
+            setattr(self.setting, field, value)
+        self.setting.save()
+
+
+class NumberCircleTest(NumberCircleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+
+    def test_numbers_default_to_pk(self):
+        self.assertEqual(self.customer.customer_number, self.customer.pk)
+        self.assertEqual(self.order.order_nr, self.order.pk)
+
+    def test_numbers_add_start(self):
+        self.set_start(customer_number_start=20000, order_number_start=50000)
+        self.assertEqual(self.customer.customer_number, 20000 + self.customer.pk)
+        self.assertEqual(self.order.order_nr, 50000 + self.order.pk)
+
+
+class VatRateTest(NumberCircleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+
+    def test_position_keeps_vat_rate_of_order_time(self):
+        product = ProductFactory(vat_rate=VatRate.STANDARD)
+        position = CustomerOrderPosition.objects.create(
+            order=self.order, product=product, quantity=1
+        )
+        self.assertEqual(position.vat_rate, 19)
+        product.vat_rate = VatRate.REDUCED
+        product.save()
+        position.quantity = 2
+        position.save()
+        position.refresh_from_db()
+        self.assertEqual(position.vat_rate, 19)
+
+
+def root_plans(production_day):
+    return list(
+        ProductionPlan.objects.filter(production_day=production_day, parent_plan=None)
+        .order_by("product__product_template__name")
+        .values_list("product__product_template__name", "state")
+    )
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_deleting_day_product_deletes_its_planned_plan(
+    planned_production_day, sellable_products
+):
+    bread = sellable_products["Bread"]
+    assert root_plans(planned_production_day) == [
+        ("Bread", ProductionPlan.State.PLANNED),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]
+
+    ProductionDayProduct.objects.get(
+        production_day=planned_production_day, product=bread
+    ).delete()
+
+    assert root_plans(planned_production_day) == [
+        ("Brötchen", ProductionPlan.State.PLANNED)
+    ]
+    # The plan's copy of the product goes with it.
+    assert list(Product.objects.filter(product_template=bread)) == []
+    # So do its sub plans for the sourdough and the starter.
+    assert list(
+        ProductionPlan.objects.filter(
+            production_day=planned_production_day
+        ).values_list("product__name", flat=True)
+    ) == ["Brötchen"]
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_deleting_day_product_keeps_its_plan_in_production(
+    planned_production_day, sellable_products
+):
+    bread = sellable_products["Bread"]
+    ProductionPlan.objects.filter(
+        production_day=planned_production_day,
+        parent_plan=None,
+        product__product_template=bread,
+    ).update(state=ProductionPlan.State.IN_PRODUCTION)
+
+    ProductionDayProduct.objects.get(
+        production_day=planned_production_day, product=bread
+    ).delete()
+
+    assert root_plans(planned_production_day) == [
+        ("Bread", ProductionPlan.State.IN_PRODUCTION),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]

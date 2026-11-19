@@ -21,6 +21,10 @@ const sass = require('gulp-sass')(require('sass'))
 const spawn = require('child_process').spawn
 const uglify = require('gulp-uglify-es').default
 
+// The dev container sets its own ports so they don't clash with other projects' containers
+const djangoPort = process.env.DJANGO_PORT || 8001
+const browserSyncPort = process.env.BROWSERSYNC_PORT || 3000
+
 // Relative paths function
 function pathsConfig(appName) {
   this.app = `./${pjson.name}`
@@ -100,9 +104,10 @@ function initBrowserSync() {
       `${paths.js}/*.js`,
       `${paths.templates}/*.html`
     ], {
+      port: browserSyncPort,
       // https://www.browsersync.io/docs/options/#option-proxy
       proxy:  {
-        target: '127.0.0.1:8001',
+        target: `127.0.0.1:${djangoPort}`,
         proxyReq: [
           function(proxyReq, req) {
             // Assign proxy "host" header same as current request at Browsersync server

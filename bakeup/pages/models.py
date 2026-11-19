@@ -1,16 +1,23 @@
+import html
+import re
+
 from django.db import models
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
+from django.http import Http404
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
-from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
+from wagtail.admin.panels import FieldPanel, HelpPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseGenericSetting, register_setting
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
 
 from bakeup.pages import constants
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
+from bakeup.shop.maps import get_point_of_sale_overview_context
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
@@ -19,6 +26,11 @@ from bakeup.shop.models import (
     ProductionDayProduct,
 )
 from bakeup.workshop.models import prefetch_product_cards
+
+GERMAN_TRANSLITERATION = str.maketrans(
+    {"ä": "ae", "ö": "oe", "ü": "ue", "Ä": "ae", "Ö": "oe", "Ü": "ue", "ß": "ss"}
+)
+BLOCK_REFERENCE_HEADING = re.compile(r"\s*<h2[^>]*>(.*?)</h2>", re.DOTALL)
 
 
 # Create your models here.
@@ -30,6 +42,123 @@ class ContentPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("content"),
     ]
+
+
+class BlockReferencePage(Page):
+    """
+    Shows every content block as an example for bakers. Visitors and customers
+    get a 404 page.
+    """
+
+    content = StreamField(AllBlocks(), blank=True, null=True, use_json_field=True)
+
+    parent_page_types = ["pages.ShopPage"]
+    subpage_types = []
+    max_count = 1
+    show_in_menus_default = False
+    content_panels = Page.content_panels + [
+        HelpPanel(
+            content=constants.BLOCK_REFERENCE_PAGE_HELP_TEXT,
+            template="pages/panels/help_block_panel.html",
+        ),
+        FieldPanel("content"),
+    ]
+
+    class Meta:
+        verbose_name = _("Block overview")
+
+    def serve(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise Http404
+        return super().serve(request, *args, **kwargs)
+
+    def get_sitemap_urls(self, request=None):
+        return []
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["help_text"] = constants.BLOCK_REFERENCE_PAGE_HELP_TEXT
+        context["sections"] = self.get_sections()
+        return context
+
+    def get_sections(self):
+        """
+        Group the blocks into sections, a new one starts at every text block
+        that begins with a second level heading. A section gets an anchor made
+        of the heading, so it can be linked to, for example `#baustein-faq`.
+        """
+        sections = []
+        anchors = set()
+        for block in self.content:
+            title = ""
+            if block.block_type == "text":
+                match = BLOCK_REFERENCE_HEADING.match(block.value["text"].source)
+                if match:
+                    title = html.unescape(strip_tags(match.group(1))).strip()
+            slug = slugify(title.translate(GERMAN_TRANSLITERATION))
+            if slug:
+                anchor = "{}{}".format(constants.BLOCK_REFERENCE_ANCHOR_PREFIX, slug)
+                number = 2
+                while anchor in anchors:
+                    # The same heading twice, both stay reachable.
+                    anchor = "{}{}-{}".format(
+                        constants.BLOCK_REFERENCE_ANCHOR_PREFIX, slug, number
+                    )
+                    number += 1
+                anchors.add(anchor)
+                sections.append({"title": title, "anchor": anchor, "blocks": []})
+            elif not sections:
+                # Everything above the first heading, without an anchor.
+                sections.append({"title": "", "anchor": "", "blocks": []})
+            sections[-1]["blocks"].append(block)
+        return sections
+
+
+class PointOfSalePage(Page):
+    """
+    Lists all public points of sale with their details and shows them on a
+    map. Any content comes first as an introduction. The points of sale block
+    is meant for other pages.
+    """
+
+    content = StreamField(AllBlocks(), blank=True)
+    display = models.CharField(
+        max_length=20,
+        choices=constants.POINTS_OF_SALE_DISPLAY_CHOICES,
+        default="map_and_list",
+        verbose_name=_("Display"),
+        help_text=_(
+            "The map shows the points of sale that have a pin. Without a map the"
+            " list is always shown."
+        ),
+    )
+
+    max_count = 1
+    show_in_menus_default = True
+    content_panels = Page.content_panels + [
+        HelpPanel(
+            content=_(
+                "This page lists all points of sale automatically, below the"
+                " content. The links in the checkout and the sign-up lead here."
+                " The block “Points of sale” is only needed to show them on"
+                " another page, for example the start page."
+            )
+        ),
+        FieldPanel("display"),
+        FieldPanel("content"),
+    ]
+
+    class Meta:
+        verbose_name = _("Points of sale")
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context.update(
+            get_point_of_sale_overview_context(
+                show_map=self.display != "list", show_list=self.display != "map"
+            )
+        )
+        return context
 
 
 class ShopPage(Page):
@@ -57,6 +186,12 @@ class ShopPage(Page):
         default="center",
         verbose_name="Banner Inhalt Position",
     )
+    banner_eyebrow = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Eyebrow"),
+        help_text=_("A short line above the banner text, for example: Since 1924."),
+    )
 
     show_production_day = models.BooleanField(
         default=True, verbose_name="Produktionstag anzeigen?"
@@ -74,6 +209,7 @@ class ShopPage(Page):
             [
                 FieldPanel("banner_image"),
                 FieldPanel("banner_position"),
+                FieldPanel("banner_eyebrow"),
                 FieldPanel("banner_text"),
                 FieldPanel("banner_cta"),
             ],
@@ -175,7 +311,11 @@ class ShopPage(Page):
             )
             prefetch_product_cards([pdp.product for pdp in production_day_products])
             context["production_day_products"] = production_day_products
-            context["point_of_sales"] = self.production_day.point_of_sales.all()
+            context["point_of_sales"] = (
+                self.production_day.point_of_sales.selectable_by(
+                    customer, current_customer_order
+                )
+            )
         context["show_remaining_products"] = (
             request.tenant.clientsetting.show_remaining_products
         )

@@ -1,0 +1,1 @@
+<span class="text-nowrap">{% if record.customer %}<a href="{% url 'workshop:customer-detail' pk=record.customer.pk %}">{{ record.customer }}</a>{% else %}—{% endif %}{% if record.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}</span>

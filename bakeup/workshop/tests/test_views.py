@@ -1,8 +1,11 @@
 import json
 from datetime import timedelta
+from io import StringIO
 from urllib.parse import quote
 
+from django.core.management import call_command
 from django.db import connection
+from django.db.models import Sum
 from django.test import SimpleTestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
@@ -11,6 +14,7 @@ from django_tenants.test.client import TenantClient
 
 from bakeup.contrib.models import Note
 from bakeup.shop.models import (
+    Customer,
     CustomerOrder,
     CustomerOrderPosition,
     PointOfSale,
@@ -25,10 +29,11 @@ from bakeup.workshop.models import (
     ProductionPlan,
     ProductMapping,
     ReminderMessage,
+    VatRate,
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
-from bakeup.workshop.tests.test_models import RecipeTestCase
+from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
 
 
 class RecipeViewTestCase(RecipeTestCase):
@@ -350,6 +355,190 @@ class ShopProductionDayTest(RecipeViewTestCase):
         )
 
 
+class CheckoutPointOfSaleTest(RecipeViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.production_day = ProductionDay.objects.create(
+            day_of_sale=timezone.now().date() + timedelta(days=3)
+        )
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day,
+            product=self.bread,
+            max_quantity=10,
+            is_published=True,
+        )
+        self.own = PointOfSale.objects.create(name="Depot Nord")
+        self.other = PointOfSale.objects.create(name="TukTuk Café")
+        self.customer = self.user.customer
+        self.customer.point_of_sale = self.own
+        self.customer.save()
+        self.production_day.point_of_sales.set([self.other])
+
+    def checkout(self):
+        response = self.client.get(
+            reverse(
+                "shop:shop-production-day",
+                kwargs={"production_day": self.production_day.pk},
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def order(self, **data):
+        self.client.post(
+            reverse(
+                "shop:customer-order-add",
+                kwargs={"production_day": self.production_day.pk},
+            ),
+            {"create": "", f"product-{self.bread.pk}": 1, **data},
+        )
+        return CustomerOrder.objects.filter(
+            production_day=self.production_day, customer=self.customer
+        ).first()
+
+    def test_asks_for_point_of_sale_when_own_is_unavailable(self):
+        response = self.checkout()
+        self.assertContains(response, "pos-hint")
+        self.assertContains(response, '<option value="" selected disabled>')
+
+    def test_preselects_own_point_of_sale_when_available(self):
+        self.production_day.point_of_sales.add(self.own)
+        response = self.checkout()
+        self.assertNotContains(response, "pos-hint")
+        self.assertContains(response, f'<option value="{self.own.pk}"  selected>')
+
+    def test_order_needs_an_available_point_of_sale(self):
+        self.assertIsNone(self.order())
+        self.assertIsNone(self.order(point_of_sale=self.own.pk))
+        self.assertEqual(
+            self.order(point_of_sale=self.other.pk).point_of_sale, self.other
+        )
+
+    def test_order_keeps_its_point_of_sale_when_none_is_posted(self):
+        self.order(point_of_sale=self.other.pk)
+        self.customer.point_of_sale = None
+        self.customer.save()
+        self.assertEqual(self.order().point_of_sale, self.other)
+
+    def test_internal_point_of_sale_is_not_offered(self):
+        internal = PointOfSale.objects.create(name="Lieferung Café", is_internal=True)
+        self.production_day.point_of_sales.add(self.own, internal)
+        self.assertNotContains(self.checkout(), internal.name)
+        self.assertEqual(self.order(point_of_sale=internal.pk), None)
+
+    def test_internal_point_of_sale_is_offered_to_its_own_customer(self):
+        internal = PointOfSale.objects.create(name="Lieferung Café", is_internal=True)
+        self.production_day.point_of_sales.add(internal)
+        self.customer.point_of_sale = internal
+        self.customer.save()
+        self.assertContains(
+            self.checkout(), f'<option value="{internal.pk}"  selected>'
+        )
+        self.assertEqual(self.order().point_of_sale, internal)
+
+
+class FirstOrderTest(RecipeViewTestCase):
+    def setUp(self):
+        super().setUp()
+        today = timezone.now().date()
+        self.first_day = ProductionDay.objects.create(day_of_sale=today)
+        self.second_day = ProductionDay.objects.create(
+            day_of_sale=today + timedelta(days=7)
+        )
+        self.depot = PointOfSale.objects.create(name="Depot Nord")
+        self.regular = self.user.customer
+        self.newcomer = User.objects.create_user(
+            username="new", email="new@example.com", last_name="Neu"
+        ).customer
+        # The regular's later order is placed first: the production day
+        # decides, not the time of ordering.
+        self.order(self.regular, self.second_day)
+        self.order(self.regular, self.first_day)
+        self.order(self.newcomer, self.second_day)
+
+    def order(self, customer, production_day):
+        return CustomerOrder.objects.create(
+            customer=customer, production_day=production_day, point_of_sale=self.depot
+        )
+
+    def first_orders(self, production_day):
+        return {
+            order.customer: order.is_first_order
+            for order in CustomerOrder.objects.filter(
+                production_day=production_day
+            ).with_is_first_order()
+        }
+
+    def test_first_order_is_on_the_earliest_production_day(self):
+        self.assertEqual(self.first_orders(self.first_day), {self.regular: True})
+        self.assertEqual(
+            self.first_orders(self.second_day),
+            {self.regular: False, self.newcomer: True},
+        )
+
+    def test_order_without_customer_is_no_first_order(self):
+        self.order(None, self.first_day)
+        self.assertEqual(self.first_orders(self.first_day)[None], False)
+
+    def test_first_order_date(self):
+        without_order = User.objects.create_user(
+            username="none", email="none@example.com"
+        ).customer
+        dates = {
+            customer: customer.first_order_date
+            for customer in Customer.objects.with_first_order_date()
+        }
+        self.assertEqual(dates[self.regular], self.first_day.day_of_sale)
+        self.assertEqual(dates[self.newcomer], self.second_day.day_of_sale)
+        self.assertIsNone(dates[without_order])
+
+    def test_customer_export_has_first_order_date(self):
+        response = self.client.get(
+            reverse("workshop:customer-list"), {"_export": "csv"}
+        )
+        rows = response.content.decode().splitlines()
+        row = next(row for row in rows if "new@example.com" in row)
+        self.assertIn(self.second_day.day_of_sale.isoformat(), row)
+
+    def test_customer_detail_shows_first_order_date(self):
+        response = self.client.get(
+            reverse("workshop:customer-detail", kwargs={"pk": self.newcomer.pk})
+        )
+        self.assertEqual(
+            response.context["object"].first_order_date, self.second_day.day_of_sale
+        )
+
+    def test_delivery_bill_marks_first_orders(self):
+        response = self.client.get(
+            reverse("workshop:production-day-detail", kwargs={"pk": self.second_day.pk})
+        )
+        self.assertContains(response, "badge-first-order", count=1)
+
+    def test_order_list_marks_first_orders(self):
+        params = {"production_day": self.second_day.pk}
+        response = self.client.get(reverse("workshop:order-list"), params)
+        self.assertContains(response, "badge-first-order", count=1)
+        response = self.client.get(
+            reverse("workshop:order-list"), {**params, "_export": "csv"}
+        )
+        header, *rows = [
+            row.split(",") for row in response.content.decode().splitlines()
+        ]
+        rows = [dict(zip(header, row)) for row in rows]
+        self.assertEqual(
+            {row["E-Mail"]: row["Erstbestellung"] for row in rows},
+            {"baker@example.com": "", "new@example.com": "x"},
+        )
+
+    def test_production_day_export_marks_first_orders(self):
+        response = self.client.get(
+            reverse("workshop:production-day-export", kwargs={"pk": self.second_day.pk})
+        )
+        rows = [row.split(",") for row in response.content.decode().splitlines()]
+        marks = {row[2]: row[-1] for row in rows if "@" in row[2]}
+        self.assertEqual(marks, {"baker@example.com": "", "new@example.com": "x"})
+
+
 class ProductionPlanDayViewTest(RecipeViewTestCase):
     def setUp(self):
         super().setUp()
@@ -464,6 +653,112 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
             ).production_plan,
             self.root(self.cake),
         )
+
+    def create_plans_without_recipe(self, **options):
+        call_command(
+            "create_production_plans_without_recipe", stdout=StringIO(), **options
+        )
+
+    def test_command_plans_product_without_recipe(self):
+        bread_plan = self.root()
+        self.create_plans_without_recipe()
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 10)
+        self.assertTrue(cake_plan.is_planned)
+        self.assertEqual(
+            ProductionDayProduct.objects.get(
+                pk=self.day_products[self.cake.pk].pk
+            ).production_plan,
+            cake_plan,
+        )
+        self.assertFalse(self.cards()[self.cake]["has_recipe"])
+        self.assertEqual(self.root(), bread_plan)
+
+    def test_command_starts_product_without_recipe(self):
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        position = CustomerOrderPosition.objects.create(
+            order=order, product=self.cake, quantity=3
+        )
+        self.create_plans_without_recipe(
+            day=self.production_day.day_of_sale, state="production"
+        )
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 3)
+        self.assertTrue(cake_plan.is_production)
+        position.refresh_from_db()
+        self.assertEqual(position.production_plan, cake_plan)
+        self.assertEqual(position.product, cake_plan.product)
+        # The workshop keeps a started plan when the day is saved again.
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.create_plans_without_recipe(state="production")
+        self.assertEqual(self.root(self.cake), cake_plan)
+
+    def test_command_sums_the_orders_of_the_day(self):
+        other_day = ProductionDay.objects.create(
+            day_of_sale=self.production_day.day_of_sale + timedelta(days=7)
+        )
+        ProductionDayProduct.objects.create(
+            production_day=other_day, product=self.cake, max_quantity=10
+        )
+        for production_day, product, quantity in [
+            (self.production_day, self.cake, 3),
+            (self.production_day, self.cake, 4),
+            (self.production_day, self.bread, 5),
+            (other_day, self.cake, 6),
+        ]:
+            order = CustomerOrder.objects.create(
+                production_day=production_day, address=""
+            )
+            CustomerOrderPosition.objects.create(
+                order=order, product=product, quantity=quantity
+            )
+        day = self.production_day.day_of_sale
+        self.create_plans_without_recipe(day=day, state="production")
+        cake_plan = self.root(self.cake)
+        self.assertEqual(cake_plan.quantity, 7)
+        self.assertEqual(
+            cake_plan.orders.aggregate(Sum("quantity"))["quantity__sum"], 7
+        )
+        self.assertFalse(other_day.production_plans.exists())
+        self.assertTrue(self.root().is_planned)
+
+    def test_started_plan_without_recipe_can_be_finished(self):
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=3)
+        self.create_plans_without_recipe(state="production")
+        cake_plan = self.root(self.cake)
+        day = {"production_day": self.production_day.pk}
+        # Starting and finishing the whole day keeps the plan.
+        self.client.get(reverse("workshop:production-plans-start", kwargs=day))
+        self.assertTrue(self.root(self.cake).is_production)
+        self.client.get(reverse("workshop:production-plans-finish", kwargs=day))
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        cake_plan.refresh_from_db()
+        self.assertTrue(cake_plan.is_produced)
+        self.assertEqual(cake_plan.quantity, 3)
+        self.assertTrue(order.is_locked)
+
+    def test_started_plan_without_recipe_can_be_finished_on_its_own(self):
+        self.create_plans_without_recipe(state="production")
+        # Without orders the plan is canceled, there is nothing to finish.
+        self.assertTrue(self.root(self.cake).is_canceled)
+        order = CustomerOrder.objects.create(
+            production_day=self.production_day, address=""
+        )
+        CustomerOrderPosition.objects.create(order=order, product=self.cake, quantity=3)
+        self.create_plans_without_recipe(state="production")
+        cake_plan = self.root(self.cake)
+        self.client.get(self.url("production-plan-finish", cake_plan.pk))
+        cake_plan.refresh_from_db()
+        self.assertTrue(cake_plan.is_produced)
 
     def test_order_of_product_without_recipe_is_locked_on_start(self):
         order = CustomerOrder.objects.create(
@@ -1215,6 +1510,40 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertFalse(ReminderMessage.objects.exists())
 
 
+class CustomerExportTest(NumberCircleTestCase):
+    def test_ready2order_uses_customer_number(self):
+        self.set_start(customer_number_start=20000)
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:customer-export-ready-2-order"))
+        self.assertEqual(response.status_code, 200)
+        rows = response.content.decode("iso-8859-1").splitlines()
+        self.assertEqual(rows[0].split(",")[0], "kundennummer")
+        self.assertEqual(
+            [row.split(",")[0] for row in rows[1:]],
+            [str(20000 + self.customer.pk)],
+        )
+
+    def test_easybill_export_matches_import_template(self):
+        self.user.first_name = "Matthias"
+        self.user.last_name = "Brück"
+        self.user.save()
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:customer-export-easybill"))
+        self.assertEqual(response.status_code, 200)
+        rows = response.content.decode("iso-8859-1").splitlines()
+        self.assertEqual(
+            rows[0],
+            "Kundennummer,Name,Vorname,Straße/Hausnummer,Postleitzahl,Ort,"
+            "Telefon 1,E-Mail",
+        )
+        self.assertEqual(
+            rows[1].split(",")[:3],
+            [str(self.customer.customer_number), "Brück", "Matthias"],
+        )
+
+
 class CleverUnitTest(SimpleTestCase):
     def test_clever_unit(self):
         with translation.override("de"):
@@ -1227,3 +1556,75 @@ class CleverUnitTest(SimpleTestCase):
             self.assertEqual(clever_unit(15000, "ml"), "15\xa0l")
             self.assertEqual(clever_unit(3, "Stk"), "3\xa0Stk")
             self.assertEqual(clever_unit(None), "")
+
+
+class CustomerOrderExportTest(NumberCircleTestCase):
+    def test_easybill_export_uses_vat_rate_of_position(self):
+        order = CustomerOrder.objects.create(
+            production_day=ProductionDay.objects.create(
+                day_of_sale=timezone.now().date()
+            ),
+            customer=self.customer,
+            address="",
+        )
+        for product in [ProductFactory(), ProductFactory(vat_rate=VatRate.STANDARD)]:
+            CustomerOrderPosition.objects.create(
+                order=order, product=product, quantity=1
+            )
+        client = TenantClient(self.tenant)
+        client.force_login(self.user)
+        response = client.get(reverse("workshop:order-export-easybill"))
+        self.assertEqual(response.status_code, 200)
+        rows = [
+            row.split(";") for row in response.content.decode("iso-8859-1").splitlines()
+        ]
+        column = rows[0].index("vat_percent")
+        self.assertEqual(sorted(row[column] for row in rows[1:]), ["19.0000", "7.0000"])
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_swapping_product_in_production_day_form_deletes_its_planned_plan(
+    client, staff_user, planned_production_day, sellable_products
+):
+    client.force_login(staff_user)
+    bread_row, broetchen_row = ProductionDayProduct.objects.filter(
+        production_day=planned_production_day
+    ).order_by("product__name")
+
+    # The row that sold Bread now sells Baguette, the other row stays.
+    response = client.post(
+        reverse(
+            "workshop:production-day-update", kwargs={"pk": planned_production_day.pk}
+        ),
+        {
+            "day_of_sale": planned_production_day.day_of_sale.isoformat(),
+            "form-TOTAL_FORMS": 2,
+            "form-INITIAL_FORMS": 2,
+            "form-0-id": bread_row.pk,
+            "form-0-product": sellable_products["Baguette"].pk,
+            "form-0-max_quantity": 10,
+            "form-1-id": broetchen_row.pk,
+            "form-1-product": sellable_products["Brötchen"].pk,
+            "form-1-max_quantity": 10,
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "workshop:production-day-detail", kwargs={"pk": planned_production_day.pk}
+    )
+    assert list(
+        ProductionDayProduct.objects.filter(production_day=planned_production_day)
+        .order_by("product__name")
+        .values_list("product__name", flat=True)
+    ) == ["Baguette", "Brötchen"]
+    assert list(
+        ProductionPlan.objects.filter(
+            production_day=planned_production_day, parent_plan=None
+        )
+        .order_by("product__product_template__name")
+        .values_list("product__product_template__name", "state")
+    ) == [
+        ("Baguette", ProductionPlan.State.PLANNED),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]

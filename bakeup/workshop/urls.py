@@ -3,6 +3,7 @@ from django.urls import path
 from bakeup.core.views import TagAutocomplete
 from bakeup.workshop.exports import (
     CustomerBillbeeExportView,
+    CustomerEasybillExportView,
     CustomerOrderBillbeeExportView,
     CustomerOrderEasyBillExportView,
     CustomerReady2OrderExportView,
@@ -440,6 +441,11 @@ urlpatterns = [
         "customers/export/sevdesk/",
         view=CustomerSevdeskExportView.as_view(),
         name="customer-export-sevdesk",
+    ),
+    path(
+        "customers/export/easybill/",
+        view=CustomerEasybillExportView.as_view(),
+        name="customer-export-easybill",
     ),
     path(
         "customers/<int:pk>/", view=CustomerDetailView.as_view(), name="customer-detail"

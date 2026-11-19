@@ -147,10 +147,8 @@ msgid "Document"
 msgstr "Dokument"
 
 #: bakeup/pages/blocks.py:85
-#, fuzzy
-#| msgid "External link"
 msgid "Internal link"
-msgstr "Externer Link"
+msgstr "Interner Link"
 
 #: bakeup/pages/blocks.py:86
 msgid "External link"
@@ -162,15 +160,15 @@ msgstr "Ankerlink"
 
 #: bakeup/pages/blocks.py:90
 msgid "An anchor in the current page, for example: <code>#target-id</code>."
-msgstr "Füge Ankerlink zur aktuellen Seite hinzu, zB: <code>#target-id</code>."
+msgstr "Ein Anker auf der aktuellen Seite, zum Beispiel: <code>#target-id</code>."
 
 #: bakeup/pages/blocks.py:129
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: bakeup/pages/blocks.py:151
 msgid "Set a maximum width for the image in pixels."
-msgstr ""
+msgstr "Maximale Breite des Bildes in Pixeln."
 
 #: bakeup/pages/blocks.py:186
 msgid "Text"
@@ -178,15 +176,15 @@ msgstr "Text"
 
 #: bakeup/pages/blocks.py:191
 msgid "Button"
-msgstr ""
+msgstr "Button"
 
 #: bakeup/pages/blocks.py:198
-msgid "Horizontal Rule"
-msgstr "Horizontale Regel"
+msgid "Line"
+msgstr "Linie"
 
 #: bakeup/pages/blocks.py:212
 msgid "Image carousel"
-msgstr "Bildkarusell"
+msgstr "Bildkarussell"
 
 #: bakeup/pages/blocks.py:295
 #: bakeup/templates/workshop/includes/sidebar.html:19
@@ -194,8 +192,8 @@ msgid "Production Days"
 msgstr "Produktionstage"
 
 #: bakeup/pages/blocks.py:323
-msgid "Product Assortment"
-msgstr ""
+msgid "Assortment"
+msgstr "Sortiment"
 
 #: bakeup/pages/models.py:66
 msgid "No production days planned"
@@ -298,6 +296,19 @@ msgstr "Kurzbezeichnung"
 #: bakeup/shop/models.py:638
 msgid "Primary?"
 msgstr "Primär?"
+
+#: bakeup/shop/models.py
+msgid "Internal?"
+msgstr "Intern?"
+
+#: bakeup/shop/models.py
+msgid ""
+"Internal points of sale can't be chosen by customers, neither when signing "
+"up nor when ordering. Only the bakery can assign them."
+msgstr ""
+"Interne Abholstellen können von Kund*innen nicht ausgewählt werden, weder "
+"bei der Registrierung noch bei der Bestellung. Nur die Bäckerei kann sie "
+"zuweisen."
 
 #: bakeup/shop/models.py:739 bakeup/shop/models.py:824 bakeup/shop/tables.py:10
 msgid "Point of Sale"
@@ -895,6 +906,10 @@ msgstr ""
 msgid "Account"
 msgstr "Benuzterkonto"
 
+#: bakeup/templates/workshop/customer_detail.html:24
+msgid "Customer number"
+msgstr "Kundennummer"
+
 #: bakeup/templates/workshop/customer_detail.html:32
 #: bakeup/workshop/forms.py:317
 msgid "First name"
@@ -1440,6 +1455,11 @@ msgid "Price"
 msgstr "Preis"
 
 #: bakeup/templates/workshop/product_detail.html:33
+#: bakeup/workshop/models.py:131
+msgid "VAT rate"
+msgstr "MwSt."
+
+#: bakeup/templates/workshop/product_detail.html:33
 msgid "recurring product"
 msgstr "abofähiges Produkt"
 
@@ -1605,6 +1625,14 @@ msgstr "Zutaten"
 #: bakeup/templates/workshop/productionday_detail.html:46
 msgid "Delivery bill"
 msgstr "Lieferschein"
+
+#: bakeup/templates/workshop/productionday_detail.html:110
+msgid "Filter by name"
+msgstr "Nach Namen filtern"
+
+#: bakeup/templates/workshop/productionday_detail.html:111
+msgid "No orders match this name."
+msgstr "Keine Bestellungen zu diesem Namen gefunden."
 
 #: bakeup/templates/workshop/productionday_detail.html:53
 msgid "Point of sales"
@@ -1988,6 +2016,24 @@ msgstr "Aboprodukt"
 #: bakeup/workshop/models.py:121
 msgid "Is bio certified?"
 msgstr "Produkt ist bio zertifiziert?"
+
+msgid "Base price per kg"
+msgstr "Grundpreis pro kg"
+
+msgid "Price per piece"
+msgstr "Stückpreis"
+
+msgid "No price label"
+msgstr "Keine Angabe"
+
+msgid "Price display"
+msgstr "Preisangabe"
+
+msgid "Shown next to the price in the shop."
+msgstr "Wird im Shop neben dem Preis angezeigt."
+
+msgid "piece"
+msgstr "Stück"
 
 #: bakeup/workshop/models.py:124
 msgid "Max abo quantity?"
@@ -2457,3 +2503,413 @@ msgstr "Zutaten drucken"
 
 msgid "Collapse or expand the menu"
 msgstr "Menü ein- oder ausklappen"
+
+msgid "Please choose a pick-up location for this order."
+msgstr "Bitte wähle einen Abholort für diese Bestellung."
+
+msgid "Please choose …"
+msgstr "Bitte wählen …"
+
+#, python-format
+msgid "Your pick-up location <strong>%(name)s</strong> is not available on this baking day.<br>Please choose another one for this order."
+msgstr "Dein Abholort <strong>%(name)s</strong> ist an diesem Backtag nicht verfügbar.<br>Bitte wähle für diese Bestellung einen anderen."
+
+msgid "First order"
+msgstr "Erstbestellung"
+
+msgid "New"
+msgstr "Neu"
+
+#: bakeup/pages/blocks.py
+msgid "Question"
+msgstr "Frage"
+
+#: bakeup/pages/blocks.py
+msgid "Answer"
+msgstr "Antwort"
+
+#: bakeup/pages/blocks.py
+msgid "Heading"
+msgstr "Überschrift"
+
+#: bakeup/pages/blocks.py
+msgid "Questions"
+msgstr "Fragen"
+
+#: bakeup/pages/blocks.py
+msgid "FAQ"
+msgstr "FAQ"
+
+#: bakeup/pages/blocks.py
+msgid "Left"
+msgstr "Links"
+
+#: bakeup/pages/blocks.py
+msgid "Right"
+msgstr "Rechts"
+
+#: bakeup/pages/blocks.py
+msgid "Image position"
+msgstr "Position des Bildes"
+
+#: bakeup/pages/blocks.py bakeup/pages/models.py
+msgid "Eyebrow"
+msgstr "Dachzeile"
+
+#: bakeup/pages/blocks.py
+msgid "A short line above the heading, for example: Our bakery."
+msgstr "Eine kurze Zeile über der Überschrift, zum Beispiel: Unsere Backstube."
+
+#: bakeup/pages/blocks.py
+msgid "Buttons"
+msgstr "Buttons"
+
+#: bakeup/pages/blocks.py
+msgid "Image and text"
+msgstr "Bild und Text"
+
+#: bakeup/pages/blocks.py
+msgid "Label"
+msgstr "Kennzeichnung"
+
+#: bakeup/pages/blocks.py
+msgid "A short line above the title, for example: Step 1."
+msgstr "Eine kurze Zeile über dem Titel, zum Beispiel: Schritt 1."
+
+#: bakeup/pages/blocks.py
+msgid "Title"
+msgstr "Titel"
+
+#: bakeup/pages/blocks.py
+msgid "Steps"
+msgstr "Schritte"
+
+#: bakeup/pages/blocks.py
+msgid "None"
+msgstr "Keiner"
+
+#: bakeup/pages/blocks.py
+msgid "White"
+msgstr "Weiß"
+
+#: bakeup/pages/blocks.py
+msgid "Light"
+msgstr "Hell"
+
+#: bakeup/pages/blocks.py
+msgid "Dark"
+msgstr "Dunkel"
+
+#: bakeup/pages/blocks.py
+msgid "Primary"
+msgstr "Primärfarbe"
+
+#: bakeup/pages/blocks.py
+msgid "Secondary"
+msgstr "Sekundärfarbe"
+
+#: bakeup/pages/blocks.py
+msgid "Background"
+msgstr "Hintergrund"
+
+
+#: bakeup/pages/blocks.py
+msgid "Section"
+msgstr "Abschnitt"
+
+
+
+#: bakeup/pages/models.py
+msgid "A short line above the banner text, for example: Since 1924."
+msgstr "Eine kurze Zeile über dem Bannertext, zum Beispiel: Seit 1924."
+
+
+
+
+
+#: bakeup/pages/wagtail_hooks.py
+msgid "Block overview"
+msgstr "Baustein-Übersicht"
+
+#: bakeup/pages/constants.py
+msgid ""
+"This page is only visible to bakers. Visitors and customers cannot open it."
+msgstr ""
+"Diese Seite ist nur für Bäcker:innen sichtbar. Besucher:innen und Kund:innen "
+"können sie nicht öffnen."
+
+#: bakeup/templates/blocks/carousel_block.html
+msgid "Previous image"
+msgstr "Vorheriges Bild"
+
+#: bakeup/templates/blocks/carousel_block.html
+msgid "Next image"
+msgstr "Nächstes Bild"
+
+#: bakeup/pages/blocks.py
+msgid "Centre"
+msgstr "Zentriert"
+
+#: bakeup/pages/blocks.py
+msgid "Justified"
+msgstr "Blocksatz"
+
+#: bakeup/pages/blocks.py
+msgid "Text alignment"
+msgstr "Textausrichtung"
+
+#: bakeup/pages/blocks.py
+msgid "Caption"
+msgstr "Bildunterschrift"
+
+#: bakeup/pages/blocks.py
+msgid "HTML"
+msgstr "HTML"
+
+#: bakeup/pages/blocks.py
+msgid "Button text"
+msgstr "Button-Text"
+
+#: bakeup/pages/blocks.py
+msgid "Newsletter sign-up"
+msgstr "Newsletter-Anmeldung"
+
+#: bakeup/pages/blocks.py
+msgid "Green"
+msgstr "Grün"
+
+#: bakeup/pages/blocks.py
+msgid "Red"
+msgstr "Rot"
+
+#: bakeup/pages/blocks.py
+msgid "Yellow"
+msgstr "Gelb"
+
+#: bakeup/pages/blocks.py
+msgid "Blue"
+msgstr "Blau"
+
+#: bakeup/pages/blocks.py
+msgid "Space"
+msgstr "Abstand"
+
+#: bakeup/pages/blocks.py
+msgid "Space on mobile"
+msgstr "Abstand auf Mobilgeräten"
+
+#: bakeup/pages/blocks.py
+msgid "Card background colour"
+msgstr "Hintergrundfarbe der Karte"
+
+#: bakeup/pages/blocks.py
+msgid "Card text"
+msgstr "Text der Karte"
+
+#: bakeup/pages/blocks.py
+msgid "Body text for this card."
+msgstr "Der Text dieser Karte."
+
+#: bakeup/pages/blocks.py
+msgid "Simple card (text only)"
+msgstr "Einfache Karte (nur Text)"
+
+#: bakeup/pages/blocks.py
+msgid "Video"
+msgstr "Video"
+
+#: bakeup/pages/blocks.py
+msgid "Maximum width"
+msgstr "Maximale Breite"
+
+#: bakeup/pages/blocks.py
+msgid "Alignment"
+msgstr "Ausrichtung"
+
+#: bakeup/pages/blocks.py
+msgid "Images"
+msgstr "Bilder"
+
+#: bakeup/pages/blocks.py
+msgid "Common"
+msgstr "Allgemein"
+
+#: bakeup/pages/blocks.py
+msgid "Middle"
+msgstr "Mitte"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|1)"
+msgstr "Spalten (1|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (2|1)"
+msgstr "Spalten (2|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|2)"
+msgstr "Spalten (1|2)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns (1|1|1)"
+msgstr "Spalten (1|1|1)"
+
+#: bakeup/pages/blocks.py
+msgid "Columns"
+msgstr "Spalten"
+
+#: bakeup/pages/blocks.py
+msgid "Maximum number of production days"
+msgstr "Maximale Anzahl der Backtage"
+
+#: bakeup/pages/blocks.py
+msgid "Text without production days"
+msgstr "Text ohne Backtage"
+
+#: bakeup/pages/blocks.py
+msgid "This text is displayed if no production day is planned."
+msgstr "Dieser Text wird angezeigt, wenn kein Backtag geplant ist."
+
+#: bakeup/pages/blocks.py
+msgid "Only planned products"
+msgstr "Nur geplante Produkte"
+
+#: bakeup/pages/blocks.py
+msgid "Bakeup"
+msgstr "Bakeup"
+
+#: bakeup/pages/blocks.py
+msgid "Layout"
+msgstr "Layout"
+
+#: bakeup/templates/pages/block_reference_page.html
+msgid "Blocks on this page"
+msgstr "Bausteine auf dieser Seite"
+
+#: bakeup/pages/blocks.py
+msgid "Other"
+msgstr "Weitere"
+
+#: bakeup/pages/blocks.py:198
+msgid "Horizontal Rule"
+msgstr "Horizontale Regel"
+
+#: bakeup/pages/blocks.py:323
+msgid "Product Assortment"
+msgstr ""
+
+#: bakeup/shop/models.py
+msgid "Latitude"
+msgstr "Breitengrad"
+
+#: bakeup/shop/models.py
+msgid "Longitude"
+msgstr "Längengrad"
+
+#: bakeup/pages/blocks.py
+msgid "Show map"
+msgstr "Karte anzeigen"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Location on the map"
+msgstr "Standort auf der Karte"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid ""
+"Click on the map to place the pin, drag the pin to move it. Customers see "
+"the pin on the map of all points of sale."
+msgstr ""
+"Ein Klick auf die Karte setzt den Pin, durch Ziehen lässt er sich "
+"verschieben. Kund:innen sehen den Pin auf der Karte aller Abholstellen."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Remove pin"
+msgstr "Pin entfernen"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Search for an address …"
+msgstr "Adresse suchen …"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Enter an address in the search field or in the address fields first."
+msgstr "Bitte zuerst eine Adresse in die Suche oder in die Adressfelder eintragen."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "No place found for this address."
+msgstr "Zu dieser Adresse wurde kein Ort gefunden."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "The address search is not available at the moment."
+msgstr "Die Adresssuche ist gerade nicht erreichbar."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Search for an address and pick a suggestion, or leave the search empty to look up the address entered on the left. The search fills in the address fields."
+msgstr "Suche nach einer Adresse und wähle einen Vorschlag, oder lass die Suche leer, um die links eingetragene Adresse zu finden. Die Suche füllt die Adressfelder aus."
+
+#: bakeup/workshop/forms.py
+msgid "General"
+msgstr "Allgemein"
+
+#: bakeup/workshop/forms.py
+msgid "Address"
+msgstr "Adresse"
+
+#: bakeup/workshop/forms.py
+msgid "Information for customers"
+msgstr "Infos für Kund:innen"
+
+#: bakeup/shop/models.py
+msgid "Weekday"
+msgstr "Wochentag"
+
+#: bakeup/shop/models.py
+msgid "From"
+msgstr "Von"
+
+#: bakeup/shop/models.py
+msgid "Until"
+msgstr "Bis"
+
+#: bakeup/shop/models.py
+msgid "The pick-up has to end after it starts."
+msgstr "Die Abholung muss nach ihrem Beginn enden."
+
+#: bakeup/workshop/forms.py
+msgid "Pick-up times"
+msgstr "Abholzeiten"
+
+#: bakeup/templates/workshop/includes/pickup_time_formset.html
+msgid "Add pick-up time"
+msgstr "Abholzeit hinzufügen"
+
+#: bakeup/templates/workshop/includes/pickup_time_formset.html
+msgid "When customers can pick up their order here, one row per weekday and time window."
+msgstr "Wann Kund:innen ihre Bestellung hier abholen können, eine Zeile pro Wochentag und Zeitfenster."
+
+#: bakeup/templates/workshop/includes/pickup_time_form.html
+msgid "Remove"
+msgstr "Entfernen"
+
+#: bakeup/pages/models.py
+msgid "The map shows the points of sale that have a pin. Without a map the list is always shown."
+msgstr "Die Karte zeigt die Abholstellen, die einen Pin haben. Ohne Karte wird immer die Liste gezeigt."
+
+#: bakeup/pages/models.py
+msgid "This page lists all points of sale automatically, below the content. The links in the checkout and the sign-up lead here. The block “Points of sale” is only needed to show them on another page, for example the start page."
+msgstr "Diese Seite listet alle Abholstellen automatisch unter dem Inhalt auf. Die Links im Checkout und in der Registrierung führen hierher. Der Baustein „Abholstellen“ wird nur gebraucht, um sie auf einer anderen Seite zu zeigen, zum Beispiel auf der Startseite."
+
+#: bakeup/pages/blocks.py
+msgid "Map and list"
+msgstr "Karte und Liste"
+
+#: bakeup/pages/blocks.py
+msgid "Map only"
+msgstr "Nur Karte"
+
+#: bakeup/pages/blocks.py
+msgid "List only"
+msgstr "Nur Liste"
+
+#: bakeup/pages/blocks.py
+msgid "Display"
+msgstr "Anzeige"

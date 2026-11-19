@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 EMAIL_ORDER_CONFIRM_DEFAULT = """
 <p>Vielen Dank für Ihre Bestellung, {{ first_name }} {{ last_name }}!</p>
 <p>Hier eine Übersicht über Ihre Bestellung für den {{ production_day }}:<br/>
@@ -15,3 +17,19 @@ Gesamtpreis: <strong>{{ price_total }}</strong><br/>
 EMAIL_ORDER_CANCELLATION_DEFAULT = """
 <p>Sie haben soeben Ihre komplette Bestellung für den <strong>{{ production_day }}</strong> gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten Backwaren bitte wieder neu.</p>
 """  # noqa: E501
+
+# What the points of sale block and the points of sale page show.
+POINTS_OF_SALE_DISPLAY_CHOICES = [
+    ("map_and_list", _("Map and list")),
+    ("map", _("Map only")),
+    ("list", _("List only")),
+]
+
+# Slug of the content page that shows every CMS block, see the
+# create_block_reference_page command.
+BLOCK_REFERENCE_PAGE_SLUG = "bausteine"
+# Prefix of the anchors of the headings on that page, e.g. #baustein-faq.
+BLOCK_REFERENCE_ANCHOR_PREFIX = "baustein-"
+BLOCK_REFERENCE_PAGE_HELP_TEXT = _(
+    "This page is only visible to bakers. Visitors and customers cannot open it."
+)

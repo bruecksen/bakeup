@@ -21,6 +21,14 @@ Customer {{ object }}
       <h3>{% trans "Account" %}:</h3>
       <div class="row">
         <div class="col-4 fw-bold">
+          {% trans "Customer number" %}:
+        </div>
+        <div class="col-8">
+          {{ object.customer_number }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
           {% trans "Email" %}:
         </div>
         <div class="col-8">
@@ -103,6 +111,14 @@ Customer {{ object }}
         </div>
         <div class="col-8">
           {{ object.user.date_joined }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4 fw-bold">
+          {% trans "First order" %}:
+        </div>
+        <div class="col-8">
+          {{ object.first_order_date|default:"-" }}
         </div>
       </div>
       <div class="row">

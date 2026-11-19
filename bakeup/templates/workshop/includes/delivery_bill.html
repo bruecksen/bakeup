@@ -25,13 +25,16 @@
       </thead>
       <tbody>
       {% for order in bill.orders %}
-      <tr>
+      <tr class="delivery-bill-order">
         <td class="order-customer">
+          <span class="delivery-bill-name">
           {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
           {{ order.customer }}
           {% else %}
           {{ order.customer.user.short_name }}
           {% endif %}
+          </span>
+          {% if order.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}
         </td>
         <td>
           {% include "workshop/includes/order_positions.html" with positions=order.positions.all canceled_only=True %}

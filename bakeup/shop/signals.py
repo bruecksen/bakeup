@@ -1,10 +1,11 @@
 from django.db.models import ProtectedError
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
+    ProductionDay,
     ProductionDayProduct,
 )
 from bakeup.workshop.models import ProductionPlan
@@ -40,3 +41,16 @@ def protect_production_day_product(sender, instance, using, **kwargs):
         order__production_day=instance.production_day, product=instance.product
     ).exists():
         raise ProtectedError("Only products without orders can be deleted.", instance)
+
+
+@receiver(post_delete, sender=ProductionDayProduct)
+def delete_stale_production_plans(sender, instance, origin=None, **kwargs):
+    # The plan hangs on the day product with SET_NULL, so nothing else removes
+    # it when the day product goes (edit form, delete view, Django admin).
+    # origin is the object or queryset delete() was called on. When that is the
+    # production day, its plans cascade anyway and the day may be gone already.
+    if isinstance(origin, ProductionDay) or getattr(origin, "model", None) is (
+        ProductionDay
+    ):
+        return
+    instance.production_day.delete_stale_production_plans()

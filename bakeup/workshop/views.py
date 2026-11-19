@@ -72,6 +72,8 @@ from bakeup.workshop.forms import (
     CustomerCreateForm,
     CustomerForm,
     CustomerOrderForm,
+    PointOfSaleForm,
+    PointOfSalePickupTimeFormSet,
     ProductDoughYieldForm,
     ProductForm,
     ProductHierarchyForm,
@@ -1775,6 +1777,7 @@ def get_delivery_bills(production_day, only=None):
             CustomerOrder.objects.filter(
                 point_of_sale=point_of_sale, production_day=production_day
             )
+            .with_is_first_order()
             .select_related("customer__user")
             .prefetch_related(
                 "notes", "positions__product", "positions__production_plan"
@@ -2033,8 +2036,6 @@ class ProductionDayMixin(object):
             # raise Exception(instances)
             for obj in formset.deleted_objects:
                 try:
-                    if obj.production_plan:
-                        obj.production_plan.delete()
                     if obj.order_positions.exists():
                         print("redirect....")
                         return HttpResponseRedirect(
@@ -2599,6 +2600,9 @@ class CustomerListView(
     filterset_class = CustomerFilter
     template_name = "workshop/customer_list.html"
 
+    def get_queryset(self):
+        return super().get_queryset().with_first_order_date()
+
     @property
     def export_name(self):
         return "customers-{}".format(now().strftime("%Y%m%d-%H%M%S"))
@@ -2681,6 +2685,9 @@ class CustomerDetailView(StaffPermissionsMixin, DetailView):
     model = Customer
     template_name = "workshop/customer_detail.html"
 
+    def get_queryset(self):
+        return super().get_queryset().with_first_order_date()
+
 
 class CustomerUpdateView(StaffPermissionsMixin, UpdateView):
     template_name = "workshop/customer_form.html"
@@ -2714,6 +2721,9 @@ class CustomerOrderListView(
     table_class = CustomerOrderTable
     filterset_class = CustomerOrderFilter
     template_name = "workshop/order_list.html"
+
+    def get_queryset(self):
+        return super().get_queryset().with_is_first_order()
 
     @property
     def export_name(self):
@@ -3037,13 +3047,43 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
         return self.render_to_response(self.get_context_data())
 
 
-class PointOfSaleCreateView(StaffPermissionsMixin, CreateView):
+class PointOfSaleFormMixin:
+    """The point of sale form together with the formset of its pick-up times."""
+
     model = PointOfSale
-    fields = ("name", "short_name", "is_primary")
+    form_class = PointOfSaleForm
     template_name = "workshop/point_of_sale_form.html"
+
+    def get_pickup_time_formset(self):
+        return PointOfSalePickupTimeFormSet(
+            self.request.POST or None, instance=self.object, prefix="pickup_times"
+        )
+
+    def get_context_data(self, **kwargs):
+        if "pickup_time_formset" not in kwargs:
+            kwargs["pickup_time_formset"] = self.get_pickup_time_formset()
+        return super().get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        pickup_time_formset = self.get_pickup_time_formset()
+        if not pickup_time_formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form, pickup_time_formset=pickup_time_formset
+                )
+            )
+        with transaction.atomic():
+            self.object = form.save()
+            pickup_time_formset.instance = self.object
+            pickup_time_formset.save()
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse("workshop:point-of-sale-list")
+
+
+class PointOfSaleCreateView(PointOfSaleFormMixin, StaffPermissionsMixin, CreateView):
+    pass
 
 
 class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
@@ -3052,13 +3092,8 @@ class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
     template_name = "workshop/point_of_sale_list.html"
 
 
-class PointOfSaleUpdateView(StaffPermissionsMixin, UpdateView):
-    model = PointOfSale
-    fields = ("name", "short_name", "is_primary")
-    template_name = "workshop/point_of_sale_form.html"
-
-    def get_success_url(self):
-        return reverse("workshop:point-of-sale-list")
+class PointOfSaleUpdateView(PointOfSaleFormMixin, StaffPermissionsMixin, UpdateView):
+    pass
 
 
 class PointOfSaleDeleteView(StaffPermissionsMixin, DeleteView):

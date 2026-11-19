@@ -9,6 +9,7 @@
 @import 'colors';
 @import 'select2';
 @import 'print';
+@import 'content';
 
 .btn-xs {
   padding: .25rem .5rem;
@@ -325,6 +326,15 @@ a.rounded-circle {
   min-width: 32px;
   min-width: 3rem;
   text-align: right;
+}
+
+// Production state per position: a tint of the state colour, so it stays
+// in the background next to the products.
+.order-positions .badge {
+  --bs-bg-opacity: .15;
+  --bs-badge-color: var(--bs-body-color);
+  --bs-badge-font-size: .7em;
+  --bs-badge-font-weight: 500;
 }
 
 #basket {
@@ -719,6 +729,8 @@ header {
       width: 100%;
     }
   }
+  // _print.scss strips every background, the outline keeps it a marker on paper.
+  .badge-first-order { border: 1px solid #000; }
 }
 
 .tr-collapsed > td {
@@ -775,9 +787,13 @@ header {
   padding: 0.25rem 0.5rem;
 }
 .input-group-calendar {
-  width: 250px;
+  width: 256px;
   @media (max-width: 768px) {
     width: 100%;
+  }
+  .form-control {
+    padding-left: .25rem;
+    padding-right: .25rem;
   }
 }
 

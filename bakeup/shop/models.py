@@ -5,12 +5,14 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import (
     Count,
     Exists,
     F,
+    Min,
     OuterRef,
     Q,
     Subquery,
@@ -21,6 +23,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.dates import WEEKDAYS
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -32,6 +35,7 @@ from bakeup.workshop.models import (
     Category,
     Product,
     ProductionPlan,
+    VatRate,
     prefetch_recipe_trees,
 )
 
@@ -224,16 +228,32 @@ class ProductionDay(CommonBaseClass):
             or 0
         )
 
-    def update_production_plan(self, product, quantity, state, create_max_quantity):
+    def delete_stale_production_plans(self):
+        # A plan is stale when its product is no longer a product of the day,
+        # e.g. after the product of a row was swapped or the row was deleted.
+        # Started and produced plans are production history and stay.
+        stale_plans = self.production_plans.filter(
+            parent_plan=None,
+            state__in=[ProductionPlan.State.PLANNED, ProductionPlan.State.CANCELED],
+        ).exclude(
+            product__product_template__in=self.production_day_products.values("product")
+        )
+        # One by one: ProductionPlan.delete() also removes the copied product.
+        for plan in stale_plans:
+            plan.delete()
+
+    def update_production_plan(
+        self, product, quantity, state, create_max_quantity, without_recipe=False
+    ):
         ProductionPlan.objects.filter(
             product__product_template=product, production_day=self
         ).delete()
         return self._create_production_plan(
-            product, quantity, state, create_max_quantity
+            product, quantity, state, create_max_quantity, without_recipe
         )
 
     def _create_production_plan(
-        self, product, quantity, state, create_max_quantity=False
+        self, product, quantity, state, create_max_quantity=False, without_recipe=False
     ):
         # product_product_quantity.get('product'), product_quantity.get('total_quantity')
         product_template = product
@@ -248,7 +268,7 @@ class ProductionDay(CommonBaseClass):
         if production_plan.exists() and not production_plan.first().is_locked:
             print("plan exists, plan update: {}".format(product_template))
             return self.update_production_plan(
-                product_template, quantity, state, create_max_quantity
+                product_template, quantity, state, create_max_quantity, without_recipe
             )
         elif production_plan.exists():
             # plan is locked no update
@@ -301,6 +321,7 @@ class ProductionDay(CommonBaseClass):
         return plan
 
     def create_or_update_production_plans(self, state, create_max_quantity=False):
+        self.delete_stale_production_plans()
         plans = []
         positions = None
         if create_max_quantity:
@@ -616,21 +637,121 @@ class ProductionDayProduct(CommonBaseClass):
         return False
 
 
+class PointOfSaleQuerySet(models.QuerySet):
+    def selectable_by(self, customer=None, order=None):
+        # Internal points of sale are assigned by the bakery. A customer only
+        # gets one offered when it is already their own or their order's.
+        own = [
+            pk
+            for pk in (
+                customer and customer.point_of_sale_id,
+                order and order.point_of_sale_id,
+            )
+            if pk
+        ]
+        return self.filter(Q(is_internal=False) | Q(pk__in=own))
+
+    def public(self):
+        return self.filter(is_internal=False)
+
+
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
     short_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name=_("Short Name")
     )
-    address = models.OneToOneField(
-        "contrib.Address", on_delete=models.PROTECT, blank=True, null=True
-    )
     is_primary = models.BooleanField(default=False, verbose_name=_("Primary?"))
+    is_internal = models.BooleanField(
+        default=False,
+        verbose_name=_("Internal?"),
+        help_text=_(
+            "Internal points of sale can't be chosen by customers, neither when"
+            " signing up nor when ordering. Only the bakery can assign them."
+        ),
+    )
+    street = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("Street")
+    )
+    street_number = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Street Number")
+    )
+    postal_code = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Postal Code")
+    )
+    city = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("City")
+    )
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        verbose_name=_("Latitude"),
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        verbose_name=_("Longitude"),
+    )
+
+    objects = PointOfSaleQuerySet.as_manager()
 
     def __str__(self):
         return self.short_name or self.name
 
     def get_short_name(self):
         return self.short_name or self.name
+
+    @property
+    def address_lines(self):
+        lines = [
+            f"{self.street or ''} {self.street_number or ''}".strip(),
+            f"{self.postal_code or ''} {self.city or ''}".strip(),
+        ]
+        return [line for line in lines if line]
+
+    @property
+    def address_line(self):
+        return ", ".join(self.address_lines)
+
+    @property
+    def has_location(self):
+        return self.latitude is not None and self.longitude is not None
+
+    def pickup_times_for(self, production_day=None):
+        """
+        When customers can pick up here. With a production day only the times
+        of its weekday, or all of them when none is on that weekday: the
+        pick-up can also be on a later day.
+        """
+        if not self.pk:
+            return []
+        # In Python, so that prefetched pick-up times are used.
+        pickup_times = list(self.pickup_times.all())
+        if production_day:
+            weekday = production_day.day_of_sale.weekday()
+            on_weekday = [
+                pickup_time
+                for pickup_time in pickup_times
+                if pickup_time.day_of_the_week == weekday
+            ]
+            return on_weekday or pickup_times
+        return pickup_times
+
+    def summary_for(self, production_day=None):
+        """
+        One line for the places where customers choose a point of sale: when
+        and where to pick up. Empty without pick-up times and address.
+        """
+        parts = [
+            str(pickup_time) for pickup_time in self.pickup_times_for(production_day)
+        ]
+        if self.address_line:
+            parts.append(self.address_line)
+        return " · ".join(parts)
 
     def get_customer_count(self):
         return self.customers.count()
@@ -639,20 +760,29 @@ class PointOfSale(CommonBaseClass):
         return CustomerOrder.objects.filter(point_of_sale=self).count()
 
 
-# TODO how to handle public holidays, exceptional closing days, etc.
-class PointOfSaleOpeningHour(CommonBaseClass):
+class PointOfSalePickupTime(CommonBaseClass):
     point_of_sale = models.ForeignKey(
-        "shop.PointOfSale", on_delete=models.PROTECT, related_name="opening_hours"
+        "shop.PointOfSale", on_delete=models.CASCADE, related_name="pickup_times"
     )
-    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK)
-    from_time = models.TimeField()
-    to_time = models.TimeField()
+    day_of_the_week = models.PositiveSmallIntegerField(
+        choices=list(WEEKDAYS.items()), verbose_name=_("Weekday")
+    )
+    from_time = models.TimeField(verbose_name=_("From"))
+    to_time = models.TimeField(verbose_name=_("Until"))
 
     class Meta:
-        ordering = ("day_of_the_week",)
+        ordering = ("day_of_the_week", "from_time")
 
     def __str__(self):
-        return self.point_of_sale.name
+        return "{}, {:%H:%M}–{:%H:%M} Uhr".format(
+            self.get_day_of_the_week_display(), self.from_time, self.to_time
+        )
+
+    def clean(self):
+        if self.from_time and self.to_time and self.to_time <= self.from_time:
+            raise ValidationError(
+                {"to_time": _("The pick-up has to end after it starts.")}
+            )
 
 
 class CustomerOrderPositionQuerySet(models.QuerySet):
@@ -694,6 +824,10 @@ class CustomerOrderPosition(BasePositionClass):
     price_total = MoneyField(
         blank=True, null=True, max_digits=14, decimal_places=2, default_currency="EUR"
     )
+    # the product's rate at the time of the order
+    vat_rate = models.PositiveSmallIntegerField(
+        choices=VatRate.choices, default=VatRate.REDUCED
+    )
 
     objects = CustomerOrderPositionQuerySet.as_manager()
 
@@ -704,6 +838,8 @@ class CustomerOrderPosition(BasePositionClass):
         return "{}x {}".format(self.quantity, self.product)
 
     def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.vat_rate = self.get_product().vat_rate
         if not self.price and self.get_product().sale_price:
             self.price = self.get_product().sale_price.price.amount
         if self.price and self.quantity:
@@ -715,6 +851,13 @@ class CustomerOrderPosition(BasePositionClass):
             return self.product.product_template
         else:
             return self.product
+
+
+class CustomerQuerySet(models.QuerySet):
+    def with_first_order_date(self):
+        return self.annotate(
+            first_order_date=Min("orders__production_day__day_of_sale")
+        )
 
 
 class Customer(CommonBaseClass):
@@ -743,11 +886,17 @@ class Customer(CommonBaseClass):
         max_length=20, blank=True, null=True, verbose_name=_("Telephone Number")
     )
 
+    objects = CustomerQuerySet.as_manager()
+
     class Meta:
         ordering = ("user__email",)
 
     def __str__(self):
         return "{}".format(self.user)
+
+    @property
+    def customer_number(self):
+        return connection.tenant.clientsetting.customer_number_start + self.pk
 
     @property
     def total_ordered_positions(self):
@@ -785,6 +934,17 @@ class CustomerOrderQuerySet(models.QuerySet):
                     )
                 )
             )
+        )
+
+    def with_is_first_order(self):
+        # The first order is the one on the customer's earliest production
+        # day, no matter when it was placed or how many are already planned.
+        earlier_orders = CustomerOrder.objects.filter(
+            customer=OuterRef("customer"),
+            production_day__day_of_sale__lt=OuterRef("production_day__day_of_sale"),
+        )
+        return self.annotate(
+            is_first_order=Q(customer__isnull=False) & ~Exists(earlier_orders)
         )
 
 
@@ -845,6 +1005,9 @@ class CustomerOrder(CommonBaseClass):
             "price_total"
         ]
 
+    def get_selectable_point_of_sales(self):
+        return self.production_day.point_of_sales.selectable_by(self.customer, self)
+
     @property
     def total_quantity(self):
         return self.positions.aggregate(total_quantity=Sum("quantity"))[
@@ -866,7 +1029,7 @@ class CustomerOrder(CommonBaseClass):
         """
         Return an order number for a given basket
         """
-        return 100000 + self.pk
+        return connection.tenant.clientsetting.order_number_start + self.pk
 
     @property
     def has_abo(self):

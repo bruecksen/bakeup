@@ -39,7 +39,7 @@ class CustomerReady2OrderExportView(StaffPermissionsMixin, ExportMixin, FilterVi
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     customer.user.get_full_name(),
                     "Kunden",
                     customer.user.email,
@@ -102,7 +102,7 @@ class CustomerBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     customer.user.get_full_name(),
                     customer.user.email,
                     "",
@@ -190,7 +190,7 @@ class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         for customer in customers:
             rows.append(
                 [
-                    customer.id,
+                    customer.customer_number,
                     "",
                     "",
                     customer.user.last_name,
@@ -236,6 +236,46 @@ class CustomerSevdeskExportView(StaffPermissionsMixin, ExportMixin, FilterView):
         return "sevDesk-{}".format(now().strftime("%d-%m-%Y"))
 
 
+class CustomerEasybillExportView(StaffPermissionsMixin, ExportMixin, FilterView):
+    filterset_class = CustomerFilter
+    model = Customer
+
+    def get_headers(self):
+        headers = [
+            "Kundennummer",
+            "Name",
+            "Vorname",
+            "Straße/Hausnummer",
+            "Postleitzahl",
+            "Ort",
+            "Telefon 1",
+            "E-Mail",
+        ]
+        return headers
+
+    def get_data(self):
+        customers = self.object_list.order_by("pk")
+        rows = []
+        for customer in customers:
+            rows.append(
+                [
+                    customer.customer_number,
+                    customer.user.last_name,
+                    customer.user.first_name,
+                    customer.address_line,
+                    customer.postal_code,
+                    customer.city,
+                    customer.telephone_number,
+                    customer.user.email,
+                ]
+            )
+        return rows
+
+    @property
+    def export_name(self):
+        return "easybill-kunden-{}".format(now().strftime("%d-%m-%Y"))
+
+
 class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
     model = CustomerOrder
     template_name = "workshop/order_list.html"
@@ -246,7 +286,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     def get_data(self):
         column_count = (
-            6 + self.production_day.production_day_products.published().count()
+            7 + self.production_day.production_day_products.published().count()
         )
         rows = []
         top_header = [""] * column_count
@@ -262,6 +302,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
             headers.append(product.product.get_short_name())
         headers.append("Abholstelle")
         headers.append("Anmerkung")
+        headers.append("Erstbestellung")
         rows.append(headers)
         for order in self.object_list.all():
             row = []
@@ -284,6 +325,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
             row.append(
                 order.notes.first() and order.notes.first().content or "",
             )
+            row.append("x" if order.is_first_order else "")
             rows.append(row)
         # add footer
 
@@ -305,8 +347,8 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
         for product in production_day_products:
             footer.append(product.get_order_quantity())
             footer2.append(product.max_quantity)
-        footer.append("")
-        footer2.append("")
+        footer.extend(["", ""])
+        footer2.extend(["", ""])
         rows.append(footer)
         rows.append(footer2)
         return rows
@@ -316,7 +358,7 @@ class ProductionDayExportView(StaffPermissionsMixin, ExportMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(production_day=self.production_day)
+        return queryset.filter(production_day=self.production_day).with_is_first_order()
 
     @property
     def export_name(self):
@@ -397,7 +439,7 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
                     price_total = numberformat.format(decimal_value, ",", use_l10n=True)
                 rows.append(
                     [
-                        customer_order_position.order.id,
+                        customer_order_position.order.order_nr,
                         customer_order_position.product.pk,
                         customer_order.created.strftime(
                             "%Y-%m-%d %H:%M:%S"
@@ -410,7 +452,7 @@ class CustomerOrderBillbeeExportView(StaffPermissionsMixin, ExportMixin, FilterV
                         "0",  # Versandkosten Netto
                         "0",  # Versandkosten Brutto
                         "0",  # Nachnahmegebühr
-                        "7",  # MwSt. %
+                        customer_order_position.vat_rate,  # MwSt. %
                         customer_order_position.quantity,
                         "",  # Preis Netto
                         price_total,  # Preis Brutto
@@ -510,7 +552,7 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
         for customer_id, orders in customer_groups.items():
             # Get the first order for the order number and customer data
             first_order = min(orders, key=lambda x: x.created)
-            order_number = first_order.id
+            order_number = first_order.order_nr
 
             # Collect all positions from all orders of this customer
             for order in orders:
@@ -522,15 +564,9 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                             position.price.amount, ".", decimal_pos=4, use_l10n=False
                         )
 
-                    # Determine VAT percentage (default to 7%, adjust as needed)
-                    vat_percent = "7.0000"
-                    if hasattr(position.product, "vat_rate"):
-                        vat_percent = numberformat.format(
-                            position.product.vat_rate,
-                            ".",
-                            decimal_pos=4,
-                            use_l10n=False,
-                        )
+                    vat_percent = numberformat.format(
+                        position.vat_rate, ".", decimal_pos=4, use_l10n=False
+                    )
 
                     # Format dates
                     purchase_date = order.created.strftime("%Y-%m-%d")
@@ -546,7 +582,9 @@ class CustomerOrderEasyBillExportView(StaffPermissionsMixin, ExportMixin, Filter
                         "",  # payment_type - add if available
                         "",
                         (  # payment_reference - add if available
-                            str(first_order.customer.id) if first_order.customer else ""
+                            str(first_order.customer.customer_number)
+                            if first_order.customer
+                            else ""
                         ),
                         (
                             first_order.customer.user.email

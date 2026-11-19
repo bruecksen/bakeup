@@ -1,0 +1,17 @@
+{% load i18n %}
+<div class="pos-pickup-time-formset mb-3" data-formset data-formset-prefix="{{ pickup_time_formset.prefix }}">
+  {{ pickup_time_formset.management_form }}
+  {% for error in pickup_time_formset.non_form_errors %}
+  <div class="text-danger small mb-2">{{ error }}</div>
+  {% endfor %}
+  <div data-formset-rows>
+    {% for pickup_time_form in pickup_time_formset %}
+    {% include "workshop/includes/pickup_time_form.html" %}
+    {% endfor %}
+  </div>
+  <template data-formset-template>
+    {% include "workshop/includes/pickup_time_form.html" with pickup_time_form=pickup_time_formset.empty_form %}
+  </template>
+  <button type="button" class="btn btn-outline-secondary btn-sm" data-formset-add><i class="fa-solid fa-plus me-1"></i>{% trans "Add pick-up time" %}</button>
+  <div class="form-text">{% trans "When customers can pick up their order here, one row per weekday and time window." %}</div>
+</div>

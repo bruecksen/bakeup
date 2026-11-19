@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 from django_tenants.management.commands import InteractiveTenantOption
@@ -255,6 +256,7 @@ class Command(InteractiveTenantOption, BaseCommand):
             # finally, create the menus
             self._create_main_menu()
             self._create_flat_menus()
+            call_command("create_block_reference_page", schema_name=tenant.schema_name)
             self.stdout.write(
                 self.style.SUCCESS("All pages created for tenant {}".format(tenant))
             )
