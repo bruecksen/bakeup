@@ -386,6 +386,8 @@ $('.modal-checkout form, .modal-abo form').on('reset', function(e)
         form.find('.message-empty-checkout').addClass('d-none').hide();
         form.find('.message-abo-orders').addClass('d-none');
         updatePosHint(form.find('.pos-select'));
+        // The dropdown over the select shows the value the reset brought back.
+        form.find('.pos-select').trigger('pos-dropdown-update');
 
         // var basket = $('#basket');
         // $('header .shopping-basket .order-quantity').hide();
@@ -410,6 +412,66 @@ $('.pos-select').on('invalid', function() {
 }).on('change', function() {
     this.setCustomValidity('');
     updatePosHint($(this));
+});
+
+// A dropdown over the select of the pick-up locations whose options show the
+// address and pick-up times of each one: in the sign-up and profile forms
+// (PointOfSaleSelect in users/forms.py) and in the checkout (checkout.html).
+// The select stays in the form and holds the value.
+function initPosDropdown(select) {
+    function content(option) {
+        var fragment = $('<span class="pos-dropdown-option"></span>');
+        fragment.append($('<span class="pos-dropdown-name"></span>').text(option.text()));
+        ['address', 'pickupTimes'].forEach(function(key) {
+            if (option.data(key)) {
+                fragment.append($('<small class="d-block text-muted"></small>').text(option.data(key)));
+            }
+        });
+        return fragment;
+    }
+    var inline = select.hasClass('d-inline');
+    var toggle = $('<button type="button" class="form-select text-start pos-dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false"></button>');
+    var menu = $('<ul class="dropdown-menu shadow" role="listbox"></ul>');
+    select.find('option').each(function() {
+        var option = $(this);
+        // The placeholder of the checkout ("Please choose …") is no choice.
+        if (option.prop('disabled') || option.val() === '') {
+            return;
+        }
+        var item = $('<button type="button" class="dropdown-item" role="option"></button>').append(content(option));
+        item.data('value', option.val()).on('click', function() {
+            select.val(option.val()).trigger('change');
+        });
+        menu.append($('<li></li>').append(item));
+    });
+    function update() {
+        // Closed it is one line with the name, as a select; the details are in
+        // the options of the open dropdown.
+        toggle.text(select.find('option:selected').text());
+        toggle.prop('disabled', select.prop('disabled'));
+        toggle.toggleClass('is-invalid', select.hasClass('is-invalid') || select.hasClass('border-danger'));
+        menu.find('.dropdown-item').each(function() {
+            var chosen = String($(this).data('value')) === String(select.val());
+            $(this).toggleClass('active', chosen).attr('aria-selected', chosen ? 'true' : 'false');
+        });
+    }
+    update();
+    select.on('change pos-dropdown-update', update);
+    // A hidden select can't show the browser's message for a missing choice:
+    // the dropdown is marked and focused instead, the hint below says why.
+    select.on('invalid', function(event) {
+        event.preventDefault();
+        toggle.addClass('is-invalid').trigger('focus');
+    });
+    toggle.attr('aria-labelledby', $('label[for="' + select.attr('id') + '"]').attr('id') || null);
+    toggle.toggleClass('form-select-xs', select.hasClass('form-select-xs'));
+    var dropdown = $('<div class="dropdown pos-dropdown"></div>').toggleClass('pos-dropdown-inline', inline);
+    select.addClass('d-none').removeClass('d-inline').after(dropdown.append(toggle, menu));
+}
+$(function() {
+    $('select[data-pos-dropdown]').each(function() {
+        initPosDropdown($(this));
+    });
 });
 
 var aboProductDays = {};
@@ -1219,4 +1281,29 @@ document.addEventListener("htmx:after:swap", function() {
         var details = document.querySelector("#" + id + " > .production-step-collapsed");
         if (details) details.open = true;
     });
+});
+
+// Formsets with rows that can be added and removed: [data-formset] holds the
+// rows, a <template data-formset-template> of the empty form and the buttons.
+document.addEventListener('click', function (event) {
+    var addButton = event.target.closest('[data-formset-add]');
+    var removeButton = event.target.closest('[data-formset-remove]');
+    if (addButton) {
+        var formset = addButton.closest('[data-formset]');
+        var total = formset.querySelector('[name="' + formset.dataset.formsetPrefix + '-TOTAL_FORMS"]');
+        var template = formset.querySelector('[data-formset-template]');
+        var holder = document.createElement('div');
+        holder.innerHTML = template.innerHTML.replace(/__prefix__/g, total.value);
+        total.value = parseInt(total.value, 10) + 1;
+        formset.querySelector('[data-formset-rows]').appendChild(holder.firstElementChild);
+    } else if (removeButton) {
+        // The row stays in the form and is marked for deletion, so the
+        // numbering of the other rows is kept.
+        var row = removeButton.closest('[data-formset-row]');
+        var deleteInput = row.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) {
+            deleteInput.checked = true;
+        }
+        row.hidden = true;
+    }
 });

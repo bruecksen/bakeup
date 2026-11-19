@@ -8,9 +8,11 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from bakeup.newsletter.models import Audience, Contact
+from bakeup.pages.templatetags.pages_tags import point_of_sale_page_url
 from bakeup.shop.models import PointOfSale
 
 User = get_user_model()
@@ -43,6 +45,30 @@ class TokenAuthenticationForm(forms.Form):
         return self.user_cache
 
 
+class PointOfSaleSelect(forms.Select):
+    """
+    A select whose options carry the address and the pick-up times of their
+    point of sale. The script turns it into a dropdown that shows them
+    (initPosDropdown in project.js), without it the select works as usual.
+    """
+
+    def __init__(self, attrs=None, choices=()):
+        super().__init__({"data-pos-dropdown": "", **(attrs or {})}, choices)
+
+    def create_option(self, name, value, *args, **kwargs):
+        option = super().create_option(name, value, *args, **kwargs)
+        point_of_sale = getattr(value, "instance", None)
+        if point_of_sale is not None:
+            pickup_times = " · ".join(
+                str(pickup_time) for pickup_time in point_of_sale.pickup_times_for()
+            )
+            if point_of_sale.address_line:
+                option["attrs"]["data-address"] = point_of_sale.address_line
+            if pickup_times:
+                option["attrs"]["data-pickup-times"] = pickup_times
+        return option
+
+
 class UserFormMixin:
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,6 +98,19 @@ class UserFormMixin:
                 empty_label=None,
             )
             self.fields["point_of_sale"].label_from_instance = lambda obj: f"{obj.name}"
+            # With an address or pick-up times to compare, the options of the
+            # select show them. Without any it stays the plain select.
+            if any(point_of_sale.summary_for() for point_of_sale in point_of_sales):
+                field = self.fields["point_of_sale"]
+                field.widget = PointOfSaleSelect(choices=field.choices)
+                overview_url = point_of_sale_page_url({"request": request})
+                if overview_url:
+                    field.help_text = format_html(
+                        '{} <a href="{}" target="_blank" rel="noopener">Alle'
+                        " Abholstellen ansehen</a>",
+                        field.help_text,
+                        overview_url,
+                    )
             if point_of_sales.filter(is_primary=True).exists():
                 self.fields["point_of_sale"].initial = point_of_sales.get(
                     is_primary=True

@@ -1,3 +1,5 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Column, Fieldset, Layout, Row
 from dal import autocomplete, forward
 from django import forms
 from django.conf import settings
@@ -16,11 +18,18 @@ from django.forms import (
     ModelForm,
     Textarea,
     formset_factory,
+    inlineformset_factory,
 )
 from django.utils.translation import gettext_lazy as _
 
 from bakeup.core.models import UOM
-from bakeup.shop.models import Customer, CustomerOrder, PointOfSale, ProductionDay
+from bakeup.shop.models import (
+    Customer,
+    CustomerOrder,
+    PointOfSale,
+    PointOfSalePickupTime,
+    ProductionDay,
+)
 from bakeup.users.models import User
 from bakeup.workshop.models import Category, Product, ProductionPlan, ReminderMessage
 
@@ -369,6 +378,93 @@ class CustomerCreateForm(CustomerForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(_("A user with this email already exists."))
         return email
+
+
+class PointOfSaleForm(ModelForm):
+    class Meta:
+        model = PointOfSale
+        fields = [
+            "name",
+            "short_name",
+            "is_primary",
+            "is_internal",
+            "street",
+            "street_number",
+            "postal_code",
+            "city",
+            "description",
+            "latitude",
+            "longitude",
+        ]
+        widgets = {
+            "description": Textarea(attrs={"rows": 3}),
+            # Set by the pin on the map in the template.
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Fieldset(
+                _("General"),
+                "name",
+                "short_name",
+                "is_primary",
+                "is_internal",
+            ),
+            Fieldset(
+                _("Address"),
+                Row(
+                    Column("street", css_class="form-group col-md-8 mb-0"),
+                    Column("street_number", css_class="form-group col-md-4 mb-0"),
+                    css_class="form-row",
+                ),
+                Row(
+                    Column("postal_code", css_class="form-group col-md-4 mb-0"),
+                    Column("city", css_class="form-group col-md-8 mb-0"),
+                    css_class="form-row",
+                ),
+            ),
+            Fieldset(
+                _("Pick-up times"),
+                # The formset comes from the view, see PointOfSaleFormMixin.
+                HTML('{% include "workshop/includes/pickup_time_formset.html" %}'),
+            ),
+            Fieldset(
+                _("Information for customers"),
+                "description",
+            ),
+            "latitude",
+            "longitude",
+        )
+
+
+class PointOfSalePickupTimeForm(ModelForm):
+    class Meta:
+        model = PointOfSalePickupTime
+        fields = ["day_of_the_week", "from_time", "to_time"]
+        widgets = {
+            "day_of_the_week": forms.Select(attrs={"class": "form-select"}),
+            "from_time": forms.TimeInput(
+                format="%H:%M", attrs={"type": "time", "class": "form-control"}
+            ),
+            "to_time": forms.TimeInput(
+                format="%H:%M", attrs={"type": "time", "class": "form-control"}
+            ),
+        }
+
+
+PointOfSalePickupTimeFormSet = inlineformset_factory(
+    PointOfSale,
+    PointOfSalePickupTime,
+    form=PointOfSalePickupTimeForm,
+    extra=0,
+    can_delete=True,
+)
 
 
 class CustomerOrderForm(ModelForm):

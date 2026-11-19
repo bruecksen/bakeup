@@ -1,8 +1,14 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from bakeup.pages.blocks import FaqBlock, ImageTextBlock, SectionBlock
+from bakeup.pages.blocks import (
+    FaqBlock,
+    ImageTextBlock,
+    PointsOfSaleBlock,
+    SectionBlock,
+)
 from bakeup.pages.tests.factories import ContentPageFactory, ImageFactory
+from bakeup.shop.tests.factories import PointOfSaleFactory
 
 QUESTIONS = [
     {
@@ -161,3 +167,74 @@ def test_section_renders_its_heading_and_nested_blocks():
     assert section.select_one(".accordion-button").get_text(strip=True) == (
         "Wann kann ich bestellen?"
     )
+
+
+def test_points_of_sale_block_lists_public_points_of_sale(tenant_db):
+    PointOfSaleFactory(name="Markt", pickup_times=[(5, "09:00", "12:00")])
+    PointOfSaleFactory(name="Hofladen", city="Leipzig")
+    PointOfSaleFactory(name="Lieferung Café", is_internal=True)
+
+    html = render(
+        PointsOfSaleBlock(), {"heading": "Abholstellen", "display": "map_and_list"}
+    )
+
+    assert html.select_one("h2").get_text(strip=True) == "Abholstellen"
+    assert [
+        (
+            card.select_one(".card-title").get_text(strip=True),
+            [
+                element.get_text(strip=True)
+                for element in card.select(".pos-address, .pos-pickup-times")
+            ],
+        )
+        for card in html.select(".pos-card")
+    ] == [("Hofladen", ["Leipzig"]), ("Markt", ["Samstag, 09:00–12:00 Uhr"])]
+
+
+@pytest.mark.parametrize(
+    "display, api_key, map_count, card_count",
+    [
+        ("map_and_list", "test-key", 1, 1),
+        ("map", "test-key", 1, 0),
+        ("list", "test-key", 0, 1),
+        # Map only, but no map can be shown: the list instead of nothing.
+        ("map", "", 0, 1),
+    ],
+)
+def test_points_of_sale_block_shows_map_and_list_as_chosen(
+    tenant_db, settings, display, api_key, map_count, card_count
+):
+    settings.SMARTMAPS_API_KEY = api_key
+    PointOfSaleFactory(name="Hofladen", latitude="51.339700", longitude="12.373100")
+
+    html = render(PointsOfSaleBlock(), {"heading": "", "display": display})
+
+    assert html.select("h2") == []
+    assert len(html.select("[data-pos-map]")) == map_count
+    assert len(html.select(".pos-card")) == card_count
+    # The button that shows a card's pin needs both the map and the list.
+    assert len(html.select("[data-pos-focus]")) == map_count * card_count
+
+
+def test_two_points_of_sale_blocks_on_one_page_get_different_map_ids(
+    client, shop_page, settings
+):
+    settings.SMARTMAPS_API_KEY = "test-key"
+    PointOfSaleFactory(name="Hofladen", latitude="51.339700", longitude="12.373100")
+    block = {
+        "type": "points_of_sale",
+        "value": {"heading": "", "display": "map_and_list"},
+    }
+    page = ContentPageFactory(parent=shop_page, content=[block, block])
+
+    response = client.get(page.url)
+
+    html = BeautifulSoup(response.content, "html.parser")
+    maps = html.select("[data-pos-map]")
+    assert len(maps) == 2, "expected one map per block"
+    assert len({m["id"] for m in maps}) == 2
+    assert len({m["data-markers"] for m in maps}) == 2
+    assert [html.find("script", id=m["data-markers"]) is not None for m in maps] == [
+        True,
+        True,
+    ]

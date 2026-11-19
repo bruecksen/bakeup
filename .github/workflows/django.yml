@@ -66,5 +66,6 @@ jobs:
             uv sync --frozen --no-dev &&
             uv run python manage.py migrate --settings=config.settings.production &&
             uv run python manage.py collectstatic --noinput --settings=config.settings.production &&
-            $RESTART_CMD
+            $RESTART_CMD &&
+            uv run python manage.py all_tenants_command create_block_reference_page --settings=config.settings.production
           "

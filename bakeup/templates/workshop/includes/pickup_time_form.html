@@ -1,0 +1,21 @@
+{% load i18n %}
+<div class="row g-2 align-items-start mb-2" data-formset-row>
+  {{ pickup_time_form.id }}
+  <div class="col-12 col-sm-5">
+    {{ pickup_time_form.day_of_the_week }}
+    {% for error in pickup_time_form.day_of_the_week.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  </div>
+  <div class="col-5 col-sm-3">
+    {{ pickup_time_form.from_time }}
+    {% for error in pickup_time_form.from_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  </div>
+  <div class="col-5 col-sm-3">
+    {{ pickup_time_form.to_time }}
+    {% for error in pickup_time_form.to_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  </div>
+  <div class="col-2 col-sm-1">
+    <span class="d-none">{{ pickup_time_form.DELETE }}</span>
+    <button type="button" class="btn btn-outline-secondary" data-formset-remove title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}"><i class="fa-solid fa-trash-can"></i></button>
+  </div>
+  {% for error in pickup_time_form.non_field_errors %}<div class="col-12 text-danger small">{{ error }}</div>{% endfor %}
+</div>

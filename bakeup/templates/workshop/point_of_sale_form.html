@@ -1,8 +1,10 @@
 {% extends "workshop/base.html" %}
 {% load i18n %}
+{% load static %}
 {% load crispy_forms_tags %}
+{% load shop_tags %}
 
-{% block title %}{% trans "Add new product" %}{% endblock %}
+{% block title %}{% if object %}{% trans "Update" %}: {{ object.name }}{% else %}{% trans "Add new point of sale" %}{% endif %}{% endblock %}
 {% block page_heading %}
 {% if object %}
 <h1>{% trans "Update" %}: {{ object.name }}</h1>
@@ -12,21 +14,40 @@
 {% endblock %}
 
 {% block page_content %}
-  <div class="row">
-    <div class="col col-md-6">
-      <form class="form-horizontal" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <div class="control-group">
-          <div class="controls">
-            <a class="btn btn-outline-primary" href="{% url 'workshop:point-of-sale-list' %}">{% trans "Back" %}</a>
-            <button type="submit" class="btn btn-primary" name="add-new">
-              {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
-            </button>
+  {% map_style_url as style_url %}
+  {% map_geocode_url as geocode_url %}
+  {% map_autocomplete_token_url as autocomplete_token_url %}
+  {% map_autocomplete_url as autocomplete_url %}
+  <form class="pos-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row gx-lg-5">
+      <div class="col-12 col-lg-6">
+        {% crispy form %}
+      </div>
+      {% if style_url %}
+      <div class="col-12 col-lg-6 mb-3">
+        <h2 class="pos-form-legend">{% trans "Location on the map" %}</h2>
+        {% if geocode_url %}
+        <div class="pos-map-search mb-2">
+          <div class="input-group">
+            <input type="search" class="form-control" id="pos-map-search" data-pos-map-search placeholder="{% trans 'Search for an address …' %}" aria-label="{% trans 'Search for an address …' %}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="pos-map-suggestions">
+            <button type="button" class="btn btn-outline-primary" data-pos-map-search-button>{% trans "Search" %}</button>
           </div>
+          <div class="list-group shadow-sm" id="pos-map-suggestions" role="listbox" data-pos-map-suggestions hidden></div>
         </div>
-      </form>
+        {% endif %}
+        <div class="pos-map pos-map-edit" data-pos-map data-pos-map-edit data-style-url="{{ style_url }}" data-geocode-url="{{ geocode_url }}" data-autocomplete-token-url="{{ autocomplete_token_url }}" data-autocomplete-url="{{ autocomplete_url }}" data-map-js="{% static 'js/maplibre-gl.js' %}" data-map-css="{% static 'css/maplibre-gl.css' %}" data-lat-input="#id_latitude" data-lng-input="#id_longitude" data-message-empty="{% trans 'Enter an address in the search field or in the address fields first.' %}" data-message-not-found="{% trans 'No place found for this address.' %}" data-message-error="{% trans 'The address search is not available at the moment.' %}"></div>
+        <div class="form-text text-danger" data-pos-map-status hidden></div>
+        <div class="form-text">{% if geocode_url %}{% trans "Search for an address and pick a suggestion, or leave the search empty to look up the address entered on the left. The search fills in the address fields." %} {% endif %}{% trans "Click on the map to place the pin, drag the pin to move it. Customers see the pin on the map of all points of sale." %}</div>
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-pos-map-remove hidden>{% trans "Remove pin" %}</button>
+        <script defer src="{% static 'js/pos_map.js' %}"></script>
+      </div>
+      {% endif %}
     </div>
-  </div>
+    <a class="btn btn-outline-primary" href="{% url 'workshop:point-of-sale-list' %}">{% trans "Back" %}</a>
+    <button type="submit" class="btn btn-primary" name="add-new">
+      {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
+    </button>
+  </form>
 
 {% endblock %}

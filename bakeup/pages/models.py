@@ -12,6 +12,7 @@ from wagtail.models import Page
 
 from bakeup.pages import constants
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
+from bakeup.shop.maps import get_point_of_sale_overview_context
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
@@ -67,6 +68,71 @@ class BlockReferencePage(Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["help_text"] = constants.BLOCK_REFERENCE_PAGE_HELP_TEXT
+        return context
+
+
+def contains_block(data, block_type):
+    """Whether stream data has a block of the type, also inside other blocks."""
+    if isinstance(data, dict):
+        return data.get("type") == block_type or contains_block(
+            list(data.values()), block_type
+        )
+    if isinstance(data, list):
+        return any(contains_block(item, block_type) for item in data)
+    return False
+
+
+class PointOfSalePage(Page):
+    """
+    Lists all public points of sale with their details and shows them on a
+    map. Any content comes first as an introduction. The points of sale block
+    is meant for other pages; placed here, it replaces the automatic list
+    instead of showing the points of sale twice.
+    """
+
+    content = StreamField(AllBlocks(), blank=True)
+    display = models.CharField(
+        max_length=20,
+        choices=constants.POINTS_OF_SALE_DISPLAY_CHOICES,
+        default="map_and_list",
+        verbose_name=_("Display"),
+        help_text=_(
+            "The map shows the points of sale that have a pin. Without a map the"
+            " list is always shown."
+        ),
+    )
+
+    parent_page_types = ["pages.ShopPage"]
+    subpage_types = []
+    max_count = 1
+    show_in_menus_default = True
+    content_panels = Page.content_panels + [
+        HelpPanel(
+            content=_(
+                "This page lists all points of sale automatically, below the"
+                " content. The links in the checkout and the sign-up lead here."
+                " The block “Points of sale” is only needed to show them on"
+                " another page, for example the start page."
+            )
+        ),
+        FieldPanel("display"),
+        FieldPanel("content"),
+    ]
+
+    class Meta:
+        verbose_name = _("Points of sale")
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["show_overview"] = not contains_block(
+            self.content.get_prep_value(), "points_of_sale"
+        )
+        if context["show_overview"]:
+            context.update(
+                get_point_of_sale_overview_context(
+                    show_map=self.display != "list", show_list=self.display != "map"
+                )
+            )
         return context
 
 

@@ -68,6 +68,8 @@ from bakeup.workshop.forms import (
     CustomerCreateForm,
     CustomerForm,
     CustomerOrderForm,
+    PointOfSaleForm,
+    PointOfSalePickupTimeFormSet,
     ProductDoughYieldForm,
     ProductForm,
     ProductHierarchyForm,
@@ -2464,13 +2466,43 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
         return self.render_to_response(self.get_context_data())
 
 
-class PointOfSaleCreateView(StaffPermissionsMixin, CreateView):
+class PointOfSaleFormMixin:
+    """The point of sale form together with the formset of its pick-up times."""
+
     model = PointOfSale
-    fields = ("name", "short_name", "is_primary", "is_internal")
+    form_class = PointOfSaleForm
     template_name = "workshop/point_of_sale_form.html"
+
+    def get_pickup_time_formset(self):
+        return PointOfSalePickupTimeFormSet(
+            self.request.POST or None, instance=self.object, prefix="pickup_times"
+        )
+
+    def get_context_data(self, **kwargs):
+        if "pickup_time_formset" not in kwargs:
+            kwargs["pickup_time_formset"] = self.get_pickup_time_formset()
+        return super().get_context_data(**kwargs)
+
+    def form_valid(self, form):
+        pickup_time_formset = self.get_pickup_time_formset()
+        if not pickup_time_formset.is_valid():
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form, pickup_time_formset=pickup_time_formset
+                )
+            )
+        with transaction.atomic():
+            self.object = form.save()
+            pickup_time_formset.instance = self.object
+            pickup_time_formset.save()
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         return reverse("workshop:point-of-sale-list")
+
+
+class PointOfSaleCreateView(PointOfSaleFormMixin, StaffPermissionsMixin, CreateView):
+    pass
 
 
 class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
@@ -2479,13 +2511,8 @@ class PointOfSaleListView(StaffPermissionsMixin, SingleTableView):
     template_name = "workshop/point_of_sale_list.html"
 
 
-class PointOfSaleUpdateView(StaffPermissionsMixin, UpdateView):
-    model = PointOfSale
-    fields = ("name", "short_name", "is_primary", "is_internal")
-    template_name = "workshop/point_of_sale_form.html"
-
-    def get_success_url(self):
-        return reverse("workshop:point-of-sale-list")
+class PointOfSaleUpdateView(PointOfSaleFormMixin, StaffPermissionsMixin, UpdateView):
+    pass
 
 
 class PointOfSaleDeleteView(StaffPermissionsMixin, DeleteView):

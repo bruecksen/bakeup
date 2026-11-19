@@ -3,9 +3,43 @@ from django.db.models import Q
 from django.template.defaultfilters import floatformat
 
 from bakeup.pages.models import GeneralSettings
+from bakeup.shop.maps import (
+    AUTOCOMPLETE_URL,
+    get_autocomplete_token_url,
+    get_geocode_url,
+    get_map_style_url,
+)
 from bakeup.shop.models import CustomerOrderPosition, ProductionDayProduct
 
 register = template.Library()
+
+register.simple_tag(get_map_style_url, name="map_style_url")
+register.simple_tag(get_geocode_url, name="map_geocode_url")
+register.simple_tag(get_autocomplete_token_url, name="map_autocomplete_token_url")
+
+
+@register.filter
+def have_summary(points_of_sale):
+    """Whether any point of sale has pick-up times or an address to show."""
+    return any(point_of_sale.summary_for() for point_of_sale in points_of_sale)
+
+
+@register.filter
+def pickup_times_text(point_of_sale, production_day=None):
+    return " · ".join(
+        str(pickup_time)
+        for pickup_time in point_of_sale.pickup_times_for(production_day or None)
+    )
+
+
+@register.filter
+def pickup_times_for(point_of_sale, production_day=None):
+    return point_of_sale.pickup_times_for(production_day)
+
+
+@register.simple_tag
+def map_autocomplete_url():
+    return AUTOCOMPLETE_URL
 
 
 @register.simple_tag(takes_context=True)

@@ -2452,3 +2452,119 @@ msgstr "Vorheriges Bild"
 #: bakeup/templates/blocks/carousel_block.html
 msgid "Next image"
 msgstr "Nächstes Bild"
+
+#: bakeup/shop/models.py
+msgid "Latitude"
+msgstr "Breitengrad"
+
+#: bakeup/shop/models.py
+msgid "Longitude"
+msgstr "Längengrad"
+
+#: bakeup/pages/blocks.py
+msgid "Show map"
+msgstr "Karte anzeigen"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Location on the map"
+msgstr "Standort auf der Karte"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid ""
+"Click on the map to place the pin, drag the pin to move it. Customers see "
+"the pin on the map of all points of sale."
+msgstr ""
+"Ein Klick auf die Karte setzt den Pin, durch Ziehen lässt er sich "
+"verschieben. Kund:innen sehen den Pin auf der Karte aller Abholstellen."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Remove pin"
+msgstr "Pin entfernen"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Search for an address …"
+msgstr "Adresse suchen …"
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Enter an address in the search field or in the address fields first."
+msgstr "Bitte zuerst eine Adresse in die Suche oder in die Adressfelder eintragen."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "No place found for this address."
+msgstr "Zu dieser Adresse wurde kein Ort gefunden."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "The address search is not available at the moment."
+msgstr "Die Adresssuche ist gerade nicht erreichbar."
+
+#: bakeup/templates/workshop/point_of_sale_form.html
+msgid "Search for an address and pick a suggestion, or leave the search empty to look up the address entered on the left. The search fills in the address fields."
+msgstr "Suche nach einer Adresse und wähle einen Vorschlag, oder lass die Suche leer, um die links eingetragene Adresse zu finden. Die Suche füllt die Adressfelder aus."
+
+#: bakeup/workshop/forms.py
+msgid "General"
+msgstr "Allgemein"
+
+#: bakeup/workshop/forms.py
+msgid "Address"
+msgstr "Adresse"
+
+#: bakeup/workshop/forms.py
+msgid "Information for customers"
+msgstr "Infos für Kund:innen"
+
+#: bakeup/shop/models.py
+msgid "Weekday"
+msgstr "Wochentag"
+
+#: bakeup/shop/models.py
+msgid "From"
+msgstr "Von"
+
+#: bakeup/shop/models.py
+msgid "Until"
+msgstr "Bis"
+
+#: bakeup/shop/models.py
+msgid "The pick-up has to end after it starts."
+msgstr "Die Abholung muss nach ihrem Beginn enden."
+
+#: bakeup/workshop/forms.py
+msgid "Pick-up times"
+msgstr "Abholzeiten"
+
+#: bakeup/templates/workshop/includes/pickup_time_formset.html
+msgid "Add pick-up time"
+msgstr "Abholzeit hinzufügen"
+
+#: bakeup/templates/workshop/includes/pickup_time_formset.html
+msgid "When customers can pick up their order here, one row per weekday and time window."
+msgstr "Wann Kund:innen ihre Bestellung hier abholen können, eine Zeile pro Wochentag und Zeitfenster."
+
+#: bakeup/templates/workshop/includes/pickup_time_form.html
+msgid "Remove"
+msgstr "Entfernen"
+
+#: bakeup/pages/models.py
+msgid "The map shows the points of sale that have a pin. Without a map the list is always shown."
+msgstr "Die Karte zeigt die Abholstellen, die einen Pin haben. Ohne Karte wird immer die Liste gezeigt."
+
+#: bakeup/pages/models.py
+msgid "This page lists all points of sale automatically, below the content. The links in the checkout and the sign-up lead here. The block “Points of sale” is only needed to show them on another page, for example the start page."
+msgstr "Diese Seite listet alle Abholstellen automatisch unter dem Inhalt auf. Die Links im Checkout und in der Registrierung führen hierher. Der Baustein „Abholstellen“ wird nur gebraucht, um sie auf einer anderen Seite zu zeigen, zum Beispiel auf der Startseite."
+
+#: bakeup/pages/blocks.py
+msgid "Map and list"
+msgstr "Karte und Liste"
+
+#: bakeup/pages/blocks.py
+msgid "Map only"
+msgstr "Nur Karte"
+
+#: bakeup/pages/blocks.py
+msgid "List only"
+msgstr "Nur Liste"
+
+#: bakeup/pages/blocks.py
+msgid "Display"
+msgstr "Anzeige"

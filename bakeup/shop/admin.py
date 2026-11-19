@@ -9,22 +9,23 @@ from .models import (
     CustomerOrderTemplate,
     CustomerOrderTemplatePosition,
     PointOfSale,
-    PointOfSaleOpeningHour,
+    PointOfSalePickupTime,
     ProductionDay,
     ProductionDayProduct,
     ProductionDayTemplate,
 )
 
 
-class PointOfSaleOpeningHourInline(admin.StackedInline):
-    model = PointOfSaleOpeningHour
+class PointOfSalePickupTimeInline(admin.TabularInline):
+    model = PointOfSalePickupTime
+    fields = ("day_of_the_week", "from_time", "to_time")
     extra = 0
 
 
 @admin.register(PointOfSale)
 class PointOfSaleAdmin(BaseAdmin):
-    list_display = ("name", "is_primary", "is_internal", "address")
-    inlines = (PointOfSaleOpeningHourInline,)
+    list_display = ("name", "is_primary", "is_internal", "postal_code", "city")
+    inlines = (PointOfSalePickupTimeInline,)
 
 
 @admin.register(Customer)

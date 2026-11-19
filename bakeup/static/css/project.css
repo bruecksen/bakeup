@@ -12625,6 +12625,222 @@ body.shop .production-day-card .card-footer {
   background-color: var(--bs-dark);
 }
 
+.pos-map {
+  height: 420px;
+  border-radius: var(--bs-border-radius);
+  overflow: hidden;
+}
+@media screen and (max-width: 768px) {
+  .pos-map {
+    height: 300px;
+  }
+}
+.pos-map.pos-map-edit {
+  height: 460px;
+}
+
+.pos-form legend,
+.pos-form .pos-form-legend {
+  font-size: 17.6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-bottom: 5.6px;
+  padding-bottom: 0.35rem;
+  margin-bottom: 14.4px;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+.pos-form fieldset {
+  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
+}
+
+.pos-map-search {
+  position: relative;
+}
+.pos-map-search .list-group {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+
+.pos-dropdown.pos-dropdown-inline {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+}
+.pos-dropdown.pos-dropdown-inline .pos-dropdown-toggle {
+  width: auto;
+  max-width: 100%;
+  padding-left: 6.4px;
+  padding-left: 0.4rem;
+  padding-right: 24px;
+  padding-right: 1.5rem;
+}
+.pos-dropdown.pos-dropdown-inline .dropdown-menu {
+  width: 352px;
+  width: 22rem;
+  max-width: 90vw;
+}
+.pos-dropdown .pos-dropdown-toggle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pos-dropdown .pos-dropdown-option {
+  display: block;
+  white-space: normal;
+  line-height: 1.35;
+}
+.pos-dropdown .pos-dropdown-name {
+  font-weight: 600;
+}
+.pos-dropdown .dropdown-menu {
+  width: 100%;
+  max-height: 352px;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding: 4px;
+  padding: 0.25rem;
+}
+.pos-dropdown .dropdown-item {
+  padding: 8.8px 12px;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--bs-border-radius);
+  white-space: normal;
+}
+.pos-dropdown .dropdown-item.active, .pos-dropdown .dropdown-item:active {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: inherit;
+}
+
+.pos-card .pos-description > :last-child {
+  margin-bottom: 0;
+}
+.pos-card .pos-line {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 9.6px;
+  gap: 0.6rem;
+  margin-bottom: 9.6px;
+  margin-bottom: 0.6rem;
+}
+.pos-card .pos-line i {
+  margin-top: 0.3em;
+  color: var(--bs-primary);
+}
+
+.pos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 24px;
+  gap: 1.5rem;
+}
+
+.pos-card {
+  -webkit-transition: border-color 0.2s, -webkit-box-shadow 0.2s;
+  transition: border-color 0.2s, -webkit-box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, -webkit-box-shadow 0.2s;
+}
+.pos-card .pos-description {
+  margin-top: 6.4px;
+  margin-top: 0.4rem;
+  padding-top: 12px;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bs-border-color);
+  color: var(--bs-secondary-color);
+}
+.pos-card.active {
+  border-color: var(--bs-primary);
+  -webkit-box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+          box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.pos-map {
+  border: 1px solid var(--bs-border-color);
+}
+.pos-map .maplibregl-popup-content {
+  min-width: 220px;
+  padding: 16px 18.4px;
+  padding: 1rem 1.15rem;
+  border-radius: 0.75rem;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  font-size: 15.2px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--bs-body-color);
+}
+.pos-map .maplibregl-popup {
+  -webkit-filter: drop-shadow(0 5.6px 9.6px rgba(0, 0, 0, 0.2));
+          filter: drop-shadow(0 5.6px 9.6px rgba(0, 0, 0, 0.2));
+  -webkit-filter: drop-shadow(0 0.35rem 0.6rem rgba(0, 0, 0, 0.2));
+          filter: drop-shadow(0 0.35rem 0.6rem rgba(0, 0, 0, 0.2));
+}
+.pos-map .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.pos-map .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.pos-map .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  margin-top: -1px;
+}
+.pos-map .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.pos-map .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.pos-map .maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  margin-bottom: -1px;
+}
+.pos-map .maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  margin-right: -1px;
+}
+.pos-map .maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  margin-left: -1px;
+}
+.pos-map .pos-popup-name {
+  padding-right: 24px;
+  padding-right: 1.5rem;
+  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
+  font-size: 17.6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.pos-map .pos-popup-line {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 8px;
+  gap: 0.5rem;
+  margin-top: 5.6px;
+  margin-top: 0.35rem;
+}
+.pos-map .pos-popup-line i {
+  margin-top: 0.3em;
+  color: var(--bs-primary);
+}
+.pos-map .maplibregl-popup-close-button {
+  top: 8px;
+  top: 0.5rem;
+  right: 8px;
+  right: 0.5rem;
+  width: 25.6px;
+  width: 1.6rem;
+  height: 25.6px;
+  height: 1.6rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 19.2px;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--bs-secondary-color);
+}
+.pos-map .maplibregl-popup-close-button:hover {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+}
+
 .btn-primary {
   --bs-btn-color: var(--bs-white);
   --bs-btn-hover-color: var(--bs-white);
