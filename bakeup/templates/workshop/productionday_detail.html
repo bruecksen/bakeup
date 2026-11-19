@@ -105,10 +105,22 @@
     </table>
   </div>
   <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+    {% if point_of_sales %}
+    <div class="row g-2 justify-content-end mt-2 d-print-none">
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="search" id="delivery-bill-filter" class="form-control" placeholder="{% trans 'Filter by name' %}" aria-label="{% trans 'Filter by name' %}" autocomplete="off">
+        </div>
+      </div>
+    </div>
+    <p id="delivery-bill-filter-empty" class="text-muted mt-4 d-print-none" hidden>{% trans "No orders match this name." %}</p>
+    {% endif %}
     {% for point_of_sale in point_of_sales %}
-    <div class="mt-10 d-print-none"></div>
+    <div class="delivery-bill-point-of-sale">
+    {% if not forloop.first %}<div class="mt-10 d-print-none"></div>{% endif %}
     <h3 class="mt-4 mb-3 border-bottom border-3">{{ point_of_sale.point_of_sale }} <small class="text-muted float-end">{{ object }}</small></h3>
-        <ul class="list-unstyled ml-4">
+        <ul class="list-unstyled ml-4 delivery-bill-summary">
           {% for order_summary in point_of_sale.summary %}
           <li><span class="quantity">{{ order_summary.quantity }} x</span> {{ order_summary.product__name }}</li>
           {% endfor%}
@@ -127,14 +139,17 @@
           </th>
       </tr>
       {% for order in point_of_sale.orders %}
-      <tr>
+      <tr class="delivery-bill-order">
           <td>
+            <span class="delivery-bill-name">
             {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
             {{ order.customer }}
             {% else %}
             {{ order.customer.user.short_name }}
             {% endif %}
+            </span>
             {% if order.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}
+          </td>
           <td>
             {% include "workshop/includes/order_positions.html" with positions=order.positions.all %}
           </td>
@@ -157,7 +172,7 @@
       {% endfor %}
     </table>
     <div class="pagebreak"></div>
-
+    </div>
     {% endfor %}
   </div>
   <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
@@ -184,7 +199,42 @@
     </table>
   </div>
 </div>
-
-
-
 {% endblock %}
+
+{% block inline_javascript %}
+{{ block.super }}
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('delivery-bill-filter');
+    if (!input) {
+      return;
+    }
+    const normalize = (text) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const sections = Array.from(document.querySelectorAll('.delivery-bill-point-of-sale')).map((section) => ({
+      section: section,
+      summary: section.querySelector('.delivery-bill-summary'),
+      orders: Array.from(section.querySelectorAll('.delivery-bill-order')).map((row) => ({
+        row: row,
+        name: normalize(row.querySelector('.delivery-bill-name').textContent),
+      })),
+    }));
+    const empty = document.getElementById('delivery-bill-filter-empty');
+    input.addEventListener('input', () => {
+      const query = normalize(input.value);
+      let matches = 0;
+      sections.forEach(({section, summary, orders}) => {
+        let sectionMatches = 0;
+        orders.forEach(({row, name}) => {
+          const isMatch = name.includes(query);
+          row.hidden = !isMatch;
+          sectionMatches += isMatch ? 1 : 0;
+        });
+        section.hidden = query !== '' && sectionMatches === 0;
+        summary.hidden = query !== '';
+        matches += sectionMatches;
+      });
+      empty.hidden = query === '' || matches > 0;
+    });
+  });
+</script>
+{% endblock inline_javascript %}
