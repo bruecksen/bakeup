@@ -18,6 +18,13 @@ EMAIL_ORDER_CANCELLATION_DEFAULT = """
 <p>Sie haben soeben Ihre komplette Bestellung für den <strong>{{ production_day }}</strong> gelöscht. Wenn dies ein Versehen war, bestellen Sie die gelöschten Backwaren bitte wieder neu.</p>
 """  # noqa: E501
 
+# What the points of sale block and the points of sale page show.
+POINTS_OF_SALE_DISPLAY_CHOICES = [
+    ("map_and_list", _("Map and list")),
+    ("map", _("Map only")),
+    ("list", _("List only")),
+]
+
 # Slug of the content page that shows every CMS block, see the
 # create_block_reference_page command.
 BLOCK_REFERENCE_PAGE_SLUG = "bausteine"

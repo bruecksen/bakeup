@@ -1,0 +1,37 @@
+{% load static %}
+<div class="pos-overview" data-pos-overview>
+    {% if map_style_url %}
+    <div class="pos-map{% if show_list %} mb-4{% endif %}" id="{{ map_id }}" data-pos-map data-style-url="{{ map_style_url }}" data-map-js="{% static 'js/maplibre-gl.js' %}" data-map-css="{% static 'css/maplibre-gl.css' %}" data-markers="{{ map_markers_id }}"></div>
+    {{ map_markers|json_script:map_markers_id }}
+    <script defer src="{% static 'js/pos_map.js' %}"></script>
+    {% endif %}
+    {% if show_list %}
+    <div class="pos-list">
+        {% for point_of_sale in points_of_sale %}
+        <div>
+            <div class="card h-100 pos-card" id="{{ map_id }}-pos-{{ point_of_sale.pk }}" data-pos-card="{{ point_of_sale.pk }}">
+                <div class="card-body d-flex flex-column">
+                    <h3 class="card-title fs-4 mb-3">{{ point_of_sale.name }}</h3>
+                    {% if point_of_sale.address_lines %}
+                    <div class="pos-line pos-address"><i class="fa-solid fa-location-dot fa-fw"></i><div>{% for line in point_of_sale.address_lines %}{{ line }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div></div>
+                    {% endif %}
+                    {% with pickup_times=point_of_sale.pickup_times_for %}
+                    {% if pickup_times %}
+                    <div class="pos-line pos-pickup-times"><i class="fa-regular fa-clock fa-fw"></i><div>{% for pickup_time in pickup_times %}{{ pickup_time }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div></div>
+                    {% endif %}
+                    {% endwith %}
+                    {% if point_of_sale.description.strip %}
+                    <div class="pos-description">{{ point_of_sale.description|linebreaks }}</div>
+                    {% endif %}
+                    {% if map_style_url and point_of_sale.has_location %}
+                    <div class="mt-auto pt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm pos-focus" data-pos-focus="{{ point_of_sale.pk }}"><i class="fa-solid fa-map-location-dot me-1"></i>Auf der Karte zeigen</button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

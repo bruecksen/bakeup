@@ -406,6 +406,7 @@ class PointOfSaleTable(tables.Table):
         fields = (
             "name",
             "short_name",
+            "city",
             "is_primary",
             "is_internal",
             "customers",

@@ -5,6 +5,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import connection, models, transaction
 from django.db.models import (
@@ -22,6 +23,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.dates import WEEKDAYS
 from django.utils.safestring import SafeString
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -661,14 +663,14 @@ class PointOfSaleQuerySet(models.QuerySet):
         ]
         return self.filter(Q(is_internal=False) | Q(pk__in=own))
 
+    def public(self):
+        return self.filter(is_internal=False)
+
 
 class PointOfSale(CommonBaseClass):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
     short_name = models.CharField(
         max_length=255, blank=True, null=True, verbose_name=_("Short Name")
-    )
-    address = models.OneToOneField(
-        "contrib.Address", on_delete=models.PROTECT, blank=True, null=True
     )
     is_primary = models.BooleanField(default=False, verbose_name=_("Primary?"))
     is_internal = models.BooleanField(
@@ -679,6 +681,33 @@ class PointOfSale(CommonBaseClass):
             " signing up nor when ordering. Only the bakery can assign them."
         ),
     )
+    street = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("Street")
+    )
+    street_number = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Street Number")
+    )
+    postal_code = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name=_("Postal Code")
+    )
+    city = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name=_("City")
+    )
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        verbose_name=_("Latitude"),
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+        verbose_name=_("Longitude"),
+    )
 
     objects = PointOfSaleQuerySet.as_manager()
 
@@ -688,6 +717,54 @@ class PointOfSale(CommonBaseClass):
     def get_short_name(self):
         return self.short_name or self.name
 
+    @property
+    def address_lines(self):
+        lines = [
+            f"{self.street or ''} {self.street_number or ''}".strip(),
+            f"{self.postal_code or ''} {self.city or ''}".strip(),
+        ]
+        return [line for line in lines if line]
+
+    @property
+    def address_line(self):
+        return ", ".join(self.address_lines)
+
+    @property
+    def has_location(self):
+        return self.latitude is not None and self.longitude is not None
+
+    def pickup_times_for(self, production_day=None):
+        """
+        When customers can pick up here. With a production day only the times
+        of its weekday, or all of them when none is on that weekday: the
+        pick-up can also be on a later day.
+        """
+        if not self.pk:
+            return []
+        # In Python, so that prefetched pick-up times are used.
+        pickup_times = list(self.pickup_times.all())
+        if production_day:
+            weekday = production_day.day_of_sale.weekday()
+            on_weekday = [
+                pickup_time
+                for pickup_time in pickup_times
+                if pickup_time.day_of_the_week == weekday
+            ]
+            return on_weekday or pickup_times
+        return pickup_times
+
+    def summary_for(self, production_day=None):
+        """
+        One line for the places where customers choose a point of sale: when
+        and where to pick up. Empty without pick-up times and address.
+        """
+        parts = [
+            str(pickup_time) for pickup_time in self.pickup_times_for(production_day)
+        ]
+        if self.address_line:
+            parts.append(self.address_line)
+        return " · ".join(parts)
+
     def get_customer_count(self):
         return self.customers.count()
 
@@ -695,20 +772,29 @@ class PointOfSale(CommonBaseClass):
         return CustomerOrder.objects.filter(point_of_sale=self).count()
 
 
-# TODO how to handle public holidays, exceptional closing days, etc.
-class PointOfSaleOpeningHour(CommonBaseClass):
+class PointOfSalePickupTime(CommonBaseClass):
     point_of_sale = models.ForeignKey(
-        "shop.PointOfSale", on_delete=models.PROTECT, related_name="opening_hours"
+        "shop.PointOfSale", on_delete=models.CASCADE, related_name="pickup_times"
     )
-    day_of_the_week = models.PositiveSmallIntegerField(choices=DAYS_OF_WEEK)
-    from_time = models.TimeField()
-    to_time = models.TimeField()
+    day_of_the_week = models.PositiveSmallIntegerField(
+        choices=list(WEEKDAYS.items()), verbose_name=_("Weekday")
+    )
+    from_time = models.TimeField(verbose_name=_("From"))
+    to_time = models.TimeField(verbose_name=_("Until"))
 
     class Meta:
-        ordering = ("day_of_the_week",)
+        ordering = ("day_of_the_week", "from_time")
 
     def __str__(self):
-        return self.point_of_sale.name
+        return "{}, {:%H:%M}–{:%H:%M} Uhr".format(
+            self.get_day_of_the_week_display(), self.from_time, self.to_time
+        )
+
+    def clean(self):
+        if self.from_time and self.to_time and self.to_time <= self.from_time:
+            raise ValidationError(
+                {"to_time": _("The pick-up has to end after it starts.")}
+            )
 
 
 class CustomerOrderPositionQuerySet(models.QuerySet):

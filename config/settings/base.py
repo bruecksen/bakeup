@@ -551,3 +551,17 @@ TENANT_DEFAULT_EMAIL_PASSWORD = env("TENANT_DEFAULT_EMAIL_PASSWORD", default="")
 TENANT_DEFAULT_EMAIL_USER = env("TENANT_DEFAULT_EMAIL_USER", default="")
 TENANT_DEFAULT_EMAIL_PORT = env("TENANT_DEFAULT_EMAIL_PORT", default="587")
 TENANT_DEFAULT_EMAIL_USE_TLS = env("TENANT_DEFAULT_EMAIL_USE_TLS", default=True)
+
+# MAP
+# ------------------------------------------------------------------------------
+# Map of the points of sale: MapLibre GL JS with SmartMaps as tile source.
+# Without a key there is no map anywhere. MAP_STYLE_URL can point to another
+# style, {api_key} is replaced with the key.
+SMARTMAPS_API_KEY = env("SMARTMAPS_API_KEY", default="")
+MAP_STYLE_URL = env(
+    "MAP_STYLE_URL",
+    default=(
+        "https://tiles.smartmaps.cloud/styles/v1/smartmaps/light/style.json"
+        "?apiKey={api_key}"
+    ),
+)

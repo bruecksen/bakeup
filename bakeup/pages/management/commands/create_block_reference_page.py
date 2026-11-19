@@ -26,6 +26,15 @@ def space(size=3):
     return {"type": "space", "value": {"space": size, "space_mobile": 2}}
 
 
+def without_ids(data):
+    """Stream data without the ids that are generated when a page is saved."""
+    if isinstance(data, dict):
+        return {key: without_ids(value) for key, value in data.items() if key != "id"}
+    if isinstance(data, list):
+        return [without_ids(item) for item in data]
+    return data
+
+
 FAQ_ITEMS = [
     {
         "question": "Wann kann ich bestellen?",
@@ -293,6 +302,53 @@ class Command(InteractiveTenantOption, BaseCommand):
             {"type": "production_days", "value": {"production_day_limit": 2}},
             intro("Sortiment", "Alle Produkte, nach Kategorien geordnet."),
             {"type": "product_assortment", "value": {"only_planned_products": False}},
+            intro(
+                "Abholstellen",
+                "Alle Abholstellen mit Adresse, Abholzeiten und Beschreibung. Die"
+                " Karte zeigt die Abholstellen, für die ein Pin gesetzt ist. Der"
+                " Baustein kann Karte und Liste, nur die Karte oder nur die Liste"
+                " zeigen.",
+            ),
+            {
+                "type": "points_of_sale",
+                "value": {
+                    "heading": "Hier gibt es unser Brot",
+                    "display": "map_and_list",
+                },
+            },
+            text("<h3>In Spalten: Text neben der Karte</h3>"),
+            {
+                "type": "column12",
+                "value": {
+                    "left": [
+                        text(
+                            "<h4>So findest du uns</h4><p>Der Baustein passt auch"
+                            " in Spalten und Abschnitte, hier zeigt er nur die"
+                            " Karte.</p>"
+                        )
+                    ],
+                    "right": [
+                        {
+                            "type": "points_of_sale",
+                            "value": {"heading": "", "display": "map"},
+                        }
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "background": "primary",
+                    "eyebrow": "Abschnitt",
+                    "heading": "Abholstellen auf einer Hintergrundfarbe",
+                    "content": [
+                        {
+                            "type": "points_of_sale",
+                            "value": {"heading": "", "display": "map_and_list"},
+                        }
+                    ],
+                },
+            },
         ]
 
     def handle(self, *args, **options):
@@ -321,6 +377,17 @@ class Command(InteractiveTenantOption, BaseCommand):
             )
             shop_page.add_child(instance=page)
         else:
+            # The command runs on every deploy: without a change in the blocks
+            # the page keeps its revision.
+            field = page._meta.get_field("content")
+            new_content = field.to_python(blocks)
+            if without_ids(new_content.get_prep_value()) == without_ids(
+                page.content.get_prep_value()
+            ):
+                self.stdout.write(
+                    "Block reference page unchanged for tenant {}".format(tenant)
+                )
+                return
             page.content = blocks
         page.save_revision().publish()
 

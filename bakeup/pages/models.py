@@ -17,6 +17,7 @@ from wagtail.models import Page
 
 from bakeup.pages import constants
 from bakeup.pages.blocks import AllBlocks, ButtonBlock, ContentBlocks
+from bakeup.shop.maps import get_point_of_sale_overview_context
 from bakeup.shop.models import (
     CustomerOrder,
     CustomerOrderPosition,
@@ -111,6 +112,53 @@ class BlockReferencePage(Page):
                 sections.append({"title": "", "anchor": "", "blocks": []})
             sections[-1]["blocks"].append(block)
         return sections
+
+
+class PointOfSalePage(Page):
+    """
+    Lists all public points of sale with their details and shows them on a
+    map. Any content comes first as an introduction. The points of sale block
+    is meant for other pages.
+    """
+
+    content = StreamField(AllBlocks(), blank=True)
+    display = models.CharField(
+        max_length=20,
+        choices=constants.POINTS_OF_SALE_DISPLAY_CHOICES,
+        default="map_and_list",
+        verbose_name=_("Display"),
+        help_text=_(
+            "The map shows the points of sale that have a pin. Without a map the"
+            " list is always shown."
+        ),
+    )
+
+    max_count = 1
+    show_in_menus_default = True
+    content_panels = Page.content_panels + [
+        HelpPanel(
+            content=_(
+                "This page lists all points of sale automatically, below the"
+                " content. The links in the checkout and the sign-up lead here."
+                " The block “Points of sale” is only needed to show them on"
+                " another page, for example the start page."
+            )
+        ),
+        FieldPanel("display"),
+        FieldPanel("content"),
+    ]
+
+    class Meta:
+        verbose_name = _("Points of sale")
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context.update(
+            get_point_of_sale_overview_context(
+                show_map=self.display != "list", show_list=self.display != "map"
+            )
+        )
+        return context
 
 
 class ShopPage(Page):

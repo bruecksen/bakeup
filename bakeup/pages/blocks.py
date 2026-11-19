@@ -24,6 +24,8 @@ from wagtail.images.blocks import ImageChooserBlock as _ImageChooserBlock
 
 from bakeup.contrib.blocks import ImageAlignmentChoiceBlock, RichTextBlock
 from bakeup.newsletter.blocks import NewsletterSubscribeBlock
+from bakeup.pages.constants import POINTS_OF_SALE_DISPLAY_CHOICES
+from bakeup.shop.maps import get_point_of_sale_overview_context
 from bakeup.shop.models import Product, ProductionDay
 from bakeup.workshop.models import prefetch_product_cards
 
@@ -299,6 +301,35 @@ class StepsBlock(StructBlock):
         return context
 
 
+class PointsOfSaleBlock(StructBlock):
+    """
+    All public points of sale with address, opening hours and description,
+    and a map of those that have a pin.
+    """
+
+    heading = CharBlock(label=_("Heading"), required=False)
+    display = ChoiceBlock(
+        choices=POINTS_OF_SALE_DISPLAY_CHOICES,
+        default="map_and_list",
+        label=_("Display"),
+    )
+
+    class Meta:
+        template = "blocks/points_of_sale_block.html"
+        label = _("Points of sale")
+        icon = "site"
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context)
+        context.update(
+            get_point_of_sale_overview_context(
+                show_map=value.get("display") != "list",
+                show_list=value.get("display") != "map",
+            )
+        )
+        return context
+
+
 class CommonBlocks(StreamBlock):
     # heading = HeadingBlock(group=_("Common"))
     text = RichTextBlock(group=_("Common"))
@@ -316,6 +347,8 @@ class CommonBlocks(StreamBlock):
     faq = FaqBlock(group=_("Common"))
     image_text = ImageTextBlock(group=_("Common"))
     steps = StepsBlock(group=_("Common"))
+    # In the common blocks, so that it also fits into sections and columns.
+    points_of_sale = PointsOfSaleBlock(group=_("Bakeup"))
     # tile = TileBlock(group=_("Common"))
 
 

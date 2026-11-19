@@ -3,7 +3,12 @@ from factory.django import DjangoModelFactory, ImageField
 from wagtail.images.models import Image
 from wagtail.models import Page
 
-from bakeup.pages.models import BlockReferencePage, ContentPage, ShopPage
+from bakeup.pages.models import (
+    BlockReferencePage,
+    ContentPage,
+    PointOfSalePage,
+    ShopPage,
+)
 
 
 class ImageFactory(DjangoModelFactory):
@@ -46,3 +51,8 @@ class ContentPageFactory(PageFactory):
 class BlockReferencePageFactory(PageFactory):
     class Meta:
         model = BlockReferencePage
+
+
+class PointOfSalePageFactory(PageFactory):
+    class Meta:
+        model = PointOfSalePage

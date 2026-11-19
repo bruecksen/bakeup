@@ -1,5 +1,5 @@
 {% load l10n %}
-{% load shop_tags %}
+{% load shop_tags pages_tags %}
 {% load wagtailcore_tags %}
 {% load i18n %}
 <div class="modal modal-lg fade modal-{{ name }}" {% if id %}id="modal-order-{{ id }}"{% endif %} data-production-day="{{ production_day.pk }}" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
@@ -24,21 +24,24 @@
                     {% endif %}
                 {% if point_of_sales %}
                 {% with preferred_point_of_sale=customer_order.point_of_sale|default:user.customer.point_of_sale %}
+                {% point_of_sale_page_url as overview_url %}
+                {% with show_dropdown=point_of_sales|have_summary %}
                 {% if preferred_point_of_sale and preferred_point_of_sale not in point_of_sales and not customer_order.is_locked %}
-                <p class="mb-1"><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect border-danger" name="point_of_sale" required data-required-message="{% trans 'Please choose a pick-up location for this order.' %}">
+                <p class="mb-1"><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect border-danger" name="point_of_sale"{% if show_dropdown %} data-pos-dropdown{% endif %} required data-required-message="{% trans 'Please choose a pick-up location for this order.' %}">
                     <option value="" selected disabled>{% trans 'Please choose …' %}</option>
                     {% for point_of_sale in point_of_sales %}
-                    <option value="{{ point_of_sale.pk }}">{{ point_of_sale.name }}</option>
+                    <option value="{{ point_of_sale.pk }}"{% if point_of_sale.address_line %} data-address="{{ point_of_sale.address_line }}"{% endif %}{% with pickup_times=point_of_sale|pickup_times_text:production_day %}{% if pickup_times %} data-pickup-times="{{ pickup_times }}"{% endif %}{% endwith %}>{{ point_of_sale.name }}</option>
                     {% endfor %}
-                    </select></p>
+                    </select>{% if show_dropdown and overview_url %} <a class="pos-overview-link small ms-2 text-nowrap" href="{{ overview_url }}" target="_blank" rel="noopener">Alle Abholstellen ansehen</a>{% endif %}</p>
                 <p class="pos-hint small text-danger">{% blocktrans with name=preferred_point_of_sale.name %}Your pick-up location <strong>{{ name }}</strong> is not available on this baking day.<br>Please choose another one for this order.{% endblocktrans %}</p>
                 {% else %}
-                <p class=""><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect" name="point_of_sale"{% if customer_order.is_locked %} disabled{% endif %}>
+                <p class=""><span class="min-w-75 d-inline-block">Abholort: </span><select class="form-select form-select-xs d-inline pos-select pe-3 me-1 resizeselect" name="point_of_sale"{% if show_dropdown %} data-pos-dropdown{% endif %}{% if customer_order.is_locked %} disabled{% endif %}>
                     {% for point_of_sale in point_of_sales %}
-                    <option value="{{ point_of_sale.pk }}" {% if preferred_point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale.name }}</option>
+                    <option value="{{ point_of_sale.pk }}"{% if point_of_sale.address_line %} data-address="{{ point_of_sale.address_line }}"{% endif %}{% with pickup_times=point_of_sale|pickup_times_text:production_day %}{% if pickup_times %} data-pickup-times="{{ pickup_times }}"{% endif %}{% endwith %} {% if preferred_point_of_sale == point_of_sale %} selected{% endif %}>{{ point_of_sale.name }}</option>
                     {% endfor %}
-                    </select></p>
+                    </select>{% if show_dropdown and overview_url %} <a class="pos-overview-link small ms-2 text-nowrap" href="{{ overview_url }}" target="_blank" rel="noopener">Alle Abholstellen ansehen</a>{% endif %}</p>
                 {% endif %}
+                {% endwith %}
                 {% endwith %}
                 {% endif %}
                 <table class="table table-light mt-4 mb-4 border-white">
