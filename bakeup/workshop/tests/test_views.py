@@ -1121,3 +1121,51 @@ class CustomerOrderExportTest(NumberCircleTestCase):
         ]
         column = rows[0].index("vat_percent")
         self.assertEqual(sorted(row[column] for row in rows[1:]), ["19.0000", "7.0000"])
+
+
+# https://github.com/bruecksen/bakeup/issues/548
+def test_swapping_product_in_production_day_form_deletes_its_planned_plan(
+    client, staff_user, planned_production_day, sellable_products
+):
+    client.force_login(staff_user)
+    bread_row, broetchen_row = ProductionDayProduct.objects.filter(
+        production_day=planned_production_day
+    ).order_by("product__name")
+
+    # The row that sold Bread now sells Baguette, the other row stays.
+    response = client.post(
+        reverse(
+            "workshop:production-day-update", kwargs={"pk": planned_production_day.pk}
+        ),
+        {
+            "day_of_sale": planned_production_day.day_of_sale.isoformat(),
+            "form-TOTAL_FORMS": 2,
+            "form-INITIAL_FORMS": 2,
+            "form-0-id": bread_row.pk,
+            "form-0-product": sellable_products["Baguette"].pk,
+            "form-0-max_quantity": 10,
+            "form-1-id": broetchen_row.pk,
+            "form-1-product": sellable_products["Brötchen"].pk,
+            "form-1-max_quantity": 10,
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "workshop:production-day-detail", kwargs={"pk": planned_production_day.pk}
+    )
+    assert list(
+        ProductionDayProduct.objects.filter(production_day=planned_production_day)
+        .order_by("product__name")
+        .values_list("product__name", flat=True)
+    ) == ["Baguette", "Brötchen"]
+    assert list(
+        ProductionPlan.objects.filter(
+            production_day=planned_production_day, parent_plan=None
+        )
+        .order_by("product__product_template__name")
+        .values_list("product__product_template__name", "state")
+    ) == [
+        ("Baguette", ProductionPlan.State.PLANNED),
+        ("Brötchen", ProductionPlan.State.PLANNED),
+    ]

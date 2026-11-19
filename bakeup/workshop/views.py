@@ -1574,8 +1574,6 @@ class ProductionDayMixin(object):
             # raise Exception(instances)
             for obj in formset.deleted_objects:
                 try:
-                    if obj.production_plan:
-                        obj.production_plan.delete()
                     if obj.order_positions.exists():
                         print("redirect....")
                         return HttpResponseRedirect(
