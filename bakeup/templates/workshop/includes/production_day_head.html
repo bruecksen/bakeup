@@ -1,30 +1,45 @@
-{% load i18n %}
-<div class="day-header d-print-none">
-  <div class="day-bar">
-    {% include "workshop/includes/production_day_switch.html" %}
+{% load i18n workshop_tags %}
+<div class="day-head">
+  <div class="day-header d-print-none">
+    <h1 class="visually-hidden">{{ day_switch.production_day.day_of_sale|date:"l, j. F Y" }}</h1>
+    <div class="day-title">
+      {% include "workshop/includes/production_day_switch.html" %}
+      <div id="day-actions" class="day-header-actions">
+        {% include "workshop/includes/actions.html" with actions=day_switch.actions target=day_switch.target %}
+      </div>
+    </div>
     {% include "workshop/includes/production_day_week_strip.html" with calendar=day_switch.week %}
   </div>
-  <div class="day-header-top">
-    <div id="day-meta" class="day-meta">
-      <span><i class="fas fa-calendar-week fa-fw" aria-hidden="true"></i> {% trans "CW" %} {{ day_switch.production_day.calendar_week }}</span>
+  <div class="day-meta{% if not print_meta %} d-print-none{% endif %}">
+    <span id="day-meta" class="day-meta-group">
+      <span class="day-meta-item"><i class="fas fa-calendar-week fa-fw" aria-hidden="true"></i> {% trans "CW" %} {{ day_switch.production_day.calendar_week }}</span>
       {% if day_switch.production_day.point_of_sales.exists %}
-      <span><i class="fas fa-warehouse fa-fw" aria-hidden="true"></i> {% for pos in day_switch.production_day.point_of_sales.all %}{{ pos.get_short_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+      <span class="day-meta-item"><i class="fas fa-warehouse fa-fw" aria-hidden="true"></i> {% for pos in day_switch.production_day.point_of_sales.all %}{{ pos.get_short_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
       {% endif %}
-      {% for state in day_switch.states %}
-      <span class="badge rounded-pill {{ state.css_class }}">{{ state.count }} {{ state.label }}</span>
-      {% endfor %}
-    </div>
-    <div id="day-actions" class="day-header-actions">
-      {% if wake_lock %}
-      <button type="button" id="wake-lock-toggle" class="btn btn-outline-success d-none" aria-pressed="false" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun"></i> <span class="action-label">{% trans "Screen on" %}</span></button>
+    </span>
+    {% if stats %}
+    <span class="day-meta-group">
+      <span class="day-meta-item day-meta-figure"><strong>{{ stats.orders }}</strong> {% blocktranslate count counter=stats.orders %}order{% plural %}orders{% endblocktranslate %}</span>
+      <span class="day-meta-item day-meta-figure" title="{% trans 'Total ordered quantity' %}"><strong>{{ stats.pieces }}</strong> {% trans "Pieces" %}</span>
+      {% if stats.published %}
+      <span class="day-meta-item day-meta-figure"><strong>{{ stats.sold }}</strong>&thinsp;/&thinsp;{{ stats.published }} {% trans "sold in shop" %}<span class="day-meta-progress" role="progressbar" aria-label="{% trans 'Sold in shop' %}" aria-valuenow="{{ stats.sold_percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ stats.sold_percent }}%"></span></span></span>
       {% endif %}
-      {% if day_actions %}
-      {% include "workshop/includes/actions.html" with actions=day_actions target=day_switch.target %}
+      {% if stats.sales is not None %}
+      <span class="day-meta-item day-meta-figure"><strong>{{ stats.sales|floatformat:2 }}&nbsp;€</strong> {% trans "Sales" %}</span>
       {% endif %}
-    </div>
+    </span>
+    {% endif %}
+    {% if summary %}
+    <span id="production-summary" class="day-meta-group">
+      {% if summary.pieces %}
+      <span class="day-meta-item day-meta-figure"><strong>{{ summary.pieces|floatformat }}</strong> {% trans "Pieces" %}</span>
+      <span class="day-meta-item day-meta-figure"><strong>{{ summary.weight|clever_unit }}</strong> {% trans "Total weight" %}</span>
+      {% endif %}
+    </span>
+    {% endif %}
   </div>
   {% if day_switch.production_day.description %}
-  <p class="day-description">{{ day_switch.production_day.description }}</p>
+  <p class="day-description d-print-none">{{ day_switch.production_day.description }}</p>
   {% endif %}
 </div>
 {% include "workshop/includes/production_day_tabs.html" %}

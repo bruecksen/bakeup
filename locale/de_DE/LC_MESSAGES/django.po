@@ -2328,6 +2328,14 @@ msgstr "KW"
 msgid "Sold in shop"
 msgstr "Im Shop verkauft"
 
+msgid "sold in shop"
+msgstr "im Shop verkauft"
+
+msgid "order"
+msgid_plural "orders"
+msgstr[0] "Bestellung"
+msgstr[1] "Bestellungen"
+
 msgid "State"
 msgstr "Status"
 

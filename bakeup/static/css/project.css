@@ -14950,31 +14950,58 @@ li:hover > .row .main-flour-set,
   margin: 0 auto;
 }
 
-.day-bar {
+.day-head {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: stretch;
-      -ms-flex-align: stretch;
-          align-items: stretch;
-  gap: 12px;
-  gap: 0.75rem;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  gap: 8px;
+  gap: 0.5rem;
+  margin-top: 8px;
+  margin-top: 0.5rem;
+  margin-bottom: 28px;
+  margin-bottom: 1.75rem;
 }
 
-.day-bar .production-day-switch {
-  -ms-flex-item-align: center;
-      align-self: center;
+.day-title {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 8px;
+  gap: 0.5rem;
+}
+.day-title .production-day-switch {
+  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.375rem;
+}
+.day-title .day-picker-toggle {
+  font-size: 22px;
+  font-size: 1.375rem;
+  line-height: 1.2;
+}
+.day-title .day-picker-icon,
+.day-title .fa-angle-down {
+  font-size: 16px;
+  font-size: 1rem;
 }
 
 .day-picker-date {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .day-week-strip {
   display: grid;
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 auto;
-          flex: 1 1 auto;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   gap: 0.375rem;
@@ -15003,12 +15030,13 @@ li:hover > .row .main-flour-set,
   font-size: 0.8125rem;
   line-height: 1.25;
   text-decoration: none;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.5);
   border-left: 3px solid transparent;
   border-radius: 0.375rem;
 }
 .day-week-chip.has-day {
   color: #212529;
+  background-color: #fff;
   border-left-color: #CD6646;
   -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
           box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -15019,14 +15047,6 @@ li:hover > .row .main-flour-set,
 .day-week-chip.can-add:hover, .day-week-chip.can-add:focus-visible {
   color: #CD6646;
   background-color: #fbf3f0;
-}
-.day-week-chip.is-today {
-  -webkit-box-shadow: inset 0 0 0 2px #CD6646;
-          box-shadow: inset 0 0 0 2px #CD6646;
-}
-.day-week-chip.is-today.has-day {
-  -webkit-box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-          box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .day-week-chip.is-today .day-week-chip-date {
   color: #CD6646;
@@ -15090,25 +15110,6 @@ li:hover > .row .main-flour-set,
   }
 }
 @media (max-width: 991.98px) {
-  .day-bar {
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
-    gap: 0.5rem;
-  }
-  .day-bar .production-day-switch {
-    -ms-flex-item-align: stretch;
-        align-self: stretch;
-  }
-  .day-bar .production-day-switch .day-picker-toggle {
-    -webkit-box-flex: 1;
-        -ms-flex: 1 1 auto;
-            flex: 1 1 auto;
-    -webkit-box-pack: center;
-        -ms-flex-pack: center;
-            justify-content: center;
-  }
   .day-week-strip {
     gap: 0.25rem;
   }
@@ -15138,48 +15139,6 @@ li:hover > .row .main-flour-set,
     display: none;
   }
 }
-.production-stat {
-  height: 100%;
-  padding: 12px 16px;
-  padding: 0.75rem 1rem;
-  background-color: #fff;
-  border-radius: 0.375rem;
-  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.production-stat-value {
-  font-size: 24px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.production-stat-label {
-  color: #6c757d;
-  font-size: 14px;
-  font-size: 0.875rem;
-}
-
-.production-stat-states {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  gap: 6px;
-  gap: 0.375rem;
-}
-.production-stat-states .badge {
-  font-size: 14px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
 .btn-surface {
   --bs-btn-color: #212529;
   --bs-btn-bg: #fff;
@@ -15201,6 +15160,10 @@ li:hover > .row .main-flour-set,
   color: inherit;
 }
 
+.btn-surface.btn-finish i {
+  color: #198754;
+}
+
 .day-header {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -15209,39 +15172,28 @@ li:hover > .row .main-flour-set,
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
           flex-direction: column;
-  gap: 12px;
-  gap: 0.75rem;
-  margin-bottom: 12px;
-  margin-bottom: 0.75rem;
-}
-
-.day-header-top {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  gap: 8px 16px;
-  gap: 0.5rem 1rem;
-  min-height: 38px;
-  min-height: 2.375rem;
+  gap: 8px;
+  gap: 0.5rem;
 }
 
 .day-header-actions {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
   gap: 8px;
   gap: 0.5rem;
   margin-left: auto;
+}
+
+#wake-lock-toggle.active i {
+  color: #ffc107;
+}
+
+.section-toolbar:has(> #wake-lock-toggle.d-none:only-child) {
+  display: none;
 }
 
 .production-day-switch {
@@ -15255,52 +15207,6 @@ li:hover > .row .main-flour-set,
           flex: 0 0 auto;
 }
 
-.day-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  margin-bottom: 24px;
-  margin-bottom: 1.5rem;
-  background-color: #fff;
-  border-radius: 0.375rem;
-  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.day-stat {
-  padding: 10px 16px;
-  padding: 0.625rem 1rem;
-}
-.day-stat + .day-stat {
-  border-left: 1px solid #e9ecef;
-}
-.day-stat dt {
-  color: #6c757d;
-  font-size: 13px;
-  font-size: 0.8125rem;
-  font-weight: 400;
-}
-.day-stat dd {
-  margin: 0;
-  font-size: 20px;
-  font-size: 1.25rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.day-stat-of {
-  color: #6c757d;
-  font-size: 14px;
-  font-size: 0.875rem;
-  font-weight: 400;
-}
-
-.day-stat-progress {
-  height: 4px;
-  height: 0.25rem;
-  margin-top: 4px;
-  margin-top: 0.25rem;
-}
-
 .day-meta {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -15310,14 +15216,44 @@ li:hover > .row .main-flour-set,
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
-  gap: 4px 16px;
-  gap: 0.25rem 1rem;
+  gap: 4px 20px;
+  gap: 0.25rem 1.25rem;
   color: #6c757d;
   font-size: 14px;
   font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
 }
-.day-meta .badge {
-  font-weight: 500;
+
+.day-meta-group {
+  display: contents;
+}
+
+.day-meta-item {
+  white-space: nowrap;
+}
+
+.day-meta-figure strong {
+  color: #212529;
+  font-weight: 600;
+}
+
+.day-meta-progress {
+  display: inline-block;
+  width: 48px;
+  width: 3rem;
+  height: 5px;
+  height: 0.3125rem;
+  margin-left: 6px;
+  margin-left: 0.375rem;
+  overflow: hidden;
+  vertical-align: middle;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0.3125rem;
+}
+.day-meta-progress > span {
+  display: block;
+  height: 100%;
+  background-color: #198754;
 }
 
 .day-description {
@@ -15352,8 +15288,10 @@ li:hover > .row .main-flour-set,
           justify-content: flex-end;
   gap: 8px;
   gap: 0.5rem;
-  margin-bottom: 16px;
-  margin-bottom: 1rem;
+  min-height: 32px;
+  min-height: 2rem;
+  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 .section-toolbar .section-toolbar-filter {
   -webkit-box-flex: 0;
@@ -15362,6 +15300,7 @@ li:hover > .row .main-flour-set,
   -ms-flex: 0 1 16rem;
       flex: 0 1 16rem;
   width: auto;
+  margin-right: auto;
 }
 .section-toolbar .btn {
   --bs-btn-padding-y: 4px;
@@ -15379,8 +15318,8 @@ li:hover > .row .main-flour-set,
       flex-wrap: nowrap;
   gap: 4px;
   gap: 0.25rem;
-  margin-bottom: 20px;
-  margin-bottom: 1.25rem;
+  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
   overflow-x: auto;
   overflow-y: hidden;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
@@ -15416,6 +15355,13 @@ li:hover > .row .main-flour-set,
   border-radius: 0.375rem;
   -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
           box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.production-day-detail .tab-content > .tab-pane > .section-toolbar {
+  margin: -12px -12px 12px;
+  margin: -0.75rem -0.75rem 0.75rem;
+  padding: 8px 12px;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .day-product-name {
@@ -16756,17 +16702,21 @@ i.step-check-all {
     font-size: 1.5rem;
   }
   .production-day-switch {
-    -webkit-box-flex: 1;
-        -ms-flex: 1 1 100%;
-            flex: 1 1 100%;
-  }
-  .production-day-switch > .btn-group {
-    -webkit-box-flex: 1;
-        -ms-flex: 1 1 auto;
-            flex: 1 1 auto;
+    min-width: 0;
   }
   .day-picker-toggle {
     min-width: 0;
+    gap: 0.375rem;
+  }
+  .day-title .production-day-switch > .btn {
+    --bs-btn-padding-x: .5rem;
+  }
+  .day-title .day-picker-toggle {
+    font-size: 1.125rem;
+  }
+  .day-picker-toggle .day-picker-year,
+  .day-picker-toggle .day-picker-icon {
+    display: none;
   }
   .day-calendar:not(.is-week) .day-calendar-grid {
     gap: 0.25rem;
@@ -16780,29 +16730,20 @@ i.step-check-all {
   .day-calendar:not(.is-week) .day-calendar-today {
     display: none;
   }
-  .production-stat {
-    padding: 0.5rem 0.75rem;
-  }
-  .production-stat-value {
-    font-size: 1.125rem;
-  }
-  .production-stat-label {
-    font-size: 0.75rem;
-  }
-  .production-stat-states .badge {
-    font-size: 0.75rem;
-  }
-  .day-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .day-stat:nth-child(odd) {
-    border-left: 0;
-  }
-  .day-stat:nth-child(n+3) {
-    border-top: 1px solid #e9ecef;
-  }
-  .day-header .action-label {
+  .day-header .action-label,
+  .section-toolbar .action-label {
     display: none;
+  }
+  .section-toolbar .section-toolbar-filter {
+    -webkit-box-flex: 1;
+        -ms-flex: 1 1 8rem;
+            flex: 1 1 8rem;
+  }
+  .day-meta {
+    -webkit-column-gap: 0.875rem;
+       -moz-column-gap: 0.875rem;
+            column-gap: 0.875rem;
+    font-size: 0.8125rem;
   }
   .day-products-fill {
     width: 7rem;
@@ -16884,7 +16825,6 @@ i.step-check-all {
             break-after: avoid;
   }
   .production-card-actions,
-  .production-stat-states,
   .production-instructions:not([open]) {
     display: none !important;
   }

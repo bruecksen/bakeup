@@ -790,19 +790,16 @@ def get_production_plan_stages(root, plans_by_depth):
 
 
 def get_production_plan_summary(cards):
+    """The figures of the plan in the meta line of its head.
+
+    Only what the cards don't say: the number of products is the badge of
+    the products tab, the state shows on every card (its button, progress or
+    badge) and as the dot of the day in the week strip.
+    """
     active = [card for card in cards if not card["root"].is_canceled]
     return {
-        "products": len(active),
         "pieces": sum(card["root"].quantity for card in active),
         "weight": sum(card["weight"] for card in active),
-        "states": [
-            {
-                "label": ProductionPlan.state_display_value(state),
-                "css_class": ProductionPlan.state_css_class(state),
-                "count": sum(card["root"].state == state for card in cards),
-            }
-            for state in ProductionPlan.State
-        ],
     }
 
 
@@ -823,38 +820,7 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
         context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
         context["day_switch"] = get_day_switch(self.production_day, "plan")
-        context["day_actions"] = self.get_day_actions(cards)
         return context
-
-    def get_day_actions(self, cards):
-        # Both run in place, the page comes back with the plans in their new
-        # state.
-        day = {"production_day": self.production_day.pk}
-        next_url = "?next=" + get_production_day_url(self.production_day, "plan")
-        actions = Actions()
-        if any(card["root"].is_planned for card in cards):
-            actions.append(
-                Action(
-                    _("Start all"),
-                    reverse("workshop:production-plans-start", kwargs=day) + next_url,
-                    "fas fa-play",
-                    kind="primary",
-                    color="warning",
-                    is_htmx=True,
-                )
-            )
-        if any(card["root"].is_production for card in cards):
-            actions.append(
-                Action(
-                    _("Finish all"),
-                    reverse("workshop:production-plans-finish", kwargs=day) + next_url,
-                    "fas fa-check",
-                    kind="primary",
-                    color="success",
-                    is_htmx=True,
-                )
-            )
-        return actions
 
 
 @require_POST
@@ -1541,25 +1507,9 @@ class Actions(list):
         )
 
 
-def get_production_day_states(production_day):
-    """How many plans of the day are in each state, the badges of its head."""
-    counts = dict(
-        production_day.production_plans.filter(parent_plan__isnull=True)
-        .values_list("state")
-        .annotate(count=Count("id"))
-    )
-    return [
-        {
-            "label": ProductionPlan.state_display_value(state),
-            "css_class": ProductionPlan.state_css_class(state),
-            "count": counts[state],
-        }
-        for state in ProductionPlan.State
-        if counts.get(state)
-    ]
-
-
 def get_production_day_stats(production_day):
+    """The figures of the day in the meta line of its head. The states of
+    the plans are the column of the product table."""
     published = production_day.total_published_quantity
     sold = production_day.total_published_ordered_quantity
     return {
@@ -1818,6 +1768,10 @@ def get_day_tabs(production_day, active):
     they switch without loading. From the plan and the pickup emails they
     link to the day page, the hash opens the pane.
 
+    Only the products carry their number. The orders are counted in the
+    meta line of the day page and on the days of the week strip, a badge
+    would say it a third time.
+
     Between the day page and the plan htmx swaps the page (swap_url), a full
     load felt slow. The pickup emails load: their editor needs the scripts of
     its page and doesn't survive a swap.
@@ -1831,11 +1785,7 @@ def get_day_tabs(production_day, active):
             "badge": production_day.production_day_products.count(),
             "is_active": on_day,
         },
-        {
-            "key": "orders",
-            "label": _("Delivery bill"),
-            "badge": production_day.customer_orders.count(),
-        },
+        {"key": "orders", "label": _("Delivery bill")},
         {"key": "ingredients", "label": _("Ingredients")},
     ]
     for tab in tabs:
@@ -1859,12 +1809,104 @@ def get_day_tabs(production_day, active):
     return tabs
 
 
+def get_day_actions(production_day, link):
+    """The actions of a production day, the same in the head of all its pages.
+
+    Editing is the one quiet button. The one filled button is the next step
+    of the day: starting comes first, finishing waits in the menu until
+    nothing is left to start. Everything else is in the menu.
+
+    Start and finish run in place on the day page and the plan, the page
+    comes back with the plans in their new state. The pickup emails have no
+    swap target, there they are links and come back by their next. What takes
+    a next comes back to the page it was opened from.
+    """
+    pk = production_day.pk
+    next_url = "?next=" + get_production_day_url(production_day, link)
+    plans = ProductionPlan.objects.filter(
+        production_day=production_day, parent_plan__isnull=True
+    )
+    has_plans_to_start = plans.filter(state=ProductionPlan.State.PLANNED).exists()
+    has_plans_to_finish = plans.filter(
+        state=ProductionPlan.State.IN_PRODUCTION
+    ).exists()
+    day = {"production_day": pk}
+    actions = Actions(
+        [
+            Action(
+                _("Edit"),
+                reverse("workshop:production-day-update", kwargs={"pk": pk}) + next_url,
+                "fas fa-edit",
+                kind="secondary",
+            )
+        ]
+    )
+    if has_plans_to_start:
+        actions.append(
+            Action(
+                _("Start all"),
+                reverse("workshop:production-plans-start", kwargs=day) + next_url,
+                "fas fa-play",
+                kind="primary",
+                is_htmx=True,
+                color="warning",
+            )
+        )
+    if has_plans_to_finish:
+        actions.append(
+            Action(
+                _("Finish all"),
+                reverse("workshop:production-plans-finish", kwargs=day) + next_url,
+                "fas fa-check",
+                kind="menu" if has_plans_to_start else "primary",
+                is_htmx=True,
+                color="success",
+            )
+        )
+    actions += [
+        Action(
+            _("New production day"),
+            reverse("workshop:production-day-add"),
+            "fas fa-plus",
+        ),
+        Action(
+            _("Copy"),
+            reverse("workshop:production-day-copy", kwargs={"pk": pk}),
+            "fas fa-copy",
+        ),
+        Action(
+            _("Abos"),
+            reverse("workshop:production-day-meta-product", kwargs={"pk": pk})
+            + next_url,
+            "fas fa-retweet",
+        ),
+        Action(
+            _("Export as CSV"),
+            reverse("workshop:production-day-export", kwargs={"pk": pk}),
+            "fas fa-file-download",
+        ),
+        Action(
+            _("Delete"),
+            reverse("workshop:production-day-delete", kwargs={"pk": pk}),
+            "fas fa-trash-can",
+            danger=True,
+            disabled=production_day.is_locked,
+            disabled_reason=_("Has orders"),
+        ),
+    ]
+    return actions
+
+
 def get_day_switch(production_day, link):
     """The head of the pages of a production day.
 
-    The week of the day as a strip, the previous and the next day, the
-    states of its plans and the tab row. link is the page, the days of the strip and of the calendar
-    lead to the same page of another day.
+    The date with the previous and the next day is the title of the page,
+    the week of the day a strip under it, then the tab row. The actions in
+    the title row are the same on every page, what belongs to one page is in
+    the toolbar of its section. link is the page, the days of the strip and
+    of the calendar lead to the same page of another day. The figures in the
+    meta line come from the page itself: the stats of the day page, the
+    summary of the plan.
     """
     day = production_day.day_of_sale
     switch = {
@@ -1873,8 +1915,8 @@ def get_day_switch(production_day, link):
         "week": get_production_day_calendar(
             day, selected=day, link=link, week=day, mode="strip"
         ),
-        "states": get_production_day_states(production_day),
         "tabs": get_day_tabs(production_day, link),
+        "actions": get_day_actions(production_day, link),
     }
     for key, method in [
         ("previous_url", ProductionDay.get_previous_by_day_of_sale),
@@ -1947,85 +1989,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionDay
     template_name = "workshop/productionday_detail.html"
 
-    def get_day_actions(self, has_plans_to_start, has_plans_to_finish):
-        pk = self.object.pk
-        next_url = f"?next={self.object.get_absolute_url()}"
-        actions = Actions(
-            [
-                Action(
-                    _("Edit"),
-                    reverse("workshop:production-day-update", kwargs={"pk": pk})
-                    + next_url,
-                    "fas fa-edit",
-                    kind="secondary",
-                ),
-                Action(
-                    _("New production day"),
-                    reverse("workshop:production-day-add"),
-                    "fas fa-plus",
-                    kind="secondary",
-                ),
-            ]
-        )
-        # One filled button, the next step of the day. Starting comes first,
-        # finishing waits in the menu until nothing is left to start.
-        if has_plans_to_start:
-            actions.append(
-                Action(
-                    _("Start all"),
-                    reverse(
-                        "workshop:production-plans-start", kwargs={"production_day": pk}
-                    )
-                    + next_url,
-                    "fas fa-play",
-                    kind="primary",
-                    is_htmx=True,
-                    color="warning",
-                )
-            )
-        if has_plans_to_finish:
-            actions.append(
-                Action(
-                    _("Finish all"),
-                    reverse(
-                        "workshop:production-plans-finish",
-                        kwargs={"production_day": pk},
-                    )
-                    + next_url,
-                    "fas fa-check",
-                    kind="menu" if has_plans_to_start else "primary",
-                    is_htmx=True,
-                    color="success",
-                )
-            )
-        actions += [
-            Action(
-                _("Copy"),
-                reverse("workshop:production-day-copy", kwargs={"pk": pk}),
-                "fas fa-copy",
-            ),
-            Action(
-                _("Abos"),
-                reverse("workshop:production-day-meta-product", kwargs={"pk": pk})
-                + next_url,
-                "fas fa-retweet",
-            ),
-            Action(
-                _("Export as CSV"),
-                reverse("workshop:production-day-export", kwargs={"pk": pk}),
-                "fas fa-file-download",
-            ),
-            Action(
-                _("Delete"),
-                reverse("workshop:production-day-delete", kwargs={"pk": pk}),
-                "fas fa-trash-can",
-                danger=True,
-                disabled=self.object.is_locked,
-                disabled_reason=_("Has orders"),
-            ),
-        ]
-        return actions
-
     def get_products_actions(self, has_plans_to_start):
         pk = self.object.pk
         next_url = f"?next={self.object.get_absolute_url()}"
@@ -2035,7 +1998,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     _("Add order"),
                     reverse("workshop:order-add", kwargs={"production_day": pk}),
                     "fas fa-plus-circle",
-                    kind="primary",
+                    kind="secondary",
                 ),
                 Action(
                     _("Edit orders"),
@@ -2074,11 +2037,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             state=ProductionPlan.State.PLANNED,
             parent_plan__isnull=True,
         ).exists()
-        has_plans_to_finish = ProductionPlan.objects.filter(
-            production_day=self.object,
-            state=ProductionPlan.State.IN_PRODUCTION,
-            parent_plan__isnull=True,
-        ).exists()
         context["point_of_sales"] = get_delivery_bills(self.object)
         context["stats"] = get_production_day_stats(self.object)
         context["product_rows"] = get_production_day_product_rows(self.object)
@@ -2087,16 +2045,15 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 "source_product", "target_product"
             )
         )
-        context["day_actions"] = self.get_day_actions(
-            has_plans_to_start, has_plans_to_finish
-        )
+        # The toolbars of the panes are quiet, the one filled button of the
+        # page is the next step of the day in its head.
         context["products_actions"] = self.get_products_actions(has_plans_to_start)
         context["delivery_bill_actions"] = Actions(
             [
                 Action(
                     _("Print delivery bill"),
                     icon="fas fa-print",
-                    kind="primary",
+                    kind="secondary",
                     is_print=True,
                 )
             ]
@@ -2106,7 +2063,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 Action(
                     _("Print ingredients"),
                     icon="fas fa-print",
-                    kind="primary",
+                    kind="secondary",
                     is_print=True,
                 )
             ]

@@ -2,41 +2,13 @@
 {% load i18n %}
 {% load workshop_tags %}
 
-{% block title %}{% trans "Production day" %}{% endblock %}
-{% block page_heading %}{% trans "Production day" %}{% endblock %}
-{% block page_heading_action %}{% endblock %}
+{% block title %}{{ object.day_of_sale|date:"D, j. M Y" }} · {% trans "Production day" %}{% endblock %}
+{% block page_header %}{% endblock %}
 
 {% block page_content %}
 <div id="day-page">
 <div id="production-day-detail" class="production-day-detail" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include "workshop/includes/production_day_head.html" %}
-
-  <dl class="day-stats d-print-none">
-    <div class="day-stat">
-      <dt>{% trans "Orders" %}</dt>
-      <dd>{{ stats.orders }}</dd>
-    </div>
-    <div class="day-stat">
-      <dt>{% trans "Total ordered quantity" %}</dt>
-      <dd>{{ stats.pieces }}</dd>
-    </div>
-    {% if stats.published %}
-    <div class="day-stat">
-      <dt>{% trans "Sold in shop" %}</dt>
-      <dd>{{ stats.sold }} <span class="day-stat-of">/ {{ stats.published }}</span></dd>
-      <div class="progress day-stat-progress" role="progressbar" aria-label="{% trans 'Sold in shop' %}" aria-valuenow="{{ stats.sold_percent }}" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-success" style="width: {{ stats.sold_percent }}%"></div>
-      </div>
-    </div>
-    {% endif %}
-    {% if stats.sales is not None %}
-    <div class="day-stat">
-      <dt>{% trans "Sales" %}</dt>
-      <dd>{{ stats.sales|floatformat:2 }} €</dd>
-    </div>
-    {% endif %}
-  </dl>
-
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
@@ -58,7 +30,7 @@
           <tbody>
             {% for row in product_rows %}
             {% with product=row.day_product %}
-            <tr{% if row.is_over %} class="table-danger"{% endif %}>
+            <tr>
               <td>
                 <a class="day-product-name" href="{% url 'workshop:product-detail' pk=product.product.pk %}">{{ product.product }}</a>
                 {% if product.group %}<span class="badge text-bg-dark ms-1">{{ product.group }}</span>{% endif %}
@@ -68,7 +40,7 @@
               <td class="text-center">{% if product.is_published %}<i class="fas fa-check text-success" title="{% trans 'Published' %}" aria-label="{% trans 'Published' %}"></i>{% endif %}</td>
               <td class="day-products-fill">
                 <div class="fill">
-                  <span class="fill-value">{{ row.ordered }} / {{ product.max_quantity }}</span>
+                  <span class="fill-value{% if row.is_over %} text-danger{% endif %}">{{ row.ordered }} / {{ product.max_quantity }}</span>
                   <div class="progress fill-bar" role="progressbar" aria-label="{% trans 'Ordered' %}" aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar {% if row.is_over %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ row.percent }}%"></div>
                   </div>

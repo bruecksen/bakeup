@@ -6,8 +6,8 @@
   {% include "wagtail_non_admin_draftail/draftail_media.html" %}
 {% endblock wagtail_non_admin_draftail_head %}
 
-{% block title %}{% trans "Pickup emails" %}{% endblock %}
-{% block page_heading %}{% trans "Production day" %}{% endblock %}
+{% block title %}{{ production_day.day_of_sale|date:"D, j. M Y" }} · {% trans "Pickup emails" %}{% endblock %}
+{% block page_header %}{% endblock %}
 
 {% block page_content %}
 {% include "workshop/includes/production_day_head.html" %}

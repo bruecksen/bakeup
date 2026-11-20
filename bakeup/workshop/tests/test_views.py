@@ -785,11 +785,19 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         self.assertTrue(order.is_locked)
 
     def test_summary(self):
+        # Pieces and weight are text in the meta line of the head, the
+        # products are counted on their tab.
         response = self.client.get(self.day_url())
-        summary = response.context["summary"]
-        self.assertEqual(summary["products"], 1)
-        self.assertEqual(summary["pieces"], 10)
+        self.assertEqual(response.context["summary"], {"pieces": 10, "weight": 10000})
         self.assertContains(response, 'id="production-summary"')
+        figure = (
+            '<span class="day-meta-item day-meta-figure"><strong>{}</strong> {}</span>'
+        )
+        self.assertContains(response, figure.format("10", "Stück"))
+        self.assertContains(
+            response,
+            figure.format("10\u00a0kg", "Gesamtgewicht"),
+        )
 
     def test_toggle_needs_production(self):
         plan = self.sub_plan("Sourdough")
@@ -968,8 +976,13 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
             f"{url}?next={self.day_url()}", HTTP_HX_REQUEST="true", follow=True
         )
         self.assertContains(response, f'id="card-{day_product.pk}"')
-        self.assertContains(response, 'id="production-summary"')
+        # Every hx-select-oob target of the card buttons is on the page once.
+        for oob in ["production-summary", "day-actions", "day-meta"]:
+            self.assertContains(response, f'id="{oob}"', count=1, msg_prefix=oob)
         self.assertTrue(self.root().is_canceled)
+        # The only plan is canceled, the line has no figures left to show.
+        self.assertEqual(response.context["summary"], {"pieces": 0, "weight": 0})
+        self.assertNotContains(response, "day-meta-figure")
 
 
 class NotesViewTest(ProductionPlanDayViewTest):
@@ -1177,31 +1190,15 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         )
         self.assertEqual(response.context["stats"]["orders"], 1)
         self.assertEqual(response.context["stats"]["pieces"], 3)
-
-    def test_one_filled_button_and_plan_in_menu(self):
-        pk = self.production_day.pk
-        start = reverse(
-            "workshop:production-plans-start", kwargs={"production_day": pk}
+        self.assertContains(
+            response,
+            '<span class="day-meta-item day-meta-figure"><strong>1</strong> Bestellung</span>',
         )
-        finish = reverse(
-            "workshop:production-plans-finish", kwargs={"production_day": pk}
+        self.assertContains(
+            response,
+            '<span class="day-meta-item day-meta-figure" title="Totale Bestellmenge">'
+            "<strong>3</strong> Stück</span>",
         )
-
-        def primary_and_menu():
-            actions = self.detail().context["day_actions"]
-            return (
-                [a.url.split("?")[0] for a in actions.buttons if a.kind == "primary"],
-                [a.url.split("?")[0] for a in actions.menu],
-            )
-
-        primary, menu = primary_and_menu()
-        self.assertEqual(primary, [start])
-        # The plan and the pickup emails are tabs, not actions.
-        self.assertNotIn(self.day_url(), menu)
-        self.start_day()
-        primary, menu = primary_and_menu()
-        self.assertEqual(primary, [finish])
-        self.assertNotIn(finish, menu)
 
     def test_delivery_bill_shows_the_short_point_of_sale_name(self):
         self.add_order()
@@ -1231,7 +1228,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
     def test_delete_is_disabled_with_orders(self):
         self.add_order()
         response = self.detail()
-        delete = [a for a in response.context["day_actions"] if a.danger][0]
+        delete = [a for a in response.context["day_switch"]["actions"] if a.danger][0]
         self.assertTrue(delete.disabled)
         self.assertNotContains(response, f'href="{delete.url}"')
 
@@ -1513,8 +1510,9 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                     swaps,
                 )
                 badges = {tab["key"]: tab.get("badge") for tab in tabs}
+                # The orders are counted in the meta line and the week strip.
                 self.assertEqual(badges["products"], 2)
-                self.assertEqual(badges["orders"], 1)
+                self.assertIsNone(badges["orders"])
 
     def test_tab_row_links_and_panes(self):
         urls = self.section_urls()
@@ -1547,6 +1545,77 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertContains(response, f'hx-post="{finish}?next={self.day_url()}"')
         self.assertNotContains(response, start)
         self.assertContains(response, 'id="wake-lock-toggle"')
+
+    def test_same_head_actions_on_every_day_page(self):
+        pk = self.production_day.pk
+        day = {"production_day": pk}
+        start = reverse("workshop:production-plans-start", kwargs=day)
+        finish = reverse("workshop:production-plans-finish", kwargs=day)
+        (update,) = self.day_urls("production-day-update")
+        urls = self.section_urls()
+        menu = ["Neuer Produktionstag", "Kopieren", "Abos", "Exportieren als CSV"]
+        menu.append("Löschen")
+        for step, label, url in [
+            (start, "Alle starten", None),
+            (finish, "Alle fertigstellen", "started"),
+        ]:
+            if url:
+                self.start_day()
+            for link, page_url in urls.items():
+                with self.subTest(link=link, step=label):
+                    response = self.client.get(page_url)
+                    actions = response.context["day_switch"]["actions"]
+                    # Editing is quiet, the next step the one filled button,
+                    # the rest in the menu. All come back to this page.
+                    self.assertEqual(
+                        [(str(a.label), a.kind) for a in actions.buttons],
+                        [("Bearbeiten", "secondary"), (label, "primary")],
+                    )
+                    self.assertEqual([str(a.label) for a in actions.menu], menu)
+                    self.assertEqual(
+                        [a.url for a in actions.buttons],
+                        [f"{update}?next={page_url}", f"{step}?next={page_url}"],
+                    )
+                    # In place where the page has a swap target, the pickup
+                    # emails load.
+                    target = response.context["day_switch"]["target"]
+                    if target:
+                        self.assertContains(
+                            response,
+                            f'hx-post="{step}?next={page_url}" hx-target="{target}"',
+                        )
+                    else:
+                        self.assertContains(response, f'href="{step}?next={page_url}"')
+                        self.assertNotContains(response, f'hx-post="{step}')
+
+    def test_finish_waits_in_the_menu_while_plans_are_left_to_start(self):
+        pk = self.production_day.pk
+        roll = ProductFactory(
+            name="Roll", category=self.categories["bread"], is_sellable=True
+        )
+        add(roll, self.products["wheat"], 500)
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day, product=roll, max_quantity=5
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.start()
+        actions = self.client.get(self.day_url()).context["day_switch"]["actions"]
+        self.assertEqual(
+            [a.url for a in actions.buttons if a.kind == "primary"],
+            [
+                reverse(
+                    "workshop:production-plans-start", kwargs={"production_day": pk}
+                )
+                + f"?next={self.day_url()}"
+            ],
+        )
+        self.assertIn(
+            reverse("workshop:production-plans-finish", kwargs={"production_day": pk})
+            + f"?next={self.day_url()}",
+            [a.url for a in actions.menu],
+        )
 
     def test_sidebar_has_one_entry_for_the_day_pages(self):
         entry = f'aria-current="page" href="{reverse("workshop:production-day-next")}"'
@@ -1589,7 +1658,10 @@ class PickupEmailsViewTest(ProductionDayDetailViewTest):
         self.assertContains(response, f'href="{switch["next_url"]}"')
         self.assertNotContains(response, f'hx-get="{switch["next_url"]}"')
         self.assertFalse(switch["week"]["can_add_day"])
-        self.assertNotContains(response, reverse("workshop:production-day-add"))
+        # The strip adds no day here, a new day is only in the ⋯ menu.
+        self.assertNotContains(
+            response, reverse("workshop:production-day-add") + "?day_of_sale="
+        )
 
 
 class PickupEmailsEditorTest(PickupEmailsViewTest):

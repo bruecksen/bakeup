@@ -1431,27 +1431,49 @@ $tap-size: 44px;
     }
 }
 
-// Head of the day pages, in three separate areas: the bar that chooses the
-// day, the line that describes it with its actions, and the tab row of its
-// sections.
-// The bar chooses the day: the date with the previous and next production
-// day, and the week of the day. The days are the cells of the calendar in
-// small: every day a white card on the page, a production day with the
-// primary edge and a shadow, today framed. The day of the page is filled.
-.day-bar {
+// The day pages are two groups, clearly apart. The day: the date as the
+// title of the page with its actions, the week of the day and one line of
+// what the day is and its figures. The section: the tab row, the toolbar of
+// the tab and its content. Tight inside a group, one large gap between.
+.day-head {
     display: flex;
-    align-items: stretch;
-    gap: .75rem;
+    flex-direction: column;
+    gap: .5rem;
+    margin-top: .5rem;
+    margin-bottom: 1.75rem;
 }
-.day-bar .production-day-switch {
-    align-self: center;
+// The date with the previous and next production day takes the place of the
+// page title, as one white segmented control at title size. The real h1 is
+// hidden for screen readers, the switcher is links and a button.
+.day-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+
+    .production-day-switch {
+        box-shadow: $box-shadow-sm;
+        border-radius: $border-radius;
+    }
+    .day-picker-toggle {
+        font-size: 1.375rem;
+        line-height: 1.2;
+    }
+    .day-picker-icon,
+    .fa-angle-down {
+        font-size: 1rem;
+    }
 }
 .day-picker-date {
     font-weight: 600;
+    white-space: nowrap;
 }
+// The days are the cells of the calendar in small. A production day is a
+// white card with the primary edge and a shadow, the other days the same
+// card at half strength, so the production days stand out. Today only has
+// its date in the primary colour. The day of the page is filled.
 .day-week-strip {
     display: grid;
-    flex: 1 1 auto;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: .375rem;
     min-width: 0;
@@ -1469,12 +1491,13 @@ $tap-size: 44px;
     font-size: .8125rem;
     line-height: 1.25;
     text-decoration: none;
-    background-color: $white;
+    background-color: rgba($white, .5);
     border-left: 3px solid transparent;
     border-radius: $border-radius;
 
     &.has-day {
         color: $body-color;
+        background-color: $white;
         border-left-color: $primary;
         box-shadow: $box-shadow-sm;
 
@@ -1488,11 +1511,6 @@ $tap-size: 44px;
         background-color: mix($primary, $white, 8%);
     }
     &.is-today {
-        box-shadow: inset 0 0 0 2px $primary;
-
-        &.has-day {
-            box-shadow: inset 0 0 0 2px $primary, $box-shadow-sm;
-        }
         .day-week-chip-date {
             color: $primary;
             font-weight: 700;
@@ -1544,21 +1562,9 @@ $tap-size: 44px;
         color: inherit;
     }
 }
-// Narrow screens: the date gets a row of its own, the days the next. A chip
-// is weekday over date with the dot, the number of orders goes.
+// Narrow screens: a chip is weekday over date with the dot, the number of
+// orders goes.
 @include media-breakpoint-down(lg) {
-    .day-bar {
-        flex-direction: column;
-        gap: .5rem;
-    }
-    .day-bar .production-day-switch {
-        align-self: stretch;
-
-        .day-picker-toggle {
-            flex: 1 1 auto;
-            justify-content: center;
-        }
-    }
     .day-week-strip {
         gap: .25rem;
     }
@@ -1581,34 +1587,6 @@ $tap-size: 44px;
     }
 }
 
-.production-stat {
-    height: 100%;
-    padding: .75rem 1rem;
-    background-color: $white;
-    border-radius: $border-radius;
-    box-shadow: $box-shadow-sm;
-}
-.production-stat-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.2;
-}
-.production-stat-label {
-    color: $text-muted;
-    font-size: .875rem;
-}
-.production-stat-states {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .375rem;
-
-    .badge {
-        font-size: .875rem;
-        font-weight: 500;
-    }
-}
 
 
 // A secondary button on the page background: white like the cards, the
@@ -1637,29 +1615,32 @@ $tap-size: 44px;
         color: inherit;
     }
 }
+// Finishing a plan is a quiet button too, the tick keeps the colour of done.
+.btn-surface.btn-finish i {
+    color: $success;
+}
 
-// Production day: the day is switched and acted on in one header row, the
+// Production day: the day is switched and acted on in the title row, the
 // buttons and the ⋯ menu come from includes/actions.html.
 .day-header {
     display: flex;
     flex-direction: column;
-    gap: .75rem;
-    margin-bottom: .75rem;
-}
-// What the day is on the left, what can be done with it on the right.
-.day-header-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem 1rem;
-    min-height: 2.375rem;
+    gap: .5rem;
 }
 .day-header-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
     gap: .5rem;
     margin-left: auto;
+}
+// Keeping the screen on is a toggle in the toolbar of the plan, pressed it
+// is tinted and the sun lights. Without the Wake Lock API the button stays
+// hidden, and so does its toolbar.
+#wake-lock-toggle.active i {
+    color: $warning;
+}
+.section-toolbar:has(> #wake-lock-toggle.d-none:only-child) {
+    display: none;
 }
 .production-day-switch {
     flex: 0 0 auto;
@@ -1668,51 +1649,45 @@ $tap-size: 44px;
         flex: 0 0 auto;
     }
 }
-.day-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-    margin-bottom: 1.5rem;
-    background-color: $white;
-    border-radius: $border-radius;
-    box-shadow: $box-shadow-sm;
-}
-.day-stat {
-    padding: .625rem 1rem;
-
-    & + & {
-        border-left: 1px solid $gray-200;
-    }
-    dt {
-        color: $text-muted;
-        font-size: .8125rem;
-        font-weight: 400;
-    }
-    dd {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
-    }
-}
-.day-stat-of {
-    color: $text-muted;
-    font-size: .875rem;
-    font-weight: 400;
-}
-.day-stat-progress {
-    height: .25rem;
-    margin-top: .25rem;
-}
+// What the day is and its figures in one line. First the facts with their
+// icons, then the figures: the number dark, its label muted. Spacing
+// separates the items, the line wraps by item. The groups are
+// hx-select-oob targets of the plan (#day-meta, #production-summary), they
+// don't make boxes of their own.
 .day-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: .25rem 1rem;
+    gap: .25rem 1.25rem;
     color: $text-muted;
     font-size: .875rem;
+    font-variant-numeric: tabular-nums;
+}
+.day-meta-group {
+    display: contents;
+}
+.day-meta-item {
+    white-space: nowrap;
+}
+.day-meta-figure strong {
+    color: $body-color;
+    font-weight: 600;
+}
+// How much of the shop is sold, a small bar after its figure.
+.day-meta-progress {
+    display: inline-block;
+    width: 3rem;
+    height: .3125rem;
+    margin-left: .375rem;
+    overflow: hidden;
+    vertical-align: middle;
+    background-color: rgba($black, .1);
+    border-radius: .3125rem;
 
-    .badge {
-        font-weight: 500;
+    > span {
+        display: block;
+        height: 100%;
+        background-color: $success;
     }
 }
 .day-description {
@@ -1725,19 +1700,23 @@ $tap-size: 44px;
     flex-wrap: wrap;
     gap: .5rem;
 }
-// Actions of a tab are smaller than the ones of the page.
+// Actions of a tab are smaller than the ones of the page and all quiet, the
+// filled button is the next step in the head. The toolbar is the first row
+// of the content of a tab, at the same height on every tab.
 .section-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: .5rem;
-    margin-bottom: 1rem;
+    min-height: 2rem;
+    margin-bottom: .75rem;
 
-    // A filter of the tab, in the row of its actions.
+    // A filter of the tab, at the start of the row of its actions.
     .section-toolbar-filter {
         flex: 0 1 16rem;
         width: auto;
+        margin-right: auto;
     }
 
     .btn {
@@ -1753,7 +1732,7 @@ $tap-size: 44px;
 .day-tabs {
     flex-wrap: nowrap;
     gap: .25rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: .75rem;
     overflow-x: auto;
     overflow-y: hidden;
     border-bottom: 1px solid rgba($black, .12);
@@ -1787,10 +1766,17 @@ $tap-size: 44px;
         background-color: rgba($black, .08) !important;
     }
 }
-// The panes of the day page are a card of their own under the tab row.
+// The panes of the day page are a card of their own under the tab row. Its
+// toolbar is the header strip of the card, across its full width.
 .production-day-detail .tab-content > .tab-pane {
     border-radius: $border-radius;
     box-shadow: $box-shadow-sm;
+
+    > .section-toolbar {
+        margin: -.75rem -.75rem .75rem;
+        padding: .5rem .75rem;
+        border-bottom: 1px solid $gray-200;
+    }
 }
 // The name opens the recipe, the icon after it the product in the plan.
 .day-product-name {
@@ -2765,14 +2751,25 @@ i.step-check-all {
         font-size: 1.5rem;
     }
     .production-day-switch {
-        flex: 1 1 100%;
-
-        > .btn-group {
-            flex: 1 1 auto;
-        }
+        min-width: 0;
     }
     .day-picker-toggle {
         min-width: 0;
+        gap: .375rem;
+    }
+    .day-title {
+        .production-day-switch > .btn {
+            --bs-btn-padding-x: .5rem;
+        }
+        .day-picker-toggle {
+            font-size: 1.125rem;
+        }
+    }
+    // The year and the calendar icon go, the date and the actions share
+    // the row.
+    .day-picker-toggle .day-picker-year,
+    .day-picker-toggle .day-picker-icon {
+        display: none;
     }
     .day-calendar:not(.is-week) {
         .day-calendar-grid {
@@ -2788,29 +2785,16 @@ i.step-check-all {
             display: none;
         }
     }
-    .production-stat {
-        padding: .5rem .75rem;
-    }
-    .production-stat-value {
-        font-size: 1.125rem;
-    }
-    .production-stat-label {
-        font-size: .75rem;
-    }
-    .production-stat-states .badge {
-        font-size: .75rem;
-    }
-    .day-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .day-stat:nth-child(odd) {
-        border-left: 0;
-    }
-    .day-stat:nth-child(n + 3) {
-        border-top: 1px solid $gray-200;
-    }
-    .day-header .action-label {
+    .day-header .action-label,
+    .section-toolbar .action-label {
         display: none;
+    }
+    .section-toolbar .section-toolbar-filter {
+        flex: 1 1 8rem;
+    }
+    .day-meta {
+        column-gap: .875rem;
+        font-size: .8125rem;
     }
     .day-products-fill {
         width: 7rem;
@@ -2883,7 +2867,6 @@ i.step-check-all {
         break-after: avoid;
     }
     .production-card-actions,
-    .production-stat-states,
     .production-instructions:not([open]) {
         display: none !important;
     }

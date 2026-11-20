@@ -1,45 +1,18 @@
 {% extends "workshop/base.html" %}
 {% load i18n workshop_tags %}
-{% block title %}{% trans "Production Plan" %}{% endblock %}
-{% block page_heading %}{% trans "Production day" %}{% endblock %}
-{% block page_heading_action %}
-{% endblock%}
+{% block title %}{{ production_day.day_of_sale|date:"D, j. M Y" }} · {% trans "Production Plan" %}{% endblock %}
+{% block page_header %}{% endblock %}
 
 {% block page_content %}
 <div id="day-page">
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
-  {% include "workshop/includes/production_day_head.html" with wake_lock=True %}
+  {% include "workshop/includes/production_day_head.html" with print_meta=True %}
 
   {% if cards %}
-  <div id="production-summary" class="production-summary row g-2 mb-3">
-    <div class="col-6 col-md-3">
-      <div class="production-stat">
-        <div class="production-stat-value">{{ summary.products }}</div>
-        <div class="production-stat-label">{% trans "Products" %}</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="production-stat">
-        <div class="production-stat-value">{{ summary.pieces|floatformat }}</div>
-        <div class="production-stat-label">{% trans "Pieces" %}</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="production-stat">
-        <div class="production-stat-value">{{ summary.weight|clever_unit }}</div>
-        <div class="production-stat-label">{% trans "Total weight" %}</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="production-stat production-stat-states">
-        {% for state in summary.states %}{% if state.count %}
-        <span class="badge rounded-pill {{ state.css_class }}">{{ state.count }} {{ state.label }}</span>
-        {% endif %}{% endfor %}
-      </div>
-    </div>
+  <div class="section-toolbar d-print-none">
+    <button type="button" id="wake-lock-toggle" class="btn btn-surface d-none" aria-pressed="false" aria-label="{% trans 'Screen on' %}" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun" aria-hidden="true"></i></button>
   </div>
-
   <div id="production-plans">
     {% for card in cards %}
       {% include "workshop/includes/production_plan_card.html" %}
