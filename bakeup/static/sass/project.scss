@@ -1436,14 +1436,14 @@ $tap-size: 44px;
 // The day pages are two groups. The day: the date as the title of the page
 // with its actions and the week of the day. The section: the tab row, the
 // toolbar of the tab and its content. The line under the tab row is what
-// separates them, so the rows keep one even rhythm of about .75rem: the tabs
-// bring .5rem of their own above their text.
+// separates them. The rows keep one rhythm of .75rem, the tab row gets a
+// little more room above and below, as the step between the two groups.
 .day-head {
     display: flex;
     flex-direction: column;
     gap: .75rem;
     margin-top: .5rem;
-    margin-bottom: .375rem;
+    margin-bottom: .875rem;
 }
 // The date with the previous and next production day takes the place of the
 // page title, as one white segmented control at title size. The real h1 is
@@ -1721,7 +1721,7 @@ $tap-size: 44px;
 .day-tabs {
     flex-wrap: nowrap;
     gap: .25rem;
-    margin-bottom: .75rem;
+    margin-bottom: 1.125rem;
     overflow-x: auto;
     overflow-y: hidden;
     border-bottom: 1px solid rgba($black, .12);

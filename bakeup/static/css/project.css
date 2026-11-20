@@ -14967,8 +14967,8 @@ li:hover > .row .main-flour-set,
   gap: 0.75rem;
   margin-top: 8px;
   margin-top: 0.5rem;
-  margin-bottom: 6px;
-  margin-bottom: 0.375rem;
+  margin-bottom: 14px;
+  margin-bottom: 0.875rem;
 }
 
 .day-title {
@@ -15304,8 +15304,8 @@ li:hover > .row .main-flour-set,
       flex-wrap: nowrap;
   gap: 4px;
   gap: 0.25rem;
-  margin-bottom: 12px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 18px;
+  margin-bottom: 1.125rem;
   overflow-x: auto;
   overflow-y: hidden;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
