@@ -2198,14 +2198,13 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         return quote(f"{self.object.get_absolute_url()}#orders", safe="/")
 
     def get_orders_actions(self, phase, has_plans_to_start, groups):
-        """The toolbar of the orders. Printing the delivery bill is always a
-        button. While collecting, adding and editing orders are buttons too.
-        While handing out they are in the menu (still possible for the
-        products not started), with marking a point of sale as picked up."""
+        """The toolbar of the orders. Printing the delivery bill is the one
+        button, everything else is in the menu: adding and editing orders
+        (while handing out still possible for the products not started) and,
+        while handing out, marking a point of sale as picked up."""
         pk = self.object.pk
         next_url = f"?next={self.get_orders_url()}"
         handing_out = phase == "handing_out"
-        order_kind = "menu" if handing_out else "secondary"
         actions = Actions(
             [
                 Action(
@@ -2213,13 +2212,11 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     reverse("workshop:order-add", kwargs={"production_day": pk})
                     + next_url,
                     "fas fa-plus-circle",
-                    kind=order_kind,
                 ),
                 Action(
                     _("Edit orders"),
                     reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
                     "fas fa-edit",
-                    kind=order_kind,
                 ),
                 Action(
                     _("Print delivery bill"),

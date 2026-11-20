@@ -1520,16 +1520,12 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         pk = self.production_day.pk
         actions = self.detail().context["orders_actions"]
         next_url = "?next=" + quote(f"{self.detail_url()}#orders", safe="/")
-        self.assertEqual(
-            [a.url for a in actions.buttons if a.url],
-            [
-                reverse("workshop:order-add", kwargs={"production_day": pk}) + next_url,
-                reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
-            ],
-        )
+        self.assertEqual([a.url for a in actions.buttons if a.url], [])
         self.assertEqual(
             [a.url for a in actions.menu if a.url],
             [
+                reverse("workshop:order-add", kwargs={"production_day": pk}) + next_url,
+                reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
                 reverse(
                     "workshop:production-day-order-max-quantities", kwargs={"pk": pk}
                 ),
@@ -1656,12 +1652,10 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         self.assertEqual(
             self.orders_toolbar(response),
             (
+                ["Lieferschein drucken"],
                 [
-                    "Bestellung hinzufügen",
-                    "Ändere Bestellungen",
-                    "Lieferschein drucken",
-                ],
-                [
+                    ("Bestellung hinzufügen", ""),
+                    ("Ändere Bestellungen", ""),
                     ("max. Menge bestellen", ""),
                     ("In Bestellliste anzeigen", ""),
                 ],
