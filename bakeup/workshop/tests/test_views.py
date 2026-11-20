@@ -513,7 +513,9 @@ class FirstOrderTest(RecipeViewTestCase):
         response = self.client.get(
             reverse("workshop:production-day-detail", kwargs={"pk": self.second_day.pk})
         )
-        self.assertContains(response, "badge-first-order", count=1)
+        # The orders pane marks it too, the delivery bill once.
+        bill = response.content.decode().split('id="delivery-bill"')[1]
+        self.assertEqual(bill.count("badge-first-order"), 1)
 
     def test_order_list_marks_first_orders(self):
         params = {"production_day": self.second_day.pk}
@@ -785,19 +787,15 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         self.assertTrue(order.is_locked)
 
     def test_summary(self):
-        # Pieces and weight are text in the meta line of the head, the
-        # products are counted on their tab.
+        # Pieces and weight are at the start of the plan's toolbar.
         response = self.client.get(self.day_url())
         self.assertEqual(response.context["summary"], {"pieces": 10, "weight": 10000})
-        self.assertContains(response, 'id="production-summary"')
-        figure = (
-            '<span class="day-meta-item day-meta-figure"><strong>{}</strong> {}</span>'
-        )
-        self.assertContains(response, figure.format("10", "Stück"))
         self.assertContains(
-            response,
-            figure.format("10\u00a0kg", "Gesamtgewicht"),
+            response, '<div id="production-summary" class="section-toolbar-figures">'
         )
+        figure = '<span class="toolbar-figure"><strong>{}</strong> {}</span>'
+        self.assertContains(response, figure.format("10", "Stück"))
+        self.assertContains(response, figure.format("10\u00a0kg", "Gesamtgewicht"))
 
     def test_toggle_needs_production(self):
         plan = self.sub_plan("Sourdough")
@@ -977,12 +975,13 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         )
         self.assertContains(response, f'id="card-{day_product.pk}"')
         # Every hx-select-oob target of the card buttons is on the page once.
-        for oob in ["production-summary", "day-actions", "day-meta"]:
+        for oob in ["production-summary", "day-actions"]:
             self.assertContains(response, f'id="{oob}"', count=1, msg_prefix=oob)
+        self.assertNotContains(response, "#day-meta")
         self.assertTrue(self.root().is_canceled)
-        # The only plan is canceled, the line has no figures left to show.
+        # The only plan is canceled, the toolbar has no figures left to show.
         self.assertEqual(response.context["summary"], {"pieces": 0, "weight": 0})
-        self.assertNotContains(response, "day-meta-figure")
+        self.assertNotContains(response, 'class="toolbar-figure"')
 
 
 class NotesViewTest(ProductionPlanDayViewTest):
@@ -1190,15 +1189,6 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         )
         self.assertEqual(response.context["stats"]["orders"], 1)
         self.assertEqual(response.context["stats"]["pieces"], 3)
-        self.assertContains(
-            response,
-            '<span class="day-meta-item day-meta-figure"><strong>1</strong> Bestellung</span>',
-        )
-        self.assertContains(
-            response,
-            '<span class="day-meta-item day-meta-figure" title="Totale Bestellmenge">'
-            "<strong>3</strong> Stück</span>",
-        )
 
     def test_delivery_bill_shows_the_short_point_of_sale_name(self):
         self.add_order()
@@ -1283,9 +1273,184 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
             )
         )
         self.assertRedirects(
-            response, f"{self.detail_url()}#orders", fetch_redirect_response=False
+            response,
+            f"{self.detail_url()}#delivery-bill",
+            fetch_redirect_response=False,
         )
         self.assertTrue(order.positions.get().is_picked_up)
+
+    def pane(self, response, pane, next_pane):
+        content = response.content.decode()
+        return content.split(f'id="{pane}"')[1].split(f'id="{next_pane}"')[0]
+
+    def customer_order(self, production_day, name, quantity=3):
+        customer = User.objects.create_user(
+            username=name, email=f"{name}@example.com", last_name=name
+        ).customer
+        order = CustomerOrder.objects.create(
+            production_day=production_day, customer=customer, address=""
+        )
+        CustomerOrderPosition.objects.create(
+            order=order, product=self.bread, quantity=quantity
+        )
+        return order
+
+    def test_orders_pane_lists_only_the_orders_of_the_day(self):
+        order = self.customer_order(self.production_day, "Müller")
+        self.customer_order(self.next_day, "Schulz")
+        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        self.assertIn(
+            f'href="{reverse("workshop:customer-detail", kwargs={"pk": order.customer.pk})}"',
+            pane,
+        )
+        self.assertIn(f"3 x {self.bread}", pane)
+        self.assertNotIn("Schulz", pane)
+        # The hooks of the filter: the field, one row per order, the message.
+        self.assertIn('data-filter="#orders"', pane)
+        self.assertEqual(pane.count("data-filter-row"), 1)
+        self.assertIn("data-filter-empty", pane)
+
+    def test_orders_pane_without_orders_offers_to_add_one(self):
+        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        self.assertIn("Für diesen Tag gibt es noch keine Bestellungen.", pane)
+        self.assertNotIn("data-filter-row", pane)
+        self.assertNotIn('data-filter="#orders"', pane)
+
+    def test_order_rows_come_back_to_the_orders_pane(self):
+        order = self.customer_order(self.production_day, "Müller")
+        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        next_url = quote(f"{self.detail_url()}#orders", safe="")
+        for name in ["order-update", "order-delete"]:
+            url = reverse(f"workshop:{name}", kwargs={"pk": order.pk})
+            self.assertIn(f'href="{url}?next={next_url}"', pane, msg=name)
+
+    def test_order_delete_returns_to_next(self):
+        order = self.customer_order(self.production_day, "Müller")
+        next_url = f"{self.detail_url()}#orders"
+        response = self.client.post(
+            reverse("workshop:order-delete", kwargs={"pk": order.pk})
+            + "?next="
+            + quote(next_url, safe="")
+        )
+        self.assertRedirects(response, next_url, fetch_redirect_response=False)
+        self.assertFalse(CustomerOrder.objects.filter(pk=order.pk).exists())
+
+    def test_order_add_returns_to_next(self):
+        customer = User.objects.create_user(
+            username="neu", email="neu@example.com"
+        ).customer
+        next_url = f"{self.detail_url()}#orders"
+        url = reverse(
+            "workshop:order-add", kwargs={"production_day": self.production_day.pk}
+        )
+        response = self.client.post(
+            f"{url}?next={quote(next_url, safe='')}",
+            {
+                "customer": customer.pk,
+                "production_day": self.production_day.pk,
+                "form-TOTAL_FORMS": 0,
+                "form-INITIAL_FORMS": 0,
+                "content": "",
+            },
+        )
+        self.assertRedirects(response, next_url, fetch_redirect_response=False)
+        self.assertEqual(
+            list(
+                CustomerOrder.objects.filter(
+                    production_day=self.production_day
+                ).values_list("customer", flat=True)
+            ),
+            [customer.pk],
+        )
+
+    def test_order_actions_come_back_to_the_orders_pane(self):
+        pk = self.production_day.pk
+        actions = self.detail().context["orders_actions"]
+        next_url = "?next=" + quote(f"{self.detail_url()}#orders", safe="/")
+        self.assertEqual(
+            [(str(a.label), a.kind, a.url) for a in actions.buttons],
+            [
+                (
+                    "Bestellung hinzufügen",
+                    "secondary",
+                    reverse("workshop:order-add", kwargs={"production_day": pk})
+                    + next_url,
+                ),
+                (
+                    "Ändere Bestellungen",
+                    "secondary",
+                    reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
+                ),
+            ],
+        )
+        self.assertEqual(
+            [a.url for a in actions.menu],
+            [
+                reverse(
+                    "workshop:production-day-order-max-quantities", kwargs={"pk": pk}
+                ),
+                reverse("workshop:order-list") + f"?production_day={pk}",
+            ],
+        )
+
+    def test_order_max_quantities_returns_to_the_orders(self):
+        response = self.client.post(
+            reverse(
+                "workshop:production-day-order-max-quantities",
+                kwargs={"pk": self.production_day.pk},
+            )
+        )
+        self.assertRedirects(
+            response, f"{self.detail_url()}#orders", fetch_redirect_response=False
+        )
+
+    def test_all_picked_up_returns_to_the_delivery_bill(self):
+        order = self.add_order()
+        response = self.client.get(
+            reverse(
+                "workshop:production-day-all-picked-up",
+                kwargs={"pk": self.production_day.pk},
+            )
+        )
+        self.assertRedirects(
+            response,
+            f"{self.detail_url()}#delivery-bill",
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(order.positions.get().is_picked_up)
+
+    def test_overview_shows_the_day(self):
+        self.add_order()
+        self.production_day.point_of_sales.add(self.pos)
+        overview = self.pane(self.detail(), "overview", "orders")
+        self.assertNotIn("day-info-description", overview)
+        self.assertIn("<dd>Market</dd>", overview)
+        # Orders, then the ordered pieces, nothing is published in the shop.
+        self.assertEqual(
+            [part.split("</dd>")[0] for part in overview.split("<dd>")[2:4]],
+            ["1", "3"],
+        )
+        self.assertNotIn("Im Shop verkauft", overview)
+        self.production_day.description = "Mit Weihnachtsstollen & Co."
+        self.production_day.save()
+        overview = self.pane(self.detail(), "overview", "orders")
+        self.assertIn(
+            '<p class="day-info-description">Mit Weihnachtsstollen &amp; Co.</p>',
+            overview,
+        )
+
+    def test_product_table_carries_its_totals(self):
+        # Bread is overbooked: 12 of 10, the cake has no orders.
+        self.add_order()
+        order = CustomerOrder.objects.get()
+        order.positions.update(quantity=12)
+        response = self.detail()
+        self.assertEqual(
+            response.context["product_totals"],
+            {"count": 2, "ordered": 12, "max": 20, "percent": 60, "is_over": False},
+        )
+        self.assertContains(response, "2 Produkte</th>")
+        self.assertContains(response, '<span class="fill-value">12 / 20</span>')
 
     def test_pick_up_toggle_swaps_only_its_delivery_bill(self):
         order = self.add_order()
@@ -1378,6 +1543,31 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         self.assertContains(response, "hx-push-url", count=len(days))
         # Adding a day belongs to the day pages.
         self.assertNotContains(response, reverse("workshop:production-day-add"))
+
+    def test_close_button_only_in_the_layer(self):
+        day = self.production_day.day_of_sale
+        close = 'class="btn-close day-calendar-close" data-bs-dismiss="modal"'
+        overlay = self.calendar(
+            month=day.strftime("%Y-%m"), overlay=1, link="day", selected=day
+        )
+        self.assertContains(overlay, close, count=1)
+        self.assertNotContains(self.calendar(month=day.strftime("%Y-%m")), close)
+
+    def test_every_day_page_loads_its_layer_in_advance(self):
+        for link, url in self.section_urls().items():
+            with self.subTest(link=link):
+                response = self.client.get(url)
+                overlay_url = response.context["day_switch"]["week"]["overlay_url"]
+                self.assertIn(f"link={link}", overlay_url)
+                self.assertContains(
+                    response,
+                    f'<div class="day-calendar-loader" hidden hx-get="{overlay_url}"'
+                    ' hx-target="#day-calendar-modal-body"'.replace("&", "&amp;"),
+                )
+                # The date button only opens the layer.
+                self.assertNotContains(
+                    response, 'hx-target="#day-calendar-modal-body">'
+                )
 
     def test_week_shows_its_seven_days_with_products(self):
         self.add_order()
@@ -1481,52 +1671,55 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                 self.assertEqual(
                     [(tab["key"], tab["url"]) for tab in tabs],
                     [
-                        ("products", f"{day_url}#products"),
+                        ("overview", f"{day_url}#overview"),
                         ("orders", f"{day_url}#orders"),
+                        ("delivery-bill", f"{day_url}#delivery-bill"),
                         ("ingredients", f"{day_url}#ingredients"),
                         ("plan", urls["plan"]),
                         ("reminder", urls["reminder"]),
                     ],
                 )
-                active = "products" if link == "day" else link
+                active = "overview" if link == "day" else link
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_active")], [active]
                 )
-                # Only the day page switches its three panes in place.
+                # Only the day page switches its four panes in place.
+                panes = ["overview", "orders", "delivery-bill", "ingredients"]
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_pane")],
-                    ["products", "orders", "ingredients"] if link == "day" else [],
+                    panes if link == "day" else [],
                 )
                 # Day page and plan swap into each other, the emails load.
                 swaps = {
                     "day": {"plan": urls["plan"]},
-                    "plan": dict.fromkeys(
-                        ["products", "orders", "ingredients"], day_url
-                    ),
+                    "plan": dict.fromkeys(panes, day_url),
                     "reminder": {},
                 }[link]
                 self.assertEqual(
                     {tab["key"]: tab["swap_url"] for tab in tabs if "swap_url" in tab},
                     swaps,
                 )
-                badges = {tab["key"]: tab.get("badge") for tab in tabs}
-                # The orders are counted in the meta line and the week strip.
-                self.assertEqual(badges["products"], 2)
-                self.assertIsNone(badges["orders"])
+                # Only the orders carry their number.
+                self.assertEqual(
+                    {tab["key"]: tab["badge"] for tab in tabs if "badge" in tab},
+                    {"orders": 1},
+                )
 
     def test_tab_row_links_and_panes(self):
         urls = self.section_urls()
         response = self.detail()
-        self.assertContains(response, 'data-bs-target="#orders"')
+        self.assertContains(response, 'data-bs-target="#delivery-bill"')
         self.assertContains(response, f'class="nav-link" href="{urls["plan"]}"')
         response = self.client.get(urls["plan"])
-        self.assertNotContains(response, 'data-bs-target="#orders"')
+        self.assertNotContains(response, 'data-bs-target="#delivery-bill"')
         self.assertContains(
             response,
-            f'data-day-pane="orders" hx-get="{urls["day"]}" hx-target="#day-page"',
+            f'data-day-pane="delivery-bill" hx-get="{urls["day"]}" hx-target="#day-page"',
         )
         self.assertContains(response, 'id="day-page"', count=1)
-        self.assertContains(response, f'class="nav-link" href="{urls["day"]}#orders"')
+        self.assertContains(
+            response, f'class="nav-link" href="{urls["day"]}#delivery-bill"'
+        )
         self.assertContains(response, f'class="nav-link active" href="{urls["plan"]}"')
 
     def test_plan_page_starts_and_finishes_all_in_place(self):

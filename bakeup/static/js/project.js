@@ -847,7 +847,8 @@ document.addEventListener("htmx:finally:request", function(event) {
     refreshAmountForms();
 });
 function isRecipeSwap(event) {
-    return event.target.closest("#recipe-figures");
+    // A swap that replaced its own target ends on the document.
+    return event.target instanceof Element && event.target.closest("#recipe-figures");
 }
 
 document.addEventListener("htmx:before:swap", function(event) {
@@ -1346,10 +1347,25 @@ document.addEventListener("htmx:after:swap", function() {
 });
 
 // Production day: the open tab is kept in the URL hash, so a reload, a
-// redirect to "#orders" or switching the day with htmx shows the same tab.
+// redirect to "#delivery-bill" or switching the day with htmx shows the same
+// tab.
 function showDayTab(id) {
     var button = document.querySelector('.day-tabs [data-bs-target="#' + id + '"]');
     if (button) bootstrap.Tab.getOrCreateInstance(button).show();
+}
+// On a phone the tab row scrolls sideways, the open tab is moved into view.
+// Only the row scrolls, not the page: scrollIntoView would also scroll up
+// to the row after a swap further down, e.g. ticking a delivery bill.
+function scrollDayTabIntoView() {
+    var tab = document.querySelector(".day-tabs .nav-link.active");
+    if (!tab) return;
+    var row = tab.closest(".day-tabs").getBoundingClientRect();
+    var rect = tab.getBoundingClientRect();
+    if (rect.left < row.left) {
+        tab.closest(".day-tabs").scrollLeft -= row.left - rect.left;
+    } else if (rect.right > row.right) {
+        tab.closest(".day-tabs").scrollLeft += rect.right - row.right;
+    }
 }
 
 var dayTab = location.hash.slice(1);
@@ -1358,9 +1374,11 @@ document.addEventListener("shown.bs.tab", function(event) {
     if (!event.target.closest(".day-tabs")) return;
     dayTab = event.target.getAttribute("data-bs-target").slice(1);
     history.replaceState(history.state, "", "#" + dayTab);
+    scrollDayTabIntoView();
 });
 document.addEventListener("DOMContentLoaded", function() {
     if (dayTab) showDayTab(dayTab);
+    scrollDayTabIntoView();
 });
 // A tab of the plan that leads to a pane of the day page: htmx swaps the
 // page, the pane opens after the swap.
@@ -1378,6 +1396,7 @@ function keepDayTab() {
     }
 }
 document.addEventListener("htmx:after:swap", keepDayTab);
+document.addEventListener("htmx:after:swap", scrollDayTabIntoView);
 // htmx pushes the new URL without the hash.
 document.addEventListener("htmx:after:history:push", keepDayTab);
 
@@ -1445,28 +1464,41 @@ document.addEventListener("click", function(event) {
 function normalizeName(text) {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 }
-function filterDeliveryBills() {
-    var input = document.getElementById("delivery-bill-filter");
-    if (!input) return;
+// Production day: a filter field narrows the rows of its pane as you type,
+// e.g. the delivery bill by name and the orders by anything in a row. The
+// field names its pane (data-filter). In the pane the rows are
+// [data-filter-row], matched on their [data-filter-text] or else on all of
+// their text. A [data-filter-group] goes when none of its rows match, a
+// [data-filter-hide] goes while filtering, [data-filter-empty] says that
+// nothing matches.
+function filterRows(input) {
+    var scope = document.querySelector(input.dataset.filter);
+    if (!scope) return;
     var query = normalizeName(input.value);
     var matches = 0;
-    document.querySelectorAll(".delivery-bill").forEach(function(section) {
-        var sectionMatches = 0;
-        section.querySelectorAll(".delivery-bill-order").forEach(function(row) {
-            var isMatch = normalizeName(row.querySelector(".delivery-bill-name").textContent).includes(query);
-            row.hidden = !isMatch;
-            sectionMatches += isMatch ? 1 : 0;
-        });
-        section.hidden = query !== "" && sectionMatches === 0;
-        section.querySelector(".delivery-bill-summary").hidden = query !== "";
-        matches += sectionMatches;
+    scope.querySelectorAll("[data-filter-row]").forEach(function(row) {
+        var parts = row.querySelectorAll("[data-filter-text]");
+        var text = parts.length ? [].map.call(parts, function(el) { return el.textContent; }).join(" ") : row.textContent;
+        var isMatch = normalizeName(text).includes(query);
+        row.hidden = !isMatch;
+        matches += isMatch ? 1 : 0;
     });
-    document.getElementById("delivery-bill-filter-empty").hidden = query === "" || matches > 0;
+    scope.querySelectorAll("[data-filter-group]").forEach(function(group) {
+        group.hidden = query !== "" && !group.querySelector("[data-filter-row]:not([hidden])");
+    });
+    scope.querySelectorAll("[data-filter-hide]").forEach(function(el) {
+        el.hidden = query !== "";
+    });
+    var empty = scope.querySelector("[data-filter-empty]");
+    if (empty) empty.hidden = query === "" || matches > 0;
 }
 document.addEventListener("input", function(event) {
-    if (event.target.id === "delivery-bill-filter") filterDeliveryBills();
+    if (event.target.matches && event.target.matches("input[data-filter]")) filterRows(event.target);
 });
-document.addEventListener("htmx:after:swap", filterDeliveryBills);
+// A swap brings rows back, e.g. a delivery bill after ticking it.
+document.addEventListener("htmx:after:swap", function() {
+    document.querySelectorAll("input[data-filter]").forEach(filterRows);
+});
 
 // Calendar layer of the day pages: choosing a day closes it, htmx swaps the
 // page behind it or the browser loads the day.
@@ -1497,6 +1529,9 @@ document.addEventListener("click", function(event) {
             fallbackPlacements: ["top", "right", "left"],
             container: "body",
             customClass: "day-calendar-popover",
+            // Without the fade a swap can dispose it at once, a fade still
+            // running would end on a disposed popover.
+            animation: false,
         }).show();
     });
 });

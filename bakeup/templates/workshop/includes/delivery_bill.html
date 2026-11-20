@@ -1,7 +1,7 @@
 {% load i18n %}
-<section class="delivery-bill" id="delivery-bill-{{ bill.point_of_sale.pk }}">
+<section class="delivery-bill" id="delivery-bill-{{ bill.point_of_sale.pk }}" data-filter-group>
   <h3 class="delivery-bill-title">{{ bill.point_of_sale }} <small class="text-muted">{{ production_day }}</small></h3>
-  <ul class="delivery-bill-summary">
+  <ul class="delivery-bill-summary" data-filter-hide>
     {% for order_summary in bill.summary %}
     <li><span class="delivery-bill-summary-qty">{{ order_summary.quantity }} ×</span> {{ order_summary.product__name }}</li>
     {% endfor %}
@@ -25,9 +25,9 @@
       </thead>
       <tbody>
       {% for order in bill.orders %}
-      <tr class="delivery-bill-order">
+      <tr class="delivery-bill-order" data-filter-row>
         <td class="order-customer">
-          <span class="delivery-bill-name">
+          <span class="delivery-bill-name" data-filter-text>
           {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
           {{ order.customer }}
           {% else %}

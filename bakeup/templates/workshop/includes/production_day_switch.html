@@ -7,8 +7,7 @@
   <span class="btn btn-surface disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
   {% endif %}
   <a class="btn btn-surface day-picker-toggle" href="{{ day_switch.week.page_url }}" title="{% trans 'Open calendar' %}"
-    data-bs-toggle="modal" data-bs-target="#day-calendar-modal"
-    hx-get="{{ day_switch.week.overlay_url }}" hx-target="#day-calendar-modal-body">
+    data-bs-toggle="modal" data-bs-target="#day-calendar-modal">
     <i class="fas fa-calendar-days day-picker-icon" aria-hidden="true"></i>
     <span class="day-picker-date">{{ day_switch.production_day.day_of_sale|date:"D, j. M" }}<span class="day-picker-year"> {{ day_switch.production_day.day_of_sale|date:"Y" }}</span></span>
     <i class="fas fa-angle-down" aria-hidden="true"></i>

@@ -7,7 +7,7 @@
     {% if not card.has_orders %}data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="bottom" data-bs-content="{% trans 'No orders yet, the plan is canceled.' %}"{% endif %}
     hx-post="{{ start_url }}?next={{ day_url }}"
     hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
-    hx-select-oob="#production-summary,#day-actions,#day-meta">{% if card.has_orders %}<i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span>{% else %}<i class="fas fa-ban"></i><span class="d-none d-sm-inline"> {% trans "Cancel" %}</span>{% endif %}</a>
+    hx-select-oob="#production-summary,#day-actions">{% if card.has_orders %}<i class="fas fa-play"></i><span class="d-none d-sm-inline"> {% trans "Start" %}</span>{% else %}<i class="fas fa-ban"></i><span class="d-none d-sm-inline"> {% trans "Cancel" %}</span>{% endif %}</a>
   {% elif root.is_production %}
   {% include "workshop/includes/production_plan_finish_button.html" with finish_class="production-card-finish" label_class="d-none d-sm-inline" %}
   {% endif %}
@@ -24,7 +24,7 @@
       <li><a class="dropdown-item" href="{{ update_url }}?next={{ day_url }}"
         hx-post="{{ update_url }}?next={{ day_url }}"
         hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
-        hx-select-oob="#production-summary,#day-actions,#day-meta">
+        hx-select-oob="#production-summary,#day-actions">
         {% if root.is_canceled %}<i class="fas fa-rotate-left fa-fw"></i> {% trans "Reset" %}{% else %}<i class="fas fa-sync-alt fa-fw"></i> {% trans "Update plan" %}{% endif %}</a></li>
       {% endif %}
       {% if not root.is_canceled %}
@@ -32,7 +32,7 @@
       <li><a class="dropdown-item text-danger" href="{{ cancel_url }}?next={{ day_url }}"
         hx-post="{{ cancel_url }}?next={{ day_url }}"
         hx-target="#{{ card.dom_id }}" hx-select="#{{ card.dom_id }}" hx-swap="outerMorph"
-        hx-select-oob="#production-summary,#day-actions,#day-meta"><i class="fas fa-ban fa-fw"></i> {% trans "Cancel" %}</a></li>
+        hx-select-oob="#production-summary,#day-actions"><i class="fas fa-ban fa-fw"></i> {% trans "Cancel" %}</a></li>
       {% endif %}
     </ul>
   </div>

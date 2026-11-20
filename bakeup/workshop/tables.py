@@ -221,6 +221,31 @@ class CustomerOrderTable(tables.Table):
         )
 
 
+class ProductionDayOrderTable(CustomerOrderTable):
+    """The orders of one production day, a pane of the day page.
+
+    The day is the page, its column goes. A day has tens of orders, so no
+    pages, and no sorting: the sort links would reload the page without the
+    pane. The orders come in the order of the queryset, by customer like the
+    delivery bill. Editing and deleting come back to the pane by next.
+    """
+
+    actions = tables.TemplateColumn(
+        template_name="tables/production_day_order_actions_column.html",
+        verbose_name="",
+        exclude_from_export=True,
+        attrs={"td": {"class": "text-end"}},
+    )
+
+    class Meta(CustomerOrderTable.Meta):
+        exclude = ("production_day",)
+        orderable = False
+        order_by = ()
+        attrs = {"class": "table table-hover align-middle day-orders"}
+        # The filter of the pane matches the text of the whole row.
+        row_attrs = {"data-filter-row": ""}
+
+
 class ProductionDayExportTable(tables.Table):
     last_name = tables.TemplateColumn(
         "{{ record.customer.user.last_name }}", verbose_name=_("Last Name")

@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, OrderedDict
-from urllib.parse import unquote, urlencode
+from urllib.parse import quote, unquote, urlencode
 
 from dal.views import BaseQuerySetView
 from dal_select2.views import Select2ViewMixin
@@ -45,7 +45,7 @@ from bakeup.contrib.models import Note
 from bakeup.contrib.notes import can_change_note, get_note_target
 from bakeup.core.models import UOM
 from bakeup.core.utils import get_deleted_objects
-from bakeup.core.views import NextUrlMixin, StaffPermissionsMixin
+from bakeup.core.views import GetNextPageMixin, NextUrlMixin, StaffPermissionsMixin
 from bakeup.pages.models import EmailSettings
 from bakeup.shop.forms import (
     BatchCustomerOrderFormSet,
@@ -108,6 +108,7 @@ from bakeup.workshop.tables import (
     GroupTable,
     PointOfSaleTable,
     ProductFilter,
+    ProductionDayOrderTable,
     ProductionPlanFilter,
     ProductTable,
 )
@@ -790,7 +791,7 @@ def get_production_plan_stages(root, plans_by_depth):
 
 
 def get_production_plan_summary(cards):
-    """The figures of the plan in the meta line of its head.
+    """The figures of the plan at the start of its toolbar.
 
     Only what the cards don't say: the number of products is the badge of
     the products tab, the state shows on every card (its button, progress or
@@ -1136,7 +1137,9 @@ def customer_order_all_picked_up_view(request, pk):
         is_picked_up=True
     )
     return HttpResponseRedirect(
-        "{}#orders".format(reverse("workshop:production-day-detail", kwargs={"pk": pk}))
+        "{}#delivery-bill".format(
+            reverse("workshop:production-day-detail", kwargs={"pk": pk})
+        )
     )
 
 
@@ -1162,10 +1165,9 @@ def order_max_quantities_view(request, pk):
         products,
         request.user.customer.point_of_sale and request.user.customer.point_of_sale.pk,
     )
+    # The new order is in the orders of the day.
     return HttpResponseRedirect(
-        "{}#products".format(
-            reverse("workshop:production-day-detail", kwargs={"pk": pk})
-        )
+        "{}#orders".format(reverse("workshop:production-day-detail", kwargs={"pk": pk}))
     )
 
 
@@ -1187,7 +1189,7 @@ def pos_order_all_picked_up_view(request, production_day, pos):
                 "production_day": production_day,
             },
         )
-    return HttpResponseRedirect(f"{production_day.get_absolute_url()}#orders")
+    return HttpResponseRedirect(f"{production_day.get_absolute_url()}#delivery-bill")
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -1367,11 +1369,14 @@ class CustomerOrderCreationMixin(object):
                     if instance.production_plan:
                         instance.product = instance.production_plan.product
                     instance.save()
-        return HttpResponseRedirect(reverse("workshop:order-list"))
+        # From the orders of a day they go back there, e.g. its pane.
+        return HttpResponseRedirect(
+            self.get_next_page() or reverse("workshop:order-list")
+        )
 
 
 class CustomerOrderUpdateView(
-    StaffPermissionsMixin, CustomerOrderCreationMixin, UpdateView
+    StaffPermissionsMixin, GetNextPageMixin, CustomerOrderCreationMixin, UpdateView
 ):
     model = CustomerOrder
     fields = ["point_of_sale"]
@@ -1390,7 +1395,7 @@ class CustomerOrderUpdateView(
 
 
 class CustomerOrderCreateView(
-    StaffPermissionsMixin, CustomerOrderCreationMixin, CreateView
+    StaffPermissionsMixin, GetNextPageMixin, CustomerOrderCreationMixin, CreateView
 ):
     model = CustomerOrder
     form_class = CustomerOrderForm
@@ -1508,7 +1513,7 @@ class Actions(list):
 
 
 def get_production_day_stats(production_day):
-    """The figures of the day in the meta line of its head. The states of
+    """The figures of the day in the info of its overview. The states of
     the plans are the column of the product table."""
     published = production_day.total_published_quantity
     sold = production_day.total_published_ordered_quantity
@@ -1523,6 +1528,20 @@ def get_production_day_stats(production_day):
             if production_day.has_products_with_price()
             else None
         ),
+    }
+
+
+def get_production_day_product_totals(rows):
+    """The last row of the product table: how many products, and all their
+    orders against all their maximums."""
+    ordered = sum(row["ordered"] for row in rows)
+    maximum = sum(row["day_product"].max_quantity or 0 for row in rows)
+    return {
+        "count": len(rows),
+        "ordered": ordered,
+        "max": maximum,
+        "percent": min(100, round(ordered * 100 / maximum)) if maximum else 0,
+        "is_over": ordered > maximum,
     }
 
 
@@ -1764,28 +1783,27 @@ class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
 def get_day_tabs(production_day, active):
     """The sections of a production day, the tab row of its pages.
 
-    Products, delivery bill and ingredients are panes of the day page, there
-    they switch without loading. From the plan and the pickup emails they
-    link to the day page, the hash opens the pane.
-
-    Only the products carry their number. The orders are counted in the
-    meta line of the day page and on the days of the week strip, a badge
-    would say it a third time.
+    Overview, orders, delivery bill and ingredients are panes of the day
+    page, there they switch without loading. From the plan and the pickup
+    emails they link to the day page, the hash opens the pane.
 
     Between the day page and the plan htmx swaps the page (swap_url), a full
     load felt slow. The pickup emails load: their editor needs the scripts of
     its page and doesn't survive a swap.
+
+    Only the orders carry their number. The products are counted in the last
+    row of their table on the overview.
     """
     on_day = active == "day"
     day_url = production_day.get_absolute_url()
     tabs = [
+        {"key": "overview", "label": _("Overview"), "is_active": on_day},
         {
-            "key": "products",
-            "label": _("Products"),
-            "badge": production_day.production_day_products.count(),
-            "is_active": on_day,
+            "key": "orders",
+            "label": _("Orders"),
+            "badge": production_day.customer_orders.count(),
         },
-        {"key": "orders", "label": _("Delivery bill")},
+        {"key": "delivery-bill", "label": _("Delivery bill")},
         {"key": "ingredients", "label": _("Ingredients")},
     ]
     for tab in tabs:
@@ -1904,9 +1922,8 @@ def get_day_switch(production_day, link):
     the week of the day a strip under it, then the tab row. The actions in
     the title row are the same on every page, what belongs to one page is in
     the toolbar of its section. link is the page, the days of the strip and
-    of the calendar lead to the same page of another day. The figures in the
-    meta line come from the page itself: the stats of the day page, the
-    summary of the plan.
+    of the calendar lead to the same page of another day. The figures of the
+    day are on its overview, the ones of the plan in its toolbar.
     """
     day = production_day.day_of_sale
     switch = {
@@ -1989,14 +2006,19 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
     model = ProductionDay
     template_name = "workshop/productionday_detail.html"
 
-    def get_products_actions(self, has_plans_to_start):
+    def get_orders_url(self):
+        # The orders pane, as a next it is quoted: the hash would end the url.
+        return quote(f"{self.object.get_absolute_url()}#orders", safe="/")
+
+    def get_orders_actions(self, has_plans_to_start):
         pk = self.object.pk
-        next_url = f"?next={self.object.get_absolute_url()}"
+        next_url = f"?next={self.get_orders_url()}"
         actions = Actions(
             [
                 Action(
                     _("Add order"),
-                    reverse("workshop:order-add", kwargs={"production_day": pk}),
+                    reverse("workshop:order-add", kwargs={"production_day": pk})
+                    + next_url,
                     "fas fa-plus-circle",
                     kind="secondary",
                 ),
@@ -2015,8 +2037,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                     reverse(
                         "workshop:production-day-order-max-quantities",
                         kwargs={"pk": pk},
-                    )
-                    + next_url,
+                    ),
                     "fas fa-arrow-up-wide-short",
                     is_htmx=True,
                 )
@@ -2040,6 +2061,17 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         context["point_of_sales"] = get_delivery_bills(self.object)
         context["stats"] = get_production_day_stats(self.object)
         context["product_rows"] = get_production_day_product_rows(self.object)
+        context["product_totals"] = get_production_day_product_totals(
+            context["product_rows"]
+        )
+        context["orders_table"] = ProductionDayOrderTable(
+            self.object.customer_orders.with_is_first_order()
+            .select_related("customer__user", "point_of_sale")
+            .prefetch_related("notes", "positions__product")
+            .order_by("customer__user__last_name", "pk")
+        )
+        # Editing or deleting an order comes back to the orders pane.
+        context["order_next"] = f"{self.object.get_absolute_url()}#orders"
         context["product_mappings"] = list(
             self.object.product_mapping.select_related(
                 "source_product", "target_product"
@@ -2047,7 +2079,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         )
         # The toolbars of the panes are quiet, the one filled button of the
         # page is the next step of the day in its head.
-        context["products_actions"] = self.get_products_actions(has_plans_to_start)
+        context["orders_actions"] = self.get_orders_actions(has_plans_to_start)
         context["delivery_bill_actions"] = Actions(
             [
                 Action(
@@ -2985,14 +3017,12 @@ class CustomerOrderBatchView(StaffPermissionsMixin, NextUrlMixin, CreateView):
         return self.render_to_response(self.get_context_data())
 
 
-class CustomerOrderDeleteView(StaffPermissionsMixin, DeleteView):
+class CustomerOrderDeleteView(StaffPermissionsMixin, GetNextPageMixin, DeleteView):
     model = CustomerOrder
     template_name = "workshop/customerorder_confirm_delete.html"
 
     def get_success_url(self):
-        return reverse(
-            "workshop:order-list",
-        )
+        return self.get_next_page() or reverse("workshop:order-list")
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()

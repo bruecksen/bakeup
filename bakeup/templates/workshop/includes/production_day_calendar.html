@@ -16,6 +16,9 @@
       <a class="btn btn-sm btn-surface" href="{{ calendar.next_url }}" aria-label="{{ calendar.next_label }}"
         hx-get="{{ calendar.next_url }}" hx-target="closest .day-calendar" hx-select=".day-calendar" hx-swap="outerHTML"{% if not calendar.mode %} hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>
     </div>
+    {% if calendar.mode == "overlay" %}
+    <button type="button" class="btn-close day-calendar-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+    {% endif %}
   </div>
   <div class="day-calendar-grid">
     {% if not calendar.is_week %}

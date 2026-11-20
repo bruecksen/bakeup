@@ -1,6 +1,7 @@
 {% extends "workshop/base.html" %}
 {% load i18n %}
 {% load workshop_tags %}
+{% load render_table from django_tables2 %}
 
 {% block title %}{{ object.day_of_sale|date:"D, j. M Y" }} · {% trans "Production day" %}{% endblock %}
 {% block page_header %}{% endblock %}
@@ -11,9 +12,39 @@
   {% include "workshop/includes/production_day_head.html" %}
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
-      <div class="section-toolbar">
-        {% include "workshop/includes/actions.html" with actions=products_actions target="#production-day-detail" %}
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+      <div class="day-pane-card day-info">
+        {% if object.description %}
+        <p class="day-info-description">{{ object.description }}</p>
+        {% endif %}
+        <dl class="day-info-list">
+          {% if object.point_of_sales.exists %}
+          <div class="day-info-item day-info-wide">
+            <dt>{% trans "Points of sale" %}</dt>
+            <dd>{% for pos in object.point_of_sales.all %}{{ pos }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
+          </div>
+          {% endif %}
+          <div class="day-info-item">
+            <dt>{% trans "Orders" %}</dt>
+            <dd>{{ stats.orders }}</dd>
+          </div>
+          <div class="day-info-item">
+            <dt>{% trans "Total ordered quantity" %}</dt>
+            <dd>{{ stats.pieces }}</dd>
+          </div>
+          {% if stats.published %}
+          <div class="day-info-item">
+            <dt>{% trans "Sold in shop" %}</dt>
+            <dd>{{ stats.sold }} <span class="day-info-of">/ {{ stats.published }}</span><span class="progress day-info-progress" role="progressbar" aria-label="{% trans 'Sold in shop' %}" aria-valuenow="{{ stats.sold_percent }}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar bg-success" style="width: {{ stats.sold_percent }}%"></span></span></dd>
+          </div>
+          {% endif %}
+          {% if stats.sales is not None %}
+          <div class="day-info-item">
+            <dt>{% trans "Sales" %}</dt>
+            <dd>{{ stats.sales|floatformat:2 }}&nbsp;€</dd>
+          </div>
+          {% endif %}
+        </dl>
       </div>
       <div class="day-pane-card">
       <h2 class="d-none d-print-block">{% trans "Products" %} {{ object }}</h2>
@@ -51,6 +82,19 @@
             {% endwith %}
             {% endfor %}
           </tbody>
+          <tfoot>
+            <tr class="day-products-total">
+              <th scope="row" colspan="3">{% blocktranslate count counter=product_totals.count %}{{ counter }} product{% plural %}{{ counter }} products{% endblocktranslate %}</th>
+              <td class="day-products-fill">
+                <div class="fill">
+                  <span class="fill-value{% if product_totals.is_over %} text-danger{% endif %}">{{ product_totals.ordered }} / {{ product_totals.max }}</span>
+                  <div class="progress fill-bar" role="progressbar" aria-label="{% trans 'Ordered' %}" aria-valuenow="{{ product_totals.percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar {% if product_totals.is_over %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ product_totals.percent }}%"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
         </table>
       </div>
       {% else %}
@@ -84,24 +128,49 @@
 
     <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
       <div class="section-toolbar">
+        {% if stats.orders %}
+        <div class="input-group input-group-sm section-toolbar-filter d-print-none">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="search" id="orders-filter" class="form-control" placeholder="{% trans 'Filter orders' %}" aria-label="{% trans 'Filter orders' %}" autocomplete="off" data-filter="#orders">
+        </div>
+        {% endif %}
+        {% include "workshop/includes/actions.html" with actions=orders_actions target="#production-day-detail" %}
+      </div>
+      <div class="day-pane-card">
+      {% if stats.orders %}
+      <p class="text-muted d-print-none" hidden data-filter-empty>{% trans "No orders match." %}</p>
+      <div class="table-responsive">
+        {% render_table orders_table %}
+      </div>
+      {% else %}
+      <div class="day-empty">
+        <p>{% trans "There are no orders for this day yet." %}</p>
+        <a href="{% url 'workshop:order-add' production_day=object.pk %}?next={{ order_next|urlencode:'' }}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
+      </div>
+      {% endif %}
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="delivery-bill" role="tabpanel" aria-labelledby="delivery-bill-tab">
+      <div class="section-toolbar">
         {% if point_of_sales %}
         <div class="input-group input-group-sm section-toolbar-filter d-print-none">
           <span class="input-group-text"><i class="fas fa-search"></i></span>
-          <input type="search" id="delivery-bill-filter" class="form-control" placeholder="{% trans 'Filter by name' %}" aria-label="{% trans 'Filter by name' %}" autocomplete="off">
+          <input type="search" id="delivery-bill-filter" class="form-control" placeholder="{% trans 'Filter by name' %}" aria-label="{% trans 'Filter by name' %}" autocomplete="off" data-filter="#delivery-bill">
         </div>
         {% endif %}
         {% include "workshop/includes/actions.html" with actions=delivery_bill_actions %}
       </div>
       <div class="day-pane-card">
       {% if point_of_sales %}
-      <p id="delivery-bill-filter-empty" class="text-muted d-print-none" hidden>{% trans "No orders match this name." %}</p>
+      <p id="delivery-bill-filter-empty" class="text-muted d-print-none" hidden data-filter-empty>{% trans "No orders match this name." %}</p>
       {% endif %}
       {% for point_of_sale in point_of_sales %}
       {% include "workshop/includes/delivery_bill.html" with bill=point_of_sale production_day=object %}
       {% empty %}
       <div class="day-empty">
         <p>{% trans "There are no orders for this day yet." %}</p>
-        <a href="{% url 'workshop:order-add' production_day=object.pk %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
+        <a href="{% url 'workshop:order-add' production_day=object.pk %}?next={{ order_next|urlencode:'' }}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
       </div>
       {% endfor %}
       </div>

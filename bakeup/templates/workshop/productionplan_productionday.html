@@ -7,11 +7,17 @@
 <div id="day-page">
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
-  {% include "workshop/includes/production_day_head.html" with print_meta=True %}
+  {% include "workshop/includes/production_day_head.html" %}
 
   {% if cards %}
-  <div class="section-toolbar d-print-none">
-    <button type="button" id="wake-lock-toggle" class="btn btn-surface d-none" aria-pressed="false" aria-label="{% trans 'Screen on' %}" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun" aria-hidden="true"></i></button>
+  <div class="section-toolbar">
+    <div id="production-summary" class="section-toolbar-figures">
+      {% if summary.pieces %}
+      <span class="toolbar-figure"><strong>{{ summary.pieces|floatformat }}</strong> {% trans "Pieces" %}</span>
+      <span class="toolbar-figure"><strong>{{ summary.weight|clever_unit }}</strong> {% trans "Total weight" %}</span>
+      {% endif %}
+    </div>
+    <button type="button" id="wake-lock-toggle" class="btn btn-surface d-none d-print-none" aria-pressed="false" aria-label="{% trans 'Screen on' %}" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun" aria-hidden="true"></i></button>
   </div>
   <div id="production-plans">
     {% for card in cards %}

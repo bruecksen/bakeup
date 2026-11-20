@@ -1634,6 +1634,12 @@ msgstr "Nach Namen filtern"
 msgid "No orders match this name."
 msgstr "Keine Bestellungen zu diesem Namen gefunden."
 
+msgid "Filter orders"
+msgstr "Bestellungen filtern"
+
+msgid "No orders match."
+msgstr "Keine passenden Bestellungen gefunden."
+
 #: bakeup/templates/workshop/productionday_detail.html:53
 msgid "Point of sales"
 msgstr "Abholstellen"
@@ -2328,13 +2334,13 @@ msgstr "KW"
 msgid "Sold in shop"
 msgstr "Im Shop verkauft"
 
-msgid "sold in shop"
-msgstr "im Shop verkauft"
+msgid "Overview"
+msgstr "Übersicht"
 
-msgid "order"
-msgid_plural "orders"
-msgstr[0] "Bestellung"
-msgstr[1] "Bestellungen"
+msgid "%(counter)s product"
+msgid_plural "%(counter)s products"
+msgstr[0] "%(counter)s Produkt"
+msgstr[1] "%(counter)s Produkte"
 
 msgid "State"
 msgstr "Status"
