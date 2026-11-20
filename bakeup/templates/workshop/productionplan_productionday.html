@@ -27,7 +27,7 @@
       {% include "workshop/includes/production_plan_card.html" %}
     {% endfor %}
   </div>
-  <div id="plan-doughs" class="day-pane-card" data-view-group="plan-views" data-view-pane="doughs" hidden>
+  <div id="plan-doughs" data-view-group="plan-views" data-view-pane="doughs" hidden>
     <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Doughs" %} <small class="text-muted">{{ production_day }}</small></h3>
     {% if doughs %}
     {% for group in doughs %}
@@ -55,7 +55,7 @@
     </ul>
     {% endfor %}
     {% else %}
-    <div class="day-empty">
+    <div class="day-pane-card day-empty">
       <p>{% trans "There are no doughs to make on this day." %}</p>
     </div>
     {% endif %}

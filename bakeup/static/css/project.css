@@ -15411,39 +15411,46 @@ li:hover > .row .main-flour-set,
 }
 
 .plan-doughs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  -webkit-box-align: start;
+      -ms-flex-align: start;
+          align-items: start;
+  gap: 12px;
+  gap: 0.75rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .plan-dough-group {
-  margin: 0;
-  padding: 12px 8px 6px;
-  padding: 0.75rem 0.5rem 0.375rem;
-  font-size: 14px;
-  font-size: 0.875rem;
+  margin: 0 0 8px;
+  margin: 0 0 0.5rem;
+  color: #6c757d;
+  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  background-color: #f8f9fa;
-  border-top: 2px solid #dee2e6;
-  border-bottom: 1px solid #e9ecef;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   -webkit-column-break-after: avoid;
      -moz-column-break-after: avoid;
           break-after: avoid;
 }
-.plan-dough-group ~ .plan-dough-group {
-  margin-top: 12px;
-  margin-top: 0.75rem;
+.plan-doughs + .plan-dough-group {
+  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 
 .plan-dough {
-  padding: 12px 4px;
-  padding: 0.75rem 0.25rem;
+  padding: 12px 16px;
+  padding: 0.75rem 1rem;
+  background-color: #fff;
+  border-radius: 0.375rem;
+  -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+          box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
   -webkit-column-break-inside: avoid;
      -moz-column-break-inside: avoid;
           break-inside: avoid;
-}
-.plan-dough + .plan-dough {
-  border-top: 1px solid #e9ecef;
 }
 
 .plan-dough-head {
@@ -15482,8 +15489,6 @@ li:hover > .row .main-flour-set,
 }
 
 .plan-dough-rows {
-  max-width: 576px;
-  max-width: 36rem;
   margin: 8px 0 0;
   margin: 0.5rem 0 0;
 }
