@@ -15352,16 +15352,17 @@ li:hover > .row .main-flour-set,
 }
 
 .production-day-detail .tab-content > .tab-pane {
+  padding: 0;
+  background: none;
+}
+
+.day-pane-card {
+  padding: 12px;
+  padding: 0.75rem;
+  background-color: #fff;
   border-radius: 0.375rem;
   -webkit-box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
           box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-.production-day-detail .tab-content > .tab-pane > .section-toolbar {
-  margin: -12px -12px 12px;
-  margin: -0.75rem -0.75rem 0.75rem;
-  padding: 8px 12px;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #e9ecef;
 }
 
 .day-product-name {

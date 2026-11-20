@@ -15,6 +15,7 @@
       <div class="section-toolbar">
         {% include "workshop/includes/actions.html" with actions=products_actions target="#production-day-detail" %}
       </div>
+      <div class="day-pane-card">
       <h2 class="d-none d-print-block">{% trans "Products" %} {{ object }}</h2>
       {% if product_rows %}
       <div class="table-responsive">
@@ -78,6 +79,7 @@
         </table>
       </details>
       {% endif %}
+      </div>
     </div>
 
     <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
@@ -90,6 +92,7 @@
         {% endif %}
         {% include "workshop/includes/actions.html" with actions=delivery_bill_actions %}
       </div>
+      <div class="day-pane-card">
       {% if point_of_sales %}
       <p id="delivery-bill-filter-empty" class="text-muted d-print-none" hidden>{% trans "No orders match this name." %}</p>
       {% endif %}
@@ -101,12 +104,14 @@
         <a href="{% url 'workshop:order-add' production_day=object.pk %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> {% trans "Add order" %}</a>
       </div>
       {% endfor %}
+      </div>
     </div>
 
     <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
       <div class="section-toolbar">
         {% include "workshop/includes/actions.html" with actions=ingredients_actions %}
       </div>
+      <div class="day-pane-card">
       <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Ingredients Summary" %} <small class="text-muted">{{ object }}</small></h3>
       <table class="table day-ingredients">
         <thead>
@@ -132,6 +137,7 @@
         </tbody>
         {% endfor %}
       </table>
+      </div>
     </div>
   </div>
 </div>

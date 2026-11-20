@@ -1766,17 +1766,17 @@ $tap-size: 44px;
         background-color: rgba($black, .08) !important;
     }
 }
-// The panes of the day page are a card of their own under the tab row. Its
-// toolbar is the header strip of the card, across its full width.
+// A pane of the day page is its toolbar on the page, where the buttons stand
+// out, and under it the content as a card.
 .production-day-detail .tab-content > .tab-pane {
+    padding: 0;
+    background: none;
+}
+.day-pane-card {
+    padding: .75rem;
+    background-color: $white;
     border-radius: $border-radius;
     box-shadow: $box-shadow-sm;
-
-    > .section-toolbar {
-        margin: -.75rem -.75rem .75rem;
-        padding: .5rem .75rem;
-        border-bottom: 1px solid $gray-200;
-    }
 }
 // The name opens the recipe, the icon after it the product in the plan.
 .day-product-name {
@@ -1813,7 +1813,7 @@ $tap-size: 44px;
 .fill-bar {
     height: .25rem;
 }
-// Inside a tab pane, which is already white.
+// Inside the card of a pane, which is already white.
 .day-empty {
     padding: 2.5rem 1rem;
     color: $text-muted;
