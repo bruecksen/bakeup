@@ -35,6 +35,7 @@ from bakeup.workshop.models import (
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
 from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
+from bakeup.workshop.views import get_production_plan_cards, get_production_plan_doughs
 
 
 class RecipeViewTestCase(RecipeTestCase):
@@ -785,6 +786,139 @@ class ProductionPlanDayViewTest(RecipeViewTestCase):
         self.assertFalse(order.is_locked)
         self.start()
         self.assertTrue(order.is_locked)
+
+    def groups(self):
+        return get_production_plan_doughs(
+            get_production_plan_cards(self.production_day)
+        )
+
+    def doughs(self):
+        return [dough for group in self.groups() for dough in group["doughs"]]
+
+    def summed(self, doughs):
+        # Name, total and split of each dough, rounded to the gram.
+        return [
+            (
+                dough["product"].name,
+                round(dough["total"]),
+                [(use["product"].name, round(use["weight"])) for use in dough["uses"]],
+            )
+            for dough in doughs
+        ]
+
+    def add_roll(self, quantity=5):
+        roll = ProductFactory(
+            name="Roll", category=self.categories["bread"], is_sellable=True
+        )
+        add(roll, self.products["sourdough"], 300)
+        add(roll, self.products["wheat"], 500)
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day, product=roll, max_quantity=quantity
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+
+    def test_doughs_are_the_steps_of_the_cards(self):
+        # The starter inside the sourdough is a dough of its own, the deepest
+        # first; the bread is its own main dough and goes nowhere else.
+        self.assertEqual(
+            self.summed(self.doughs()),
+            [
+                ("Starter", 200, [("Bread", 200)]),
+                ("Sourdough", 2200, [("Bread", 2200)]),
+                ("Bread", 11820, []),
+            ],
+        )
+        sourdough = self.doughs()[1]
+        self.assertEqual(
+            [(row["product"].name, round(row["weight"])) for row in sourdough["rows"]],
+            [("Rye flour", 1000), ("Water", 1000), ("Starter", 200)],
+        )
+
+    def test_dough_of_two_products_is_one_entry(self):
+        self.add_roll()
+        doughs = self.doughs()
+        self.assertEqual(
+            self.summed(doughs),
+            [
+                ("Starter", 336, [("Bread", 200), ("Roll", 136)]),
+                ("Sourdough", 3700, [("Bread", 2200), ("Roll", 1500)]),
+                ("Bread", 11820, []),
+                ("Roll", 4000, []),
+            ],
+        )
+        # The rows of the sourdough are summed over both products.
+        self.assertEqual(
+            [(row["product"].name, round(row["weight"])) for row in doughs[1]["rows"]],
+            [("Rye flour", 1682), ("Water", 1682), ("Starter", 336)],
+        )
+
+    def test_doughs_come_by_category_in_bench_order(self):
+        # The roll's poolish has no category, it goes last. The starter is
+        # deepest, then the pre dough, then the breads themselves.
+        poolish = ProductFactory(name="Poolish", weight=200)
+        add(poolish, self.products["wheat"], 100)
+        add(poolish, self.products["water"], 100)
+        roll = ProductFactory(
+            name="Roll", category=self.categories["bread"], is_sellable=True
+        )
+        add(roll, poolish, 200)
+        add(roll, self.products["wheat"], 500)
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day, product=roll, max_quantity=5
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        self.assertEqual(
+            [
+                (
+                    str(group["label"]),
+                    [dough["product"].name for dough in group["doughs"]],
+                )
+                for group in self.groups()
+            ],
+            [
+                ("Starter", ["Starter"]),
+                ("Pre dough", ["Sourdough"]),
+                ("Bread", ["Bread", "Roll"]),
+                ("Weitere", ["Poolish"]),
+            ],
+        )
+
+    def test_doughs_scale_with_the_plan(self):
+        self.add_roll(quantity=10)
+        self.assertEqual(
+            self.summed(self.doughs())[1],
+            ("Sourdough", 5200, [("Bread", 2200), ("Roll", 3000)]),
+        )
+
+    def test_cancelled_plan_has_no_doughs(self):
+        self.add_roll()
+        plan = self.root()
+        plan.state = ProductionPlan.State.CANCELED
+        plan.save()
+        self.assertEqual(
+            self.summed(self.doughs()),
+            [
+                ("Starter", 136, [("Roll", 136)]),
+                ("Sourdough", 1500, [("Roll", 1500)]),
+                ("Roll", 4000, []),
+            ],
+        )
+
+    def test_plan_page_shows_the_doughs(self):
+        response = self.client.get(self.day_url())
+        doughs = response.content.decode().split('data-view-pane="doughs" hidden>')[1]
+        doughs = doughs.split('data-view-pane="ingredients"')[0]
+        self.assertIn(
+            '<span class="plan-dough-name">Sourdough</span>\n'
+            '          <span class="plan-dough-total">2200\u00a0g</span>',
+            doughs,
+        )
+        self.assertIn('<span class="plan-dough-name">Bread</span>', doughs)
+        self.assertNotIn("<input", doughs, msg="the doughs are read only")
 
     def test_summary(self):
         # Pieces and weight are at the start of the plan's toolbar.
@@ -1674,7 +1808,6 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                         ("overview", f"{day_url}#overview"),
                         ("orders", f"{day_url}#orders"),
                         ("delivery-bill", f"{day_url}#delivery-bill"),
-                        ("ingredients", f"{day_url}#ingredients"),
                         ("plan", urls["plan"]),
                         ("reminder", urls["reminder"]),
                     ],
@@ -1683,8 +1816,9 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_active")], [active]
                 )
-                # Only the day page switches its four panes in place.
-                panes = ["overview", "orders", "delivery-bill", "ingredients"]
+                # Only the day page switches its three panes in place, the
+                # ingredients are a view of the plan.
+                panes = ["overview", "orders", "delivery-bill"]
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_pane")],
                     panes if link == "day" else [],
@@ -1721,6 +1855,41 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
             response, f'class="nav-link" href="{urls["day"]}#delivery-bill"'
         )
         self.assertContains(response, f'class="nav-link active" href="{urls["plan"]}"')
+
+    def test_plan_has_a_view_of_its_ingredients(self):
+        response = self.client.get(self.day_url())
+        self.assertEqual(
+            [view["key"] for view in response.context["plan_views"]],
+            ["plan", "doughs", "ingredients"],
+        )
+        # The switch, the plan shown first, the ingredients hidden.
+        self.assertContains(
+            response,
+            '<button type="button" class="btn btn-surface active" data-view="plan"'
+            ' aria-pressed="true">Plan</button>',
+        )
+        self.assertContains(
+            response,
+            '<button type="button" class="btn btn-surface" data-view="ingredients"'
+            ' aria-pressed="false">Zutaten</button>',
+        )
+        content = response.content.decode()
+        plan = content.split('data-view-pane="plan">')[1].split("data-view-pane=")[0]
+        ingredients = content.split('data-view-pane="ingredients" hidden>')[1]
+        # Each view brings its own print heading, a card keeps its deep link.
+        self.assertIn("Produktionsplan", plan.split("</h2>")[0])
+        self.assertIn(f'id="card-{self.day_products[self.bread.pk].pk}"', plan)
+        self.assertIn("Zusammenfassung Zutaten", ingredients.split("</h3>")[0])
+        table = ingredients.split("</table>")[0]
+        self.assertIn("<td>Rye flour</td>", table)
+        self.assertIn('<td class="text-end">1100 g</td>', table)
+        # One print button for whichever view is on screen.
+        self.assertContains(response, "data-print", count=1)
+
+    def test_ingredients_are_no_longer_a_pane_of_the_day(self):
+        response = self.detail()
+        self.assertNotContains(response, 'id="ingredients"')
+        self.assertNotContains(response, "day-ingredients")
 
     def test_plan_page_starts_and_finishes_all_in_place(self):
         pk = self.production_day.pk

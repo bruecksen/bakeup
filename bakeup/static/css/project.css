@@ -15410,6 +15410,90 @@ li:hover > .row .main-flour-set,
   margin-top: 0.25rem;
 }
 
+.plan-doughs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-dough-group {
+  margin: 0;
+  padding: 12px 8px 6px;
+  padding: 0.75rem 0.5rem 0.375rem;
+  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+  border-bottom: 1px solid #e9ecef;
+  -webkit-column-break-after: avoid;
+     -moz-column-break-after: avoid;
+          break-after: avoid;
+}
+.plan-dough-group ~ .plan-dough-group {
+  margin-top: 12px;
+  margin-top: 0.75rem;
+}
+
+.plan-dough {
+  padding: 12px 4px;
+  padding: 0.75rem 0.25rem;
+  -webkit-column-break-inside: avoid;
+     -moz-column-break-inside: avoid;
+          break-inside: avoid;
+}
+.plan-dough + .plan-dough {
+  border-top: 1px solid #e9ecef;
+}
+
+.plan-dough-head {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 16px;
+  gap: 1rem;
+  font-size: 17px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.plan-dough-total {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plan-dough-uses {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  gap: 0 16px;
+  gap: 0 1rem;
+  color: #6c757d;
+  font-size: 13px;
+  font-size: 0.8125rem;
+}
+
+.plan-dough-rows {
+  max-width: 576px;
+  max-width: 36rem;
+  margin: 8px 0 0;
+  margin: 0.5rem 0 0;
+}
+.plan-dough-rows td {
+  font-variant-numeric: tabular-nums;
+}
+.plan-dough-rows tr:last-child td {
+  border-bottom: 0;
+}
+
 .day-products-total th,
 .day-products-total td {
   border-bottom: 0;
@@ -16793,6 +16877,17 @@ i.step-check-all {
   }
   .day-title-week {
     display: none;
+  }
+  .section-toolbar .view-switch {
+    margin-right: auto;
+  }
+  .section-toolbar .section-toolbar-figures {
+    -webkit-box-ordinal-group: 2;
+        -ms-flex-order: 1;
+            order: 1;
+    -webkit-box-flex: 1;
+        -ms-flex: 1 1 100%;
+            flex: 1 1 100%;
   }
   .day-calendar-head:has(.day-calendar-close) {
     -ms-flex-wrap: wrap;

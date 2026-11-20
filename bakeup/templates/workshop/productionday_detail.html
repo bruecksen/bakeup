@@ -175,39 +175,6 @@
       {% endfor %}
       </div>
     </div>
-
-    <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
-      <div class="section-toolbar">
-        {% include "workshop/includes/actions.html" with actions=ingredients_actions %}
-      </div>
-      <div class="day-pane-card">
-      <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Ingredients Summary" %} <small class="text-muted">{{ object }}</small></h3>
-      <table class="table day-ingredients">
-        <thead>
-          <tr>
-            <th>{% trans "Ingredient" %}</th>
-            <th class="text-end">{% trans "Amount" %}</th>
-          </tr>
-        </thead>
-        {% for category, products in object.get_ingredient_summary_list.items %}
-        <tbody>
-          <tr class="day-ingredients-category">
-            <th scope="rowgroup">{{ category.name }}</th>
-            <th class="text-end">{{ products.sum|clever_rounding }} g</th>
-          </tr>
-          {% for ingredient, quantity in products.items %}
-          {% if ingredient != 'sum' %}
-          <tr>
-            <td>{{ ingredient }}</td>
-            <td class="text-end">{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-        {% endfor %}
-      </table>
-      </div>
-    </div>
   </div>
 </div>
 </div>

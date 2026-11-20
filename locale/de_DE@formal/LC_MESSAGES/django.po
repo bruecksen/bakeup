@@ -2256,9 +2256,6 @@ msgstr ""
 msgid "Create \"%(name)s\""
 msgstr "„%(name)s“ neu anlegen"
 
-#~ msgid "Doughs"
-#~ msgstr "Teige"
-
 #~ msgid "Go to recipies"
 #~ msgstr "Zu den Rezepten"
 
@@ -2433,6 +2430,15 @@ msgstr "Im Shop verkauft"
 
 msgid "Overview"
 msgstr "Übersicht"
+
+msgid "Plan"
+msgstr "Plan"
+
+msgid "Doughs"
+msgstr "Teige"
+
+msgid "There are no doughs to make on this day."
+msgstr "An diesem Tag sind keine Teige zu machen."
 
 msgid "%(counter)s product"
 msgid_plural "%(counter)s products"

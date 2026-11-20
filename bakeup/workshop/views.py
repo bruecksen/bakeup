@@ -13,7 +13,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
-from django.db.models import Count, ProtectedError, Q, Sum
+from django.db.models import Count, ProtectedError, Q, Sum, prefetch_related_objects
 from django.db.models.functions import Coalesce, Lower
 from django.db.models.query import QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
@@ -790,6 +790,113 @@ def get_production_plan_stages(root, plans_by_depth):
     return stages
 
 
+def get_production_plan_doughs(cards):
+    """The doughs of the day: how much of each to make, over all products.
+
+    A dough is a step of a plan card, exactly what the card shows to make:
+    the sub plans (pre dough, sourdough, ...) and the main dough of the sold
+    product itself. Built from the steps of the cards, so plan and doughs
+    can't disagree. The same dough in several products is one entry, by its
+    template, with its ingredient rows summed up and how it splits over the
+    sold products. A dough inside a dough is a step and so an entry of its
+    own with its own total. Cancelled plans don't count, started and
+    produced ones do, like the ingredient summary.
+
+    The doughs come in groups by their category, in the order they are made:
+    the bench order is how deep a dough sits in the plans of the day, the
+    deepest first (a starter in a pre dough in the main dough). A category
+    comes at the earliest stage of its doughs, ties by name, doughs without
+    a category last. Category has no order of its own, the plans give it.
+    In a group the deepest dough first, then by name.
+
+    One query of its own, the templates of all ingredient rows at once.
+    """
+    prefetch_related_objects(
+        [
+            row["row"].child
+            for card in cards
+            for step in card["steps"]
+            for row in step["rows"]
+        ],
+        "product_template",
+    )
+    doughs = {}
+    for card in cards:
+        root = card["root"]
+        if root.is_canceled:
+            continue
+        sold = root.product.product_template or root.product
+        for step in card["steps"]:
+            plan = step["plan"]
+            depth = 0
+            parent = plan
+            while parent.parent_plan_id:
+                parent = parent.parent_plan
+                depth += 1
+            template = plan.product.product_template or plan.product
+            dough = doughs.setdefault(
+                template.pk,
+                {
+                    "product": template,
+                    # The plan's copy has the category of its template and
+                    # comes with the cards.
+                    "category": plan.product.category,
+                    "total": 0,
+                    "depth": 0,
+                    "uses": {},
+                    "rows": {},
+                },
+            )
+            dough["total"] += step["total"]
+            dough["depth"] = max(dough["depth"], depth)
+            dough["uses"][sold] = dough["uses"].get(sold, 0) + step["total"]
+            for row in step["rows"]:
+                child = row["row"].child
+                child = child.product_template or child
+                summed = dough["rows"].setdefault(
+                    child.pk, {"product": child, "weight": 0, "unit": row["unit"]}
+                )
+                summed["weight"] += row["weight"]
+    for dough in doughs.values():
+        # The main dough of one product goes only into that product, there
+        # is nothing to split.
+        if list(dough["uses"]) == [dough["product"]]:
+            dough["uses"] = {}
+        dough["uses"] = [
+            {"product": product, "weight": weight}
+            for product, weight in sorted(
+                dough["uses"].items(), key=lambda item: item[0].name
+            )
+        ]
+        # The heaviest first, like the recipe.
+        dough["rows"] = sorted(
+            dough["rows"].values(), key=lambda row: row["weight"], reverse=True
+        )
+    groups = {}
+    for dough in sorted(
+        doughs.values(), key=lambda dough: (-dough["depth"], dough["product"].name)
+    ):
+        category = dough["category"]
+        group = groups.setdefault(
+            category and category.pk,
+            {
+                "category": category,
+                "label": category.name if category else _("Other"),
+                "depth": dough["depth"],
+                "doughs": [],
+            },
+        )
+        group["doughs"].append(dough)
+    return sorted(
+        groups.values(),
+        key=lambda group: (
+            group["category"] is None,
+            -group["depth"],
+            group["label"],
+        ),
+    )
+
+
 def get_production_plan_summary(cards):
     """The figures of the plan at the start of its toolbar.
 
@@ -821,6 +928,18 @@ class ProductionPlanOfProductionDay(StaffPermissionsMixin, TemplateView):
         context["summary"] = get_production_plan_summary(cards)
         context["production_day"] = self.production_day
         context["day_switch"] = get_day_switch(self.production_day, "plan")
+        # Three views of the plan: the cards, the doughs over all products and
+        # the ingredients of all of them, chosen in the toolbar. Printing
+        # prints the one on screen.
+        context["plan_views"] = [
+            {"key": "plan", "label": _("Plan")},
+            {"key": "doughs", "label": _("Doughs")},
+            {"key": "ingredients", "label": _("Ingredients")},
+        ]
+        context["doughs"] = get_production_plan_doughs(cards)
+        context["plan_actions"] = Actions(
+            [Action(_("Print"), icon="fas fa-print", kind="secondary", is_print=True)]
+        )
         return context
 
 
@@ -1783,8 +1902,8 @@ class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
 def get_day_tabs(production_day, active):
     """The sections of a production day, the tab row of its pages.
 
-    Overview, orders, delivery bill and ingredients are panes of the day
-    page, there they switch without loading. From the plan and the pickup
+    Overview, orders and delivery bill are panes of the day page, there they
+    switch without loading. The ingredients are a view of the plan. From the plan and the pickup
     emails they link to the day page, the hash opens the pane.
 
     Between the day page and the plan htmx swaps the page (swap_url), a full
@@ -1804,7 +1923,6 @@ def get_day_tabs(production_day, active):
             "badge": production_day.customer_orders.count(),
         },
         {"key": "delivery-bill", "label": _("Delivery bill")},
-        {"key": "ingredients", "label": _("Ingredients")},
     ]
     for tab in tabs:
         tab.update(is_pane=on_day, url=f"{day_url}#{tab['key']}")
@@ -2084,16 +2202,6 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             [
                 Action(
                     _("Print delivery bill"),
-                    icon="fas fa-print",
-                    kind="secondary",
-                    is_print=True,
-                )
-            ]
-        )
-        context["ingredients_actions"] = Actions(
-            [
-                Action(
-                    _("Print ingredients"),
                     icon="fas fa-print",
                     kind="secondary",
                     is_print=True,

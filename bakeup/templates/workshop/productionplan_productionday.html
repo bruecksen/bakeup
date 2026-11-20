@@ -6,11 +6,12 @@
 {% block page_content %}
 <div id="day-page">
 <div id="production-day" class="production-day" hx-headers:inherited='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
   {% include "workshop/includes/production_day_head.html" %}
 
   {% if cards %}
   <div class="section-toolbar">
+    {% trans "View" as view_label %}
+    {% include "workshop/includes/view_switch.html" with id="plan-views" views=plan_views label=view_label %}
     <div id="production-summary" class="section-toolbar-figures">
       {% if summary.pieces %}
       <span class="toolbar-figure"><strong>{{ summary.pieces|floatformat }}</strong> {% trans "Pieces" %}</span>
@@ -18,11 +19,73 @@
       {% endif %}
     </div>
     <button type="button" id="wake-lock-toggle" class="btn btn-surface d-none d-print-none" aria-pressed="false" aria-label="{% trans 'Screen on' %}" title="{% trans 'Keep the screen on while this page is open' %}"><i class="fas fa-sun" aria-hidden="true"></i></button>
+    {% include "workshop/includes/actions.html" with actions=plan_actions %}
   </div>
-  <div id="production-plans">
+  <div id="production-plans" data-view-group="plan-views" data-view-pane="plan">
+    <h2 class="d-none d-print-block mb-3">{% trans "Production Plan" %} {{ production_day }}</h2>
     {% for card in cards %}
       {% include "workshop/includes/production_plan_card.html" %}
     {% endfor %}
+  </div>
+  <div id="plan-doughs" class="day-pane-card" data-view-group="plan-views" data-view-pane="doughs" hidden>
+    <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Doughs" %} <small class="text-muted">{{ production_day }}</small></h3>
+    {% if doughs %}
+    {% for group in doughs %}
+    <h4 class="plan-dough-group">{{ group.label }}</h4>
+    <ul class="plan-doughs">
+      {% for dough in group.doughs %}
+      <li class="plan-dough">
+        <div class="plan-dough-head">
+          <span class="plan-dough-name">{{ dough.product.name }}</span>
+          <span class="plan-dough-total">{{ dough.total|clever_unit }}</span>
+        </div>
+        {% if dough.uses %}
+        <div class="plan-dough-uses">{% for use in dough.uses %}<span>{{ use.product.name }} {{ use.weight|clever_unit }}</span>{% endfor %}</div>
+        {% endif %}
+        <table class="table table-sm plan-dough-rows">
+          {% for row in dough.rows %}
+          <tr>
+            <td>{{ row.product.name }}</td>
+            <td class="text-end">{{ row.weight|clever_rounding }} {{ row.unit }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+    {% else %}
+    <div class="day-empty">
+      <p>{% trans "There are no doughs to make on this day." %}</p>
+    </div>
+    {% endif %}
+  </div>
+  <div id="plan-ingredients" class="day-pane-card" data-view-group="plan-views" data-view-pane="ingredients" hidden>
+    <h3 class="delivery-bill-title d-none d-print-flex">{% trans "Ingredients Summary" %} <small class="text-muted">{{ production_day }}</small></h3>
+    <table class="table day-ingredients">
+      <thead>
+        <tr>
+          <th>{% trans "Ingredient" %}</th>
+          <th class="text-end">{% trans "Amount" %}</th>
+        </tr>
+      </thead>
+      {% for category, products in production_day.get_ingredient_summary_list.items %}
+      <tbody>
+        <tr class="day-ingredients-category">
+          <th scope="rowgroup">{{ category.name }}</th>
+          <th class="text-end">{{ products.sum|clever_rounding }} g</th>
+        </tr>
+        {% for ingredient, quantity in products.items %}
+        {% if ingredient != 'sum' %}
+        <tr>
+          <td>{{ ingredient }}</td>
+          <td class="text-end">{{ quantity|clever_rounding }} {{ ingredient.unit }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+      {% endfor %}
+    </table>
   </div>
   {% else %}
   <div class="card production-empty">

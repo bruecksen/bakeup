@@ -1,0 +1,5 @@
+<div id="{{ id }}" class="btn-group btn-group-sm view-switch d-print-none" role="group" aria-label="{{ label }}" data-view-switch>
+  {% for view in views %}
+  <button type="button" class="btn btn-surface{% if forloop.first %} active{% endif %}" data-view="{{ view.key }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{{ view.label }}</button>
+  {% endfor %}
+</div>

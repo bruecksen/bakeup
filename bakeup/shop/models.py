@@ -1,5 +1,7 @@
 import collections
+import functools
 import logging
+import operator
 from datetime import datetime
 
 from django.conf import settings
@@ -385,18 +387,42 @@ class ProductionDay(CommonBaseClass):
 
     def get_ingredient_summary_list(self):
         ingredients = {}
-        child_plans = [
-            child
-            for production_plan in self.production_plans.filter(
-                parent_plan__isnull=True
-            ).exclude(state=ProductionPlan.State.CANCELED)
-            for child in ProductionPlan.objects.filter(
-                Q(parent_plan=production_plan)
-                | Q(parent_plan__parent_plan=production_plan)
-                | Q(parent_plan__parent_plan__parent_plan=production_plan)
-                | Q(parent_plan__parent_plan__parent_plan__parent_plan=production_plan)
-            ).select_related("product")
+        roots = list(
+            self.production_plans.filter(parent_plan__isnull=True).exclude(
+                state=ProductionPlan.State.CANCELED
+            )
+        )
+        # The sub plans of all roots in one query, up to four levels down,
+        # then root by root as before: the order decides the order of the
+        # ingredients in their category.
+        root_index = {root.pk: index for index, root in enumerate(roots)}
+        ancestors = [
+            "parent_plan",
+            "parent_plan__parent_plan",
+            "parent_plan__parent_plan__parent_plan",
+            "parent_plan__parent_plan__parent_plan__parent_plan",
         ]
+        child_plans = list(
+            ProductionPlan.objects.filter(
+                functools.reduce(
+                    operator.or_,
+                    (Q(**{f"{ancestor}__in": roots}) for ancestor in ancestors),
+                )
+            )
+            .annotate(**{f"ancestor_{n}": F(a) for n, a in enumerate(ancestors)})
+            .select_related("product")
+        )
+
+        def root_of(child):
+            return next(
+                root_index[pk]
+                for pk in (
+                    getattr(child, f"ancestor_{n}") for n in range(len(ancestors))
+                )
+                if pk in root_index
+            )
+
+        child_plans.sort(key=root_of)
         prefetch_recipe_trees([child.product for child in child_plans])
         prefetch_related_objects(
             [row.child for child in child_plans for row in child.product.parents.all()],

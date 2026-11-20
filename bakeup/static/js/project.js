@@ -1400,6 +1400,49 @@ document.addEventListener("htmx:after:swap", scrollDayTabIntoView);
 // htmx pushes the new URL without the hash.
 document.addEventListener("htmx:after:history:push", keepDayTab);
 
+// View switch: a tab shows one of its views at a time, e.g. the plan or its
+// ingredients. The buttons of [data-view-switch] name the views, the parts of
+// the page are [data-view-pane] of the switch's id ([data-view-group]). The
+// view is kept in the URL hash like the tabs of the day page, so a reload or
+// switching the day with htmx keeps it. Another hash, e.g. a card of the
+// plan, shows the first view.
+var currentView = location.hash.slice(1);
+
+function showView(key) {
+    if (!/^[\w-]+$/.test(key)) return false;
+    var button = document.querySelector('[data-view-switch] [data-view="' + key + '"]');
+    if (!button) return false;
+    var viewSwitch = button.closest("[data-view-switch]");
+    viewSwitch.querySelectorAll("[data-view]").forEach(function(other) {
+        other.classList.toggle("active", other === button);
+        other.setAttribute("aria-pressed", other === button ? "true" : "false");
+    });
+    document.querySelectorAll('[data-view-group="' + viewSwitch.id + '"]').forEach(function(pane) {
+        pane.hidden = pane.dataset.viewPane !== key;
+    });
+    return true;
+}
+document.addEventListener("click", function(event) {
+    var button = event.target.closest("[data-view-switch] [data-view]");
+    if (!button) return;
+    currentView = button.dataset.view;
+    showView(currentView);
+    history.replaceState(history.state, "", "#" + currentView);
+});
+function keepView() {
+    if (!currentView || !showView(currentView)) return;
+    if (location.hash !== "#" + currentView) {
+        history.replaceState(history.state, "", "#" + currentView);
+    }
+}
+document.addEventListener("DOMContentLoaded", keepView);
+window.addEventListener("hashchange", function() {
+    currentView = location.hash.slice(1);
+    keepView();
+});
+document.addEventListener("htmx:after:swap", keepView);
+document.addEventListener("htmx:after:history:push", keepView);
+
 document.addEventListener("click", function(event) {
     if (event.target.closest("[data-print]")) window.print();
 });

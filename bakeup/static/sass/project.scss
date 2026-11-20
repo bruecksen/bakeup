@@ -1814,6 +1814,66 @@ $tap-size: 44px;
     height: .25rem;
     margin-top: .25rem;
 }
+// The doughs of the day: each one a name with its total, quietly under it
+// the products it goes into, then its ingredient rows as in the plan.
+.plan-doughs {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+// A category of doughs, like the category rows of the ingredients.
+.plan-dough-group {
+    margin: 0;
+    padding: .75rem .5rem .375rem;
+    font-size: .875rem;
+    font-weight: 600;
+    background-color: $gray-100;
+    border-top: 2px solid $gray-300;
+    border-bottom: 1px solid $gray-200;
+    break-after: avoid;
+
+    & ~ & {
+        margin-top: .75rem;
+    }
+}
+.plan-dough {
+    padding: .75rem .25rem;
+    break-inside: avoid;
+
+    & + & {
+        border-top: 1px solid $gray-200;
+    }
+}
+.plan-dough-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+.plan-dough-total {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.plan-dough-uses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+    color: $text-muted;
+    font-size: .8125rem;
+}
+.plan-dough-rows {
+    max-width: 36rem;
+    margin: .5rem 0 0;
+
+    td {
+        font-variant-numeric: tabular-nums;
+    }
+    tr:last-child td {
+        border-bottom: 0;
+    }
+}
 // The last row of the product table carries its totals.
 .day-products-total {
     th,
@@ -2839,6 +2899,15 @@ i.step-check-all {
     // The date and the actions need the row.
     .day-title-week {
         display: none;
+    }
+    // The switch of the views starts the toolbar, the figures get a line of
+    // their own under it.
+    .section-toolbar .view-switch {
+        margin-right: auto;
+    }
+    .section-toolbar .section-toolbar-figures {
+        order: 1;
+        flex: 1 1 100%;
     }
     // In the layer the month and its close button share the first line,
     // the switch and the arrows go to the next.
