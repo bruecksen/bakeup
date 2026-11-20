@@ -1,62 +1,40 @@
 {% load i18n %}
-<section class="delivery-bill" id="delivery-bill-{{ bill.point_of_sale.pk }}" data-filter-group>
+<section class="delivery-bill" id="delivery-bill-{{ bill.point_of_sale.pk }}">
   <h3 class="delivery-bill-title">{{ bill.point_of_sale }} <small class="text-muted">{{ production_day }}</small></h3>
-  <ul class="delivery-bill-summary" data-filter-hide>
+  <ul class="delivery-bill-summary">
     {% for order_summary in bill.summary %}
     <li><span class="delivery-bill-summary-qty">{{ order_summary.quantity }} ×</span> {{ order_summary.product__name }}</li>
     {% endfor %}
   </ul>
-  <div class="table-responsive">
-    <table class="table delivery-bill-table">
-      <thead>
-      <tr>
-        <th class="col-customer">{% trans "Customer" %}</th>
-        <th class="col-products">{% trans "Products" %}</th>
-        {% if production_day.has_products_with_price %}<th class="col-price text-end">{% trans "Price" %}</th>{% endif %}
-        {% if bill.has_notes %}<th class="col-note">{% trans "Note" %}</th>{% endif %}
-        <th class="col-picked text-center">
-          <span class="picked-head">{% trans "Picked" %}<button type="button" class="btn btn-link d-print-none" title="{% if bill.all_picked_up %}{% trans 'None picked up' %}{% else %}{% trans 'All picked up' %}{% endif %}" aria-label="{% if bill.all_picked_up %}{% trans 'None picked up' %}{% else %}{% trans 'All picked up' %}{% endif %}"
-          hx-post="{% url 'workshop:pos-all-picked-up' production_day=production_day.pk pos=bill.point_of_sale.pk %}"
-          hx-target="#delivery-bill-{{ bill.point_of_sale.pk }}"
-          hx-swap="outerHTML"
-          ><i class="{% if bill.all_picked_up %}fas{% else %}far{% endif %} fa-square-check"></i></button></span>
-        </th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for order in bill.orders %}
-      <tr class="delivery-bill-order" data-filter-row>
-        <td class="order-customer">
-          <span class="delivery-bill-name" data-filter-text>
-          {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
-          {{ order.customer }}
-          {% else %}
-          {{ order.customer.user.short_name }}
-          {% endif %}
-          </span>
-          {% if order.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}
-        </td>
-        <td>
-          {% include "workshop/includes/order_positions.html" with positions=order.positions.all canceled_only=True %}
-        </td>
-        {% if production_day.has_products_with_price %}<td class="text-end text-nowrap">{% if order.price_total %}{{ order.price_total }} €{% endif %}</td>{% endif %}
-        {% if bill.has_notes %}<td>{% for note in order.notes.all %}<div class="order-note">{{ note.content }}</div>{% endfor %}</td>{% endif %}
-        <td class="text-center">
-          <form method="POST">
-            {% csrf_token %}
-            <input
-            {% if order.is_picked_up %}checked {% endif %}
-            class="form-check-input form-input-lg border-dark rounded-0"
-            type="checkbox"
-            aria-label="{% trans 'is picked up' %}"
-            hx-post="{% url 'workshop:order-is-picked-up' pk=order.pk %}"
-            hx-trigger="click"
-            >
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <table class="table delivery-bill-table">
+    <thead>
+    <tr>
+      <th class="col-customer">{% trans "Customer" %}</th>
+      <th class="col-products">{% trans "Products" %}</th>
+      {% if production_day.has_products_with_price %}<th class="col-price text-end">{% trans "Price" %}</th>{% endif %}
+      {% if bill.has_notes %}<th class="col-note">{% trans "Note" %}</th>{% endif %}
+      <th class="col-picked text-center">{% trans "Picked" %}</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for order in bill.orders %}
+    <tr class="delivery-bill-order">
+      <td class="order-customer">
+        {% if request.tenant.clientsetting.show_full_name_delivery_bill %}
+        {{ order.customer }}
+        {% else %}
+        {{ order.customer.user.short_name }}
+        {% endif %}
+        {% if order.is_first_order %}{% include "workshop/includes/first_order_badge.html" %}{% endif %}
+      </td>
+      <td>
+        {% include "workshop/includes/order_positions.html" with positions=order.positions.all canceled_only=True %}
+      </td>
+      {% if production_day.has_products_with_price %}<td class="text-end text-nowrap">{% if order.price_total %}{{ order.price_total }} €{% endif %}</td>{% endif %}
+      {% if bill.has_notes %}<td>{% for note in order.notes.all %}<div class="order-note">{{ note.content }}</div>{% endfor %}</td>{% endif %}
+      <td class="text-center"><span class="delivery-bill-box{% if order.picked_up %} is-checked{% endif %}" aria-hidden="true"></span></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 </section>

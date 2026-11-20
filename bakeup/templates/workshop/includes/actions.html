@@ -15,7 +15,7 @@
     <ul class="dropdown-menu dropdown-menu-end">
       {% for action in actions.menu %}
       {% if action.danger and not forloop.first %}<li><hr class="dropdown-divider"></li>{% endif %}
-      <li>
+      <li{% if action.pickup %} data-pickup-only="{{ action.pickup }}"{% endif %}>
         {% if action.disabled %}
         <span class="dropdown-item disabled" aria-disabled="true"><i class="{{ action.icon }} fa-fw" aria-hidden="true"></i> {{ action.label }}{% if action.disabled_reason %} <small class="text-muted">({{ action.disabled_reason }})</small>{% endif %}</span>
         {% elif action.is_print %}

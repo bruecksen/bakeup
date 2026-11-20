@@ -1640,6 +1640,12 @@ msgstr "Bestellungen filtern"
 msgid "No orders match."
 msgstr "Keine passenden Bestellungen gefunden."
 
+msgid "Without point of sale"
+msgstr "Ohne Abholstelle"
+
+msgid "Production is running – orders of started products are locked."
+msgstr "Produktion läuft – Bestellungen der gestarteten Produkte sind gesperrt."
+
 #: bakeup/templates/workshop/productionday_detail.html:53
 msgid "Point of sales"
 msgstr "Abholstellen"

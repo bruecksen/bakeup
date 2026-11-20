@@ -35,7 +35,11 @@ from bakeup.workshop.models import (
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
 from bakeup.workshop.tests.factories import ProductFactory, add
 from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
-from bakeup.workshop.views import get_production_plan_cards, get_production_plan_doughs
+from bakeup.workshop.views import (
+    get_production_day_phase,
+    get_production_plan_cards,
+    get_production_plan_doughs,
+)
 
 
 class RecipeViewTestCase(RecipeTestCase):
@@ -515,7 +519,7 @@ class FirstOrderTest(RecipeViewTestCase):
             reverse("workshop:production-day-detail", kwargs={"pk": self.second_day.pk})
         )
         # The orders pane marks it too, the delivery bill once.
-        bill = response.content.decode().split('id="delivery-bill"')[1]
+        bill = response.content.decode().split('class="day-orders-print')[1]
         self.assertEqual(bill.count("badge-first-order"), 1)
 
     def test_order_list_marks_first_orders(self):
@@ -1406,9 +1410,10 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
                 kwargs={"production_day": self.production_day.pk, "pos": self.pos.pk},
             )
         )
+        # Back to the orders with the point of sale still chosen.
         self.assertRedirects(
             response,
-            f"{self.detail_url()}#delivery-bill",
+            f"{self.detail_url()}?pickup={self.pos.pk}#orders",
             fetch_redirect_response=False,
         )
         self.assertTrue(order.positions.get().is_picked_up)
@@ -1417,27 +1422,41 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         content = response.content.decode()
         return content.split(f'id="{pane}"')[1].split(f'id="{next_pane}"')[0]
 
-    def customer_order(self, production_day, name, quantity=3):
+    def customer_order(
+        self, production_day, name, quantity=3, point_of_sale=None, plan=None
+    ):
         customer = User.objects.create_user(
             username=name, email=f"{name}@example.com", last_name=name
         ).customer
         order = CustomerOrder.objects.create(
-            production_day=production_day, customer=customer, address=""
+            production_day=production_day,
+            customer=customer,
+            address="",
+            point_of_sale=point_of_sale,
         )
         CustomerOrderPosition.objects.create(
-            order=order, product=self.bread, quantity=quantity
+            order=order,
+            product=plan.product if plan else self.bread,
+            quantity=quantity,
+            production_plan=plan,
         )
         return order
+
+    def orders_pane(self, response=None):
+        return self.pane(response or self.detail(), "orders", "day-calendar-modal")
 
     def test_orders_pane_lists_only_the_orders_of_the_day(self):
         order = self.customer_order(self.production_day, "Müller")
         self.customer_order(self.next_day, "Schulz")
-        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        pane = self.orders_pane()
         self.assertIn(
             f'href="{reverse("workshop:customer-detail", kwargs={"pk": order.customer.pk})}"',
             pane,
         )
-        self.assertIn(f"3 x {self.bread}", pane)
+        self.assertIn(
+            f'<span class="quantity">3 x</span> <span class="position-name">{self.bread}</span>',
+            pane,
+        )
         self.assertNotIn("Schulz", pane)
         # The hooks of the filter: the field, one row per order, the message.
         self.assertIn('data-filter="#orders"', pane)
@@ -1445,14 +1464,14 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         self.assertIn("data-filter-empty", pane)
 
     def test_orders_pane_without_orders_offers_to_add_one(self):
-        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        pane = self.orders_pane()
         self.assertIn("Für diesen Tag gibt es noch keine Bestellungen.", pane)
         self.assertNotIn("data-filter-row", pane)
         self.assertNotIn('data-filter="#orders"', pane)
 
     def test_order_rows_come_back_to_the_orders_pane(self):
         order = self.customer_order(self.production_day, "Müller")
-        pane = self.pane(self.detail(), "orders", "delivery-bill")
+        pane = self.orders_pane()
         next_url = quote(f"{self.detail_url()}#orders", safe="")
         for name in ["order-update", "order-delete"]:
             url = reverse(f"workshop:{name}", kwargs={"pk": order.pk})
@@ -1502,23 +1521,14 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         actions = self.detail().context["orders_actions"]
         next_url = "?next=" + quote(f"{self.detail_url()}#orders", safe="/")
         self.assertEqual(
-            [(str(a.label), a.kind, a.url) for a in actions.buttons],
+            [a.url for a in actions.buttons],
             [
-                (
-                    "Bestellung hinzufügen",
-                    "secondary",
-                    reverse("workshop:order-add", kwargs={"production_day": pk})
-                    + next_url,
-                ),
-                (
-                    "Ändere Bestellungen",
-                    "secondary",
-                    reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
-                ),
+                reverse("workshop:order-add", kwargs={"production_day": pk}) + next_url,
+                reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
             ],
         )
         self.assertEqual(
-            [a.url for a in actions.menu],
+            [a.url for a in actions.menu if a.url],
             [
                 reverse(
                     "workshop:production-day-order-max-quantities", kwargs={"pk": pk}
@@ -1538,7 +1548,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
             response, f"{self.detail_url()}#orders", fetch_redirect_response=False
         )
 
-    def test_all_picked_up_returns_to_the_delivery_bill(self):
+    def test_all_picked_up_returns_to_the_orders(self):
         order = self.add_order()
         response = self.client.get(
             reverse(
@@ -1547,9 +1557,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
             )
         )
         self.assertRedirects(
-            response,
-            f"{self.detail_url()}#delivery-bill",
-            fetch_redirect_response=False,
+            response, f"{self.detail_url()}#orders", fetch_redirect_response=False
         )
         self.assertTrue(order.positions.get().is_picked_up)
 
@@ -1586,20 +1594,199 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         self.assertContains(response, "2 Produkte</th>")
         self.assertContains(response, '<span class="fill-value">12 / 20</span>')
 
-    def test_pick_up_toggle_swaps_only_its_delivery_bill(self):
+    def test_marking_a_point_runs_in_place_and_toggles(self):
+        # From the menu with htmx: the page comes back by the redirect, a
+        # second time unmarks the point again.
         order = self.add_order()
         url = reverse(
             "workshop:pos-all-picked-up",
             kwargs={"production_day": self.production_day.pk, "pos": self.pos.pk},
         )
         response = self.client.post(url, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(order.positions.get().is_picked_up)
-        self.assertTemplateUsed(response, "workshop/includes/delivery_bill.html")
-        self.assertTemplateNotUsed(response, "workshop/base.html")
-        self.assertContains(response, f'id="delivery-bill-{self.pos.pk}"')
-        self.assertContains(response, "checked")
         self.client.post(url, HTTP_HX_REQUEST="true")
         self.assertFalse(order.positions.get().is_picked_up)
+
+    def add_plain_roll(self):
+        roll = ProductFactory(
+            name="Roll", category=self.categories["bread"], is_sellable=True
+        )
+        add(roll, self.products["wheat"], 500)
+        ProductionDayProduct.objects.create(
+            production_day=self.production_day, product=roll, max_quantity=5
+        )
+        self.production_day.create_or_update_production_plans(
+            state=ProductionPlan.State.PLANNED, create_max_quantity=True
+        )
+        return self.root(roll)
+
+    def set_roots(self, state):
+        ProductionPlan.objects.filter(
+            production_day=self.production_day, parent_plan=None
+        ).update(state=state)
+
+    def test_phase_follows_the_plans(self):
+        empty = ProductionDay.objects.create(
+            day_of_sale=self.next_day.day_of_sale + timedelta(1)
+        )
+        self.assertEqual(get_production_day_phase(empty), "collecting")
+        self.assertEqual(get_production_day_phase(self.production_day), "collecting")
+        self.set_roots(ProductionPlan.State.CANCELED)
+        self.assertEqual(get_production_day_phase(self.production_day), "collecting")
+        self.set_roots(ProductionPlan.State.PRODUCED)
+        self.assertEqual(get_production_day_phase(self.production_day), "handing_out")
+        # One started product among planned ones is enough.
+        roll = self.add_plain_roll()
+        self.set_roots(ProductionPlan.State.PLANNED)
+        roll.set_production()
+        self.assertEqual(get_production_day_phase(self.production_day), "handing_out")
+
+    def orders_toolbar(self, response):
+        actions = response.context["orders_actions"]
+        return (
+            [str(a.label) for a in actions.buttons],
+            [(str(a.label), a.pickup) for a in actions.menu],
+        )
+
+    def test_collecting_is_about_editing_the_orders(self):
+        order = self.add_order()
+        response = self.detail()
+        self.assertEqual(response.context["phase"], "collecting")
+        self.assertEqual(
+            self.orders_toolbar(response),
+            (
+                ["Bestellung hinzufügen", "Ändere Bestellungen"],
+                [
+                    ("Lieferschein drucken", ""),
+                    ("max. Menge bestellen", ""),
+                    ("In Bestellliste anzeigen", ""),
+                ],
+            ),
+        )
+        pane = self.orders_pane(response)
+        self.assertNotIn("day-order-tick", pane)
+        self.assertNotIn("Abgeholt</th>", pane.split("day-orders-print")[0])
+        self.assertNotIn("section-hint", pane)
+        self.assertIn(reverse("workshop:order-update", kwargs={"pk": order.pk}), pane)
+
+    def test_handing_out_is_about_packing_and_picking_up(self):
+        self.add_order()
+        self.start_day()
+        response = self.detail()
+        self.assertEqual(response.context["phase"], "handing_out")
+        self.assertEqual(
+            self.orders_toolbar(response),
+            (
+                ["Lieferschein drucken"],
+                [
+                    ("Bestellung hinzufügen", ""),
+                    ("Ändere Bestellungen", ""),
+                    ("In Bestellliste anzeigen", ""),
+                    ("Alle als abgeholt markieren", "all"),
+                    ("Alle als abgeholt markieren", str(self.pos.pk)),
+                ],
+            ),
+        )
+        pane = self.orders_pane(response)
+        self.assertEqual(pane.count('class="text-center day-order-tick"'), 1)
+        self.assertIn(
+            "Produktion läuft – Bestellungen der gestarteten Produkte sind gesperrt.",
+            pane,
+        )
+        # The packing list of all points while handing out.
+        self.assertIn('data-pickup-only="all"', pane)
+
+    def test_only_unlocked_orders_can_be_edited_while_handing_out(self):
+        # A mixed day: the bread is started, the roll still planned.
+        roll = self.add_plain_roll()
+        self.pos = PointOfSale.objects.create(name="Market")
+        locked = self.customer_order(
+            self.production_day, "Brot", point_of_sale=self.pos, plan=self.root()
+        )
+        open_order = self.customer_order(
+            self.production_day, "Semmel", point_of_sale=self.pos, plan=roll
+        )
+        self.start()
+        pane = self.orders_pane()
+        for order, editable in [(locked, False), (open_order, True)]:
+            url = reverse("workshop:order-update", kwargs={"pk": order.pk})
+            self.assertEqual(url in pane, editable, msg=order.customer)
+
+    def test_orders_come_by_point_of_sale_and_customer(self):
+        north = PointOfSale.objects.create(name="Nord", short_name="N")
+        south = PointOfSale.objects.create(name="Süd")
+        # A point without orders this day gets no chip.
+        unused = PointOfSale.objects.create(name="Leer")
+        self.production_day.point_of_sales.add(unused)
+        for name, point in [
+            ("Zander", north),
+            ("Adler", south),
+            ("Bauer", north),
+            ("Ohne", None),
+        ]:
+            self.customer_order(self.production_day, name, point_of_sale=point)
+        response = self.detail()
+        self.assertEqual(
+            [
+                (
+                    str(group["label"]),
+                    [o.customer.user.last_name for o in group["orders"]],
+                )
+                for group in response.context["order_groups"]
+            ],
+            [
+                ("Nord", ["Bauer", "Zander"]),
+                ("Süd", ["Adler"]),
+                ("Ohne Abholstelle", ["Ohne"]),
+            ],
+        )
+        pane = self.orders_pane(response)
+        chips = [part.split('"')[0] for part in pane.split('data-pickup-chip="')[1:]]
+        self.assertEqual(chips, ["", str(north.pk), str(south.pk), "none"])
+        self.assertIn(
+            f'data-pickup-chip="{north.pk}" aria-pressed="false">N '
+            '<span class="pickup-chip-count">2</span>',
+            pane,
+        )
+
+    def test_each_point_has_its_products_and_its_printed_bill(self):
+        north = PointOfSale.objects.create(name="Nord")
+        south = PointOfSale.objects.create(name="Süd")
+        self.customer_order(
+            self.production_day, "Bauer", 3, point_of_sale=north, plan=self.root()
+        )
+        self.customer_order(
+            self.production_day, "Zander", 2, point_of_sale=north, plan=self.root()
+        )
+        self.customer_order(
+            self.production_day, "Adler", 1, point_of_sale=south, plan=self.root()
+        )
+        response = self.detail()
+        self.assertEqual(
+            {
+                str(group["label"]): list(group["summary"])
+                for group in response.context["order_groups"]
+            },
+            {
+                "Nord": [{"product__name": "Bread", "quantity": 5}],
+                "Süd": [{"product__name": "Bread", "quantity": 1}],
+            },
+        )
+        pane = self.orders_pane(response)
+        self.assertIn(f'data-pickup-only="{north.pk}" hidden', pane)
+        # The delivery bill is in the page for print, all points of sale.
+        printed = pane.split('class="day-orders-print d-none d-print-block"')[1]
+        self.assertEqual(
+            [part.split('"')[0] for part in printed.split('data-pickup-section="')[1:]],
+            [str(north.pk), str(south.pk)],
+        )
+
+    def test_delivery_bill_is_no_tab_of_its_own(self):
+        response = self.detail()
+        keys = [tab["key"] for tab in response.context["day_switch"]["tabs"]]
+        self.assertNotIn("delivery-bill", keys)
+        self.assertNotContains(response, 'id="delivery-bill"')
 
 
 class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
@@ -1807,7 +1994,6 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                     [
                         ("overview", f"{day_url}#overview"),
                         ("orders", f"{day_url}#orders"),
-                        ("delivery-bill", f"{day_url}#delivery-bill"),
                         ("plan", urls["plan"]),
                         ("reminder", urls["reminder"]),
                     ],
@@ -1816,9 +2002,10 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_active")], [active]
                 )
-                # Only the day page switches its three panes in place, the
-                # ingredients are a view of the plan.
-                panes = ["overview", "orders", "delivery-bill"]
+                # Only the day page switches its two panes in place, the
+                # ingredients are a view of the plan, the delivery bill is
+                # printed from the orders.
+                panes = ["overview", "orders"]
                 self.assertEqual(
                     [tab["key"] for tab in tabs if tab.get("is_pane")],
                     panes if link == "day" else [],
@@ -1842,18 +2029,16 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
     def test_tab_row_links_and_panes(self):
         urls = self.section_urls()
         response = self.detail()
-        self.assertContains(response, 'data-bs-target="#delivery-bill"')
+        self.assertContains(response, 'data-bs-target="#orders"')
         self.assertContains(response, f'class="nav-link" href="{urls["plan"]}"')
         response = self.client.get(urls["plan"])
-        self.assertNotContains(response, 'data-bs-target="#delivery-bill"')
+        self.assertNotContains(response, 'data-bs-target="#orders"')
         self.assertContains(
             response,
-            f'data-day-pane="delivery-bill" hx-get="{urls["day"]}" hx-target="#day-page"',
+            f'data-day-pane="orders" hx-get="{urls["day"]}" hx-target="#day-page"',
         )
         self.assertContains(response, 'id="day-page"', count=1)
-        self.assertContains(
-            response, f'class="nav-link" href="{urls["day"]}#delivery-bill"'
-        )
+        self.assertContains(response, f'class="nav-link" href="{urls["day"]}#orders"')
         self.assertContains(response, f'class="nav-link active" href="{urls["plan"]}"')
 
     def test_plan_has_a_view_of_its_ingredients(self):

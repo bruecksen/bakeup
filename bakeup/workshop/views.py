@@ -108,7 +108,6 @@ from bakeup.workshop.tables import (
     GroupTable,
     PointOfSaleTable,
     ProductFilter,
-    ProductionDayOrderTable,
     ProductionPlanFilter,
     ProductTable,
 )
@@ -1256,9 +1255,7 @@ def customer_order_all_picked_up_view(request, pk):
         is_picked_up=True
     )
     return HttpResponseRedirect(
-        "{}#delivery-bill".format(
-            reverse("workshop:production-day-detail", kwargs={"pk": pk})
-        )
+        "{}#orders".format(reverse("workshop:production-day-detail", kwargs={"pk": pk}))
     )
 
 
@@ -1299,16 +1296,10 @@ def pos_order_all_picked_up_view(request, production_day, pos):
         order__production_day=production_day, order__point_of_sale=point_of_sale
     )
     positions.update(is_picked_up=positions.filter(is_picked_up=False).exists())
-    if request.htmx:
-        return render(
-            request,
-            "workshop/includes/delivery_bill.html",
-            {
-                "bill": get_delivery_bills(production_day, point_of_sale)[0],
-                "production_day": production_day,
-            },
-        )
-    return HttpResponseRedirect(f"{production_day.get_absolute_url()}#delivery-bill")
+    # Back to the orders with the point of sale still chosen.
+    return HttpResponseRedirect(
+        f"{production_day.get_absolute_url()}?pickup={point_of_sale.pk}#orders"
+    )
 
 
 class ProductionPlanDeleteView(StaffPermissionsMixin, DeleteView):
@@ -1600,6 +1591,9 @@ class Action:
     # A number after the label, e.g. the recipients of an email.
     badge: Any = None
     id: str = ""
+    # In the orders list: shown only while this point of sale is chosen
+    # ("all" for all of them), see data-pickup-only.
+    pickup: str = ""
 
     @property
     def is_submit(self):
@@ -1902,8 +1896,9 @@ class ProductionDayCalendarView(StaffPermissionsMixin, TemplateView):
 def get_day_tabs(production_day, active):
     """The sections of a production day, the tab row of its pages.
 
-    Overview, orders and delivery bill are panes of the day page, there they
-    switch without loading. The ingredients are a view of the plan. From the plan and the pickup
+    Overview and orders are panes of the day page, there they switch without
+    loading. The ingredients are a view of the plan, the delivery bill is
+    printed from the orders. From the plan and the pickup
     emails they link to the day page, the hash opens the pane.
 
     Between the day page and the plan htmx swaps the page (swap_url), a full
@@ -1922,7 +1917,6 @@ def get_day_tabs(production_day, active):
             "label": _("Orders"),
             "badge": production_day.customer_orders.count(),
         },
-        {"key": "delivery-bill", "label": _("Delivery bill")},
     ]
     for tab in tabs:
         tab.update(is_pane=on_day, url=f"{day_url}#{tab['key']}")
@@ -2074,14 +2068,89 @@ def production_day_reminder_redirect_view(request):
     return HttpResponseRedirect(get_production_day_url(production_day, "reminder"))
 
 
-def get_delivery_bills(production_day, only=None):
-    """The orders of a day by point of sale, for the delivery bills."""
+def get_production_day_phase(production_day):
+    """Where the day stands, from the state of its plans.
+
+    "collecting" until a plan is started: the orders are edited. "handing
+    out" once any plan is in production or produced, also when others are
+    still planned: the orders are packed and picked up. Cancelled plans
+    don't count.
+    """
+    started = production_day.production_plans.filter(
+        parent_plan__isnull=True,
+        state__in=[ProductionPlan.State.IN_PRODUCTION, ProductionPlan.State.PRODUCED],
+    ).exists()
+    return "handing_out" if started else "collecting"
+
+
+def get_day_order_groups(production_day, bills):
+    """The orders list of a day, by point of sale and then by customer, with
+    the products of each point. The orders without a point of sale, which
+    the delivery bill doesn't print, come last."""
+    groups = [
+        {
+            "key": str(bill["point_of_sale"].pk),
+            "label": bill["point_of_sale"].name,
+            "chip": bill["point_of_sale"].get_short_name(),
+            "orders": bill["orders"],
+            "summary": bill["summary"],
+        }
+        for bill in bills
+    ]
+    without = list(
+        CustomerOrder.objects.filter(
+            production_day=production_day, point_of_sale__isnull=True
+        )
+        .with_is_first_order()
+        .select_related("customer__user")
+        .prefetch_related("notes", "positions__product", "positions__production_plan")
+        .order_by("customer__user__last_name")
+    )
+    if without:
+        groups.append(
+            {
+                "key": "none",
+                "label": _("Without point of sale"),
+                "chip": _("Without point of sale"),
+                "orders": without,
+                "summary": [],
+            }
+        )
+    for group in groups:
+        for order in group["orders"]:
+            # From the loaded positions, CustomerOrder.is_picked_up asks the
+            # database for every order.
+            order.picked_up = all(
+                position.is_picked_up for position in order.positions.all()
+            )
+    return groups
+
+
+def get_unlocked_order_ids(production_day):
+    """The orders of the day that can still be changed, as
+    CustomerOrder.is_locked decides, in one query for the whole list."""
+    return set(
+        CustomerOrder.objects.filter(production_day=production_day)
+        .filter(
+            Q(positions__production_plan__state=ProductionPlan.State.PLANNED)
+            | Q(
+                positions__production_plan__isnull=True,
+                positions__product__parents__isnull=False,
+            )
+        )
+        .values_list("pk", flat=True)
+    )
+
+
+def get_delivery_bills(production_day):
+    """The orders of a day by point of sale, for the delivery bills: the
+    groups of the orders list and the printed delivery bill."""
     point_of_sales = []
-    points_of_sale = PointOfSale.objects.filter(
-        customer_orders__production_day=production_day
-    ).distinct()
-    if only:
-        points_of_sale = points_of_sale.filter(pk=only.pk)
+    points_of_sale = (
+        PointOfSale.objects.filter(customer_orders__production_day=production_day)
+        .distinct()
+        .order_by("name")
+    )
     for point_of_sale in points_of_sale:
         positions = CustomerOrderPosition.objects.exclude(
             Q(production_plan__state=ProductionPlan.State.CANCELED)
@@ -2128,23 +2197,36 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         # The orders pane, as a next it is quoted: the hash would end the url.
         return quote(f"{self.object.get_absolute_url()}#orders", safe="/")
 
-    def get_orders_actions(self, has_plans_to_start):
+    def get_orders_actions(self, phase, has_plans_to_start, groups):
+        """The toolbar of the orders. While collecting, adding and editing
+        orders are the buttons and printing waits in the menu. While handing
+        out, printing the delivery bill is the button, adding and editing
+        orders (still possible for the products not started) and marking a
+        point of sale as picked up are in the menu."""
         pk = self.object.pk
         next_url = f"?next={self.get_orders_url()}"
+        handing_out = phase == "handing_out"
+        order_kind = "menu" if handing_out else "secondary"
         actions = Actions(
             [
+                Action(
+                    _("Print delivery bill"),
+                    icon="fas fa-print",
+                    kind="secondary" if handing_out else "menu",
+                    is_print=True,
+                ),
                 Action(
                     _("Add order"),
                     reverse("workshop:order-add", kwargs={"production_day": pk})
                     + next_url,
                     "fas fa-plus-circle",
-                    kind="secondary",
+                    kind=order_kind,
                 ),
                 Action(
                     _("Edit orders"),
                     reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
                     "fas fa-edit",
-                    kind="secondary",
+                    kind=order_kind,
                 ),
             ]
         )
@@ -2167,6 +2249,34 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
                 "fas fa-shopping-basket",
             )
         )
+        if handing_out:
+            # For the chosen point of sale only, the list shows the one that
+            # fits. All points: the whole day is marked as picked up.
+            actions.append(
+                Action(
+                    _("All picked up"),
+                    reverse("workshop:production-day-all-picked-up", kwargs={"pk": pk}),
+                    "fas fa-square-check",
+                    is_htmx=True,
+                    pickup="all",
+                )
+            )
+            for group in groups:
+                if group["key"] == "none":
+                    continue
+                all_picked_up = all(order.picked_up for order in group["orders"])
+                actions.append(
+                    Action(
+                        _("None picked up") if all_picked_up else _("All picked up"),
+                        reverse(
+                            "workshop:pos-all-picked-up",
+                            kwargs={"production_day": pk, "pos": group["key"]},
+                        ),
+                        "far fa-square" if all_picked_up else "fas fa-square-check",
+                        is_htmx=True,
+                        pickup=group["key"],
+                    )
+                )
         return actions
 
     def get_context_data(self, **kwargs):
@@ -2176,17 +2286,41 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
             state=ProductionPlan.State.PLANNED,
             parent_plan__isnull=True,
         ).exists()
+        # The delivery bill is printed only, by point of sale. The same bills
+        # are the groups of the orders list.
         context["point_of_sales"] = get_delivery_bills(self.object)
+        phase = get_production_day_phase(self.object)
+        groups = get_day_order_groups(self.object, context["point_of_sales"])
+        context["phase"] = phase
+        context["order_groups"] = groups
+        context["has_order_notes"] = any(
+            order.notes.all() for group in groups for order in group["orders"]
+        )
+        context["has_prices"] = self.object.has_products_with_price()
+        # Customer, positions and actions, then the columns that depend.
+        context["order_columns"] = (
+            3
+            + context["has_prices"]
+            + context["has_order_notes"]
+            + (phase == "handing_out")
+        )
+        if phase == "handing_out":
+            context["unlocked_orders"] = get_unlocked_order_ids(self.object)
+            # The packing list of all points, for "all" in the list.
+            context["order_summary"] = (
+                CustomerOrderPosition.objects.exclude(
+                    Q(production_plan__state=ProductionPlan.State.CANCELED)
+                    | Q(production_plan__isnull=True)
+                )
+                .filter(order__production_day=self.object)
+                .values("product__name")
+                .annotate(quantity=Sum("quantity"))
+                .order_by("product__name")
+            )
         context["stats"] = get_production_day_stats(self.object)
         context["product_rows"] = get_production_day_product_rows(self.object)
         context["product_totals"] = get_production_day_product_totals(
             context["product_rows"]
-        )
-        context["orders_table"] = ProductionDayOrderTable(
-            self.object.customer_orders.with_is_first_order()
-            .select_related("customer__user", "point_of_sale")
-            .prefetch_related("notes", "positions__product")
-            .order_by("customer__user__last_name", "pk")
         )
         # Editing or deleting an order comes back to the orders pane.
         context["order_next"] = f"{self.object.get_absolute_url()}#orders"
@@ -2197,16 +2331,8 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         )
         # The toolbars of the panes are quiet, the one filled button of the
         # page is the next step of the day in its head.
-        context["orders_actions"] = self.get_orders_actions(has_plans_to_start)
-        context["delivery_bill_actions"] = Actions(
-            [
-                Action(
-                    _("Print delivery bill"),
-                    icon="fas fa-print",
-                    kind="secondary",
-                    is_print=True,
-                )
-            ]
+        context["orders_actions"] = self.get_orders_actions(
+            phase, has_plans_to_start, groups
         )
         context["day_switch"] = get_day_switch(self.object, "day")
         return context

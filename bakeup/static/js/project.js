@@ -1347,7 +1347,7 @@ document.addEventListener("htmx:after:swap", function() {
 });
 
 // Production day: the open tab is kept in the URL hash, so a reload, a
-// redirect to "#delivery-bill" or switching the day with htmx shows the same
+// redirect to "#orders" or switching the day with htmx shows the same
 // tab.
 function showDayTab(id) {
     var button = document.querySelector('.day-tabs [data-bs-target="#' + id + '"]');
@@ -1507,41 +1507,87 @@ document.addEventListener("click", function(event) {
 function normalizeName(text) {
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 }
-// Production day: a filter field narrows the rows of its pane as you type,
-// e.g. the delivery bill by name and the orders by anything in a row. The
-// field names its pane (data-filter). In the pane the rows are
-// [data-filter-row], matched on their [data-filter-text] or else on all of
-// their text. A [data-filter-group] goes when none of its rows match, a
-// [data-filter-hide] goes while filtering, [data-filter-empty] says that
-// nothing matches.
-function filterRows(input) {
-    var scope = document.querySelector(input.dataset.filter);
-    if (!scope) return;
-    var query = normalizeName(input.value);
+// Production day: the orders list is narrowed in the browser, by text as
+// you type and by the chosen point of sale, both at once. The field names
+// its pane (data-filter). In the pane the rows are [data-filter-row],
+// matched on their [data-filter-text] or else on all of their text, in
+// groups ([data-filter-group]) of one point of sale each ([data-pickup]).
+// The chips ([data-pickup-chip], empty for all) choose the point. While a
+// point is chosen, [data-pickup-only] of that point show ("all" when none
+// is chosen), the printed delivery bill ([data-pickup-section]) only has
+// that point. [data-filter-empty] says that nothing matches. The chosen
+// point is kept in the URL (?pickup=), so a reload, a bookmark of a tablet
+// at one point and switching the day keep it.
+var currentPickup = new URLSearchParams(location.search).get("pickup") || "";
+
+function filterRows(scope) {
+    var input = scope.querySelector("input[data-filter]");
+    var query = input ? normalizeName(input.value) : "";
+    var chips = scope.querySelectorAll("[data-pickup-chip]");
+    var pickup = [].some.call(chips, function(chip) { return chip.dataset.pickupChip === currentPickup; }) ? currentPickup : "";
+    chips.forEach(function(chip) {
+        var isActive = chip.dataset.pickupChip === pickup;
+        chip.classList.toggle("active", isActive);
+        chip.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
     var matches = 0;
     scope.querySelectorAll("[data-filter-row]").forEach(function(row) {
+        var group = row.closest("[data-pickup]");
         var parts = row.querySelectorAll("[data-filter-text]");
         var text = parts.length ? [].map.call(parts, function(el) { return el.textContent; }).join(" ") : row.textContent;
-        var isMatch = normalizeName(text).includes(query);
+        var isMatch = (!pickup || !group || group.dataset.pickup === pickup) && normalizeName(text).includes(query);
         row.hidden = !isMatch;
         matches += isMatch ? 1 : 0;
     });
     scope.querySelectorAll("[data-filter-group]").forEach(function(group) {
-        group.hidden = query !== "" && !group.querySelector("[data-filter-row]:not([hidden])");
+        group.hidden = !group.querySelector("[data-filter-row]:not([hidden])");
     });
-    scope.querySelectorAll("[data-filter-hide]").forEach(function(el) {
-        el.hidden = query !== "";
+    scope.querySelectorAll("[data-pickup-only]").forEach(function(el) {
+        el.hidden = el.dataset.pickupOnly !== (pickup || "all");
+    });
+    scope.querySelectorAll("[data-pickup-section]").forEach(function(el) {
+        el.hidden = pickup !== "" && el.dataset.pickupSection !== pickup;
     });
     var empty = scope.querySelector("[data-filter-empty]");
-    if (empty) empty.hidden = query === "" || matches > 0;
+    if (empty) empty.hidden = matches > 0;
+    return pickup;
+}
+function keepPickup() {
+    document.querySelectorAll("input[data-filter]").forEach(function(input) {
+        var scope = document.querySelector(input.dataset.filter);
+        if (!scope) return;
+        // A day without the chosen point shows all of them, the choice
+        // stays for the next day that has it.
+        var pickup = filterRows(scope);
+        if (!scope.querySelector("[data-pickup-chip]")) return;
+        var params = new URLSearchParams(location.search);
+        if (pickup) {
+            params.set("pickup", pickup);
+        } else {
+            params.delete("pickup");
+        }
+        var search = params.toString() ? "?" + params.toString() : "";
+        if (search !== location.search) {
+            history.replaceState(history.state, "", location.pathname + search + location.hash);
+        }
+    });
 }
 document.addEventListener("input", function(event) {
-    if (event.target.matches && event.target.matches("input[data-filter]")) filterRows(event.target);
+    if (event.target.matches && event.target.matches("input[data-filter]")) {
+        filterRows(document.querySelector(event.target.dataset.filter));
+    }
 });
-// A swap brings rows back, e.g. a delivery bill after ticking it.
-document.addEventListener("htmx:after:swap", function() {
-    document.querySelectorAll("input[data-filter]").forEach(filterRows);
+document.addEventListener("click", function(event) {
+    var chip = event.target.closest("[data-pickup-chip]");
+    if (!chip) return;
+    currentPickup = chip.dataset.pickupChip;
+    keepPickup();
 });
+document.addEventListener("DOMContentLoaded", keepPickup);
+// A swap brings the rows back, e.g. after marking a point as picked up, and
+// htmx pushes the URL of another day without the point.
+document.addEventListener("htmx:after:swap", keepPickup);
+document.addEventListener("htmx:after:history:push", keepPickup);
 
 // Calendar layer of the day pages: choosing a day closes it, htmx swaps the
 // page behind it or the browser loads the day.

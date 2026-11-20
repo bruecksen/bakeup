@@ -15564,18 +15564,12 @@ li:hover > .row .main-flour-set,
   margin-top: 1.5rem;
 }
 
-.delivery-bill + .delivery-bill {
-  margin-top: 32px;
-  margin-top: 2rem;
-}
 .delivery-bill .table {
   margin-bottom: 0;
   table-layout: fixed;
 }
 
 .delivery-bill-table {
-  min-width: 640px;
-  min-width: 40rem;
   font-size: 14px;
   font-size: 0.875rem;
 }
@@ -15616,9 +15610,6 @@ li:hover > .row .main-flour-set,
 .delivery-bill-table .text-end {
   font-variant-numeric: tabular-nums;
 }
-.delivery-bill-table .form-check-input {
-  margin-top: 0;
-}
 .delivery-bill-table .order-positions li {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -15645,6 +15636,152 @@ li:hover > .row .main-flour-set,
   font-variant-numeric: tabular-nums;
 }
 
+.pickup-chips {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  gap: 6px;
+  gap: 0.375rem;
+  margin-right: auto;
+}
+
+.pickup-chip {
+  padding: 3px 12px;
+  padding: 0.1875rem 0.75rem;
+  color: #212529;
+  font-size: 13px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 50rem;
+}
+.pickup-chip:hover {
+  border-color: #d6aa9e;
+}
+.pickup-chip.active {
+  color: #CD6646;
+  font-weight: 600;
+  background-color: #f9ede9;
+  border-color: #d49886;
+}
+
+.pickup-chip-count {
+  color: #6c757d;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-hint {
+  margin: -4px 0 12px;
+  margin: -0.25rem 0 0.75rem;
+  color: #6c757d;
+  font-size: 13px;
+  font-size: 0.8125rem;
+}
+
+.day-orders-summary {
+  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
+}
+.day-orders-summary .delivery-bill-summary {
+  margin: 4px 0 0;
+  margin: 0.25rem 0 0;
+}
+
+.day-orders-summary-title {
+  margin: 0;
+  font-size: 14px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.day-orders {
+  margin-bottom: 0;
+  font-size: 14px;
+  font-size: 0.875rem;
+}
+.day-orders thead th {
+  color: #6c757d;
+  font-size: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.day-orders td {
+  vertical-align: top;
+}
+.day-orders .order-positions li {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
+  gap: 6px;
+  gap: 0.375rem;
+}
+.day-orders .quantity {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+          flex: 0 0 auto;
+  min-width: 36px;
+  min-width: 2.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-orders-group > th {
+  padding-top: 12px;
+  padding-top: 0.75rem;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+}
+
+.day-orders-group-count {
+  margin-left: 4px;
+  margin-left: 0.25rem;
+  color: #6c757d;
+  font-weight: 400;
+}
+
+.day-order-customer {
+  min-width: 176px;
+  min-width: 11rem;
+  font-weight: 500;
+}
+
+.day-order-email {
+  color: #6c757d;
+  font-size: 13px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  word-break: break-all;
+}
+
+.day-order-positions {
+  min-width: 224px;
+  min-width: 14rem;
+}
+
+.day-order-tick {
+  width: 80px;
+  width: 5rem;
+  vertical-align: middle !important;
+}
+.day-order-tick .form-check-input {
+  width: 28px;
+  width: 1.75rem;
+  height: 28px;
+  height: 1.75rem;
+  margin: 0;
+}
+
 .order-note {
   font-size: 13px;
   font-size: 0.8125rem;
@@ -15654,22 +15791,19 @@ li:hover > .row .main-flour-set,
   margin-top: 0.25rem;
 }
 
-.picked-head {
-  display: -webkit-inline-box;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  gap: 4px;
-  gap: 0.25rem;
+.delivery-bill-box {
+  display: inline-block;
+  width: 20px;
+  width: 1.25rem;
+  height: 20px;
+  height: 1.25rem;
+  border: 1.5px solid #495057;
 }
-.picked-head .btn {
-  padding: 0;
-  font-size: 14px;
-  font-size: 0.875rem;
-  line-height: 1;
-  border: 0;
+.delivery-bill-box.is-checked::after {
+  display: block;
+  content: "✓";
+  line-height: 1.1;
+  text-align: center;
 }
 
 .delivery-bill-title {
@@ -16880,6 +17014,27 @@ i.step-check-all {
         -ms-flex: 1 1 8rem;
             flex: 1 1 8rem;
   }
+  .pickup-chips {
+    -webkit-box-flex: 1;
+        -ms-flex: 1 1 100%;
+            flex: 1 1 100%;
+    -webkit-box-ordinal-group: 2;
+        -ms-flex-order: 1;
+            order: 1;
+  }
+  .day-order-customer,
+  .day-order-positions {
+    min-width: 0;
+  }
+  .day-order-customer {
+    width: 34%;
+  }
+  .day-order-email {
+    display: none;
+  }
+  .day-order-tick {
+    width: 3rem;
+  }
   .day-title-week {
     display: none;
   }
@@ -16965,17 +17120,10 @@ i.step-check-all {
             box-shadow: none;
     border: 1px solid #ced4da;
   }
-  .delivery-bill + .delivery-bill {
-    margin-top: 0;
+  [data-pickup-section] + [data-pickup-section] {
     -webkit-column-break-before: page;
        -moz-column-break-before: page;
             break-before: page;
-  }
-  .delivery-bill .table-responsive {
-    overflow: visible;
-  }
-  .delivery-bill-table {
-    min-width: 0;
   }
   .delivery-bill-table tr,
   .day-ingredients tr {

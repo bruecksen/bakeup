@@ -1,5 +1,0 @@
-{% load i18n %}
-<div class="btn-group btn-group-sm text-nowrap" role="group">
-  <a href="{% url 'workshop:order-update' pk=record.pk %}?next={{ order_next|urlencode:'' }}" class="btn btn-surface" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}"><i class="fas fa-edit" aria-hidden="true"></i></a>
-  <a href="{% url 'workshop:order-delete' pk=record.pk %}?next={{ order_next|urlencode:'' }}" class="btn btn-surface" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}"><i class="fas fa-trash-can" aria-hidden="true"></i></a>
-</div>

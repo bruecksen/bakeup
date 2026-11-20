@@ -1929,21 +1929,17 @@ $tap-size: 44px;
 .day-mappings {
     margin-top: 1.5rem;
 }
+// The delivery bill is printed only, from the orders: one point of sale
+// per page with what goes there and a box per order to tick with a pen.
 .delivery-bill {
-    & + & {
-        margin-top: 2rem;
-    }
-
     .table {
         margin-bottom: 0;
         table-layout: fixed;
     }
 }
-// The products column takes the rest of the width. The picked column has a
-// fixed width, its header with the button doesn't wrap. On a phone the table
-// keeps a minimum width and scrolls sideways instead of squeezing columns.
+// The products column takes the rest of the width, the picked column has a
+// fixed width.
 .delivery-bill-table {
-    min-width: 40rem;
     font-size: .875rem;
 
     thead th {
@@ -1978,10 +1974,6 @@ $tap-size: 44px;
     .text-end {
         font-variant-numeric: tabular-nums;
     }
-    // Keeps its tap size for the counter, only lines up with the text.
-    .form-check-input {
-        margin-top: 0;
-    }
     // A long product name wraps under the name, not under the quantity.
     .order-positions li {
         display: flex;
@@ -2002,6 +1994,119 @@ $tap-size: 44px;
         font-variant-numeric: tabular-nums;
     }
 }
+// The orders of the day as one working list: chips for the points of sale
+// next to the search, the groups by point of sale with a quiet heading, the
+// email under the name so the positions have the room.
+.pickup-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+    margin-right: auto;
+}
+.pickup-chip {
+    padding: .1875rem .75rem;
+    color: $body-color;
+    font-size: .8125rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    background-color: $white;
+    border: 1px solid $gray-300;
+    border-radius: 50rem;
+
+    &:hover {
+        border-color: mix($primary, $gray-300, 45%);
+    }
+    &.active {
+        color: $primary;
+        font-weight: 600;
+        background-color: mix($primary, $white, 12%);
+        border-color: mix($primary, $gray-300, 60%);
+    }
+}
+.pickup-chip-count {
+    color: $text-muted;
+    font-variant-numeric: tabular-nums;
+}
+// Why the tab looks different while the production runs.
+.section-hint {
+    margin: -.25rem 0 .75rem;
+    color: $text-muted;
+    font-size: .8125rem;
+}
+.day-orders-summary {
+    margin-bottom: .75rem;
+
+    .delivery-bill-summary {
+        margin: .25rem 0 0;
+    }
+}
+.day-orders-summary-title {
+    margin: 0;
+    font-size: .875rem;
+    font-weight: 600;
+}
+.day-orders {
+    margin-bottom: 0;
+    font-size: .875rem;
+
+    thead th {
+        color: $text-muted;
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    td {
+        vertical-align: top;
+    }
+    .order-positions li {
+        display: flex;
+        align-items: baseline;
+        gap: .375rem;
+    }
+    .quantity {
+        flex: 0 0 auto;
+        min-width: 2.25rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+}
+.day-orders-group > th {
+    padding-top: .75rem;
+    font-weight: 600;
+    background-color: $gray-100;
+    border-top: 2px solid $gray-300;
+}
+.day-orders-group-count {
+    margin-left: .25rem;
+    color: $text-muted;
+    font-weight: 400;
+}
+.day-order-customer {
+    min-width: 11rem;
+    font-weight: 500;
+}
+.day-order-email {
+    color: $text-muted;
+    font-size: .8125rem;
+    font-weight: 400;
+    word-break: break-all;
+}
+.day-order-positions {
+    min-width: 14rem;
+}
+// The tick is the main control at the counter, a large box to tap.
+.day-order-tick {
+    width: 5rem;
+    vertical-align: middle !important;
+
+    .form-check-input {
+        width: 1.75rem;
+        height: 1.75rem;
+        margin: 0;
+    }
+}
 .order-note {
     font-size: .8125rem;
 
@@ -2009,16 +2114,18 @@ $tap-size: 44px;
         margin-top: .25rem;
     }
 }
-.picked-head {
-    display: inline-flex;
-    align-items: center;
-    gap: .25rem;
+.delivery-bill-box {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 1.5px solid $gray-700;
 
-    .btn {
-        padding: 0;
-        font-size: .875rem;
-        line-height: 1;
-        border: 0;
+    // Picked up already when it was printed.
+    &.is-checked::after {
+        display: block;
+        content: "✓";
+        line-height: 1.1;
+        text-align: center;
     }
 }
 .delivery-bill-title {
@@ -2899,6 +3006,25 @@ i.step-check-all {
     .section-toolbar .section-toolbar-filter {
         flex: 1 1 8rem;
     }
+    .pickup-chips {
+        flex: 1 1 100%;
+        order: 1;
+    }
+    // The list fits the width: the email goes (the filter still finds
+    // it), the positions get the room.
+    .day-order-customer,
+    .day-order-positions {
+        min-width: 0;
+    }
+    .day-order-customer {
+        width: 34%;
+    }
+    .day-order-email {
+        display: none;
+    }
+    .day-order-tick {
+        width: 3rem;
+    }
     // The date and the actions need the row.
     .day-title-week {
         display: none;
@@ -2979,15 +3105,8 @@ i.step-check-all {
     }
     // One point of sale per page, its table may run over several pages
     // with the header on each.
-    .delivery-bill + .delivery-bill {
-        margin-top: 0;
+    [data-pickup-section] + [data-pickup-section] {
         break-before: page;
-    }
-    .delivery-bill .table-responsive {
-        overflow: visible;
-    }
-    .delivery-bill-table {
-        min-width: 0;
     }
     .delivery-bill-table tr,
     .day-ingredients tr {
