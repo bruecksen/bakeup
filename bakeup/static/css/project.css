@@ -15735,12 +15735,16 @@ li:hover > .row .main-flour-set,
   font-variant-numeric: tabular-nums;
 }
 
-.day-orders-group > th {
-  padding-top: 12px;
-  padding-top: 0.75rem;
+.day-orders-card .delivery-bill-summary {
+  margin: 8px 0 12px;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.day-orders-card-title {
+  margin: 0;
+  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 600;
-  background-color: #f8f9fa;
-  border-top: 2px solid #dee2e6;
 }
 
 .day-orders-group-count {

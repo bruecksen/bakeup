@@ -29,20 +29,17 @@
     </ul>
   </div>
   {% endif %}
+  <p class="text-muted d-print-none" hidden data-filter-empty>{% trans "No orders match." %}</p>
   {% for group in order_groups %}
-  {% if group.summary %}
-  <div class="day-pane-card day-orders-summary d-print-none" data-pickup-only="{{ group.key }}" hidden>
-    <h3 class="day-orders-summary-title">{{ group.label }}</h3>
+  <section class="day-pane-card day-orders-card d-print-none" data-filter-group data-pickup="{{ group.key }}">
+    <h3 class="day-orders-card-title">{{ group.label }} <span class="day-orders-group-count">{{ group.orders|length }}</span></h3>
+    {% if group.summary %}
     <ul class="delivery-bill-summary">
       {% for line in group.summary %}
       <li><span class="delivery-bill-summary-qty">{{ line.quantity }} ×</span> {{ line.product__name }}</li>
       {% endfor %}
     </ul>
-  </div>
-  {% endif %}
-  {% endfor %}
-  <div class="day-pane-card d-print-none">
-    <p class="text-muted" hidden data-filter-empty>{% trans "No orders match." %}</p>
+    {% endif %}
     <div class="table-responsive position-relative">
       <table class="table align-middle day-orders">
         <thead>
@@ -55,11 +52,7 @@
             <th><span class="visually-hidden">{% trans "Edit" %}</span></th>
           </tr>
         </thead>
-        {% for group in order_groups %}
-        <tbody data-filter-group data-pickup="{{ group.key }}">
-          <tr class="day-orders-group">
-            <th scope="rowgroup" colspan="{{ order_columns }}">{{ group.label }} <span class="day-orders-group-count">{{ group.orders|length }}</span></th>
-          </tr>
+        <tbody>
           {% for order in group.orders %}
           <tr data-filter-row>
             <td class="day-order-customer">
@@ -85,10 +78,10 @@
           </tr>
           {% endfor %}
         </tbody>
-        {% endfor %}
       </table>
     </div>
-  </div>
+  </section>
+  {% endfor %}
   <div class="day-orders-print d-none d-print-block">
     {% for bill in point_of_sales %}
     <div data-pickup-section="{{ bill.point_of_sale.pk }}">

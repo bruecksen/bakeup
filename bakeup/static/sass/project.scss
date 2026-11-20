@@ -2072,11 +2072,18 @@ $tap-size: 44px;
         font-variant-numeric: tabular-nums;
     }
 }
-.day-orders-group > th {
-    padding-top: .75rem;
+// The orders of a point of sale are a card: its name with the number of
+// orders, what goes there in total as on the printed delivery bill, then
+// the orders.
+.day-orders-card {
+    .delivery-bill-summary {
+        margin: .5rem 0 .75rem;
+    }
+}
+.day-orders-card-title {
+    margin: 0;
+    font-size: 1.0625rem;
     font-weight: 600;
-    background-color: $gray-100;
-    border-top: 2px solid $gray-300;
 }
 .day-orders-group-count {
     margin-left: .25rem;

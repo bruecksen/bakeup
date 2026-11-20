@@ -1521,7 +1521,7 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         actions = self.detail().context["orders_actions"]
         next_url = "?next=" + quote(f"{self.detail_url()}#orders", safe="/")
         self.assertEqual(
-            [a.url for a in actions.buttons],
+            [a.url for a in actions.buttons if a.url],
             [
                 reverse("workshop:order-add", kwargs={"production_day": pk}) + next_url,
                 reverse("workshop:order-batch", kwargs={"pk": pk}) + next_url,
@@ -1656,9 +1656,12 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
         self.assertEqual(
             self.orders_toolbar(response),
             (
-                ["Bestellung hinzufügen", "Ändere Bestellungen"],
                 [
-                    ("Lieferschein drucken", ""),
+                    "Bestellung hinzufügen",
+                    "Ändere Bestellungen",
+                    "Lieferschein drucken",
+                ],
+                [
                     ("max. Menge bestellen", ""),
                     ("In Bestellliste anzeigen", ""),
                 ],
@@ -1774,7 +1777,21 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
             },
         )
         pane = self.orders_pane(response)
-        self.assertIn(f'data-pickup-only="{north.pk}" hidden', pane)
+        # Every point of sale is a card of its own, with what goes there in
+        # total on top of its orders.
+        cards = pane.split('class="day-orders-print')[0].split("day-orders-card ")[1:]
+        self.assertEqual(
+            [card.split('data-pickup="')[1].split('"')[0] for card in cards],
+            [str(north.pk), str(south.pk)],
+        )
+        self.assertIn(
+            '<span class="delivery-bill-summary-qty">5 ×</span> Bread', cards[0]
+        )
+        self.assertIn(
+            '<span class="delivery-bill-summary-qty">1 ×</span> Bread', cards[1]
+        )
+        self.assertIn("Bauer", cards[0])
+        self.assertNotIn("Adler", cards[0])
         # The delivery bill is in the page for print, all points of sale.
         printed = pane.split('class="day-orders-print d-none d-print-block"')[1]
         self.assertEqual(
