@@ -1512,7 +1512,8 @@ function normalizeName(text) {
 // its pane (data-filter). In the pane the rows are [data-filter-row],
 // matched on their [data-filter-text] or else on all of their text, in
 // groups ([data-filter-group]) of one point of sale each ([data-pickup]).
-// The chips ([data-pickup-chip], empty for all) choose the point. While a
+// The chips ([data-pickup-chip], empty for all) choose the point, or a
+// dropdown ([data-pickup-select]) when a day has many points. While a
 // point is chosen, [data-pickup-only] of that point show ("all" when none
 // is chosen), the printed delivery bill ([data-pickup-section]) only has
 // that point. [data-filter-empty] says that nothing matches. The chosen
@@ -1524,7 +1525,11 @@ function filterRows(scope) {
     var input = scope.querySelector("input[data-filter]");
     var query = input ? normalizeName(input.value) : "";
     var chips = scope.querySelectorAll("[data-pickup-chip]");
-    var pickup = [].some.call(chips, function(chip) { return chip.dataset.pickupChip === currentPickup; }) ? currentPickup : "";
+    var select = scope.querySelector("[data-pickup-select]");
+    var points = [].map.call(chips, function(chip) { return chip.dataset.pickupChip; })
+        .concat(select ? [].map.call(select.options, function(option) { return option.value; }) : []);
+    var pickup = points.indexOf(currentPickup) > -1 ? currentPickup : "";
+    if (select) select.value = pickup;
     chips.forEach(function(chip) {
         var isActive = chip.dataset.pickupChip === pickup;
         chip.classList.toggle("active", isActive);
@@ -1559,7 +1564,7 @@ function keepPickup() {
         // A day without the chosen point shows all of them, the choice
         // stays for the next day that has it.
         var pickup = filterRows(scope);
-        if (!scope.querySelector("[data-pickup-chip]")) return;
+        if (!scope.querySelector("[data-pickup-chip], [data-pickup-select]")) return;
         var params = new URLSearchParams(location.search);
         if (pickup) {
             params.set("pickup", pickup);
@@ -1581,6 +1586,11 @@ document.addEventListener("click", function(event) {
     var chip = event.target.closest("[data-pickup-chip]");
     if (!chip) return;
     currentPickup = chip.dataset.pickupChip;
+    keepPickup();
+});
+document.addEventListener("change", function(event) {
+    if (!event.target.matches || !event.target.matches("[data-pickup-select]")) return;
+    currentPickup = event.target.value;
     keepPickup();
 });
 document.addEventListener("DOMContentLoaded", keepPickup);

@@ -2008,6 +2008,20 @@ $tap-size: 44px;
     gap: .375rem;
     min-width: 0;
 }
+// The dropdown of many points of sale, as wide as its longest name.
+.section-toolbar .pickup-select {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 16rem;
+    margin-right: auto;
+}
+// Beside the dropdown the search gives way first, so both and the buttons
+// stay on one row on a narrower window.
+.section-toolbar:has(> .pickup-select) .section-toolbar-filter {
+    flex: 1 1 9rem;
+    max-width: 16rem;
+    margin-right: 0;
+}
 .section-toolbar:has(> .pickup-chips) {
     align-items: flex-start;
 

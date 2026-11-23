@@ -6,12 +6,21 @@
       <span class="input-group-text"><i class="fas fa-search"></i></span>
       <input type="search" id="orders-filter" class="form-control" placeholder="{% trans 'Filter orders' %}" aria-label="{% trans 'Filter orders' %}" autocomplete="off" data-filter="#orders">
     </div>
+    {% if pickup_as_select %}
+    <select class="form-select form-select-sm pickup-select" data-pickup-select aria-label="{% trans 'Points of sale' %}">
+      <option value="">{% trans "All points of sale" %} ({{ stats.orders }})</option>
+      {% for group in order_groups %}
+      <option value="{{ group.key }}">{{ group.chip }} ({{ group.orders|length }})</option>
+      {% endfor %}
+    </select>
+    {% else %}
     <div class="pickup-chips" role="group" aria-label="{% trans 'Points of sale' %}">
       <button type="button" class="pickup-chip active" data-pickup-chip="" aria-pressed="true">{% trans "All" %} <span class="pickup-chip-count">{{ stats.orders }}</span></button>
       {% for group in order_groups %}
       <button type="button" class="pickup-chip" data-pickup-chip="{{ group.key }}" aria-pressed="false">{{ group.chip }} <span class="pickup-chip-count">{{ group.orders|length }}</span></button>
       {% endfor %}
     </div>
+    {% endif %}
     {% endif %}
     {% include "workshop/includes/actions.html" with actions=orders_actions target="#production-day-detail" %}
   </div>

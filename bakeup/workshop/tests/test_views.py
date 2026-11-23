@@ -1793,6 +1793,28 @@ class ProductionDayDetailViewTest(ProductionPlanDayViewTest):
             [str(north.pk), str(south.pk)],
         )
 
+    def test_many_points_of_sale_are_a_dropdown(self):
+        # Up to six points of sale are chips, more are a dropdown.
+        points = [PointOfSale.objects.create(name=f"Point {n}") for n in range(7)]
+        for number, point in enumerate(points[:6]):
+            self.customer_order(
+                self.production_day,
+                f"Bauer{number}",
+                1,
+                point_of_sale=point,
+                plan=self.root(),
+            )
+        pane = self.orders_pane(self.detail())
+        self.assertEqual(pane.count("data-pickup-chip="), 7, "six points and all")
+        self.assertNotIn("data-pickup-select", pane)
+        self.customer_order(
+            self.production_day, "Zander", 2, point_of_sale=points[6], plan=self.root()
+        )
+        pane = self.orders_pane(self.detail())
+        self.assertNotIn("data-pickup-chip=", pane)
+        self.assertIn('<option value="">Alle Abholstellen (7)</option>', pane)
+        self.assertIn(f'<option value="{points[6].pk}">Point 6 (1)</option>', pane)
+
     def test_delivery_bill_is_no_tab_of_its_own(self):
         response = self.detail()
         keys = [tab["key"] for tab in response.context["day_switch"]["tabs"]]

@@ -15652,6 +15652,27 @@ li:hover > .row .main-flour-set,
   min-width: 0;
 }
 
+.section-toolbar .pickup-select {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 1 auto;
+          flex: 0 1 auto;
+  width: auto;
+  max-width: 256px;
+  max-width: 16rem;
+  margin-right: auto;
+}
+
+.section-toolbar:has(> .pickup-select) .section-toolbar-filter {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 144px;
+          flex: 1 1 144px;
+  -ms-flex: 1 1 9rem;
+      flex: 1 1 9rem;
+  max-width: 256px;
+  max-width: 16rem;
+  margin-right: 0;
+}
+
 .section-toolbar:has(> .pickup-chips) {
   -webkit-box-align: start;
       -ms-flex-align: start;

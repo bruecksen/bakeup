@@ -2083,6 +2083,13 @@ def get_production_day_phase(production_day):
     return "handing_out" if started else "collecting"
 
 
+# The points of sale of a day are chips in the toolbar of its orders: one
+# tap, and the number of orders of each at a glance. More of them than this
+# would fill several lines, then they are a dropdown and the toolbar stays
+# one row.
+PICKUP_CHIPS_MAX = 6
+
+
 def get_day_order_groups(production_day, bills):
     """The orders list of a day, by point of sale and then by customer, with
     the products of each point. The orders without a point of sale, which
@@ -2289,6 +2296,7 @@ class ProductionDayDetailView(StaffPermissionsMixin, DetailView):
         groups = get_day_order_groups(self.object, context["point_of_sales"])
         context["phase"] = phase
         context["order_groups"] = groups
+        context["pickup_as_select"] = len(groups) > PICKUP_CHIPS_MAX
         context["has_order_notes"] = any(
             order.notes.all() for group in groups for order in group["orders"]
         )
