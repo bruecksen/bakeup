@@ -1765,7 +1765,10 @@ $tap-size: 44px;
     margin-bottom: 1.125rem;
     overflow-x: auto;
     overflow-y: hidden;
-    border-bottom: 1px solid rgba($black, .12);
+    // The line of the row is drawn inside it, in the warm dark of the theme,
+    // so the underline of the open tab lies on it and not above it.
+    border-bottom: 0;
+    box-shadow: inset 0 -1px 0 rgba($dark, .16);
     scrollbar-width: none;
 
     .nav-link {
