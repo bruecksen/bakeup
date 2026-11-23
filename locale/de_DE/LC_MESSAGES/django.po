@@ -2384,6 +2384,9 @@ msgstr "Aktueller Produktionstag"
 msgid "Current"
 msgstr "Aktuell"
 
+msgid "To the current day"
+msgstr "Zum aktuellen Tag"
+
 msgid "Calendar"
 msgstr "Kalender"
 

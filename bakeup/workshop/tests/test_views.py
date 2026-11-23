@@ -2000,7 +2000,7 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                 )
                 self.assertContains(
                     response,
-                    f'class="btn btn-sm btn-surface day-title-current" href="{current_url}"',
+                    f'class="day-title-current" href="{current_url}"',
                 )
         response = self.client.get(self.section_urls(current)["day"])
         self.assertIsNone(response.context["day_switch"]["current_url"])

@@ -1505,9 +1505,22 @@ $tap-size: 44px;
     gap: .375rem;
     min-width: 0;
 }
-// Back to the current production day, beside the date of another day.
+// Back to the current production day, beside the date of another day: a
+// quiet text link, it is a way out and not an action of the day.
 .day-title-current {
     flex: 0 0 auto;
+    color: $text-muted;
+    font-size: .875rem;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-decoration-color: rgba($text-muted, .4);
+    text-underline-offset: .2em;
+
+    &:hover,
+    &:focus-visible {
+        color: $primary;
+        text-decoration-color: currentColor;
+    }
 }
 // The date is the first line of every chip, so the dates of the week are on
 // one line whether a day has a second line or not.

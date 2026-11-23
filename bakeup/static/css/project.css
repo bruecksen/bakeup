@@ -15057,6 +15057,17 @@ li:hover > .row .main-flour-set,
   -webkit-box-flex: 0;
       -ms-flex: 0 0 auto;
           flex: 0 0 auto;
+  color: #6c757d;
+  font-size: 14px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: rgba(108, 117, 125, 0.4);
+  text-underline-offset: 0.2em;
+}
+.day-title-current:hover, .day-title-current:focus-visible {
+  color: #CD6646;
+  text-decoration-color: currentColor;
 }
 
 .day-week-chip {
