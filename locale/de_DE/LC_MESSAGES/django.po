@@ -2381,6 +2381,9 @@ msgstr "Für diesen Tag gibt es noch keine Bestellungen."
 msgid "Current production day"
 msgstr "Aktueller Produktionstag"
 
+msgid "Current"
+msgstr "Aktuell"
+
 msgid "Calendar"
 msgstr "Kalender"
 

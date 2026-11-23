@@ -2027,11 +2027,21 @@ def get_day_actions(production_day, link):
     return actions
 
 
+def get_current_day_url(production_day, link):
+    """The way back to the current production day, the next one from today
+    like the sidebar opens it. None on that day itself."""
+    current = ProductionDay.objects.upcoming().first() or ProductionDay.objects.first()
+    if current and current.pk != production_day.pk:
+        return get_production_day_url(current, link)
+
+
 def get_day_switch(production_day, link):
     """The head of the pages of a production day.
 
-    The date with the previous and the next day is the title of the page,
-    the week of the day a strip under it, then the tab row. The actions in
+    The date is the title of the page and opens the calendar, beside it the
+    way back to the current day. Under it the week of the day as a strip
+    with the previous and the next production day at its ends, then the tab
+    row. The actions in
     the title row are the same on every page, what belongs to one page is in
     the toolbar of its section. link is the page, the days of the strip and
     of the calendar lead to the same page of another day. The figures of the
@@ -2046,6 +2056,7 @@ def get_day_switch(production_day, link):
         ),
         "tabs": get_day_tabs(production_day, link),
         "actions": get_day_actions(production_day, link),
+        "current_url": get_current_day_url(production_day, link),
     }
     for key, method in [
         ("previous_url", ProductionDay.get_previous_by_day_of_sale),

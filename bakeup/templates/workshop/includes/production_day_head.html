@@ -5,6 +5,10 @@
     <div class="day-title">
       {% include "workshop/includes/production_day_switch.html" %}
       <span class="day-title-week">{% trans "CW" %} {{ day_switch.production_day.calendar_week }}</span>
+      {% if day_switch.current_url %}
+      <a class="btn btn-sm btn-surface day-title-current" href="{{ day_switch.current_url }}" title="{% trans 'Current production day' %}" aria-label="{% trans 'Current production day' %}"{% if day_switch.target %}
+        hx-get="{{ day_switch.current_url }}" hx-target="{{ day_switch.target }}" hx-select="{{ day_switch.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}><i class="fas fa-calendar-day" aria-hidden="true"></i> <span class="action-label">{% trans "Current" %}</span></a>
+      {% endif %}
       <div id="day-actions" class="day-header-actions">
         {% include "workshop/includes/actions.html" with actions=day_switch.actions target=day_switch.target %}
       </div>

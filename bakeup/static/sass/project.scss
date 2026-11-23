@@ -1475,11 +1475,39 @@ $tap-size: 44px;
 // white card with the primary edge and a shadow, the other days the same
 // card at half strength, so the production days stand out. Today only has
 // its date in the primary colour. The day of the page is filled.
+// The week with the way to the previous and the next production day at its
+// ends: the arrows flank the days they move through.
+.day-week-row {
+    display: flex;
+    align-items: stretch;
+    gap: .375rem;
+}
+.day-week-arrow {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    padding-right: .625rem;
+    padding-left: .625rem;
+    color: $primary;
+    border-color: transparent;
+    box-shadow: $box-shadow-sm;
+
+    &.disabled {
+        color: $text-muted;
+        box-shadow: none;
+        opacity: .5;
+    }
+}
 .day-week-strip {
     display: grid;
+    flex: 1 1 auto;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: .375rem;
     min-width: 0;
+}
+// Back to the current production day, beside the date of another day.
+.day-title-current {
+    flex: 0 0 auto;
 }
 // The date is the first line of every chip, so the dates of the week are on
 // one line whether a day has a second line or not.

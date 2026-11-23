@@ -1,21 +1,7 @@
 {% load i18n %}
-<div class="production-day-switch btn-group" role="group">
-  {% if day_switch.previous_url %}
-  <a class="btn btn-surface" href="{{ day_switch.previous_url }}" aria-label="{% trans 'Previous production day' %}" title="{% trans 'Previous production day' %}"{% if day_switch.target %}
-    hx-get="{{ day_switch.previous_url }}" hx-target="{{ day_switch.target }}" hx-select="{{ day_switch.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}><i class="fas fa-chevron-left"></i></a>
-  {% else %}
-  <span class="btn btn-surface disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
-  {% endif %}
-  <a class="btn btn-surface day-picker-toggle" href="{{ day_switch.week.page_url }}" title="{% trans 'Open calendar' %}"
-    data-bs-toggle="modal" data-bs-target="#day-calendar-modal">
-    <i class="fas fa-calendar-days day-picker-icon" aria-hidden="true"></i>
-    <span class="day-picker-date">{{ day_switch.production_day.day_of_sale|date:"D, j. M" }}<span class="day-picker-year"> {{ day_switch.production_day.day_of_sale|date:"Y" }}</span></span>
-    <i class="fas fa-angle-down" aria-hidden="true"></i>
-  </a>
-  {% if day_switch.next_url %}
-  <a class="btn btn-surface" href="{{ day_switch.next_url }}" aria-label="{% trans 'Next production day' %}" title="{% trans 'Next production day' %}"{% if day_switch.target %}
-    hx-get="{{ day_switch.next_url }}" hx-target="{{ day_switch.target }}" hx-select="{{ day_switch.target }}" hx-swap="outerHTML" hx-push-url="true"{% endif %}><i class="fas fa-chevron-right"></i></a>
-  {% else %}
-  <span class="btn btn-surface disabled" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
-  {% endif %}
-</div>
+<a class="btn btn-surface production-day-switch day-picker-toggle" href="{{ day_switch.week.page_url }}" title="{% trans 'Open calendar' %}"
+  data-bs-toggle="modal" data-bs-target="#day-calendar-modal">
+  <i class="fas fa-calendar-days day-picker-icon" aria-hidden="true"></i>
+  <span class="day-picker-date">{{ day_switch.production_day.day_of_sale|date:"D, j. M" }}<span class="day-picker-year"> {{ day_switch.production_day.day_of_sale|date:"Y" }}</span></span>
+  <i class="fas fa-angle-down" aria-hidden="true"></i>
+</a>

@@ -1984,6 +1984,28 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
             ),
         }
 
+    def test_other_days_lead_back_to_the_current_day(self):
+        current = ProductionDay.objects.upcoming().first()
+        other = next(
+            day
+            for day in (self.prev_day, self.production_day, self.next_day)
+            if day != current
+        )
+        for link, url in self.section_urls(other).items():
+            with self.subTest(link=link):
+                response = self.client.get(url)
+                current_url = self.section_urls(current)[link]
+                self.assertEqual(
+                    response.context["day_switch"]["current_url"], current_url
+                )
+                self.assertContains(
+                    response,
+                    f'class="btn btn-sm btn-surface day-title-current" href="{current_url}"',
+                )
+        response = self.client.get(self.section_urls(current)["day"])
+        self.assertIsNone(response.context["day_switch"]["current_url"])
+        self.assertNotContains(response, "day-title-current")
+
     def test_strip_keeps_the_section_on_every_day_page(self):
         day = self.production_day.day_of_sale
         monday = day - timedelta(days=day.weekday())
