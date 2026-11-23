@@ -15640,11 +15640,25 @@ li:hover > .row .main-flour-set,
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 320px;
+          flex: 1 1 320px;
+  -ms-flex: 1 1 20rem;
+      flex: 1 1 20rem;
   -ms-flex-wrap: wrap;
       flex-wrap: wrap;
   gap: 6px;
   gap: 0.375rem;
-  margin-right: auto;
+  min-width: 0;
+}
+
+.section-toolbar:has(> .pickup-chips) {
+  -webkit-box-align: start;
+      -ms-flex-align: start;
+          align-items: flex-start;
+}
+.section-toolbar:has(> .pickup-chips) .section-toolbar-filter {
+  margin-right: 0;
 }
 
 .pickup-chip {

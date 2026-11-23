@@ -1998,11 +1998,22 @@ $tap-size: 44px;
 // The orders of the day as one working list: chips for the points of sale
 // next to the search, the groups by point of sale with a quiet heading, the
 // email under the name so the positions have the room.
+// The chips take the room between the search and the buttons and wrap in
+// it, so a bakery with a dozen points of sale gets two lines of chips and
+// not a toolbar of three rows. Without that room they get a row of their own.
 .pickup-chips {
     display: flex;
+    flex: 1 1 20rem;
     flex-wrap: wrap;
     gap: .375rem;
-    margin-right: auto;
+    min-width: 0;
+}
+.section-toolbar:has(> .pickup-chips) {
+    align-items: flex-start;
+
+    .section-toolbar-filter {
+        margin-right: 0;
+    }
 }
 .pickup-chip {
     padding: .1875rem .75rem;
