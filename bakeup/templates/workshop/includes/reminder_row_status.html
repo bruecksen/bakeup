@@ -1,0 +1,14 @@
+{% load i18n %}
+<span class="reminder-status is-{{ row.state }}">
+  {% if row.state == "none" %}
+  {% if row.own_text %}<i class="fas fa-pen" aria-hidden="true"></i> {% trans "own text" %} · {% else %}<i class="far fa-circle" aria-hidden="true"></i> {% endif %}{% trans "not sent yet" %}
+  {% elif row.state == "queued" %}
+  <i class="far fa-clock" aria-hidden="true"></i> {% trans "queued" %}
+  {% elif row.state == "sending" %}
+  <i class="fas fa-paper-plane" aria-hidden="true"></i> {% trans "being sent" %}
+  {% elif row.mails|length > 1 %}
+  <i class="fas fa-check" aria-hidden="true"></i> {% blocktranslate count counter=row.mails|length %}{{ counter }} email sent{% plural %}{{ counter }} emails sent{% endblocktranslate %}
+  {% else %}
+  <i class="fas fa-check" aria-hidden="true"></i> {% blocktranslate with time=row.last_mail.display_time %}sent {{ time }}{% endblocktranslate %} · {% blocktranslate count counter=row.delivered %}{{ counter }} delivered{% plural %}{{ counter }} delivered{% endblocktranslate %}{% if row.failed %}, <span class="text-danger">{% blocktranslate count counter=row.failed %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktranslate %}</span>{% endif %}
+  {% endif %}
+</span>

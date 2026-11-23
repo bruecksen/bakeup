@@ -539,22 +539,12 @@ class ProductionDayReminderForm(forms.Form):
 
 
 class ReminderMessageForm(ModelForm):
-    point_of_sale = forms.ModelChoiceField(
-        empty_label=_("All points of sale"),
-        queryset=PointOfSale.objects.all(),
-        required=False,
-        label=_("Recipients"),
-    )
+    """A text of the pickup emails: the day's, a point of sale's own or the
+    one of another mail. Who gets it is decided by the page, not the form."""
+
     subject = forms.CharField(widget=forms.TextInput, label=_("Subject"))
-    production_day = forms.HiddenInput()
 
     class Meta:
         model = ReminderMessage
-        fields = ["subject", "body", "point_of_sale", "production_day"]
+        fields = ["subject", "body"]
         labels = {"body": _("Text")}
-
-    # def __init__(self, *args, **kwargs):
-    #     production_day = kwargs.pop('production_day', None)
-    #     super().__init__(*args, **kwargs)
-    #     if production_day:
-    #         self.fields['messages'].queryset = ReminderMessage.objects.filter(production_day=production_day)

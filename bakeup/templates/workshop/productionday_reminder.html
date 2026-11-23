@@ -1,6 +1,6 @@
 {% extends "workshop/base.html" %}
 {% load django_bootstrap5 %}
-{% load i18n %}
+{% load i18n newsletter_tags %}
 
 {% block wagtail_non_admin_draftail_head %}
   {% include "wagtail_non_admin_draftail/draftail_media.html" %}
@@ -13,35 +13,77 @@
 {% include "workshop/includes/production_day_head.html" %}
 {% include "workshop/includes/production_day_calendar_modal.html" %}
 
-<div class="row g-4">
-  <div class="col-12 col-xl-8">
+<form id="reminder-send-form" method="post">{% csrf_token %}</form>
+
+<div class="reminder-page">
+  <section class="day-pane-card reminder-list">
+    <div class="reminder-row is-lead">
+      <span class="reminder-row-name">{% trans "All points of sale" %}</span>
+      <span class="reminder-row-orders">{% blocktranslate count counter=overview.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
+      <span class="reminder-status is-{{ overview.state }}">
+        {% if overview.state == "none" %}
+        <i class="far fa-circle" aria-hidden="true"></i> {% if overview.orders %}{% trans "not sent yet" %}{% else %}{% trans "No orders yet" %}{% endif %}
+        {% elif overview.state == "queued" %}
+        <i class="far fa-clock" aria-hidden="true"></i> {% trans "queued" %}
+        {% elif overview.state == "sending" %}
+        <i class="fas fa-paper-plane" aria-hidden="true"></i> {% trans "being sent" %}
+        {% elif overview.state == "partly" %}
+        <i class="fas fa-circle-half-stroke" aria-hidden="true"></i> {% blocktranslate with notified=overview.notified points=overview.points|length %}{{ notified }} of {{ points }} points of sale notified{% endblocktranslate %}
+        {% else %}
+        <i class="fas fa-check" aria-hidden="true"></i> {% blocktranslate with time=overview.last_sent.display_time %}sent {{ time }}{% endblocktranslate %} · {% blocktranslate count counter=overview.delivered %}{{ counter }} delivered{% plural %}{{ counter }} delivered{% endblocktranslate %}{% if overview.failed %}, <span class="text-danger">{% blocktranslate count counter=overview.failed %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktranslate %}</span>{% endif %}
+        {% endif %}
+      </span>
+      <span class="reminder-row-actions">
+        {% include "workshop/includes/actions.html" with actions=day_actions_reminder %}
+      </span>
+      <p class="reminder-row-text">
+        <span class="reminder-label">{% trans "Subject" %}:</span> {{ day_subject }}
+        <span class="reminder-row-links"><a href="?edit=day#reminder-editor" data-reminder-edit="day">{% trans "Edit text" %}</a> · <a href="#reminder-day-preview" data-reminder-preview-toggle aria-controls="reminder-day-preview" aria-expanded="false">{% trans "Preview" %}</a></span>
+      </p>
+      <div id="reminder-day-preview" class="reminder-day-preview" hidden>
+        {% include "workshop/includes/reminder_preview.html" with subject=day_preview.subject body=day_preview.body %}
+      </div>
+    </div>
+    {% if overview.has_points %}
+    {% for row in overview.points %}
+    <div class="reminder-row">
+      <span class="reminder-row-name" title="{{ row.point_of_sale.name }}">{{ row.point_of_sale.name }}</span>
+      <span class="reminder-row-orders">{% blocktranslate count counter=row.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
+      {% include "workshop/includes/reminder_row_status.html" %}
+      <span class="reminder-row-actions">
+        {% include "workshop/includes/actions.html" with actions=row.actions %}
+      </span>
+    </div>
+    {% endfor %}
+    {% if overview.without_point %}
+    {% with row=overview.without_point %}
+    <div class="reminder-row">
+      <span class="reminder-row-name">{% trans "Without point of sale" %}</span>
+      <span class="reminder-row-orders">{% blocktranslate count counter=row.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
+      {% include "workshop/includes/reminder_row_status.html" %}
+      <span class="reminder-row-actions">{% if not row.is_notified %}<span class="reminder-row-note">{% trans "only with an email to all" %}</span>{% endif %}</span>
+    </div>
+    {% endwith %}
+    {% endif %}
+    {% endif %}
+  </section>
+
+  <section id="reminder-editor" class="day-pane-card reminder-editor-panel" data-edit="{{ editor.edit }}"{% if not editor.open %} hidden{% endif %}>
+    <h2 class="reminder-section-title">{{ editor.title }}</h2>
+    {% if editor.warning %}
+    <p class="reminder-warning"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> {{ editor.warning }}</p>
+    {% endif %}
     <form method="post" class="reminder-editor">
       {% csrf_token %}
-      {{ form.media }}
-      {{ form.production_day.as_hidden }}
-      <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="reminder-write-tab" data-bs-toggle="tab" data-bs-target="#reminder-write" type="button" role="tab" aria-controls="reminder-write" aria-selected="true"><i class="fas fa-pen" aria-hidden="true"></i> {% trans "Write" %}</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="reminder-preview-tab" data-bs-toggle="tab" data-bs-target="#reminder-preview-pane" type="button" role="tab" aria-controls="reminder-preview-pane" aria-selected="false"><i class="far fa-eye" aria-hidden="true"></i> {% trans "Preview" %}</button>
-        </li>
-      </ul>
-      <div class="tab-content">
-        <div class="tab-pane show active" id="reminder-write" role="tabpanel" aria-labelledby="reminder-write-tab">
-          {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {{ editor.form.media }}
+      <input type="hidden" name="edit" value="{{ editor.edit }}">
+      <div class="row g-4">
+        <div class="col-12 col-xl-7">
+          {% if editor.form.non_field_errors %}
+          <div class="alert alert-danger">{{ editor.form.non_field_errors }}</div>
           {% endif %}
-          <div class="row g-3 align-items-end mb-3">
-            <div class="col-sm-6">
-              {% bootstrap_field form.point_of_sale wrapper_class="mb-0" %}
-            </div>
-            <div class="col-sm-6">
-              <p class="reminder-recipients"><i class="fas fa-user-group" aria-hidden="true"></i> <span data-recipient-count>{{ recipient_count }}</span> {% trans "recipients, one email per order" %}</p>
-            </div>
-          </div>
-          {% bootstrap_field form.subject %}
-          {% bootstrap_field form.body show_help=False wrapper_class="mb-2" %}
+          {% bootstrap_field editor.form.subject %}
+          {% bootstrap_field editor.form.body show_help=False wrapper_class="mb-2" %}
           <div class="reminder-tags">
             <span class="reminder-tags-label">{% trans "Insert placeholder" %}</span>
             {% for tag in tags %}
@@ -49,79 +91,48 @@
             {% endfor %}
           </div>
         </div>
-        <div class="tab-pane" id="reminder-preview-pane" role="tabpanel" aria-labelledby="reminder-preview-tab">
-          <p class="reminder-panel-note">{% trans "How a customer gets the email, with example data." %}</p>
+        <div class="col-12 col-xl-5">
+          <p class="reminder-label">{% trans "Preview" %}</p>
           <div class="reminder-preview"
             hx-post="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}"
             hx-include=".reminder-editor"
-            hx-trigger="load, shown.bs.tab from:#reminder-preview-tab, input delay:600ms from:.reminder-editor, change from:.reminder-editor, reminder-preview delay:400ms from:body"></div>
+            hx-trigger="load, input delay:600ms from:.reminder-editor, change from:.reminder-editor, reminder-preview delay:400ms from:body"></div>
         </div>
       </div>
       <div class="reminder-editor-footer">
-        {% include "workshop/includes/actions.html" with actions=editor_actions %}
+        {% include "workshop/includes/actions.html" with actions=editor.actions %}
       </div>
     </form>
-    {% if object %}
-    <form id="reminder-delete-form" method="post" action="{% url 'workshop:production-day-reminder-delete' production_day=production_day.pk pk=object.pk %}">{% csrf_token %}</form>
-    {% endif %}
-  </div>
+  </section>
 
-  <div class="col-12 col-xl-4">
-    <section class="reminder-panel">
-      <h2 class="reminder-panel-title">{% trans "Emails of this day" %}</h2>
-
-      <div class="reminder-group">
-        <div class="reminder-group-head">
-          <h3 class="reminder-group-title">{% trans "Drafts" %}</h3>
-          {% if object %}<a class="reminder-panel-link" href="{% url 'workshop:production-day-reminder' production_day=production_day.pk %}"><i class="fas fa-plus" aria-hidden="true"></i> {% trans "New email" %}</a>{% endif %}
+  <section class="reminder-history">
+    <h2 class="reminder-section-title">{% trans "History" %}</h2>
+    <div class="day-pane-card">
+      {% for mail in overview.mails %}
+      <div class="reminder-mail">
+        <div class="reminder-mail-line">
+          <span class="reminder-mail-time">{{ mail.display_time }}</span>
+          <span class="reminder-mail-target">{% if mail.point_of_sale %}{{ mail.point_of_sale.name }}{% else %}{% trans "To all" %}{% endif %}</span>
+          <span class="reminder-mail-subject">{{ mail.display_subject }}</span>
+          <span class="reminder-mail-state">
+            {% if mail.is_planned_sending %}<i class="far fa-clock" aria-hidden="true"></i> {% trans "Queued" %}
+            {% elif mail.is_sending %}<i class="fas fa-paper-plane" aria-hidden="true"></i> {% trans "Being sent" %}
+            {% else %}{% blocktranslate count counter=mail.send_log|length %}{{ counter }} delivered{% plural %}{{ counter }} delivered{% endblocktranslate %}{% if mail.error_log %}, <span class="text-danger">{% blocktranslate count counter=mail.error_log|length %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktranslate %}</span>{% endif %}{% endif %}
+          </span>
         </div>
-        {% if not object %}
-        <div class="reminder-item reminder-draft is-active" aria-current="page">
-          <div class="reminder-item-subject">{% trans "New email" %}</div>
-          <div class="reminder-item-meta">{% trans "Not saved yet" %}</div>
-        </div>
+        {% if mail.is_sent %}
+        <details class="reminder-details production-disclosure">
+          <summary><i class="fas fa-angle-down production-disclosure-chevron" aria-hidden="true"></i> {% trans "Details" %}</summary>
+          {% if mail.send_log %}<p class="reminder-details-log"><strong>{% trans "Sent to" %}:</strong> {{ mail.send_log|join:", " }}</p>{% endif %}
+          {% if mail.error_log %}<p class="reminder-details-log text-danger"><strong>{% trans "Failed" %}:</strong> {% for email, error in mail.error_log.items %}{{ email }} ({{ error }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+          <div class="reminder-details-body">{{ mail.body|newsletter_richtext }}</div>
+        </details>
         {% endif %}
-        {% for draft in drafts %}
-        <a class="reminder-item reminder-draft{% if draft == object %} is-active{% endif %}" href="{% url 'workshop:production-day-reminder' production_day=production_day.pk pk=draft.pk %}"{% if draft == object %} aria-current="page"{% endif %}>
-          <div class="reminder-item-subject">{{ draft.display_subject }}</div>
-          <div class="reminder-item-meta">{% if draft.point_of_sale %}{{ draft.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %}</div>
-        </a>
-        {% endfor %}
       </div>
-
-      {% if messages_sending %}
-      <div class="reminder-group">
-        <h3 class="reminder-group-title">{% trans "Being sent" %}</h3>
-        {% for message in messages_sending %}
-        <div class="reminder-item">
-          <div class="reminder-item-subject">{{ message.display_subject }}</div>
-          <div class="reminder-item-meta"><span class="badge rounded-pill text-bg-warning">{% if message.is_sending %}{% trans "Sending" %}{% else %}{% trans "Queued" %}{% endif %}</span> {% if message.point_of_sale %}{{ message.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %} · {% blocktrans count counter=message.get_orders.count %}{{ counter }} recipient{% plural %}{{ counter }} recipients{% endblocktrans %}</div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <div class="reminder-group">
-        <h3 class="reminder-group-title">{% trans "Sent" %}</h3>
-        {% for message in messages_sent %}
-        <div class="reminder-item">
-          <div class="reminder-item-subject">{% if message.error_log %}<i class="fas fa-triangle-exclamation text-warning" aria-hidden="true"></i> {% endif %}{{ message.display_subject }}</div>
-          <div class="reminder-item-meta">
-            {{ message.sent_date|date:"SHORT_DATETIME_FORMAT" }} · {% if message.point_of_sale %}{{ message.point_of_sale }}{% else %}{% trans "All points of sale" %}{% endif %} · {% blocktrans count counter=message.send_log|length %}{{ counter }} sent{% plural %}{{ counter }} sent{% endblocktrans %}{% if message.error_log %} · <span class="text-danger">{% blocktrans count counter=message.error_log|length %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktrans %}</span>{% endif %}
-          </div>
-          <details class="reminder-details production-disclosure">
-            <summary><i class="fas fa-angle-down production-disclosure-chevron" aria-hidden="true"></i> {% trans "Details" %}</summary>
-            <div class="reminder-details-body">{{ message.body|safe }}</div>
-            {% if message.send_log %}<p class="reminder-details-log"><strong>{% trans "Sent to" %}:</strong> {{ message.send_log|join:", " }}</p>{% endif %}
-            {% if message.error_log %}<p class="reminder-details-log text-danger"><strong>{% trans "Failed" %}:</strong> {% for email, error in message.error_log.items %}{{ email }} ({{ error }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
-          </details>
-        </div>
-        {% empty %}
-        <p class="reminder-empty">{% trans "No emails have been sent for this day yet." %}</p>
-        {% endfor %}
-      </div>
-    </section>
-  </div>
+      {% empty %}
+      <p class="reminder-empty">{% trans "No emails on this day yet." %}</p>
+      {% endfor %}
+    </div>
+  </section>
 </div>
-{{ recipient_counts|json_script:"recipient-counts" }}
 {% endblock %}

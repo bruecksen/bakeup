@@ -2273,45 +2273,155 @@ $tap-size: 44px;
     border-top: 2px solid $gray-300;
 }
 
-// Pickup emails: the editor with its preview as tabs like on the day page,
-// and beside it the emails of the day by state.
-.reminder-editor {
-    .tab-pane {
-        padding: 1rem;
-    }
+// Pickup emails: a card for the day's email with its state and the one
+// button to send it, the editor in place under it, the points of sale one
+// by one in a disclosure and the history.
+.reminder-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+// The list of who is told: the lead row for all points of sale with the
+// text of the day under it, then one quiet row per point. The rows share
+// their columns, so the states line up.
+.reminder-list {
+    padding-top: .25rem;
+    padding-bottom: .25rem;
+}
+.reminder-row {
+    display: grid;
+    grid-template-columns: minmax(0, 16rem) 8.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .25rem 1rem;
+    padding: .375rem 0;
+    font-size: .875rem;
 
+    & + & {
+        border-top: 1px solid $gray-200;
+    }
+    // A point's own buttons are a size smaller than the ones for all.
+    &:not(.is-lead) .btn {
+        --bs-btn-padding-y: #{$btn-padding-y-sm};
+        --bs-btn-padding-x: #{$btn-padding-x-sm};
+        --bs-btn-font-size: #{$btn-font-size-sm};
+    }
+    &.is-lead {
+        padding: .5rem 0 .625rem;
+        font-size: .9375rem;
+
+        .reminder-row-name {
+            font-weight: 600;
+        }
+    }
+}
+.reminder-row-name {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.reminder-row-orders,
+.reminder-row .reminder-status,
+.reminder-row-note {
+    color: $text-muted;
+}
+.reminder-row-orders {
+    white-space: nowrap;
+}
+.reminder-row-actions {
+    justify-self: end;
+
+    .action-bar {
+        flex-wrap: nowrap;
+    }
+}
+.reminder-row-note {
+    font-size: .8125rem;
+}
+.reminder-row-text,
+.reminder-day-preview {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+.reminder-row-text {
+    overflow-wrap: anywhere;
+}
+.reminder-row-links {
+    margin-left: .75rem;
+    white-space: nowrap;
+}
+.reminder-day-preview {
+    margin-top: .5rem;
+    padding-top: .75rem;
+    border-top: 1px solid $gray-200;
+}
+.reminder-label {
+    margin-bottom: .25rem;
+    color: $text-muted;
+    font-size: .8125rem;
+}
+// The state as an icon and text, done in the colour of success.
+.reminder-status {
+    i {
+        width: 1.125em;
+        color: $text-muted;
+        text-align: center;
+    }
+    &.is-sent i {
+        color: $success;
+    }
+    &.is-queued i,
+    &.is-sending i,
+    &.is-partly i {
+        color: $primary;
+    }
+}
+.reminder-section-title {
+    margin: 0 0 .5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.reminder-warning {
+    margin-bottom: .75rem;
+    font-size: .875rem;
+
+    i {
+        color: $warning;
+    }
+}
+.reminder-editor {
     // Draftail keeps room on the left for its block menu, not on the right.
     .Draftail-Editor__wrapper {
         padding-right: 0;
     }
 }
-.reminder-group {
+.reminder-mail {
+    padding: .5rem 0;
+    font-size: .875rem;
+
     & + & {
-        margin-top: 1rem;
+        border-top: 1px solid $gray-200;
     }
 }
-.reminder-group-head {
+.reminder-mail-line {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: .5rem;
+    flex-wrap: wrap;
+    gap: 0 .75rem;
 }
-.reminder-group-title {
-    margin-bottom: .25rem;
-    color: $text-muted;
-    font-size: .75rem;
+.reminder-mail-time {
+    font-variant-numeric: tabular-nums;
+}
+.reminder-mail-target {
     font-weight: 600;
-    letter-spacing: .04em;
-    text-transform: uppercase;
 }
-.reminder-panel-link {
-    font-size: .875rem;
-    text-decoration: none;
+.reminder-mail-subject {
+    flex: 1 1 12rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
-.reminder-panel-note {
-    margin-bottom: .75rem;
+.reminder-mail-state {
     color: $text-muted;
-    font-size: .8125rem;
 }
 .reminder-preview {
     font-size: .875rem;
@@ -2331,31 +2441,6 @@ $tap-size: 44px;
     img {
         max-width: 100%;
         height: auto;
-    }
-}
-.reminder-item.reminder-draft {
-    display: block;
-    margin: 0 -.5rem;
-    padding: .5rem;
-    color: $body-color;
-    text-decoration: none;
-    border-radius: $border-radius-sm;
-
-    &:hover {
-        background-color: $gray-100;
-    }
-    &.is-active {
-        background-color: rgba($primary, .1);
-        box-shadow: inset 3px 0 0 $primary;
-    }
-}
-.reminder-recipients {
-    margin-bottom: .5rem;
-    color: $text-muted;
-    font-size: .875rem;
-
-    i {
-        color: $primary;
     }
 }
 .reminder-tags {
@@ -2385,8 +2470,8 @@ $tap-size: 44px;
 .reminder-editor-footer {
     display: flex;
     justify-content: flex-end;
-    padding: 1rem;
-    background-color: $white;
+    margin-top: 1rem;
+    padding-top: 1rem;
     border-top: 1px solid $gray-200;
 }
 .action-badge {
@@ -2410,32 +2495,6 @@ $tap-size: 44px;
     display: none;
 }
 
-.reminder-panel {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background-color: $white;
-    border-radius: $border-radius;
-    box-shadow: $box-shadow-sm;
-}
-.reminder-panel-title {
-    margin-bottom: .75rem;
-    font-size: 1rem;
-    font-weight: 600;
-}
-.reminder-item {
-    padding: .625rem 0;
-
-    & + & {
-        border-top: 1px solid $gray-200;
-    }
-}
-.reminder-item-subject {
-    font-weight: 500;
-}
-.reminder-item-meta {
-    color: $text-muted;
-    font-size: .8125rem;
-}
 .reminder-details {
     margin-top: .25rem;
     font-size: .8125rem;
@@ -3077,6 +3136,7 @@ i.step-check-all {
         }
     }
     .day-header .action-label,
+    .reminder-row:not(.is-lead) .action-label,
     .section-toolbar .action-label {
         display: none;
     }
@@ -3101,6 +3161,28 @@ i.step-check-all {
     }
     .day-order-tick {
         width: 3rem;
+    }
+    // A row of the pickup emails takes two lines: name and orders, then the
+    // state and its buttons.
+    .reminder-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .reminder-row-orders {
+        justify-self: end;
+    }
+    // The row for all keeps its whole name, its button gets a line.
+    .reminder-row.is-lead {
+        .reminder-row-name {
+            white-space: normal;
+        }
+        .reminder-status,
+        .reminder-row-actions {
+            grid-column: 1 / -1;
+        }
+    }
+    .reminder-row-links {
+        display: block;
+        margin-left: 0;
     }
     // The date and the actions need the row.
     .day-title-week {

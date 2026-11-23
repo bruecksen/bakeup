@@ -1447,24 +1447,25 @@ document.addEventListener("click", function(event) {
     if (event.target.closest("[data-print]")) window.print();
 });
 
-// Pickup emails: the number of recipients follows the chosen point of sale,
-// sending is off without any.
-function updateRecipientCount() {
-    var data = document.getElementById("recipient-counts");
-    var select = document.getElementById("id_point_of_sale");
-    if (!data || !select) return;
-    var count = JSON.parse(data.textContent)[select.value] || 0;
-    document.querySelectorAll("[data-recipient-count], #reminder-send [data-action-badge]").forEach(function(el) {
-        el.textContent = count;
-    });
-    var send = document.getElementById("reminder-send");
-    if (send) send.disabled = count === 0;
-}
-
-document.addEventListener("change", function(event) {
-    if (event.target.id === "id_point_of_sale") updateRecipientCount();
+// Pickup emails: "Edit text" opens the editor of the day's text in place
+// when it is the one on the page, the link loads it otherwise. "Preview"
+// shows the day's email under its card.
+document.addEventListener("click", function(event) {
+    var edit = event.target.closest("[data-reminder-edit]");
+    var editor = document.getElementById("reminder-editor");
+    if (edit && editor && editor.dataset.edit === edit.dataset.reminderEdit) {
+        event.preventDefault();
+        editor.hidden = false;
+        editor.scrollIntoView({ block: "start", behavior: "smooth" });
+        return;
+    }
+    var toggle = event.target.closest("[data-reminder-preview-toggle]");
+    if (!toggle) return;
+    event.preventDefault();
+    var preview = document.getElementById(toggle.getAttribute("aria-controls"));
+    preview.hidden = !preview.hidden;
+    toggle.setAttribute("aria-expanded", preview.hidden ? "false" : "true");
 });
-document.addEventListener("DOMContentLoaded", updateRecipientCount);
 
 // Pickup emails: a placeholder goes in at the cursor of the subject or the
 // text, whichever was used last. The chips keep the focus where it is. The

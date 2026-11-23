@@ -51,7 +51,6 @@ from bakeup.workshop.views import (
     ProductionDayDetailView,
     ProductionDayMetaProductView,
     ProductionDayProductDeleteView,
-    ProductionDayReminderDeleteView,
     ProductionDayReminderView,
     ProductionDayUpdateView,
     ProductionPlanAddView,
@@ -339,16 +338,6 @@ urlpatterns = [
         "production-days/pickup-emails/",
         view=production_day_reminder_redirect_view,
         name="production-day-reminder-next",
-    ),
-    path(
-        "production-days/<int:production_day>/reminder/<int:pk>/",
-        view=ProductionDayReminderView.as_view(),
-        name="production-day-reminder",
-    ),
-    path(
-        "production-days/<int:production_day>/reminder/<int:pk>/delete/",
-        view=ProductionDayReminderDeleteView.as_view(),
-        name="production-day-reminder-delete",
     ),
     path(
         "production-days/<int:production_day>/reminder/preview/",

@@ -3060,3 +3060,109 @@ msgstr "Nur Liste"
 #: bakeup/pages/blocks.py
 msgid "Display"
 msgstr "Anzeige"
+
+msgid "No orders yet"
+msgstr "Noch keine Bestellungen"
+
+msgid "sent %(time)s"
+msgstr "gesendet %(time)s"
+
+msgid "%(counter)s delivered"
+msgid_plural "%(counter)s delivered"
+msgstr[0] "%(counter)s zugestellt"
+msgstr[1] "%(counter)s zugestellt"
+
+msgid "Edit text"
+msgstr "Text anpassen"
+
+msgid "Send by point of sale"
+msgstr "Einzeln nach Abholstelle senden"
+
+msgid "only with an email to all"
+msgstr "nur mit einer E-Mail an alle"
+
+msgid "History"
+msgstr "Verlauf"
+
+msgid "To all"
+msgstr "An alle"
+
+msgid "No emails on this day yet."
+msgstr "Noch keine E-Mails an diesem Tag."
+
+msgid "own text"
+msgstr "eigener Text"
+
+msgid "not sent yet"
+msgstr "noch nicht gesendet"
+
+msgid "queued"
+msgstr "in Warteschlange"
+
+msgid "being sent"
+msgstr "wird gesendet"
+
+msgid "%(counter)s email sent"
+msgid_plural "%(counter)s emails sent"
+msgstr[0] "%(counter)s E-Mail gesendet"
+msgstr[1] "%(counter)s E-Mails gesendet"
+
+msgid "%(notified)s / %(points)s"
+msgstr "%(notified)s / %(points)s"
+
+msgid "today at %(time)s"
+msgstr "heute um %(time)s"
+
+msgid "on %(date)s at %(time)s"
+msgstr "am %(date)s um %(time)s"
+
+msgid "Another email to %(point_of_sale)s"
+msgstr "Weitere E-Mail an %(point_of_sale)s"
+
+msgid "Another email to all"
+msgstr "Weitere E-Mail an alle"
+
+msgid "Own text for %(point_of_sale)s"
+msgstr "Eigener Text für %(point_of_sale)s"
+
+msgid "Text of the day"
+msgstr "Text des Tages"
+
+msgid "%(point_of_sale)s was notified %(when)s already."
+msgstr "%(point_of_sale)s wurde %(when)s schon benachrichtigt."
+
+msgid "%(notified)s of %(points)s points of sale were notified already, the last %(when)s."
+msgstr "%(notified)s von %(points)s Abholstellen wurden schon benachrichtigt, zuletzt %(when)s."
+
+msgid "All orders were notified %(when)s already."
+msgstr "Alle Bestellungen wurden %(when)s schon benachrichtigt."
+
+msgid "Send anyway?"
+msgstr "Trotzdem senden?"
+
+msgid "Send to all"
+msgstr "An alle senden"
+
+msgid "Send to the others"
+msgstr "An die übrigen senden"
+
+msgid "Send another email"
+msgstr "Weitere E-Mail senden"
+
+msgid "Own text"
+msgstr "Eigener Text"
+
+msgid "Remove own text"
+msgstr "Eigenen Text entfernen"
+
+msgid "Own text removed."
+msgstr "Eigener Text entfernt."
+
+msgid "There is nobody left to send to."
+msgstr "Es gibt niemanden mehr, an den gesendet werden kann."
+
+msgid "Text saved."
+msgstr "Text gespeichert."
+
+msgid "%(notified)s of %(points)s points of sale notified"
+msgstr "%(notified)s von %(points)s Abholstellen benachrichtigt"
