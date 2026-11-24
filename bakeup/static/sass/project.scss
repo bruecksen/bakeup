@@ -1420,17 +1420,31 @@ $tap-size: 44px;
 .day-calendar-cell.is-selected {
     background-color: mix($primary, $white, 14%);
 }
+// The layer opens like a dropdown of the date: right under it, as wide as
+// the content of the page and as high as the calendar. project.js gives it
+// the place of the date and of the head when it opens. Behind it the page
+// is only dimmed a little.
 .day-calendar-modal {
+    .modal-dialog {
+        position: absolute;
+        top: var(--day-calendar-top, 4rem);
+        left: var(--day-calendar-left, .75rem);
+        width: var(--day-calendar-width, calc(100% - 1.5rem));
+        max-width: none;
+        margin: 0 0 1rem;
+    }
     .modal-content {
         background-color: $light;
+        border: 0;
+        box-shadow: $box-shadow-lg;
     }
     .modal-body {
-        padding: 1.25rem;
+        min-height: 8rem;
+        padding: 1rem;
     }
-    .day-calendar {
-        max-width: 90rem;
-        margin: 0 auto;
-    }
+}
+body:has(.day-calendar-modal.show) .modal-backdrop {
+    --bs-backdrop-opacity: .25;
 }
 
 // The day pages are two groups. The day: the date as the title of the page

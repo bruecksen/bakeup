@@ -1600,6 +1600,20 @@ document.addEventListener("DOMContentLoaded", keepPickup);
 document.addEventListener("htmx:after:swap", keepPickup);
 document.addEventListener("htmx:after:history:push", keepPickup);
 
+// Calendar layer of the day pages: it opens under the date that opens it,
+// across the width of the head of the page.
+document.addEventListener("show.bs.modal", function(event) {
+    if (event.target.id !== "day-calendar-modal") return;
+    var head = document.querySelector(".day-head");
+    var date = event.relatedTarget || document.querySelector(".day-picker-toggle");
+    if (!head || !date) return;
+    var across = head.getBoundingClientRect();
+    var top = Math.max(8, date.getBoundingClientRect().bottom + 6);
+    event.target.style.setProperty("--day-calendar-top", top + "px");
+    event.target.style.setProperty("--day-calendar-left", across.left + "px");
+    event.target.style.setProperty("--day-calendar-width", across.width + "px");
+});
+
 // Calendar layer of the day pages: choosing a day closes it, htmx swaps the
 // page behind it or the browser loads the day.
 document.addEventListener("click", function(event) {

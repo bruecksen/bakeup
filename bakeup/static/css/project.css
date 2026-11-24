@@ -14942,17 +14942,32 @@ li:hover > .row .main-flour-set,
   background-color: #f8eae5;
 }
 
+.day-calendar-modal .modal-dialog {
+  position: absolute;
+  top: var(--day-calendar-top, 64px);
+  top: var(--day-calendar-top, 4rem);
+  left: var(--day-calendar-left, 12px);
+  left: var(--day-calendar-left, 0.75rem);
+  width: var(--day-calendar-width, calc(100% - 1.5rem));
+  max-width: none;
+  margin: 0 0 16px;
+  margin: 0 0 1rem;
+}
 .day-calendar-modal .modal-content {
   background-color: #F3ECD2;
+  border: 0;
+  -webkit-box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+          box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
 }
 .day-calendar-modal .modal-body {
-  padding: 20px;
-  padding: 1.25rem;
+  min-height: 128px;
+  min-height: 8rem;
+  padding: 16px;
+  padding: 1rem;
 }
-.day-calendar-modal .day-calendar {
-  max-width: 1440px;
-  max-width: 90rem;
-  margin: 0 auto;
+
+body:has(.day-calendar-modal.show) .modal-backdrop {
+  --bs-backdrop-opacity: .25;
 }
 
 .day-head {
