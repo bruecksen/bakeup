@@ -1923,10 +1923,10 @@ def get_day_tabs(production_day, active):
     """
     on_day = active == "day"
     day_url = production_day.get_absolute_url()
-    # The point of sale of every order: their number is the badge of the
-    # orders, their points tell how far the pickup emails got.
+    # Every order with its point of sale: their number is the badge of the
+    # orders, and they tell how far the pickup emails got.
     order_points = list(
-        production_day.customer_orders.values_list("point_of_sale_id", flat=True)
+        production_day.customer_orders.values_list("pk", "point_of_sale_id")
     )
     tabs = [
         {"key": "overview", "label": _("Overview"), "is_active": on_day},
@@ -2803,11 +2803,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         when = format_mail_time(overview["mails"][-1])
         if overview["state"] == "partly":
             return _(
-                "%(notified)s of %(points)s points of sale were notified"
-                " already, the last %(when)s."
+                "%(notified)s of %(orders)s orders were notified already,"
+                " the last %(when)s."
             ) % {
                 "notified": overview["notified"],
-                "points": len(overview["points"]),
+                "orders": overview["orders"],
                 "when": when,
             }
         return _("All orders were notified %(when)s already.") % {"when": when}
@@ -2911,8 +2911,9 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     submit_value=str(pk),
                     form="reminder-send-form",
                     confirm_label=_("Send now?"),
-                    # How many emails this sends, as on the button for all.
-                    badge=row["orders"],
+                    # How many emails this sends, as on the button for all:
+                    # the orders of the point no mail went to yet.
+                    badge=row["open"],
                 )
             )
         if row["own_text"]:

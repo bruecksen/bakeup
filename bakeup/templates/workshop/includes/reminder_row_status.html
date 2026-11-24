@@ -11,4 +11,5 @@
   {% else %}
   <i class="fas fa-check" aria-hidden="true"></i> {% blocktranslate with time=row.last_mail.display_time %}sent {{ time }}{% endblocktranslate %} · {% blocktranslate count counter=row.delivered %}{{ counter }} delivered{% plural %}{{ counter }} delivered{% endblocktranslate %}{% if row.failed %}, <span class="text-danger">{% blocktranslate count counter=row.failed %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktranslate %}</span>{% endif %}
   {% endif %}
+  {% if row.mails and row.open %}· {% blocktranslate count counter=row.open %}{{ counter }} new order{% plural %}{{ counter }} new orders{% endblocktranslate %}{% endif %}
 </span>

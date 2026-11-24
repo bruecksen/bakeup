@@ -2373,7 +2373,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertEqual(
             self.card(page), ("partly", [("An die übrigen senden", 2, False)])
         )
-        self.assertContains(page, "1 von 2 Abholstellen benachrichtigt")
+        self.assertContains(page, "1 von 3 Bestellungen benachrichtigt")
         self.assertEqual(
             [
                 (str(row["point_of_sale"]), row["state"])
@@ -2397,7 +2397,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         )
         self.assertEqual(self.card(self.page()), ("sent", []))
 
-    def test_own_text_of_a_point_and_the_day_text_for_the_others(self):
+    def test_own_text_is_for_its_point_and_the_day_text_for_the_others(self):
         self.two_points()
         self.save_text(subject="Für alle")
         response = self.save_text(edit=str(self.north.pk), subject="Nur Nord")
@@ -2411,7 +2411,9 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             ),
             sorted([(None, "Für alle"), (self.north.pk, "Nur Nord")], key=str),
         )
-        self.post(send="all")
+        # The point on its own gets its own text, the others the day's.
+        self.post(send=str(self.north.pk))
+        self.post(send="rest")
         self.deliver()
         self.assertEqual(
             sorted((message.to[0], message.subject) for message in mail.outbox),
@@ -2426,6 +2428,48 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             ReminderMessage.objects.filter(state=ReminderMessage.State.PLANNED).count(),
             2,
         )
+
+    def test_send_to_all_is_one_mail_with_the_day_text_to_every_order(self):
+        self.two_points()
+        # An order without a point of sale is an order of the day too.
+        self.customer_order(self.production_day, "Ohne")
+        self.save_text(subject="Für alle")
+        self.save_text(edit=str(self.north.pk), subject="Nur Nord")
+        # The own text isn't used by the button for all, the page says so.
+        self.assertContains(self.page(), "Nord hat einen eigenen Text.")
+        self.post(send="all")
+        queued = ReminderMessage.objects.get(
+            state=ReminderMessage.State.PLANNED_SENDING
+        )
+        self.assertIsNone(queued.point_of_sale)
+        self.assertEqual(queued.subject, "Für alle")
+        self.deliver()
+        self.assertEqual(
+            sorted((message.to[0], message.subject) for message in mail.outbox),
+            [
+                ("Meier@example.com", "Für alle"),
+                ("Müller@example.com", "Für alle"),
+                ("Ohne@example.com", "Für alle"),
+                ("Schulze@example.com", "Für alle"),
+            ],
+        )
+        self.assertEqual(self.card(self.page()), ("sent", []))
+
+    def test_orders_after_the_mail_are_the_ones_left_to_send(self):
+        self.two_points()
+        self.post(send="all")
+        self.deliver()
+        mail.outbox.clear()
+        self.customer_order(self.production_day, "Neu", point_of_sale=self.south)
+        page = self.page()
+        self.assertEqual(
+            self.card(page), ("partly", [("An die übrigen senden", 1, False)])
+        )
+        self.assertContains(page, "3 von 4 Bestellungen benachrichtigt")
+        self.assertContains(page, "1 neue Bestellung")
+        self.post(send="rest")
+        self.deliver()
+        self.assertEqual(self.recipients(), ["Neu@example.com"])
 
     def test_saving_the_day_text_keeps_one_text(self):
         self.save_text(subject="Erst")
@@ -2530,7 +2574,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.two_points()
         self.assertIsNone(badge())
         self.post(send=str(self.north.pk))
-        self.assertEqual(badge(), "1 / 2")
+        self.assertEqual(badge(), "1 / 3")
         self.post(send="rest")
         self.assertEqual(badge(), "✓")
 

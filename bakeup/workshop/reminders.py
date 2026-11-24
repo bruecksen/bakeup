@@ -6,17 +6,22 @@ A ReminderMessage is one of two things:
 - A text, in the state PLANNED: the text of the day has no point of sale, a
   point of sale's own text has one. A day has at most one of each, the
   newest counts if older ones are left over from before.
-- A mail, queued (PLANNED_SENDING), being sent (SENDING) or sent (SENT). A
-  mail without a point of sale goes to all orders of the day, one with a
-  point of sale to the orders of that point (ReminderMessage.get_orders).
+- A mail, queued (PLANNED_SENDING), being sent (SENDING) or sent (SENT). It
+  keeps the orders it goes to (ReminderMessage.orders), set when it is
+  queued. Its point of sale only says which row sent it, None for a mail to
+  all or to the rest.
+
+"Send to all" is one mail with the text of the day to every order of the
+day. "Send to the others" is one mail with the text of the day to the orders
+no mail went to yet, also the ones that came in after the last mail. A
+point's own text is only used when that point is sent on its own.
 
 Sending never changes a text, the text is copied into a new mail, so the
 text of the day stays for the next mail. The management command
 send_reminder_emails sends the queued mails.
 
-The status is worked out from the orders and the mails in two queries, so a
-later "only the orders since the last mail" can compare the orders with the
-send_log of the mails of their point.
+The status is worked out per order, from the orders, the mails and the
+orders of the mails, three queries.
 """
 
 from django.template import TemplateSyntaxError
@@ -83,6 +88,26 @@ def get_mail_state(mails):
     return "sent"
 
 
+def get_mail_orders(mails, orders):
+    """The ids of the orders each mail goes to, by mail id. A mail from
+    before mails kept their orders goes by its point of sale: to the orders
+    of that point, or to all without one."""
+    kept = {}
+    for mail_id, order_id in ReminderMessage.orders.through.objects.filter(
+        remindermessage__in=[mail.pk for mail in mails]
+    ).values_list("remindermessage_id", "customerorder_id"):
+        kept.setdefault(mail_id, set()).add(order_id)
+    return {
+        mail.pk: kept.get(mail.pk)
+        or {
+            order.pk
+            for order in orders
+            if mail.point_of_sale_id in (None, order.point_of_sale_id)
+        }
+        for mail in mails
+    }
+
+
 def get_reminder_overview(production_day, texts):
     """The pickup emails of the day: its state, one row per point of sale
     with orders and the history of its mails."""
@@ -98,6 +123,8 @@ def get_reminder_overview(production_day, texts):
         .select_related("point_of_sale")
         .order_by("created", "pk")
     )
+    mail_orders = get_mail_orders(mails, orders)
+    covered = set().union(*mail_orders.values()) if mail_orders else set()
     rows = {}
     for order in orders:
         row = rows.setdefault(
@@ -105,6 +132,7 @@ def get_reminder_overview(production_day, texts):
             {
                 "point_of_sale": order.point_of_sale,
                 "orders": 0,
+                "order_list": [],
                 "emails": set(),
                 "own_text": texts.get(order.point_of_sale_id)
                 if order.point_of_sale_id
@@ -112,17 +140,20 @@ def get_reminder_overview(production_day, texts):
             },
         )
         row["orders"] += 1
+        row["order_list"].append(order)
         if order.customer:
             row["emails"].add(order.customer.user.email)
-    for key, row in rows.items():
-        # A mail to all reaches every point, one to a point only that one.
-        row["mails"] = [
-            mail
-            for mail in mails
-            if mail.point_of_sale_id is None or mail.point_of_sale_id == key
+    for row in rows.values():
+        ids = {order.pk for order in row["order_list"]}
+        # The mails that reach an order of the point, and the orders no mail
+        # reached: all of them before the first mail, the new ones after it.
+        row["mails"] = [mail for mail in mails if mail_orders[mail.pk] & ids]
+        row["open_orders"] = [
+            order for order in row["order_list"] if order.pk not in covered
         ]
+        row["open"] = len(row["open_orders"])
         row["state"] = get_mail_state(row["mails"])
-        row["is_notified"] = bool(row["mails"])
+        row["is_notified"] = not row["open"]
         row.update(get_mail_counts(row["mails"], row["emails"]))
         if row["mails"]:
             row["last_mail"] = row["mails"][-1]
@@ -132,17 +163,15 @@ def get_reminder_overview(production_day, texts):
     )
     without = rows.get(None)
     pending = [mail for mail in mails if not mail.is_sent]
-    notified = [row for row in points if row["is_notified"]]
-    remaining = [row for row in points if not row["is_notified"]]
-    to_all = [mail for mail in mails if mail.point_of_sale_id is None]
+    open_orders = [order for order in orders if order.pk not in covered]
     if pending:
         state = "sending" if pending[-1].is_sending else "queued"
-    elif to_all or (mails and not remaining):
-        state = "sent"
-    elif notified:
+    elif not mails:
+        state = "none"
+    elif open_orders:
         state = "partly"
     else:
-        state = "none"
+        state = "sent"
     sent = [mail for mail in mails if mail.is_sent]
     return {
         "state": state,
@@ -152,12 +181,14 @@ def get_reminder_overview(production_day, texts):
         # The per point section is for days with more than one place to
         # pick up.
         "has_points": len(points) + bool(without) > 1,
-        "notified": len(notified),
-        "remaining": remaining,
-        "remaining_orders": sum(row["orders"] for row in remaining),
-        # Mails go to all orders while no point has its own mail or text,
-        # otherwise to the points one by one, see queue_reminders.
-        "by_point": bool(notified) or any(row["own_text"] for row in points),
+        "order_list": orders,
+        "notified": len(orders) - len(open_orders),
+        "open_orders": open_orders,
+        "remaining_orders": len(open_orders),
+        # Named beside the button for all: their text isn't used by it.
+        "own_texts": [
+            row["point_of_sale"] for row in points if row["own_text"] and row["open"]
+        ],
         "mails": mails,
         "pending": pending,
         "last_sent": sent[-1] if sent else None,
@@ -165,41 +196,57 @@ def get_reminder_overview(production_day, texts):
     }
 
 
-def queue_mail(production_day, text, point_of_sale=None):
-    """A new mail from a text, queued for the command that sends it."""
-    return ReminderMessage.objects.create(
+def queue_mail(production_day, text, point_of_sale=None, orders=None):
+    """A new mail from a text to orders, queued for the command that sends
+    it. Without orders it goes to all orders of the point of sale, or of the
+    day."""
+    mail = ReminderMessage.objects.create(
         production_day=production_day,
         point_of_sale=point_of_sale,
         subject=text.subject,
         body=text.body,
         state=ReminderMessage.State.PLANNED_SENDING,
     )
+    if orders is None:
+        orders = production_day.customer_orders.all()
+        if point_of_sale:
+            orders = orders.filter(point_of_sale=point_of_sale)
+    mail.orders.set(orders)
+    return mail
 
 
 def queue_reminders(overview, day_text, target):
-    """Queues the mails for "all", "rest" or one point of sale (its id).
+    """Queues the mail for "all", "rest" or one point of sale (its id).
 
-    "all" is one mail to all orders while no point has been notified and no
-    point has its own text. Otherwise it is the same as "rest": one mail to
-    each point not notified yet, with its own text or the text of the day.
-    That way a point that was told already is never told again. Orders
-    without a point of sale are only reached by a mail to all.
+    "all" is one mail with the text of the day to every order of the day,
+    "rest" one to the orders no mail went to yet. A point of sale gets its
+    own text if it has one, to its orders no mail went to yet. Nobody left
+    means no mail. Once a mail went out "all" is "rest", so a second click
+    or a page left open never tells anybody twice.
     """
     production_day = day_text.production_day
-    if target == "all" and not overview["by_point"]:
-        return [queue_mail(production_day, day_text)]
-    if target in ("all", "rest"):
-        rows = overview["remaining"]
+    if target == "all" and overview["mails"]:
+        target = "rest"
+    if target == "all":
+        text, point_of_sale, orders = day_text, None, overview["order_list"]
+    elif target == "rest":
+        text, point_of_sale, orders = day_text, None, overview["open_orders"]
     else:
-        rows = [
-            row
-            for row in overview["points"]
-            if str(row["point_of_sale"].pk) == str(target)
-        ]
-    return [
-        queue_mail(production_day, row["own_text"] or day_text, row["point_of_sale"])
-        for row in rows
-    ]
+        row = next(
+            (
+                row
+                for row in overview["points"]
+                if str(row["point_of_sale"].pk) == str(target)
+            ),
+            None,
+        )
+        if not row:
+            return []
+        text = row["own_text"] or day_text
+        point_of_sale, orders = row["point_of_sale"], row["open_orders"]
+    if not orders:
+        return []
+    return [queue_mail(production_day, text, point_of_sale, orders)]
 
 
 def get_preview_order(production_day, point_of_sale=None):
@@ -230,24 +277,31 @@ def fill_reminder(text, production_day, client, order=None, dummy=None):
     return {"subject": fill(text.subject), "body": fill(text.body)}
 
 
-def get_reminder_badge(production_day, order_points):
+def get_reminder_badge(production_day, order_ids):
     """The badge of the pickup emails tab: nothing while nothing is sent, a
-    check when every point is notified, "3 / 11" when some are. One query,
-    order_points are the point of sale ids of the orders of the day."""
+    check when a mail went to every order, "12 / 14" when to some. Two small
+    queries, order_ids are the orders of the day with their point of sale."""
     mails = list(
         ReminderMessage.objects.filter(
             production_day=production_day, state__in=MAIL_STATES
-        ).values_list("point_of_sale_id", flat=True)
+        ).only("point_of_sale_id")
     )
     if not mails:
         return None
-    points = {point for point in order_points if point is not None}
-    if None in mails or not points:
-        return "✓"
-    notified = points & set(mails)
-    if notified == points:
+    orders = [_Order(pk, point_of_sale) for pk, point_of_sale in order_ids]
+    covered = set().union(*get_mail_orders(mails, orders).values())
+    reached = sum(order.pk in covered for order in orders)
+    if reached == len(orders):
         return "✓"
     return _("%(notified)s / %(points)s") % {
-        "notified": len(notified),
-        "points": len(points),
+        "notified": reached,
+        "points": len(orders),
     }
+
+
+class _Order:
+    """An order as get_mail_orders needs it."""
+
+    def __init__(self, pk, point_of_sale_id):
+        self.pk = pk
+        self.point_of_sale_id = point_of_sale_id

@@ -28,7 +28,7 @@
         {% elif overview.state == "sending" %}
         <i class="fas fa-paper-plane" aria-hidden="true"></i> {% trans "being sent" %}
         {% elif overview.state == "partly" %}
-        <i class="fas fa-circle-half-stroke" aria-hidden="true"></i> {% blocktranslate with notified=overview.notified points=overview.points|length %}{{ notified }} of {{ points }} points of sale notified{% endblocktranslate %}
+        <i class="fas fa-circle-half-stroke" aria-hidden="true"></i> {% blocktranslate with notified=overview.notified orders=overview.orders %}{{ notified }} of {{ orders }} orders notified{% endblocktranslate %}
         {% else %}
         <i class="fas fa-check" aria-hidden="true"></i> {% blocktranslate with time=overview.last_sent.display_time %}sent {{ time }}{% endblocktranslate %} · {% blocktranslate count counter=overview.delivered %}{{ counter }} delivered{% plural %}{{ counter }} delivered{% endblocktranslate %}{% if overview.failed %}, <span class="text-danger">{% blocktranslate count counter=overview.failed %}{{ counter }} failed{% plural %}{{ counter }} failed{% endblocktranslate %}</span>{% endif %}
         {% endif %}
@@ -38,6 +38,9 @@
         <a class="btn btn-surface" href="?edit=day#reminder-editor" data-reminder-edit="day" title="{% trans 'Edit text' %}" aria-label="{% trans 'Edit text' %}"><i class="fas fa-pen" aria-hidden="true"></i></a>
         {% include "workshop/includes/actions.html" with actions=day_actions_reminder %}
       </span>
+      {% if overview.own_texts and overview.state == "none" or overview.own_texts and overview.state == "partly" %}
+      <p class="reminder-row-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> {% blocktranslate with points=overview.own_texts|join:", " count counter=overview.own_texts|length %}{{ points }} has its own text. It is only used when that point of sale is sent on its own.{% plural %}{{ points }} have their own text. It is only used when those points of sale are sent on their own.{% endblocktranslate %}</p>
+      {% endif %}
       <div id="reminder-day-preview" class="reminder-day-preview" hidden>
         {% include "workshop/includes/reminder_preview.html" with subject=day_preview.subject body=day_preview.body %}
       </div>

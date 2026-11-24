@@ -14733,15 +14733,6 @@ li:hover > .row .main-flour-set,
   font-weight: 500;
 }
 
-.day-calendar .day-calendar-cell.is-today {
-  -webkit-box-shadow: inset 0 0 0 2px #CD6646;
-          box-shadow: inset 0 0 0 2px #CD6646;
-}
-.day-calendar .day-calendar-cell.is-today.has-day {
-  -webkit-box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-          box-shadow: inset 0 0 0 2px #CD6646, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
 .day-calendar-today {
   position: absolute;
   top: 6px;
@@ -16141,6 +16132,14 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 }
 
 .reminder-row-note {
+  font-size: 13px;
+  font-size: 0.8125rem;
+}
+
+.reminder-row-hint {
+  grid-column: 1/-1;
+  margin: 0;
+  color: #6c757d;
   font-size: 13px;
   font-size: 0.8125rem;
 }

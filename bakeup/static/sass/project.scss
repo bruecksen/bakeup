@@ -1262,14 +1262,9 @@ $tap-size: 44px;
         font-weight: 500;
     }
 }
-// Today is framed and labelled, a production day or not.
-.day-calendar .day-calendar-cell.is-today {
-    box-shadow: inset 0 0 0 2px $primary;
-
-    &.has-day {
-        box-shadow: inset 0 0 0 2px $primary, $box-shadow-sm;
-    }
-}
+// Today is its coloured date and its label, as in the week of the day
+// pages. A frame around the cell fought with the edge of a production day
+// and the tint of the chosen day.
 .day-calendar-today {
     position: absolute;
     top: .375rem;
@@ -2403,6 +2398,13 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     }
 }
 .reminder-row-note {
+    font-size: .8125rem;
+}
+// What the button for all doesn't do, said under its row.
+.reminder-row-hint {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: $text-muted;
     font-size: .8125rem;
 }
 // Preview and editor open under the row they belong to, as a tinted panel

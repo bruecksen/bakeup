@@ -1095,6 +1095,11 @@ class ReminderMessage(CommonBaseClass):
     error_log = models.JSONField(default=dict)
     sent_date = models.DateTimeField(blank=True, null=True)
     users = models.ManyToManyField("users.User", blank=True)
+    # The orders a mail goes to, set when it is queued. A mail from before
+    # this field has none and goes by its point of sale, see get_orders.
+    orders = models.ManyToManyField(
+        "shop.CustomerOrder", blank=True, related_name="reminder_messages"
+    )
 
     class Meta:
         ordering = ["-sent_date"]
@@ -1122,6 +1127,8 @@ class ReminderMessage(CommonBaseClass):
         return self.state == ReminderMessage.State.PLANNED_SENDING
 
     def get_orders(self):
+        if self.pk and self.orders.exists():
+            return self.orders.all()
         if self.point_of_sale:
             return self.production_day.customer_orders.filter(
                 point_of_sale=self.point_of_sale
