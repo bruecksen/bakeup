@@ -3076,12 +3076,12 @@ msgstr "%(notified)s von %(orders)s Bestellungen benachrichtigt"
 msgid "%(notified)s of %(orders)s orders were notified already, the last %(when)s."
 msgstr "%(notified)s von %(orders)s Bestellungen wurden schon benachrichtigt, zuletzt %(when)s."
 
-msgid "%(points)s has its own text. It is only used when that point of sale is sent on its own."
-msgid_plural "%(points)s have their own text. It is only used when those points of sale are sent on their own."
-msgstr[0] "%(points)s hat einen eigenen Text. Er wird nur verwendet, wenn diese Abholstelle einzeln gesendet wird."
-msgstr[1] "%(points)s haben einen eigenen Text. Er wird nur verwendet, wenn diese Abholstellen einzeln gesendet werden."
-
 msgid "%(counter)s new order"
 msgid_plural "%(counter)s new orders"
 msgstr[0] "%(counter)s neue Bestellung"
 msgstr[1] "%(counter)s neue Bestellungen"
+
+msgid "Send to %(counter)s order"
+msgid_plural "Send to %(counter)s orders"
+msgstr[0] "An %(counter)s Bestellung senden"
+msgstr[1] "An %(counter)s Bestellungen senden"

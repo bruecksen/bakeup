@@ -2400,12 +2400,16 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 .reminder-row-note {
     font-size: .8125rem;
 }
-// What the button for all doesn't do, said under its row.
-.reminder-row-hint {
-    grid-column: 1 / -1;
-    margin: 0;
-    color: $text-muted;
-    font-size: .8125rem;
+// Under the preview of an email the button that sends it: what goes out is
+// seen before it goes.
+.reminder-send-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    max-width: none;
+    margin-top: .875rem;
+    padding-top: .75rem;
+    border-top: 1px solid rgba($dark, .12);
 }
 // Preview and editor open under the row they belong to, as a tinted panel
 // set into the card: it reads as a part of that row and not as more rows.
@@ -2426,7 +2430,7 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         max-width: 40rem;
     }
 }
-.reminder-row [data-reminder-preview-toggle][aria-expanded="true"] {
+.reminder-row .btn-surface[aria-expanded="true"] {
     background-color: mix($primary, $white, 15%);
     border-color: mix($primary, $gray-300, 60%);
 }

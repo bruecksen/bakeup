@@ -16136,12 +16136,20 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   font-size: 0.8125rem;
 }
 
-.reminder-row-hint {
-  grid-column: 1/-1;
-  margin: 0;
-  color: #6c757d;
-  font-size: 13px;
-  font-size: 0.8125rem;
+.reminder-send-confirm {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  gap: 8px;
+  gap: 0.5rem;
+  max-width: none;
+  margin-top: 14px;
+  margin-top: 0.875rem;
+  padding-top: 12px;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(63, 45, 39, 0.12);
 }
 
 .reminder-day-preview,
@@ -16164,7 +16172,7 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   max-width: 40rem;
 }
 
-.reminder-row [data-reminder-preview-toggle][aria-expanded=true] {
+.reminder-row .btn-surface[aria-expanded=true] {
   background-color: #f8e8e3;
   border-color: #d49886;
 }

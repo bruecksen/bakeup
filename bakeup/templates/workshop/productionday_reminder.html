@@ -22,7 +22,7 @@
       <span class="reminder-row-orders">{% blocktranslate count counter=overview.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
       <span class="reminder-status is-{{ overview.state }}">
         {% if overview.state == "none" %}
-        <i class="far fa-circle" aria-hidden="true"></i> {% if overview.orders %}{% trans "not sent yet" %}{% else %}{% trans "No orders yet" %}{% endif %}
+        {% if not overview.orders %}<i class="far fa-circle" aria-hidden="true"></i> {% trans "No orders yet" %}{% elif day_text_is_own %}<i class="fas fa-pen" aria-hidden="true"></i> <span title="{% trans 'not sent yet' %}">{% trans "own text" %}</span>{% else %}<i class="far fa-circle" aria-hidden="true"></i> {% trans "not sent yet" %}{% endif %}
         {% elif overview.state == "queued" %}
         <i class="far fa-clock" aria-hidden="true"></i> {% trans "queued" %}
         {% elif overview.state == "sending" %}
@@ -38,11 +38,9 @@
         <a class="btn btn-surface" href="?edit=day#reminder-editor" data-reminder-edit="day" title="{% trans 'Edit text' %}" aria-label="{% trans 'Edit text' %}"><i class="fas fa-pen" aria-hidden="true"></i></a>
         {% include "workshop/includes/actions.html" with actions=day_actions_reminder %}
       </span>
-      {% if overview.own_texts and overview.state == "none" or overview.own_texts and overview.state == "partly" %}
-      <p class="reminder-row-hint"><i class="fas fa-circle-info" aria-hidden="true"></i> {% blocktranslate with points=overview.own_texts|join:", " count counter=overview.own_texts|length %}{{ points }} has its own text. It is only used when that point of sale is sent on its own.{% plural %}{{ points }} have their own text. It is only used when those points of sale are sent on their own.{% endblocktranslate %}</p>
-      {% endif %}
       <div id="reminder-day-preview" class="reminder-day-preview" hidden>
         {% include "workshop/includes/reminder_preview.html" with subject=day_preview.subject body=day_preview.body %}
+        {% if day_send and not day_send.disabled %}{% include "workshop/includes/reminder_send_confirm.html" with send=day_send panel="reminder-day-preview" %}{% endif %}
       </div>
       {% if editor.row is None %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
     </div>
@@ -54,13 +52,15 @@
       {% include "workshop/includes/reminder_row_status.html" %}
       <span class="reminder-row-actions">
         <a class="btn btn-surface" href="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}?point={{ row.point_of_sale.pk }}" title="{% trans 'Preview' %}" aria-label="{% trans 'Preview' %}"
-          data-reminder-preview-toggle aria-controls="reminder-preview-{{ row.point_of_sale.pk }}" aria-expanded="false"
-          hx-get="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}?point={{ row.point_of_sale.pk }}" hx-target="#reminder-preview-{{ row.point_of_sale.pk }}" hx-trigger="click once"><i class="far fa-eye" aria-hidden="true"></i></a>
+          data-reminder-preview-toggle aria-controls="reminder-preview-{{ row.point_of_sale.pk }}" aria-expanded="false"><i class="far fa-eye" aria-hidden="true"></i></a>
         <a class="btn btn-surface" href="?edit={{ row.point_of_sale.pk }}#reminder-editor" title="{% trans 'Own text' %}" aria-label="{% trans 'Own text' %}"><i class="fas fa-pen" aria-hidden="true"></i></a>
         {% include "workshop/includes/actions.html" with actions=row.actions %}
         {% if not row.actions.menu %}<span class="btn btn-surface invisible" aria-hidden="true"><i class="fas fa-ellipsis"></i></span>{% endif %}
       </span>
-      <div id="reminder-preview-{{ row.point_of_sale.pk }}" class="reminder-day-preview" hidden></div>
+      <div id="reminder-preview-{{ row.point_of_sale.pk }}" class="reminder-day-preview" hidden>
+        <div hx-get="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}?point={{ row.point_of_sale.pk }}" hx-trigger="reminder-open once"></div>
+        {% if row.send %}{% include "workshop/includes/reminder_send_confirm.html" with send=row.send panel=row.send.opens %}{% endif %}
+      </div>
       {% if editor.row == row.point_of_sale.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
     </div>
     {% endfor %}

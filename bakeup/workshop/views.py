@@ -1602,6 +1602,9 @@ class Action:
     confirm_label: str = ""
     # A number after the label, e.g. the recipients of an email.
     badge: Any = None
+    # The id of a panel the button opens instead of acting itself, e.g. the
+    # preview of an email with the button that sends it.
+    opens: str = ""
     id: str = ""
     # In the orders list: shown only while this point of sale is chosen
     # ("all" for all of them), see data-pickup-only.
@@ -2848,7 +2851,9 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
 
     def get_day_actions(self, overview):
         """The one filled button sends what is left to send: everything, or
-        the points of sale not told yet."""
+        the orders not told yet. It opens the preview of the email, the
+        button under the preview sends it: what goes out is seen before it
+        goes."""
         state = overview["state"]
         actions = Actions()
         if state == "none":
@@ -2860,7 +2865,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     submit_name="send",
                     submit_value="all",
                     form="reminder-send-form",
-                    confirm_label=_("Send now?"),
+                    opens="reminder-day-preview",
                     badge=overview["orders"],
                     disabled=not overview["orders"],
                     id="reminder-send",
@@ -2875,7 +2880,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     submit_name="send",
                     submit_value="rest",
                     form="reminder-send-form",
-                    confirm_label=_("Send now?"),
+                    opens="reminder-day-preview",
                     badge=overview["remaining_orders"],
                     id="reminder-send",
                 )
@@ -2910,7 +2915,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     submit_name="send",
                     submit_value=str(pk),
                     form="reminder-send-form",
-                    confirm_label=_("Send now?"),
+                    opens=f"reminder-preview-{pk}",
                     # How many emails this sends, as on the button for all:
                     # the orders of the point no mail went to yet.
                     badge=row["open"],
@@ -2942,6 +2947,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         overview = get_reminder_overview(self.production_day, self.texts)
         for row in overview["points"]:
             row["actions"] = self.get_point_actions(row)
+            row["send"] = next((a for a in row["actions"] if a.opens), None)
         today = timezone.localdate()
         for mail in overview["mails"]:
             mail.display_subject = render_reminder_subject(mail, client)
@@ -2955,6 +2961,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         context["overview"] = overview
         context["day_text"] = self.day_text
         context["day_actions_reminder"] = self.get_day_actions(overview)
+        context["day_send"] = next(
+            (a for a in context["day_actions_reminder"] if a.opens), None
+        )
+        # The text of the day was changed for this day, as a point's own text.
+        context["day_text_is_own"] = None in self.texts
         context["day_preview"] = fill_reminder(
             self.day_text,
             self.production_day,

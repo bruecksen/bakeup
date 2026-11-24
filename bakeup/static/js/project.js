@@ -1459,12 +1459,26 @@ document.addEventListener("click", function(event) {
         editor.scrollIntoView({ block: "start", behavior: "smooth" });
         return;
     }
-    var toggle = event.target.closest("[data-reminder-preview-toggle]");
+    // The eye and "Cancel" toggle the preview of a row, "Send" opens it:
+    // under the email is the button that sends it. The email of a point is
+    // fetched when its preview first opens.
+    var toggle = event.target.closest("[data-reminder-preview-toggle], [data-reminder-preview-open]");
     if (!toggle) return;
     event.preventDefault();
     var preview = document.getElementById(toggle.getAttribute("aria-controls"));
-    preview.hidden = !preview.hidden;
-    toggle.setAttribute("aria-expanded", preview.hidden ? "false" : "true");
+    var opens = toggle.hasAttribute("data-reminder-preview-open");
+    preview.hidden = opens ? false : !preview.hidden;
+    document.querySelectorAll('[aria-controls="' + preview.id + '"][aria-expanded]').forEach(function(button) {
+        button.setAttribute("aria-expanded", preview.hidden ? "false" : "true");
+    });
+    if (preview.hidden) return;
+    var lazy = preview.querySelector("[hx-get]");
+    if (lazy) lazy.dispatchEvent(new Event("reminder-open"));
+    if (opens) {
+        var send = preview.querySelector(".reminder-send-confirm .btn-primary");
+        if (send) send.focus({ preventScroll: true });
+        preview.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
 });
 
 // Pickup emails: a placeholder goes in at the cursor of the subject or the

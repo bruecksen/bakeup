@@ -185,10 +185,6 @@ def get_reminder_overview(production_day, texts):
         "notified": len(orders) - len(open_orders),
         "open_orders": open_orders,
         "remaining_orders": len(open_orders),
-        # Named beside the button for all: their text isn't used by it.
-        "own_texts": [
-            row["point_of_sale"] for row in points if row["own_text"] and row["open"]
-        ],
         "mails": mails,
         "pending": pending,
         "last_sent": sent[-1] if sent else None,

@@ -2435,8 +2435,18 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.customer_order(self.production_day, "Ohne")
         self.save_text(subject="Für alle")
         self.save_text(edit=str(self.north.pk), subject="Nur Nord")
-        # The own text isn't used by the button for all, the page says so.
-        self.assertContains(self.page(), "Nord hat einen eigenen Text.")
+        page = self.page()
+        # Both rows show that their text was changed for this day.
+        self.assertContains(page, "eigener Text", count=2)
+        # "Send" opens the preview, the button under it sends: to all orders.
+        self.assertContains(
+            page,
+            'data-reminder-preview-open aria-controls="reminder-day-preview"',
+        )
+        self.assertContains(
+            page, 'form="reminder-send-form" name="send" value="all"', count=1
+        )
+        self.assertContains(page, "An 4 Bestellungen senden")
         self.post(send="all")
         queued = ReminderMessage.objects.get(
             state=ReminderMessage.State.PLANNED_SENDING
