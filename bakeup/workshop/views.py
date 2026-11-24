@@ -2911,6 +2911,8 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     submit_value=str(pk),
                     form="reminder-send-form",
                     confirm_label=_("Send now?"),
+                    # How many emails this sends, as on the button for all.
+                    badge=row["orders"],
                 )
             )
         if row["own_text"]:
