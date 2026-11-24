@@ -16136,6 +16136,17 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   font-size: 0.8125rem;
 }
 
+.reminder-send-warning {
+  margin: 14px 0 0;
+  margin: 0.875rem 0 0;
+}
+.reminder-send-warning + .reminder-send-confirm {
+  margin-top: 8px;
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .reminder-send-confirm {
   display: -webkit-box;
   display: -ms-flexbox;

@@ -68,7 +68,7 @@
       </span>
       <div id="reminder-preview-{{ row.point_of_sale.pk }}" class="reminder-day-preview" hidden>
         <div hx-get="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}?point={{ row.point_of_sale.pk }}" hx-trigger="reminder-open once"></div>
-        {% if row.send %}{% include "workshop/includes/reminder_send_confirm.html" with send=row.send panel=row.send.opens %}{% endif %}
+        {% if row.send %}{% include "workshop/includes/reminder_send_confirm.html" with send=row.send panel=row.send.opens warning=row.send_warning %}{% endif %}
       </div>
       {% if editor.row == row.point_of_sale.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
     </div>

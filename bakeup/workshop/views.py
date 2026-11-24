@@ -2921,21 +2921,22 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
     def get_point_actions(self, row):
         pk = row["point_of_sale"].pk
         actions = Actions()
-        if not row["is_notified"]:
-            actions.append(
-                Action(
-                    _("Send"),
-                    icon="fas fa-paper-plane",
-                    kind="secondary",
-                    submit_name="send",
-                    submit_value=str(pk),
-                    form="reminder-send-form",
-                    opens=f"reminder-preview-{pk}",
-                    # How many emails this sends, as on the button for all:
-                    # the orders of the point no mail went to yet.
-                    badge=row["open"],
-                )
+        # A point can always be sent on its own. How many emails that is, as
+        # on the button for all: the orders of the point no mail went to
+        # yet, or all of them again when a mail reached every one, which the
+        # preview says before it is sent.
+        actions.append(
+            Action(
+                _("Send"),
+                icon="fas fa-paper-plane",
+                kind="secondary",
+                submit_name="send",
+                submit_value=str(pk),
+                form="reminder-send-form",
+                opens=f"reminder-preview-{pk}",
+                badge=row["open"] or row["orders"],
             )
+        )
         if row["own_text"]:
             actions.append(
                 Action(
@@ -2963,6 +2964,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         for row in overview["points"]:
             row["actions"] = self.get_point_actions(row)
             row["send"] = next((a for a in row["actions"] if a.opens), None)
+            row["send_warning"] = (
+                ""
+                if row["open"]
+                else self.get_again_warning(overview, row["point_of_sale"])
+            )
         today = timezone.localdate()
         for mail in overview["mails"]:
             mail.display_subject = render_reminder_subject(mail, client)

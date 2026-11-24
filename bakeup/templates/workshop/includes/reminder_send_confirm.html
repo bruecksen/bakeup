@@ -1,4 +1,7 @@
 {% load i18n %}
+{% if warning %}
+<p class="reminder-warning reminder-send-warning"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> {{ warning }}</p>
+{% endif %}
 <div class="reminder-send-confirm">
   <button type="submit" class="btn btn-primary" form="{{ send.form }}" name="{{ send.submit_name }}" value="{{ send.submit_value }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% blocktranslate count counter=send.badge %}Send to {{ counter }} order{% plural %}Send to {{ counter }} orders{% endblocktranslate %}</button>
   <button type="button" class="btn btn-surface" data-reminder-preview-toggle aria-controls="{{ panel }}">{% trans "Cancel" %}</button>

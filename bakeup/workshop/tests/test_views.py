@@ -2390,8 +2390,21 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             [("Nord", "none", 0), ("Süd", "none", 0)],
         )
         self.assertNotContains(page, "noch nicht gesendet")
-        self.assertNotContains(
-            page, 'data-reminder-preview-open aria-controls="reminder-preview-'
+        # A point can still be sent on its own: again to all of its orders,
+        # and its preview names the mail that reached it already.
+        self.assertEqual(
+            [
+                (row["send"].badge, bool(row["send_warning"]))
+                for row in page.context["overview"]["points"]
+            ],
+            [(1, True), (2, True)],
+        )
+        self.assertContains(page, "Süd wurde heute um", count=1)
+        mail.outbox.clear()
+        self.post(send=str(self.south.pk))
+        self.deliver()
+        self.assertEqual(
+            self.recipients(), ["Meier@example.com", "Schulze@example.com"]
         )
 
     def test_send_to_the_others_leaves_out_notified_points(self):

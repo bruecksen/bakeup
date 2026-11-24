@@ -2402,6 +2402,15 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 }
 // Under the preview of an email the button that sends it: what goes out is
 // seen before it goes.
+.reminder-send-warning {
+    margin: .875rem 0 0;
+
+    & + .reminder-send-confirm {
+        margin-top: .5rem;
+        padding-top: 0;
+        border-top: 0;
+    }
+}
 .reminder-send-confirm {
     display: flex;
     flex-wrap: wrap;

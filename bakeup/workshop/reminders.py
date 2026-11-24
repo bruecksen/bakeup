@@ -223,8 +223,9 @@ def queue_reminders(overview, day_text, target):
 
     "all" is one mail with the text of the day to every order of the day,
     "rest" one to the orders no mail went to yet. A point of sale gets its
-    own text if it has one, to its orders no mail went to yet. Nobody left
-    means no mail. Once a mail went out "all" is "rest", so a second click
+    own text if it has one, to its orders no mail went to yet, or to all of
+    its orders again when every one was reached. Nobody left for "all" or
+    "rest" means no mail. Once a mail went out "all" is "rest", so a second click
     or a page left open never tells anybody twice.
     """
     production_day = day_text.production_day
@@ -246,7 +247,10 @@ def queue_reminders(overview, day_text, target):
         if not row:
             return []
         text = row["own_text"] or day_text
-        point_of_sale, orders = row["point_of_sale"], row["open_orders"]
+        # The orders no mail went to yet. When a mail reached every one the
+        # point is sent again, on purpose: its row says so before sending.
+        point_of_sale = row["point_of_sale"]
+        orders = row["open_orders"] or row["order_list"]
     if not orders:
         return []
     return [queue_mail(production_day, text, point_of_sale, orders)]
