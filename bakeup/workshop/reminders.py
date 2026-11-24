@@ -147,7 +147,14 @@ def get_reminder_overview(production_day, texts):
         ids = {order.pk for order in row["order_list"]}
         # The mails that reach an order of the point, and the orders no mail
         # reached: all of them before the first mail, the new ones after it.
-        row["mails"] = [mail for mail in mails if mail_orders[mail.pk] & ids]
+        # The row itself only tells of the mails sent to the point on its
+        # own, a mail to all is told by the row for all.
+        row["covering"] = [mail for mail in mails if mail_orders[mail.pk] & ids]
+        row["mails"] = [
+            mail
+            for mail in row["covering"]
+            if row["point_of_sale"] and mail.point_of_sale_id == row["point_of_sale"].pk
+        ]
         row["open_orders"] = [
             order for order in row["order_list"] if order.pk not in covered
         ]

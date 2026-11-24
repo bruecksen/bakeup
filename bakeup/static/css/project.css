@@ -16204,6 +16204,18 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   font-size: 1rem;
   font-weight: 600;
 }
+.reminder-section-title:has(+ .reminder-section-hint) {
+  margin-bottom: 2px;
+  margin-bottom: 0.125rem;
+}
+
+.reminder-section-hint {
+  margin: 0 0 8px;
+  margin: 0 0 0.5rem;
+  color: #6c757d;
+  font-size: 13px;
+  font-size: 0.8125rem;
+}
 
 .reminder-warning {
   margin-bottom: 12px;

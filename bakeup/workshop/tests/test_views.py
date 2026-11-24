@@ -2038,6 +2038,32 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
                     response, f'hx-get="{strip["overlay_url"]}"'.replace("&", "&amp;")
                 )
 
+    def test_plan_tab_is_checked_once_everything_is_produced(self):
+        def badge():
+            tabs = self.detail().context["day_switch"]["tabs"]
+            return [tab.get("badge") for tab in tabs if tab["key"] == "plan"][0]
+
+        plan = self.root()
+        self.assertIsNone(badge())
+        # In production isn't produced yet.
+        plan.set_production()
+        self.assertIsNone(badge())
+        plan.state = ProductionPlan.State.PRODUCED
+        plan.save()
+        self.assertEqual(badge(), "✓")
+        # A cancelled plan beside it doesn't hold the check back.
+        ProductionPlan.objects.create(
+            production_day=self.production_day,
+            product=Product.duplicate(self.cake),
+            quantity=10,
+            state=ProductionPlan.State.CANCELED,
+        )
+        self.assertEqual(badge(), "✓")
+        # Only cancelled plans are nothing produced.
+        plan.state = ProductionPlan.State.CANCELED
+        plan.save()
+        self.assertIsNone(badge())
+
     def test_tabs_keep_the_day_on_every_day_page(self):
         self.add_order()
         urls = self.section_urls()
@@ -2354,15 +2380,19 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         page = self.page()
         self.assertEqual(self.card(page), ("sent", []))
         self.assertContains(page, "· 3 zugestellt")
-        # Every point shows it is covered by the mail to all, its own orders.
+        # The rows of the points only tell of mails sent to them on their
+        # own: none here, and nothing left to send to them either.
         self.assertEqual(
             [
-                (str(row["point_of_sale"]), row["state"], row["delivered"])
+                (str(row["point_of_sale"]), row["state"], row["open"])
                 for row in page.context["overview"]["points"]
             ],
-            [("Nord", "sent", 1), ("Süd", "sent", 2)],
+            [("Nord", "none", 0), ("Süd", "none", 0)],
         )
-        self.assertContains(page, "· 2 zugestellt", count=1)
+        self.assertNotContains(page, "noch nicht gesendet")
+        self.assertNotContains(
+            page, 'data-reminder-preview-open aria-controls="reminder-preview-'
+        )
 
     def test_send_to_the_others_leaves_out_notified_points(self):
         self.two_points()
@@ -2463,7 +2493,8 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
                 ("Schulze@example.com", "Für alle"),
             ],
         )
-        self.assertEqual(self.card(self.page()), ("sent", []))
+        page = self.page()
+        self.assertEqual(self.card(page), ("sent", []))
 
     def test_orders_after_the_mail_are_the_ones_left_to_send(self):
         self.two_points()

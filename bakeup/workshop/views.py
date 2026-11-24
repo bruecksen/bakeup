@@ -1959,9 +1959,24 @@ def get_day_tabs(production_day, active):
             badge = get_reminder_badge(production_day, order_points)
             if badge:
                 tabs[-1]["badge"] = badge
-        if link == "plan" and on_day:
-            tabs[-1]["swap_url"] = tabs[-1]["url"]
+        if link == "plan":
+            if on_day:
+                tabs[-1]["swap_url"] = tabs[-1]["url"]
+            if is_production_day_produced(production_day):
+                tabs[-1]["badge"] = "✓"
     return tabs
+
+
+def is_production_day_produced(production_day):
+    """The day is baked: it has plans and every one that wasn't cancelled is
+    produced. The check of the plan tab, like the one of the pickup emails
+    when everybody is told."""
+    states = set(
+        production_day.production_plans.filter(parent_plan__isnull=True)
+        .exclude(state=ProductionPlan.State.CANCELED)
+        .values_list("state", flat=True)
+    )
+    return states == {ProductionPlan.State.PRODUCED}
 
 
 def get_day_actions(production_day, link):
@@ -2795,11 +2810,11 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                 ),
                 None,
             )
-            if not row or not row["mails"]:
+            if not row or not row["covering"]:
                 return ""
             return _("%(point_of_sale)s was notified %(when)s already.") % {
                 "point_of_sale": point_of_sale.name,
-                "when": format_mail_time(row["last_mail"]),
+                "when": format_mail_time(row["covering"][-1]),
             }
         if not overview["mails"]:
             return ""

@@ -2459,6 +2459,16 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     margin: 0 0 .5rem;
     font-size: 1rem;
     font-weight: 600;
+
+    // What the part does, in a line under its heading.
+    &:has(+ .reminder-section-hint) {
+        margin-bottom: .125rem;
+    }
+}
+.reminder-section-hint {
+    margin: 0 0 .5rem;
+    color: $text-muted;
+    font-size: .8125rem;
 }
 .reminder-warning {
     margin-bottom: .75rem;

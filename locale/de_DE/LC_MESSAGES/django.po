@@ -3085,3 +3085,15 @@ msgid "Send to %(counter)s order"
 msgid_plural "Send to %(counter)s orders"
 msgstr[0] "An %(counter)s Bestellung senden"
 msgstr[1] "An %(counter)s Bestellungen senden"
+
+msgid "Email to all"
+msgstr "E-Mail an alle"
+
+msgid "One email with the same text to every order of this day."
+msgstr "Eine E-Mail mit demselben Text an alle Bestellungen dieses Tages."
+
+msgid "Single points of sale"
+msgstr "Einzelne Abholstellen"
+
+msgid "Only when a point of sale should get an email of its own, at another time or with its own text."
+msgstr "Nur wenn eine Abholstelle eine eigene E-Mail bekommen soll, zu einer anderen Zeit oder mit eigenem Text."

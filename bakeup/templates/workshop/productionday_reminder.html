@@ -16,7 +16,10 @@
 <form id="reminder-send-form" method="post">{% csrf_token %}</form>
 
 <div class="reminder-page">
-  <section class="day-pane-card reminder-list">
+  <section>
+    <h2 class="reminder-section-title">{% trans "Email to all" %}</h2>
+    <p class="reminder-section-hint">{% trans "One email with the same text to every order of this day." %}</p>
+    <div class="day-pane-card reminder-list">
     <div class="reminder-row is-lead">
       <span class="reminder-row-name">{% trans "All points of sale" %}</span>
       <span class="reminder-row-orders">{% blocktranslate count counter=overview.orders %}{{ counter }} order{% plural %}{{ counter }} orders{% endblocktranslate %}</span>
@@ -44,7 +47,13 @@
       </div>
       {% if editor.row is None %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
     </div>
-    {% if overview.has_points %}
+    </div>
+  </section>
+  {% if overview.has_points %}
+  <section>
+    <h2 class="reminder-section-title">{% trans "Single points of sale" %}</h2>
+    <p class="reminder-section-hint">{% trans "Only when a point of sale should get an email of its own, at another time or with its own text." %}</p>
+    <div class="day-pane-card reminder-list">
     {% for row in overview.points %}
     <div class="reminder-row">
       <span class="reminder-row-name" title="{{ row.point_of_sale.name }}">{{ row.point_of_sale.name }}</span>
@@ -74,8 +83,9 @@
     </div>
     {% endwith %}
     {% endif %}
-    {% endif %}
+    </div>
   </section>
+  {% endif %}
 
   <section class="reminder-history">
     <h2 class="reminder-section-title">{% trans "History" %}</h2>
