@@ -1,0 +1,37 @@
+{% load i18n django_bootstrap5 %}
+<section id="reminder-editor" class="reminder-editor-panel" data-edit="{{ editor.edit }}"{% if not editor.open %} hidden{% endif %}>
+  <h2 class="reminder-section-title">{{ editor.title }}</h2>
+  {% if editor.warning %}
+  <p class="reminder-warning"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i> {{ editor.warning }}</p>
+  {% endif %}
+  <form method="post" class="reminder-editor">
+    {% csrf_token %}
+    {{ editor.form.media }}
+    <input type="hidden" name="edit" value="{{ editor.edit }}">
+    <div class="row g-4">
+      <div class="col-12 col-xl-7">
+        {% if editor.form.non_field_errors %}
+        <div class="alert alert-danger">{{ editor.form.non_field_errors }}</div>
+        {% endif %}
+        {% bootstrap_field editor.form.subject %}
+        {% bootstrap_field editor.form.body show_help=False wrapper_class="mb-2" %}
+        <div class="reminder-tags">
+          <span class="reminder-tags-label">{% trans "Insert placeholder" %}</span>
+          {% for tag in tags %}
+          <button type="button" class="reminder-tag" data-insert="{{ tag }}">{{ tag }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-12 col-xl-5">
+        <p class="reminder-label">{% trans "Preview" %}</p>
+        <div class="reminder-preview"
+          hx-post="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}"
+          hx-include=".reminder-editor"
+          hx-trigger="load, input delay:600ms from:.reminder-editor, change from:.reminder-editor, reminder-preview delay:400ms from:body"></div>
+      </div>
+    </div>
+    <div class="reminder-editor-footer">
+      {% include "workshop/includes/actions.html" with actions=editor.actions %}
+    </div>
+  </form>
+</section>

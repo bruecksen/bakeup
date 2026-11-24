@@ -2553,6 +2553,52 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertContains(response, "Für Müller")
         self.assertContains(response, "Hallo Müller")
 
+    def test_row_preview_is_what_the_row_would_send(self):
+        self.two_points()
+        ReminderMessage.objects.create(
+            production_day=self.production_day,
+            subject="Tagestext für {{ last_name }}",
+            body=self.body(),
+        )
+        ReminderMessage.objects.create(
+            production_day=self.production_day,
+            point_of_sale=self.south,
+            subject="Süd für {{ last_name }}",
+            body=self.body(),
+        )
+        url = reverse(
+            "workshop:production-day-reminder-preview",
+            kwargs={"production_day": self.production_day.pk},
+        )
+        # A point with its own text gets it, with one of its orders.
+        response = self.client.get(url, {"point": self.south.pk})
+        self.assertContains(response, "Süd für Meier")
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+        # A point without one gets the text of the day.
+        response = self.client.get(url, {"point": self.north.pk})
+        self.assertContains(response, "Tagestext für Müller")
+
+    def test_every_row_has_preview_and_text_and_the_editor_opens_under_its_row(self):
+        self.two_points()
+        url = self.reminder_url()
+        page = self.client.get(url).content.decode()
+        for point in (self.north, self.south):
+            self.assertIn(f'aria-controls="reminder-preview-{point.pk}"', page)
+            self.assertIn(f'href="?edit={point.pk}#reminder-editor"', page)
+        self.assertIn('data-reminder-edit="day"', page)
+        # The text of the day is edited under the row for all.
+        lead, rest = page.split('id="reminder-day-preview"')[1].split(
+            f'id="reminder-preview-{self.north.pk}"'
+        )
+        self.assertIn('id="reminder-editor"', lead)
+        self.assertNotIn('id="reminder-editor"', rest)
+        # A point's own text under the row of that point.
+        page = self.client.get(url, {"edit": self.south.pk}).content.decode()
+        self.assertEqual(page.count('id="reminder-editor"'), 1)
+        after_south = page.split(f'id="reminder-preview-{self.south.pk}"')[1]
+        self.assertIn('id="reminder-editor"', after_south)
+        self.assertIn("Eigener Text für Süd", after_south)
+
 
 class CustomerExportTest(NumberCircleTestCase):
     def test_ready2order_uses_customer_number(self):

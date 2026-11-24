@@ -2619,16 +2619,30 @@ def render_reminder_subject(message, client):
 
 @staff_member_required(login_url="login")
 def production_day_reminder_preview_view(request, production_day):
-    """The email being written, filled in with a real order of the day (of
-    the point of sale the text is for) or, without one, an example."""
+    """A pickup email filled in with a real order of the day (of the point
+    of sale it is for) or, without one, an example.
+
+    POST is the email being written in the editor. GET is what a row of the
+    list would send: ?point=<pk> gets that point's own text, or the text of
+    the day when it has none, like the day itself without a point.
+    """
     production_day = get_object_or_404(ProductionDay, pk=production_day)
-    form = ReminderMessageForm(request.POST)
-    text = ReminderMessage(
-        production_day=production_day,
-        subject=form["subject"].value() or "",
-        body=form["body"].value() or "",
-    )
-    point_of_sale = get_editor_point_of_sale(request.POST.get("edit", ""))
+    if request.method == "POST":
+        form = ReminderMessageForm(request.POST)
+        text = ReminderMessage(
+            production_day=production_day,
+            subject=form["subject"].value() or "",
+            body=form["body"].value() or "",
+        )
+        point_of_sale = get_editor_point_of_sale(request.POST.get("edit", ""))
+    else:
+        point_of_sale = get_editor_point_of_sale(request.GET.get("point", ""))
+        texts = get_day_texts(production_day)
+        text = (
+            (point_of_sale and texts.get(point_of_sale.pk))
+            or texts.get(None)
+            or get_default_text(request, production_day)
+        )
     return render(
         request,
         "workshop/includes/reminder_preview.html",
@@ -2749,6 +2763,15 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             "open": bool(edit) or form.is_bound,
             "is_again": is_again,
             "point_of_sale": point_of_sale,
+            # The editor opens under the row it belongs to: a point's row for
+            # its own text or another mail to it, the row for all otherwise.
+            "row": point_of_sale.pk
+            if point_of_sale
+            and any(
+                row["point_of_sale"].pk == point_of_sale.pk
+                for row in overview["points"]
+            )
+            else None,
             "text": text,
             "form": form,
             "title": title,
@@ -2890,7 +2913,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     confirm_label=_("Send now?"),
                 )
             )
-        actions.append(Action(_("Own text"), self.get_page_url(str(pk)), "fas fa-pen"))
         if row["own_text"]:
             actions.append(
                 Action(
@@ -2929,7 +2951,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         context["day_switch"] = get_day_switch(self.production_day, "reminder")
         context["overview"] = overview
         context["day_text"] = self.day_text
-        context["day_subject"] = render_reminder_subject(self.day_text, client)
         context["day_actions_reminder"] = self.get_day_actions(overview)
         context["day_preview"] = fill_reminder(
             self.day_text,

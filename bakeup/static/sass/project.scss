@@ -2290,7 +2290,7 @@ $tap-size: 44px;
 }
 .reminder-row {
     display: grid;
-    grid-template-columns: minmax(0, 16rem) 8.5rem minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 13rem) 8rem minmax(0, 1fr) auto;
     align-items: center;
     gap: .25rem 1rem;
     padding: .375rem 0;
@@ -2329,8 +2329,13 @@ $tap-size: 44px;
 .reminder-row-orders {
     white-space: nowrap;
 }
+// The same on every row: preview, the text, send, then the menu. The row
+// for all has them with their labels, a point as icons.
 .reminder-row-actions {
+    display: flex;
+    align-items: center;
     justify-self: end;
+    gap: .5rem;
 
     .action-bar {
         flex-wrap: nowrap;
@@ -2339,22 +2344,17 @@ $tap-size: 44px;
 .reminder-row-note {
     font-size: .8125rem;
 }
-.reminder-row-text,
-.reminder-day-preview {
+// Preview and editor open under the row they belong to, across the card.
+.reminder-day-preview,
+.reminder-row > .reminder-editor-panel {
     grid-column: 1 / -1;
-    margin: 0;
-}
-.reminder-row-text {
-    overflow-wrap: anywhere;
-}
-.reminder-row-links {
-    margin-left: .75rem;
-    white-space: nowrap;
+    margin: .5rem 0 .375rem;
+    padding-top: .75rem;
+    font-size: 1rem;
+    border-top: 1px solid $gray-200;
 }
 .reminder-day-preview {
-    margin-top: .5rem;
-    padding-top: .75rem;
-    border-top: 1px solid $gray-200;
+    max-width: 44rem;
 }
 .reminder-label {
     margin-bottom: .25rem;
@@ -3170,19 +3170,23 @@ i.step-check-all {
     .reminder-row-orders {
         justify-self: end;
     }
-    // The row for all keeps its whole name, its button gets a line.
+    // The row for all keeps its whole name, its buttons get a line: preview
+    // and text as icons like on the rows of the points, sending with its
+    // label.
     .reminder-row.is-lead {
         .reminder-row-name {
             white-space: normal;
+        }
+        .reminder-row-actions > .btn .action-label {
+            display: none;
+        }
+        .reminder-row-actions .btn {
+            white-space: nowrap;
         }
         .reminder-status,
         .reminder-row-actions {
             grid-column: 1 / -1;
         }
-    }
-    .reminder-row-links {
-        display: block;
-        margin-left: 0;
     }
     // The date and the actions need the row.
     .day-title-week {
