@@ -16018,8 +16018,14 @@ li:hover > .row .main-flour-set,
   padding-top: 0.25rem;
   padding-bottom: 4px;
   padding-bottom: 0.25rem;
+  container-type: inline-size;
 }
 
+@container (max-width: 66rem) {
+  .reminder-row.is-lead .reminder-row-actions {
+    grid-column: 1/-1;
+  }
+}
 .reminder-row {
   display: grid;
   grid-template-columns: minmax(0, 13rem) 8rem minmax(0, 1fr) auto;
@@ -16068,6 +16074,10 @@ li:hover > .row .main-flour-set,
   color: #6c757d;
 }
 
+.reminder-row .reminder-status {
+  min-width: 0;
+}
+
 .reminder-row-orders {
   white-space: nowrap;
 }
@@ -16096,18 +16106,26 @@ li:hover > .row .main-flour-set,
 .reminder-day-preview,
 .reminder-row > .reminder-editor-panel {
   grid-column: 1/-1;
-  margin: 8px 0 6px;
-  margin: 0.5rem 0 0.375rem;
-  padding-top: 12px;
-  padding-top: 0.75rem;
-  font-size: 16px;
-  font-size: 1rem;
-  border-top: 1px solid #e9ecef;
+  margin: 6px 0 8px;
+  margin: 0.375rem 0 0.5rem;
+  padding: 14px 16px;
+  padding: 0.875rem 1rem;
+  background-color: #f8f5e6;
+  border-radius: 0.375rem;
 }
 
 .reminder-day-preview {
-  max-width: 704px;
-  max-width: 44rem;
+  font-size: 14px;
+  font-size: 0.875rem;
+}
+.reminder-day-preview > * {
+  max-width: 640px;
+  max-width: 40rem;
+}
+
+.reminder-row [data-reminder-preview-toggle][aria-expanded=true] {
+  background-color: #f8e8e3;
+  border-color: #d49886;
 }
 
 .reminder-label {

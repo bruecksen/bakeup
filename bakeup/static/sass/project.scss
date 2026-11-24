@@ -2287,6 +2287,16 @@ $tap-size: 44px;
 .reminder-list {
     padding-top: .25rem;
     padding-bottom: .25rem;
+    // The rows lay out by the width of the card, not of the window: the
+    // sidebar may be open or collapsed.
+    container-type: inline-size;
+}
+// Where the card is too narrow for the row for all with its three buttons,
+// they get a line of their own and the state keeps its room.
+@container (max-width: 66rem) {
+    .reminder-row.is-lead .reminder-row-actions {
+        grid-column: 1 / -1;
+    }
 }
 .reminder-row {
     display: grid;
@@ -2326,6 +2336,9 @@ $tap-size: 44px;
 .reminder-row-note {
     color: $text-muted;
 }
+.reminder-row .reminder-status {
+    min-width: 0;
+}
 .reminder-row-orders {
     white-space: nowrap;
 }
@@ -2344,17 +2357,28 @@ $tap-size: 44px;
 .reminder-row-note {
     font-size: .8125rem;
 }
-// Preview and editor open under the row they belong to, across the card.
+// Preview and editor open under the row they belong to, as a tinted panel
+// set into the card: it reads as a part of that row and not as more rows.
+// The button that opened it stays pressed.
 .reminder-day-preview,
 .reminder-row > .reminder-editor-panel {
     grid-column: 1 / -1;
-    margin: .5rem 0 .375rem;
-    padding-top: .75rem;
-    font-size: 1rem;
-    border-top: 1px solid $gray-200;
+    margin: .375rem 0 .5rem;
+    padding: .875rem 1rem;
+    background-color: mix($light, $white, 55%);
+    border-radius: $border-radius;
 }
+// The preview is an email as it arrives: small type, a readable width.
 .reminder-day-preview {
-    max-width: 44rem;
+    font-size: .875rem;
+
+    > * {
+        max-width: 40rem;
+    }
+}
+.reminder-row [data-reminder-preview-toggle][aria-expanded="true"] {
+    background-color: mix($primary, $white, 15%);
+    border-color: mix($primary, $gray-300, 60%);
 }
 .reminder-label {
     margin-bottom: .25rem;
