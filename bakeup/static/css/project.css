@@ -16021,9 +16021,38 @@ li:hover > .row .main-flour-set,
   container-type: inline-size;
 }
 
-@container (max-width: 66rem) {
-  .reminder-row.is-lead .reminder-row-actions {
+@container (max-width: 62rem) {
+  .reminder-list .reminder-row {
+    grid-template-columns: minmax(0, 10.5rem) 6.75rem minmax(0, 1fr) auto;
+    -webkit-column-gap: 0.75rem;
+       -moz-column-gap: 0.75rem;
+            column-gap: 0.75rem;
+  }
+}
+@container (max-width: 46rem) {
+  .reminder-list .reminder-row-actions .action-label {
+    display: none;
+  }
+}
+@container (max-width: 40rem) {
+  .reminder-list .reminder-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .reminder-list .reminder-row-orders {
+    justify-self: end;
+  }
+  .reminder-list .reminder-row.is-lead .reminder-row-name {
+    white-space: normal;
+  }
+  .reminder-list .reminder-row.is-lead .reminder-status,
+  .reminder-list .reminder-row.is-lead .reminder-row-actions {
     grid-column: 1/-1;
+  }
+  .reminder-list .reminder-row.is-lead .reminder-row-actions .btn {
+    white-space: nowrap;
+  }
+  .reminder-list .reminder-row.is-lead .reminder-row-actions .action-label {
+    display: inline;
   }
 }
 .reminder-row {
@@ -16042,7 +16071,7 @@ li:hover > .row .main-flour-set,
 .reminder-row + .reminder-row {
   border-top: 1px solid #e9ecef;
 }
-.reminder-row:not(.is-lead) .btn {
+.reminder-row .btn {
   --bs-btn-padding-y: 4px;
   --bs-btn-padding-y: 0.25rem;
   --bs-btn-padding-x: 8px;
@@ -16053,8 +16082,6 @@ li:hover > .row .main-flour-set,
 .reminder-row.is-lead {
   padding: 8px 0 10px;
   padding: 0.5rem 0 0.625rem;
-  font-size: 15px;
-  font-size: 0.9375rem;
 }
 .reminder-row.is-lead .reminder-row-name {
   font-weight: 600;
@@ -17197,7 +17224,6 @@ i.step-check-all {
     display: none;
   }
   .day-header .action-label,
-  .reminder-row:not(.is-lead) .action-label,
   .section-toolbar .action-label {
     display: none;
   }
@@ -17226,25 +17252,6 @@ i.step-check-all {
   }
   .day-order-tick {
     width: 3rem;
-  }
-  .reminder-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-  .reminder-row-orders {
-    justify-self: end;
-  }
-  .reminder-row.is-lead .reminder-row-name {
-    white-space: normal;
-  }
-  .reminder-row.is-lead .reminder-row-actions > .btn .action-label {
-    display: none;
-  }
-  .reminder-row.is-lead .reminder-row-actions .btn {
-    white-space: nowrap;
-  }
-  .reminder-row.is-lead .reminder-status,
-  .reminder-row.is-lead .reminder-row-actions {
-    grid-column: 1/-1;
   }
   .day-title-week {
     display: none;

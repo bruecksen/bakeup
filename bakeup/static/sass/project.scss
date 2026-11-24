@@ -2291,11 +2291,44 @@ $tap-size: 44px;
     // sidebar may be open or collapsed.
     container-type: inline-size;
 }
-// Where the card is too narrow for the row for all with its three buttons,
-// they get a line of their own and the state keeps its room.
-@container (max-width: 66rem) {
-    .reminder-row.is-lead .reminder-row-actions {
-        grid-column: 1 / -1;
+// On a narrower card the name and the number of orders give way, so the
+// state stays on one line beside the buttons.
+@container (max-width: 62rem) {
+    .reminder-list .reminder-row {
+        grid-template-columns: minmax(0, 10.5rem) 6.75rem minmax(0, 1fr) auto;
+        column-gap: .75rem;
+    }
+}
+// Narrower still, sending is an icon like the two beside it, on every row.
+@container (max-width: 46rem) {
+    .reminder-list .reminder-row-actions .action-label {
+        display: none;
+    }
+}
+// On a phone a row takes two lines: name and orders, then the state and its
+// buttons. The row for all keeps its whole name, its buttons get a line of
+// their own with the label of sending.
+@container (max-width: 40rem) {
+    .reminder-list .reminder-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .reminder-list .reminder-row-orders {
+        justify-self: end;
+    }
+    .reminder-list .reminder-row.is-lead {
+        .reminder-row-name {
+            white-space: normal;
+        }
+        .reminder-status,
+        .reminder-row-actions {
+            grid-column: 1 / -1;
+        }
+        .reminder-row-actions .btn {
+            white-space: nowrap;
+        }
+        .reminder-row-actions .action-label {
+            display: inline;
+        }
     }
 }
 .reminder-row {
@@ -2309,15 +2342,15 @@ $tap-size: 44px;
     & + & {
         border-top: 1px solid $gray-200;
     }
-    // A point's own buttons are a size smaller than the ones for all.
-    &:not(.is-lead) .btn {
+    // The buttons of every row are the small ones, the row for all stands
+    // out by its filled button and its bold name.
+    .btn {
         --bs-btn-padding-y: #{$btn-padding-y-sm};
         --bs-btn-padding-x: #{$btn-padding-x-sm};
         --bs-btn-font-size: #{$btn-font-size-sm};
     }
     &.is-lead {
         padding: .5rem 0 .625rem;
-        font-size: .9375rem;
 
         .reminder-row-name {
             font-weight: 600;
@@ -2342,8 +2375,9 @@ $tap-size: 44px;
 .reminder-row-orders {
     white-space: nowrap;
 }
-// The same on every row: preview, the text, send, then the menu. The row
-// for all has them with their labels, a point as icons.
+// The same on every row and in the same places: preview and the text as
+// icons, send, then the menu. A row without a menu keeps its room, so the
+// buttons line up down the list.
 .reminder-row-actions {
     display: flex;
     align-items: center;
@@ -3160,7 +3194,6 @@ i.step-check-all {
         }
     }
     .day-header .action-label,
-    .reminder-row:not(.is-lead) .action-label,
     .section-toolbar .action-label {
         display: none;
     }
@@ -3185,32 +3218,6 @@ i.step-check-all {
     }
     .day-order-tick {
         width: 3rem;
-    }
-    // A row of the pickup emails takes two lines: name and orders, then the
-    // state and its buttons.
-    .reminder-row {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-    .reminder-row-orders {
-        justify-self: end;
-    }
-    // The row for all keeps its whole name, its buttons get a line: preview
-    // and text as icons like on the rows of the points, sending with its
-    // label.
-    .reminder-row.is-lead {
-        .reminder-row-name {
-            white-space: normal;
-        }
-        .reminder-row-actions > .btn .action-label {
-            display: none;
-        }
-        .reminder-row-actions .btn {
-            white-space: nowrap;
-        }
-        .reminder-status,
-        .reminder-row-actions {
-            grid-column: 1 / -1;
-        }
     }
     // The date and the actions need the row.
     .day-title-week {

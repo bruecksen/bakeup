@@ -34,8 +34,8 @@
         {% endif %}
       </span>
       <span class="reminder-row-actions">
-        <a class="btn btn-surface" href="#reminder-day-preview" data-reminder-preview-toggle aria-controls="reminder-day-preview" aria-expanded="false" title="{% trans 'Preview' %}"><i class="far fa-eye" aria-hidden="true"></i> <span class="action-label">{% trans "Preview" %}</span></a>
-        <a class="btn btn-surface" href="?edit=day#reminder-editor" data-reminder-edit="day" title="{% trans 'Edit text' %}"><i class="fas fa-pen" aria-hidden="true"></i> <span class="action-label">{% trans "Edit text" %}</span></a>
+        <a class="btn btn-surface" href="#reminder-day-preview" data-reminder-preview-toggle aria-controls="reminder-day-preview" aria-expanded="false" title="{% trans 'Preview' %}" aria-label="{% trans 'Preview' %}"><i class="far fa-eye" aria-hidden="true"></i></a>
+        <a class="btn btn-surface" href="?edit=day#reminder-editor" data-reminder-edit="day" title="{% trans 'Edit text' %}" aria-label="{% trans 'Edit text' %}"><i class="fas fa-pen" aria-hidden="true"></i></a>
         {% include "workshop/includes/actions.html" with actions=day_actions_reminder %}
       </span>
       <div id="reminder-day-preview" class="reminder-day-preview" hidden>
@@ -55,6 +55,7 @@
           hx-get="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}?point={{ row.point_of_sale.pk }}" hx-target="#reminder-preview-{{ row.point_of_sale.pk }}" hx-trigger="click once"><i class="far fa-eye" aria-hidden="true"></i></a>
         <a class="btn btn-surface" href="?edit={{ row.point_of_sale.pk }}#reminder-editor" title="{% trans 'Own text' %}" aria-label="{% trans 'Own text' %}"><i class="fas fa-pen" aria-hidden="true"></i></a>
         {% include "workshop/includes/actions.html" with actions=row.actions %}
+        {% if not row.actions.menu %}<span class="btn btn-surface invisible" aria-hidden="true"><i class="fas fa-ellipsis"></i></span>{% endif %}
       </span>
       <div id="reminder-preview-{{ row.point_of_sale.pk }}" class="reminder-day-preview" hidden></div>
       {% if editor.row == row.point_of_sale.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
