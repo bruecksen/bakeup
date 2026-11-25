@@ -1,6 +1,7 @@
 import collections
 import logging
 from datetime import datetime
+from functools import partial
 
 from django.conf import settings
 from django.contrib import messages
@@ -1158,10 +1159,14 @@ class CustomerOrder(CommonBaseClass):
                         price = product.sale_price.price.amount
                         price_total = price * quantity
                     old_position = CustomerOrderPosition.objects.filter(
-                        Q(product=product)
-                        | Q(product__product_template=product, order=customer_order)
+                        Q(product=product) | Q(product__product_template=product),
+                        order=customer_order,
                     ).first()
-                    position, created = CustomerOrderPosition.objects.filter(
+                    # Not `created`: that one says whether the order is new.
+                    (
+                        position,
+                        position_created,
+                    ) = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product)
                     ).update_or_create(
                         order=customer_order,
@@ -1172,7 +1177,7 @@ class CustomerOrder(CommonBaseClass):
                             "price_total": price_total,
                         },
                     )
-                    if created:
+                    if position_created:
                         changes_detected = True
                     elif old_position and old_position.quantity != quantity:
                         changes_detected = True
@@ -1318,9 +1323,16 @@ class CustomerOrder(CommonBaseClass):
             )
             message.content_subtype = "html"
             if email_settings.email_order_confirm_attachment:
+                # Opened for each mail: the settings and with them the file
+                # are loaded once per request, and a file that was read to
+                # its end attaches nothing to the next mail.
+                with email_settings.email_order_confirm_attachment.file.open(
+                    "rb"
+                ) as attachment:
+                    content = attachment.read()
                 message.attach(
                     email_settings.email_order_confirm_attachment.title,
-                    email_settings.email_order_confirm_attachment.file.read(),
+                    content,
                     "application/pdf",
                 )
             message.send(fail_silently=False)
@@ -1555,7 +1567,11 @@ class CustomerOrderTemplate(CommonBaseClass):
                         request_or_site=request
                     ).send_email_order_confirm
                 ):
-                    customer_order.send_order_confirm_email(request)
+                    # Sent once the orders are committed, a request that
+                    # fails must not have confirmed them.
+                    transaction.on_commit(
+                        partial(customer_order.send_order_confirm_email, request)
+                    )
         return created_positions
 
     @classmethod

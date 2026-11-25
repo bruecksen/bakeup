@@ -1,5 +1,6 @@
 from factory import Sequence
-from factory.django import DjangoModelFactory, ImageField
+from factory.django import DjangoModelFactory, FileField, ImageField
+from wagtail.documents.models import Document
 from wagtail.images.models import Image
 from wagtail.models import Page
 
@@ -18,6 +19,14 @@ class ImageFactory(DjangoModelFactory):
 
     class Meta:
         model = Image
+
+
+class DocumentFactory(DjangoModelFactory):
+    title = Sequence(lambda n: f"Document {n}")
+    file = FileField(filename="document.pdf")
+
+    class Meta:
+        model = Document
 
 
 class PageFactory(DjangoModelFactory):
