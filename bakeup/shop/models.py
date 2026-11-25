@@ -362,13 +362,25 @@ class ProductionDay(CommonBaseClass):
             plans.append(plan)
         return plans
 
-    def create_template_orders(self, request):
-        production_day_products = self.production_day_products.published().values_list(
+    def create_template_orders(self, request, products=None):
+        """
+        Create the abo orders of this day, for all published products or only
+        for the given ones. Returns the positions that were created.
+        """
+        production_day_products = self.production_day_products.published()
+        if products is not None:
+            production_day_products = production_day_products.filter(
+                product__in=products
+            )
+        production_day_products = production_day_products.values_list(
             "product", flat=True
         )
-        order_templates = CustomerOrderTemplate.objects.active().filter(
-            positions__product__in=production_day_products
+        order_templates = (
+            CustomerOrderTemplate.objects.active()
+            .filter(positions__product__in=production_day_products)
+            .distinct()
         )
+        created_positions = []
         for order_template in order_templates:
             available_products = production_day_products.available_to_user(
                 order_template.customer.user
@@ -376,12 +388,15 @@ class ProductionDay(CommonBaseClass):
             customer_order_template_positions = order_template.positions.filter(
                 product__in=available_products
             )
-            CustomerOrderTemplate.create_abo_orders_for_production_days(
-                order_template.customer,
-                customer_order_template_positions,
-                [self],
-                request,
+            created_positions += (
+                CustomerOrderTemplate.create_abo_orders_for_production_days(
+                    order_template.customer,
+                    customer_order_template_positions,
+                    [self],
+                    request,
+                )
             )
+        return created_positions
 
     def get_ingredient_summary_list(self):
         ingredients = {}
@@ -1052,6 +1067,32 @@ class CustomerOrder(CommonBaseClass):
             customer_order_template_positions__isnull=False
         ).exists()
 
+    def skip_abo(self, positions=None):
+        """
+        Remember that the customer does not want the abo order of these
+        positions (default: all of the order) on this production day. Has to
+        be called before the positions are deleted, see
+        CustomerOrderTemplateSkip.
+        """
+        if not self.customer_id:
+            return
+        if positions is None:
+            positions = self.positions.all()
+        for position in positions:
+            product = position.product.product_template or position.product
+            # Asks the active abo and not the link of the position to it, so
+            # positions ordered by hand are covered too.
+            if (
+                CustomerOrderTemplatePosition.objects.active()
+                .filter(order_template__customer=self.customer, product=product)
+                .exists()
+            ):
+                CustomerOrderTemplateSkip.objects.get_or_create(
+                    customer=self.customer,
+                    production_day=self.production_day,
+                    product=product,
+                )
+
     @classmethod
     def create_or_update_customer_order(
         cls, request, production_day, customer, products, point_of_sale=None
@@ -1136,10 +1177,12 @@ class CustomerOrder(CommonBaseClass):
                     elif old_position and old_position.quantity != quantity:
                         changes_detected = True
                 elif quantity == 0:
-                    deleted, object_types = CustomerOrderPosition.objects.filter(
+                    positions = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product),
                         order=customer_order,
-                    ).delete()
+                    )
+                    customer_order.skip_abo(list(positions))
+                    deleted, object_types = positions.delete()
                     if deleted:
                         changes_detected = True
 
@@ -1426,7 +1469,13 @@ class CustomerOrderTemplate(CommonBaseClass):
     def create_abo_orders_for_production_days(
         cls, customer, customer_order_template_positions, production_days, request
     ):
+        """
+        Create the missing abo orders of the customer on the production days
+        and return the created positions. Days and products the customer
+        opted out of (CustomerOrderTemplateSkip) are left alone.
+        """
         # TODO its a bit ugly to loop the request object till here. maybe this should go somewhere else
+        created_positions = []
         with transaction.atomic():
             # TODO check if its ok without .exclude(production_day=production_day)
             for production_day in production_days:
@@ -1436,13 +1485,21 @@ class CustomerOrderTemplate(CommonBaseClass):
                     customer_order_template_position
                 ) in customer_order_template_positions:
                     product = customer_order_template_position.product
+                    if CustomerOrderTemplateSkip.objects.filter(
+                        customer=customer,
+                        production_day=production_day,
+                        product=product,
+                    ).exists():
+                        continue
                     customer_order_position = CustomerOrderPosition.objects.filter(
                         Q(product=product) | Q(product__product_template=product),
                         order__production_day=production_day,
                         order__customer=customer,
                     )
                     production_day_product = (
-                        production_day.production_day_products.filter(product=product)
+                        production_day.production_day_products.published().filter(
+                            product=product
+                        )
                     )
                     if not customer_order_position.exists() and production_day_product:
                         if (
@@ -1488,6 +1545,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                                 )
                                 customer_order_template_position.orders.add(position)
                                 customer_order_template_position.order_template.set_locked()
+                                created_positions.append(position)
                                 is_order_created = True
                 from bakeup.pages.models import EmailSettings
 
@@ -1498,6 +1556,7 @@ class CustomerOrderTemplate(CommonBaseClass):
                     ).send_email_order_confirm
                 ):
                     customer_order.send_order_confirm_email(request)
+        return created_positions
 
     @classmethod
     def create_customer_order_template(
@@ -1574,6 +1633,50 @@ class CustomerOrderTemplate(CommonBaseClass):
             )
 
         return order_template
+
+
+class CustomerOrderTemplateSkip(CommonBaseClass):
+    """
+    The customer does not want the abo order of this product on this
+    production day. Written whenever an abo position is removed, because a
+    removed order is deleted and would otherwise look like one that was never
+    created. Points at the production day and not at its date, so it stays
+    valid when the day is moved.
+    """
+
+    customer = models.ForeignKey(
+        "shop.Customer",
+        on_delete=models.CASCADE,
+        related_name="order_template_skips",
+        verbose_name=_("Customer"),
+    )
+    production_day = models.ForeignKey(
+        "shop.ProductionDay",
+        on_delete=models.CASCADE,
+        related_name="order_template_skips",
+        verbose_name=_("Production Day"),
+    )
+    product = models.ForeignKey(
+        "workshop.Product",
+        on_delete=models.CASCADE,
+        related_name="order_template_skips",
+        verbose_name=_("Product"),
+    )
+
+    class Meta:
+        verbose_name = _("Skipped abo order")
+        verbose_name_plural = _("Skipped abo orders")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer", "production_day", "product"],
+                name="unique_order_template_skip",
+            )
+        ]
+
+    def __str__(self):
+        return "Skipped abo order: {} {} {}".format(
+            self.production_day, self.customer, self.product
+        )
 
 
 # class ProductionDay

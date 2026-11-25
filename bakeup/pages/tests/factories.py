@@ -6,6 +6,7 @@ from wagtail.models import Page
 from bakeup.pages.models import (
     BlockReferencePage,
     ContentPage,
+    EmailSettings,
     PointOfSalePage,
     ShopPage,
 )
@@ -56,3 +57,10 @@ class BlockReferencePageFactory(PageFactory):
 class PointOfSalePageFactory(PageFactory):
     class Meta:
         model = PointOfSalePage
+
+
+class EmailSettingsFactory(DjangoModelFactory):
+    # The one row EmailSettings.load() returns. No mail is sent unless a test
+    # switches it on.
+    class Meta:
+        model = EmailSettings

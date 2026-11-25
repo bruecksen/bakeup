@@ -1,11 +1,15 @@
 from datetime import timedelta
 
 from django.utils import timezone
-from factory import Sequence, SubFactory, post_generation
+from factory import LazyFunction, Sequence, SubFactory, post_generation
 from factory.django import DjangoModelFactory
 
 from bakeup.shop.models import (
     CustomerOrder,
+    CustomerOrderPosition,
+    CustomerOrderTemplate,
+    CustomerOrderTemplatePosition,
+    CustomerOrderTemplateSkip,
     PointOfSale,
     PointOfSalePickupTime,
     ProductionDay,
@@ -43,3 +47,34 @@ class CustomerOrderFactory(DjangoModelFactory):
 
     class Meta:
         model = CustomerOrder
+
+
+class CustomerOrderPositionFactory(DjangoModelFactory):
+    order = SubFactory(CustomerOrderFactory)
+    quantity = 1
+
+    class Meta:
+        model = CustomerOrderPosition
+
+
+class CustomerOrderTemplateFactory(DjangoModelFactory):
+    # An abo that is already running.
+    start_date = LazyFunction(lambda: timezone.now() - timedelta(days=1))
+
+    class Meta:
+        model = CustomerOrderTemplate
+
+
+class CustomerOrderTemplatePositionFactory(DjangoModelFactory):
+    order_template = SubFactory(CustomerOrderTemplateFactory)
+    quantity = 1
+
+    class Meta:
+        model = CustomerOrderTemplatePosition
+
+
+class CustomerOrderTemplateSkipFactory(DjangoModelFactory):
+    production_day = SubFactory(ProductionDayFactory)
+
+    class Meta:
+        model = CustomerOrderTemplateSkip
