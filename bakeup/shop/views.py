@@ -213,6 +213,7 @@ def customer_order_add_or_update(request, production_day):
                 request_or_site=request
             ).send_email_order_cancellation:
                 email = customer_order.generate_order_cancellation_email(request)
+            customer_order.skip_abo()
             customer_order.delete()
             if email:
                 try:
@@ -302,6 +303,7 @@ def customer_order_template_update(request, pk):
                 request,
                 request.user.customer,
                 products_recurring,
+                create_future_production_day_orders=True,
             )
         return HttpResponseRedirect(reverse_lazy("shop:order-list"))
 

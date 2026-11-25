@@ -19,6 +19,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.datastructures import MultiValueDict
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
@@ -1367,6 +1368,7 @@ class CustomerOrderCreationMixin(object):
             if formset.has_changed():
                 instances = formset.save(commit=False)
                 for obj in formset.deleted_objects:
+                    obj.order.skip_abo([obj])
                     obj.delete()
                 for instance in instances:
                     instance.order = customer_order
@@ -1590,7 +1592,36 @@ class ProductionDayMixin(object):
             for instance in instances:
                 instance.production_day = production_day
                 instance.save()
-        production_day.create_template_orders(self.request)
+        # Abo orders are only created for products that became orderable with
+        # this save: added as published, published now, or swapped in. Saving
+        # anything else must not bring back orders that were removed.
+        products = [
+            instance.product_id
+            for instance in formset.new_objects
+            if instance.is_published
+        ] + [
+            instance.product_id
+            for instance, changed_fields in formset.changed_objects
+            if instance.is_published
+            and {"is_published", "product"}.intersection(changed_fields)
+        ]
+        if products:
+            positions = production_day.create_template_orders(
+                self.request, products=products
+            )
+            if positions:
+                product_names = sorted(
+                    {position.product.get_display_name() for position in positions}
+                )
+                messages.success(
+                    self.request,
+                    ngettext(
+                        "%(count)d abo order created for %(products)s.",
+                        "%(count)d abo orders created for %(products)s.",
+                        len(positions),
+                    )
+                    % {"count": len(positions), "products": ", ".join(product_names)},
+                )
         production_day.create_or_update_production_plans(
             state=ProductionPlan.State.PLANNED, create_max_quantity=True
         )
@@ -1627,6 +1658,7 @@ class ProductionDayProductDeleteView(StaffPermissionsMixin, DeleteView):
 
     def form_valid(self, form):
         for position in self.object.order_positions.all():
+            position.order.skip_abo([position])
             position.delete()
             if position.order.positions.count() == 0:
                 position.order.delete()
@@ -2287,9 +2319,11 @@ class CustomerOrderBatchView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 # if customer.pk == 2:
                 #     raise Exception(not any([v and v > 0 for v in products.values()]))
                 if not any([v and v > 0 for v in products.values()]):
-                    CustomerOrder.objects.filter(
+                    for customer_order in CustomerOrder.objects.filter(
                         production_day=self.production_day, customer=customer
-                    ).delete()
+                    ):
+                        customer_order.skip_abo()
+                        customer_order.delete()
                     continue
                 customer_order, created = CustomerOrder.objects.get_or_create(
                     production_day=self.production_day,
@@ -2301,10 +2335,12 @@ class CustomerOrderBatchView(StaffPermissionsMixin, NextUrlMixin, CreateView):
                 ):
                     quantity = form.cleaned_data["product_%s" % (product.pk,)]
                     if not quantity or quantity == 0:
-                        CustomerOrderPosition.objects.filter(
+                        positions = CustomerOrderPosition.objects.filter(
                             Q(product=product) | Q(product__product_template=product),
                             order=customer_order,
-                        ).delete()
+                        )
+                        customer_order.skip_abo(list(positions))
+                        positions.delete()
                     else:
                         price = None
                         price_total = None
@@ -2342,15 +2378,17 @@ class CustomerOrderDeleteView(StaffPermissionsMixin, DeleteView):
             "workshop:order-list",
         )
 
-    def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    def form_valid(self, form):
+        # DeleteView deletes in form_valid, it does not call delete().
         success_url = self.get_success_url()
         try:
-            self.object.delete()
+            # A protected order rolls back to here and leaves no skip behind.
+            with transaction.atomic():
+                self.object.skip_abo()
+                self.object.delete()
         except ProtectedError as e:
-            messages.error(request, e)
-        finally:
-            return redirect(success_url)
+            messages.error(self.request, e)
+        return redirect(success_url)
 
 
 class CreateUpdateInstructionsView(StaffPermissionsMixin, UpdateView):
@@ -2459,6 +2497,7 @@ class BatchCustomerTemplateView(StaffPermissionsMixin, CreateView):
                         self.request,
                         customer,
                         products_recurring,
+                        create_future_production_day_orders=True,
                     )
         return HttpResponseRedirect(reverse("workshop:customer-list"))
 

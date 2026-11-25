@@ -3,6 +3,8 @@ from datetime import timedelta
 from io import StringIO
 from urllib.parse import quote
 
+import pytest
+from django.contrib.messages import get_messages
 from django.core.management import call_command
 from django.db import connection
 from django.db.models import Sum
@@ -17,11 +19,20 @@ from bakeup.shop.models import (
     Customer,
     CustomerOrder,
     CustomerOrderPosition,
+    CustomerOrderTemplateSkip,
     PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
+from bakeup.shop.tests.factories import (
+    CustomerOrderFactory,
+    CustomerOrderPositionFactory,
+    CustomerOrderTemplateFactory,
+    CustomerOrderTemplatePositionFactory,
+    CustomerOrderTemplateSkipFactory,
+)
 from bakeup.users.models import User
+from bakeup.users.tests.factories import UserFactory
 from bakeup.workshop.models import (
     Instruction,
     Product,
@@ -30,7 +41,12 @@ from bakeup.workshop.models import (
     VatRate,
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
-from bakeup.workshop.tests.factories import ProductFactory, add
+from bakeup.workshop.tests.factories import (
+    ProductFactory,
+    ProductionDayFactory,
+    ProductionDayProductFactory,
+    add,
+)
 from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
 
 
@@ -1169,3 +1185,334 @@ def test_swapping_product_in_production_day_form_deletes_its_planned_plan(
         ("Baguette", ProductionPlan.State.PLANNED),
         ("Brötchen", ProductionPlan.State.PLANNED),
     ]
+
+
+def abo_order_positions():
+    return list(
+        CustomerOrderPosition.objects.order_by(
+            "order__customer", "product__name"
+        ).values_list(
+            "order__customer", "order__production_day", "product__name", "quantity"
+        )
+    )
+
+
+def abo_skips():
+    return list(
+        CustomerOrderTemplateSkip.objects.order_by(
+            "customer", "product__name"
+        ).values_list("customer", "production_day", "product__name")
+    )
+
+
+@pytest.fixture
+def abo_customer(abo_products):
+    # A customer with a running abo of two Bread and three Brötchen.
+    customer = UserFactory().customer
+    abo = CustomerOrderTemplateFactory(customer=customer)
+    for name, quantity in [("Bread", 2), ("Brötchen", 3)]:
+        CustomerOrderTemplatePositionFactory(
+            order_template=abo, product=abo_products[name], quantity=quantity
+        )
+    return customer
+
+
+@pytest.fixture
+def abo_order(abo_customer, abo_products):
+    # The abo customer's order of a day that sells Bread and Brötchen.
+    production_day = ProductionDayFactory()
+    order = CustomerOrderFactory(customer=abo_customer, production_day=production_day)
+    for name, quantity in [("Bread", 2), ("Brötchen", 3)]:
+        ProductionDayProductFactory(
+            production_day=production_day,
+            product=abo_products[name],
+            is_published=True,
+        )
+        CustomerOrderPositionFactory(
+            order=order, product=abo_products[name], quantity=quantity
+        )
+    return order
+
+
+@pytest.mark.parametrize(
+    "publish, positions, shown_messages",
+    [
+        # Only the description changes: nothing became orderable.
+        (False, [], []),
+        # The Bread gets published in the same save.
+        (True, [("Bread", 2)], ["1 Abo-Bestellung für Bread angelegt."]),
+    ],
+)
+def test_saving_a_production_day_creates_abo_orders_only_for_newly_published_products(
+    client,
+    staff_user,
+    abo_customer,
+    abo_products,
+    production_day_form_data,
+    publish,
+    positions,
+    shown_messages,
+):
+    # Regression test for #608: every save of a day created abo orders.
+    production_day = ProductionDayFactory()
+    bread_row = ProductionDayProductFactory(
+        production_day=production_day, product=abo_products["Bread"], is_published=False
+    )
+    # Published already, so its abo order is not due with this save.
+    broetchen_row = ProductionDayProductFactory(
+        production_day=production_day,
+        product=abo_products["Brötchen"],
+        is_published=True,
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            production_day.day_of_sale,
+            [
+                {
+                    "id": bread_row.pk,
+                    "product": abo_products["Bread"],
+                    "is_published": publish,
+                },
+                {
+                    "id": broetchen_row.pk,
+                    "product": abo_products["Brötchen"],
+                    "is_published": True,
+                },
+            ],
+            description="Mit Sauerteig",
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    production_day.refresh_from_db()
+    assert production_day.description == "Mit Sauerteig"
+    assert abo_order_positions() == [
+        (abo_customer.pk, production_day.pk, name, quantity)
+        for name, quantity in positions
+    ]
+    assert [
+        str(message) for message in get_messages(response.wsgi_request)
+    ] == shown_messages
+
+
+def test_moving_a_production_day_keeps_the_opt_out_when_the_product_gets_published(
+    client, staff_user, abo_customer, abo_products, production_day_form_data
+):
+    production_day = ProductionDayFactory()
+    rows = {
+        name: ProductionDayProductFactory(
+            production_day=production_day,
+            product=abo_products[name],
+            is_published=False,
+        )
+        for name in ["Bread", "Brötchen"]
+    }
+    CustomerOrderTemplateSkipFactory(
+        customer=abo_customer,
+        production_day=production_day,
+        product=abo_products["Bread"],
+    )
+    day_of_sale = production_day.day_of_sale + timedelta(days=14)
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            day_of_sale,
+            [
+                {"id": row.pk, "product": abo_products[name], "is_published": True}
+                for name, row in rows.items()
+            ],
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    production_day.refresh_from_db()
+    assert production_day.day_of_sale == day_of_sale
+    # The Brötchen, but not the Bread the customer opted out of.
+    assert abo_order_positions() == [
+        (abo_customer.pk, production_day.pk, "Brötchen", 3)
+    ]
+
+
+def test_staff_deleting_an_abo_order_records_the_opt_out(client, staff_user, abo_order):
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-delete", kwargs={"pk": abo_order.pk})
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("workshop:order-list")
+    assert abo_order_positions() == []
+    assert abo_skips() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Bread"),
+        (abo_order.customer_id, abo_order.production_day_id, "Brötchen"),
+    ]
+
+
+def test_staff_deleting_an_order_in_production_keeps_it_and_records_no_opt_out(
+    client, staff_user, abo_order
+):
+    production_day = abo_order.production_day
+    # Plans from the orders, which links the positions to them.
+    production_day.create_or_update_production_plans(
+        state=ProductionPlan.State.IN_PRODUCTION
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-delete", kwargs={"pk": abo_order.pk})
+    )
+
+    assert response.status_code == 302
+    assert abo_order_positions() == [
+        (abo_order.customer_id, production_day.pk, "Bread", 2),
+        (abo_order.customer_id, production_day.pk, "Brötchen", 3),
+    ]
+    assert abo_skips() == []
+
+
+@pytest.mark.parametrize(
+    "broetchen_quantity, positions, skipped",
+    [
+        # Nothing left: the whole order is deleted.
+        (0, [], ["Bread", "Brötchen"]),
+        # Only the Bread is removed from the order.
+        (3, [("Brötchen", 3)], ["Bread"]),
+    ],
+)
+def test_staff_removing_abo_products_in_the_batch_orders_records_the_opt_out(
+    client, staff_user, abo_order, abo_products, broetchen_quantity, positions, skipped
+):
+    customer, production_day = abo_order.customer, abo_order.production_day
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-batch", kwargs={"pk": production_day.pk}),
+        {
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 1,
+            "form-0-customer": customer.pk,
+            f"form-0-product_{abo_products['Bread'].pk}": 0,
+            f"form-0-product_{abo_products['Brötchen'].pk}": broetchen_quantity,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [
+        (customer.pk, production_day.pk, name, quantity) for name, quantity in positions
+    ]
+    assert abo_skips() == [(customer.pk, production_day.pk, name) for name in skipped]
+
+
+def test_staff_removing_a_position_in_the_order_form_records_the_opt_out(
+    client, staff_user, abo_order, abo_products
+):
+    bread_position, broetchen_position = abo_order.positions.order_by("product__name")
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-update", kwargs={"pk": abo_order.pk}),
+        {
+            "form-TOTAL_FORMS": 2,
+            "form-INITIAL_FORMS": 2,
+            "form-0-id": bread_position.pk,
+            "form-0-product": abo_products["Bread"].pk,
+            "form-0-quantity": 2,
+            "form-0-DELETE": "on",
+            "form-1-id": broetchen_position.pk,
+            "form-1-product": abo_products["Brötchen"].pk,
+            "form-1-quantity": 3,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Brötchen", 3)
+    ]
+    assert abo_skips() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Bread")
+    ]
+
+
+def test_removing_a_product_from_a_day_records_the_opt_out_of_customers_with_an_order(
+    client, staff_user, abo_order, abo_products, production_day_form_data
+):
+    production_day = abo_order.production_day
+    with_order = abo_order.customer
+    # Subscribed to the Bread too, but without an order on this day.
+    without_order = UserFactory().customer
+    CustomerOrderTemplatePositionFactory(
+        order_template__customer=without_order,
+        product=abo_products["Bread"],
+        quantity=1,
+    )
+    bread_row, broetchen_row = ProductionDayProduct.objects.filter(
+        production_day=production_day
+    ).order_by("product__name")
+    client.force_login(staff_user)
+
+    # Staff confirm that the Bread and its orders are removed from the day.
+    response = client.post(
+        reverse("workshop:production-day-product-delete", kwargs={"pk": bread_row.pk})
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "workshop:production-day-detail", kwargs={"pk": production_day.pk}
+    )
+    assert abo_order_positions() == [(with_order.pk, production_day.pk, "Brötchen", 3)]
+    assert abo_skips() == [(with_order.pk, production_day.pk, "Bread")]
+
+    # The Bread comes back, published.
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            production_day.day_of_sale,
+            [
+                {
+                    "id": broetchen_row.pk,
+                    "product": abo_products["Brötchen"],
+                    "is_published": True,
+                },
+                {"product": abo_products["Bread"], "is_published": True},
+            ],
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    # Only the customer who lost no order gets one.
+    assert abo_order_positions() == sorted(
+        [
+            (with_order.pk, production_day.pk, "Brötchen", 3),
+            (without_order.pk, production_day.pk, "Bread", 1),
+        ]
+    )
+
+
+def test_staff_changing_an_abo_creates_the_orders_of_upcoming_published_days(
+    client, staff_user, abo_products
+):
+    customer = UserFactory().customer
+    production_day = ProductionDayFactory()
+    ProductionDayProductFactory(
+        production_day=production_day, product=abo_products["Bread"], is_published=True
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:customer-abo"),
+        {
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 1,
+            "form-0-customer": customer.pk,
+            f"form-0-product_{abo_products['Bread'].pk}": 2,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [(customer.pk, production_day.pk, "Bread", 2)]

@@ -16,6 +16,7 @@
                 <li>{{ order_position.order }}: {{ order_position }}</li>
             {% endfor %}
         </ul>
+        <p>{% trans "Abo orders that are removed here are not created again when the product is added back to this day." %}</p>
         <form action="" method="post">
             {% csrf_token %}
             <input class="btn btn-link"

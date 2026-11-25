@@ -2817,3 +2817,34 @@ msgstr "Nur Liste"
 #: bakeup/pages/blocks.py
 msgid "Display"
 msgstr "Anzeige"
+
+#: bakeup/shop/models.py
+msgid "Skipped abo order"
+msgstr "Ausgesetzte Abo-Bestellung"
+
+#: bakeup/shop/models.py
+msgid "Skipped abo orders"
+msgstr "Ausgesetzte Abo-Bestellungen"
+
+#: bakeup/workshop/views.py
+#, python-format
+msgid "%(count)d abo order created for %(products)s."
+msgid_plural "%(count)d abo orders created for %(products)s."
+msgstr[0] "%(count)d Abo-Bestellung für %(products)s angelegt."
+msgstr[1] "%(count)d Abo-Bestellungen für %(products)s angelegt."
+
+#: bakeup/templates/workshop/productionday_form.html
+msgid ""
+"As soon as a product is published on this production day, the abo orders "
+"for it are created automatically."
+msgstr ""
+"Sobald ein Produkt an diesem Produktionstag veröffentlicht ist, werden die "
+"Abo-Bestellungen dafür automatisch angelegt."
+
+#: bakeup/templates/workshop/productiondayproduct_confirm_delete.html
+msgid ""
+"Abo orders that are removed here are not created again when the product is "
+"added back to this day."
+msgstr ""
+"Abo-Bestellungen, die hier entfernt werden, werden nicht erneut angelegt, "
+"wenn das Produkt diesem Produktionstag wieder hinzugefügt wird."
