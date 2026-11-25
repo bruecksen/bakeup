@@ -15,6 +15,7 @@ from django.utils import timezone, translation
 from django_tenants.test.client import TenantClient
 
 from bakeup.contrib.models import Note
+from bakeup.pages.tests.factories import DocumentFactory, EmailSettingsFactory
 from bakeup.shop.models import (
     Customer,
     CustomerOrder,
@@ -1516,3 +1517,59 @@ def test_staff_changing_an_abo_creates_the_orders_of_upcoming_published_days(
 
     assert response.status_code == 302, response.content.decode()[:500]
     assert abo_order_positions() == [(customer.pk, production_day.pk, "Bread", 2)]
+
+
+def test_staff_changing_abos_confirms_every_created_order_with_the_attachment(
+    client, staff_user, abo_products, mailoutbox, django_capture_on_commit_callbacks
+):
+    EmailSettingsFactory(
+        email_subject_prefix="",
+        send_email_order_confirm=True,
+        email_order_confirm_subject="Bestellt",
+        email_order_confirm_attachment=DocumentFactory(
+            title="AGB.pdf", file__data=b"%PDF-1.4 AGB"
+        ),
+    )
+    bread = abo_products["Bread"]
+    customers = [
+        UserFactory(email=email).customer
+        for email in ["anna@example.com", "bernd@example.com"]
+    ]
+    production_days = [ProductionDayFactory(), ProductionDayFactory()]
+    for production_day in production_days:
+        ProductionDayProductFactory(
+            production_day=production_day, product=bread, is_published=True
+        )
+    client.force_login(staff_user)
+
+    # The mails are sent when the transaction of the request commits.
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.post(
+            reverse("workshop:customer-abo"),
+            {
+                "form-TOTAL_FORMS": 2,
+                "form-INITIAL_FORMS": 2,
+                "form-0-customer": customers[0].pk,
+                f"form-0-product_{bread.pk}": 2,
+                "form-1-customer": customers[1].pk,
+                f"form-1-product_{bread.pk}": 3,
+            },
+        )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert sorted(abo_order_positions()) == [
+        (customer.pk, production_day.pk, "Bread", quantity)
+        for customer, quantity in zip(customers, [2, 3])
+        for production_day in production_days
+    ]
+    # One mail per created order, and every mail of the request carries the
+    # attachment.
+    assert sorted((mail.to, mail.subject, mail.attachments) for mail in mailoutbox) == [
+        (
+            [f"{name}@example.com"],
+            "Bestellt",
+            [("AGB.pdf", b"%PDF-1.4 AGB", "application/pdf")],
+        )
+        for name in ["anna", "bernd"]
+        for production_day in production_days
+    ]

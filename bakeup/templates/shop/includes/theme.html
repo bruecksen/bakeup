@@ -34,8 +34,11 @@
         --bs-btn-hover-border-color: rgba(var(--bs-primary-rgb), 0.8);
         --bs-btn-active-bg: rgba(var(--bs-primary-rgb), 0.8);
         --bs-btn-active-border-color: rgba(var(--bs-primary-rgb), 0.8);
+        --bs-btn-disabled-bg: {{ settings.pages.BrandSettings.primary_color }};
+        --bs-btn-disabled-border-color: {{ settings.pages.BrandSettings.primary_color }};
         --bs-btn-color: var(--bs-white);
         --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-disabled-color: var(--bs-white);
     }
     .btn-outline-primary {
         --bs-btn-border-color: {{ settings.pages.BrandSettings.primary_color }};
@@ -110,8 +113,11 @@
             --bs-btn-hover-border-color: rgba(var(--bs-secondary-rgb), 0.8);
             --bs-btn-active-bg: rgba(var(--bs-secondary-rgb), 0.8);
             --bs-btn-active-border-color: rgba(var(--bs-secondary-rgb), 0.8);
+            --bs-btn-disabled-bg: {{ settings.pages.BrandSettings.secondary_color }};
+            --bs-btn-disabled-border-color: {{ settings.pages.BrandSettings.secondary_color }};
             --bs-btn-color: var(--bs-white);
             --bs-btn-hover-color: var(--bs-white);
+            --bs-btn-disabled-color: var(--bs-white);
 
     }
     {% endif %}

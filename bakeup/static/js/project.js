@@ -60,6 +60,45 @@ $(document).ready(function() {
         });
     });
 });
+
+// The checkout and abo forms are sent once: a second submit while the first
+// one is on its way, a double click on the order button, is dropped. The
+// buttons must not get the disabled attribute here, the view tells create,
+// update and cancel apart by the name of the clicked button and a disabled
+// button is not posted.
+document.addEventListener("submit", function(event) {
+    var form = event.target;
+    if (!form.classList || !form.classList.contains("customer-order-form") || event.defaultPrevented) return;
+    if (form.dataset.submitting) {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = "true";
+    var button = event.submitter;
+    if (button && button.tagName === "BUTTON") {
+        button.classList.add("disabled", "is-submitting");
+        button.setAttribute("aria-disabled", "true");
+        var spinner = document.createElement("i");
+        spinner.className = "submit-spinner fas fa-spinner fa-spin me-1";
+        spinner.setAttribute("aria-hidden", "true");
+        button.prepend(spinner);
+    }
+});
+// The browser's back button can bring the page back as it was left, the form
+// has to work again then.
+window.addEventListener("pageshow", function() {
+    document.querySelectorAll(".customer-order-form").forEach(function(form) {
+        delete form.dataset.submitting;
+        form.querySelectorAll("button.is-submitting").forEach(function(button) {
+            button.classList.remove("disabled", "is-submitting");
+            button.removeAttribute("aria-disabled");
+        });
+        form.querySelectorAll(".submit-spinner").forEach(function(spinner) {
+            spinner.remove();
+        });
+    });
+});
+
 $(window).on("popstate", function() {
     var anchor = location.hash || $("button[data-bs-toggle='tab']").first().attr("data-bs-target");
     $("button[data-bs-target='" + anchor + "']").tab("show");
