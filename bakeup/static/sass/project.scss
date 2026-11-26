@@ -2517,19 +2517,14 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         }
     }
 }
+// A day without emails keeps the table, with one quiet line in it.
 .reminder-empty {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-    padding: 1rem 1.25rem;
-
-    p {
-        margin: 0;
-        color: $text-muted;
-        font-size: .875rem;
-    }
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 1.5rem 1rem;
+    color: $text-muted;
+    font-size: .875rem;
+    text-align: center;
 }
 // The editor: who gets the email first, then subject and text with the
 // preview beside them. A new email is a card of its own above the table, a
@@ -2553,10 +2548,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     @include media-breakpoint-down(sm) {
         padding: .875rem .75rem;
     }
-}
-// While a new email is written the hint of the empty day steps aside.
-.reminder-editor-panel:not([hidden]) ~ .reminder-empty {
-    display: none;
 }
 .reminder-editor {
     // Draftail keeps room on the left for its block menu, not on the right.

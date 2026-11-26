@@ -3039,8 +3039,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                     id="reminder-new",
                 )
             ]
-            if overview["mails"]
-            else []
         )
         return context
 

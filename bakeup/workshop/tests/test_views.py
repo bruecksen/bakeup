@@ -2407,17 +2407,17 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             for point in (response or self.page()).context["overview"]["points"]
         ]
 
-    def test_empty_day_offers_one_email_to_all(self):
+    def test_empty_day_shows_an_empty_table_and_the_new_email_button(self):
         page = self.page()
         self.assertEqual(page.context["overview"]["mails"], [])
-        self.assertContains(page, "Noch keine E-Mails für diesen Tag.")
         self.assertContains(
-            page,
-            f'<a class="btn btn-primary" href="{self.new_url()}" data-reminder-new>',
+            page, '<p class="reminder-empty">Noch keine E-Mails für diesen Tag.</p>'
         )
-        # The one button is in the card, the toolbar has none. It opens the
-        # editor that is on the page already, hidden.
-        self.assertEqual(list(page.context["reminder_actions"]), [])
+        # "New email" opens the editor that is on the page already, hidden.
+        self.assertEqual(
+            [(action.id, action.url) for action in page.context["reminder_actions"]],
+            [("reminder-new", self.new_url())],
+        )
         self.assertFalse(page.context["editor"]["is_open"])
         self.assertContains(page, 'data-mode="new" hidden>')
 

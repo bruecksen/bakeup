@@ -34,7 +34,6 @@
 
 {% if not editor.mail %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
 
-{% if overview.mails %}
 <div class="day-pane-card reminder-list">
   <div class="reminder-table">
   <div class="reminder-row reminder-head" aria-hidden="true">
@@ -70,13 +69,9 @@
     </div>
     {% if editor.mail and editor.mail.pk == mail.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
   </div>
+  {% empty %}
+  <p class="reminder-empty">{% trans "No emails for this day yet." %}</p>
   {% endfor %}
   </div>
 </div>
-{% else %}
-<div class="day-pane-card reminder-empty">
-  <p>{% trans "No emails for this day yet. Write the pickup email, save it as a draft or send it right away." %}</p>
-  <a class="btn btn-primary" href="{{ new_url }}" data-reminder-new><i class="fas fa-envelope" aria-hidden="true"></i> {% trans "Write an email to all" %}</a>
-</div>
-{% endif %}
 {% endblock %}

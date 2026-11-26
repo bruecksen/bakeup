@@ -1539,7 +1539,7 @@ document.addEventListener("change", function(event) {
     countReminderRecipients(form);
 });
 
-// Pickup emails: "New email", "Write an email to all" and the chip of a
+// Pickup emails: "New email" and the chip of a
 // point of sale with open orders ([data-reminder-new]) open the editor of a
 // new email above the table in place, the chip with its point chosen
 // (data-points) and only the orders without an email when some of the point

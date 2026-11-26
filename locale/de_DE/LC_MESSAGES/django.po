@@ -3081,11 +3081,9 @@ msgstr "Fehler (%(count)s)"
 msgid "Sent %(time)s"
 msgstr "Gesendet %(time)s"
 
-msgid "No emails for this day yet. Write the pickup email, save it as a draft or send it right away."
-msgstr "Noch keine E-Mails für diesen Tag. Schreib die Abhol-E-Mail und speichere sie als Entwurf oder sende sie gleich."
+msgid "No emails for this day yet."
+msgstr "Noch keine E-Mails für diesen Tag."
 
-msgid "Write an email to all"
-msgstr "E-Mail an alle schreiben"
 
 msgid "Edit email"
 msgstr "E-Mail bearbeiten"

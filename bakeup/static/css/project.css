@@ -16290,27 +16290,14 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 }
 
 .reminder-empty {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  gap: 12px;
-  gap: 0.75rem;
-  padding: 16px 20px;
-  padding: 1rem 1.25rem;
-}
-.reminder-empty p {
+  grid-column: 1/-1;
   margin: 0;
+  padding: 24px 16px;
+  padding: 1.5rem 1rem;
   color: #6c757d;
   font-size: 14px;
   font-size: 0.875rem;
+  text-align: center;
 }
 
 .reminder-editor-panel {
@@ -16335,10 +16322,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   .reminder-editor-panel {
     padding: 0.875rem 0.75rem;
   }
-}
-
-.reminder-editor-panel:not([hidden]) ~ .reminder-empty {
-  display: none;
 }
 
 .reminder-editor .Draftail-Editor__wrapper {
