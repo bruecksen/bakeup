@@ -8,7 +8,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.management import call_command
 from django.db import connection
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.http import QueryDict
 from django.test import SimpleTestCase
 from django.test.utils import CaptureQueriesContext
@@ -2264,9 +2264,8 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
             [a.url for a in actions.menu],
         )
 
-    def test_sidebar_entry_of_the_day_pages(self):
-        days = reverse("workshop:production-day-next")
-        plans = reverse("workshop:production-plan-next")
+    def test_sidebar_has_one_entry_for_the_day_pages(self):
+        entry = f'aria-current="page" href="{reverse("workshop:production-day-next")}"'
         pages = {
             **self.section_urls(),
             "calendar": self.calendar().request["PATH_INFO"],
@@ -2274,23 +2273,45 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         for name, url in pages.items():
             with self.subTest(page=name):
                 response = self.client.get(url)
-                # The plan of a day has its own entry, the other pages of a
-                # day belong to the production days.
-                active, other = (plans, days) if name == "plan" else (days, plans)
-                self.assertContains(
-                    response, f'aria-current="page" href="{active}"', count=1
-                )
-                self.assertContains(response, f'class="nav-link" href="{other}"')
+                self.assertContains(response, entry, count=1)
                 self.assertContains(response, "Produktionstage</span>")
-                self.assertContains(response, "Produktionspläne</span>")
-                self.assertNotContains(
-                    response,
-                    f'href="{reverse("workshop:production-day-reminder-next")}"',
-                )
+                for gone in ["production-plan-next", "production-day-reminder-next"]:
+                    self.assertNotContains(
+                        response, f'href="{reverse(f"workshop:{gone}")}"'
+                    )
                 self.assertNotContains(
                     response,
                     f'class="nav-link" href="{reverse("workshop:production-day-calendar")}"',
                 )
+
+    def test_sidebar_entry_opens_the_tab_the_day_is_at(self):
+        entry = reverse("workshop:production-day-next")
+        plan_url = self.url("production-plan-production-day", self.production_day.pk)
+        # The entry opens the next day: this one is today, the others later.
+        ProductionDay.objects.exclude(pk=self.production_day.pk).update(
+            day_of_sale=F("day_of_sale") + timedelta(days=400)
+        )
+        ProductionDay.objects.filter(pk=self.production_day.pk).update(
+            day_of_sale=timezone.now().date()
+        )
+        plans = ProductionPlan.objects.filter(
+            production_day=self.production_day, parent_plan__isnull=True
+        )
+        self.assertGreater(plans.count(), 0, "the day needs plans for the phases")
+        # Orders still come in: the overview.
+        plans.update(state=ProductionPlan.State.PLANNED)
+        self.assertRedirects(self.client.get(entry), self.detail_url())
+        # A plan is started: the plan.
+        first = plans.first()
+        plans.filter(pk=first.pk).update(state=ProductionPlan.State.IN_PRODUCTION)
+        self.assertRedirects(self.client.get(entry), plan_url)
+        # Everything is produced: the orders to hand out.
+        plans.update(state=ProductionPlan.State.PRODUCED)
+        self.assertRedirects(
+            self.client.get(entry),
+            f"{self.detail_url()}#orders",
+            fetch_redirect_response=False,
+        )
 
 
 class PickupEmailsViewTest(ProductionDayDetailViewTest):

@@ -1631,12 +1631,26 @@ def production_day_redirect_view(request):
     if not production_day:
         production_day = ProductionDay.objects.all().first()
     if production_day:
-        url = reverse(
-            "workshop:production-day-detail", kwargs={"pk": production_day.pk}
-        )
+        url = get_day_entry_url(production_day)
     else:
         url = reverse("workshop:production-day-add")
     return HttpResponseRedirect(url)
+
+
+def get_day_entry_url(production_day):
+    """Where the sidebar entry of the production days opens a day: on the tab
+    its work is at. The overview while orders come in, the plan once a plan
+    is started, the orders to hand out once everything is produced."""
+    day_url = reverse(
+        "workshop:production-day-detail", kwargs={"pk": production_day.pk}
+    )
+    if is_production_day_produced(production_day):
+        return f"{day_url}#orders"
+    if get_production_day_phase(production_day) == "handing_out":
+        return reverse(
+            "workshop:production-plan-production-day", kwargs={"pk": production_day.pk}
+        )
+    return day_url
 
 
 @dataclass
