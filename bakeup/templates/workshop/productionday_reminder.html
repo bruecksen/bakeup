@@ -70,7 +70,12 @@
     {% if editor.mail and editor.mail.pk == mail.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
   </div>
   {% empty %}
-  <p class="reminder-empty">{% trans "No emails for this day yet." %}</p>
+  <div class="reminder-empty">
+    <i class="far fa-envelope reminder-empty-icon" aria-hidden="true"></i>
+    <p class="reminder-empty-title">{% trans "No emails for this day yet." %}</p>
+    <p>{% trans "Tell your customers that their order is ready: to all orders at once or to single points of sale. You can save the email as a draft and send it later." %}</p>
+    <a class="btn btn-surface btn-sm" href="{{ new_url }}" data-reminder-new><i class="fas fa-plus" aria-hidden="true"></i> {% trans "Write the first email" %}</a>
+  </div>
   {% endfor %}
   </div>
 </div>

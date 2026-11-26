@@ -2411,7 +2411,12 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         page = self.page()
         self.assertEqual(page.context["overview"]["mails"], [])
         self.assertContains(
-            page, '<p class="reminder-empty">Noch keine E-Mails für diesen Tag.</p>'
+            page,
+            '<p class="reminder-empty-title">Noch keine E-Mails für diesen Tag.</p>',
+        )
+        self.assertContains(
+            page,
+            f'<a class="btn btn-surface btn-sm" href="{self.new_url()}" data-reminder-new>',
         )
         # "New email" opens the editor that is on the page already, hidden.
         self.assertEqual(

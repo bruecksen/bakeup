@@ -3236,3 +3236,9 @@ msgstr "Niemand bekommt diese E-Mail, wählen Sie andere Empfänger."
 
 msgid "Draft saved."
 msgstr "Entwurf gespeichert."
+
+msgid "Tell your customers that their order is ready: to all orders at once or to single points of sale. You can save the email as a draft and send it later."
+msgstr "Sagen Sie Ihren Kund*innen, dass ihre Bestellung abholbereit ist: allen Bestellungen auf einmal oder einzelnen Abholstellen. Sie können die E-Mail als Entwurf speichern und später senden."
+
+msgid "Write the first email"
+msgstr "Erste E-Mail schreiben"

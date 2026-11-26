@@ -2517,14 +2517,38 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         }
     }
 }
-// A day without emails keeps the table, with one quiet line in it.
+// A day without emails keeps the table, with a hint in it on how to start.
 .reminder-empty {
     grid-column: 1 / -1;
-    margin: 0;
-    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .375rem;
+    padding: 2rem 1rem 2.25rem;
     color: $text-muted;
     font-size: .875rem;
     text-align: center;
+
+    p {
+        max-width: 34rem;
+        margin: 0;
+    }
+    .reminder-empty-icon {
+        font-size: 1.75rem;
+        color: rgba($primary, .55);
+    }
+    .reminder-empty-title {
+        color: $body-color;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .btn {
+        margin-top: .5rem;
+    }
+}
+// While the first email is written the hint steps aside.
+.reminder-editor-panel:not([hidden]) ~ .reminder-list .reminder-empty {
+    display: none;
 }
 // The editor: who gets the email first, then subject and text with the
 // preview beside them. A new email is a card of its own above the table, a
