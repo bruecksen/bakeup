@@ -2966,36 +2966,13 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             # chosen recipients in the browser.
             "send_one": get_send_label(1),
             "send_many": get_send_label(2, "__count__"),
-            "actions": Actions(
-                [
-                    Action(
-                        get_send_label(count),
-                        icon="fas fa-paper-plane",
-                        kind="primary",
-                        submit_name="send",
-                        id="reminder-send",
-                    ),
-                    Action(
-                        _("Save as draft"),
-                        icon="far fa-floppy-disk",
-                        kind="secondary",
-                        submit_name="save",
-                    ),
-                    # Closes the editor of a new email in place while nothing
-                    # was changed in it, see project.js.
-                    Action(
-                        _("Cancel"),
-                        self.get_page_url(),
-                        kind="secondary",
-                        id="reminder-editor-cancel",
-                    ),
-                    Action(
-                        _("Test email to me"),
-                        icon="far fa-paper-plane",
-                        submit_name="send_test",
-                    ),
-                ]
-            ),
+            # The footer: the test email on its own on the left, then from
+            # the least to the most final step, the one that sends last.
+            # "Cancel" closes the editor of a new email in place while
+            # nothing was changed in it, see project.js.
+            "cancel_url": self.get_page_url(),
+            "send_label": get_send_label(count),
+            "test_email": self.request.user.email,
         }
 
     def get_context_data(self, mail=None, form=None, is_open=False, **kwargs):

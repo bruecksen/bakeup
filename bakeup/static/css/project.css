@@ -16474,9 +16474,16 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: end;
-      -ms-flex-pack: end;
-          justify-content: flex-end;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  gap: 8px 16px;
+  gap: 0.5rem 1rem;
   margin-top: 16px;
   margin-top: 1rem;
   padding-top: 16px;
@@ -16484,6 +16491,52 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   border-top: 1px solid #e9ecef;
 }
 
+.reminder-editor-steps {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  gap: 8px;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.reminder-editor-steps .btn-link {
+  color: #6c757d;
+  text-decoration: none;
+}
+.reminder-editor-steps .btn-link:hover {
+  color: #212529;
+  text-decoration: underline;
+}
+
+@media (max-width: 575.98px) {
+  .reminder-editor-footer,
+  .reminder-editor-steps {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: reverse;
+        -ms-flex-direction: column-reverse;
+            flex-direction: column-reverse;
+    -webkit-box-align: stretch;
+        -ms-flex-align: stretch;
+            align-items: stretch;
+    width: 100%;
+  }
+  .reminder-editor-footer {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+  }
+  .reminder-editor-test {
+    -webkit-box-ordinal-group: 2;
+        -ms-flex-order: 1;
+            order: 1;
+  }
+}
 .action-badge {
   display: inline-block;
   min-width: 1.5em;

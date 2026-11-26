@@ -3145,3 +3145,7 @@ msgstr "Sag deinen Kund*innen, dass ihre Bestellung abholbereit ist: allen Beste
 
 msgid "Write the first email"
 msgstr "Erste E-Mail schreiben"
+
+#, python-format
+msgid "Sends this email to %(email)s only, filled with the first order."
+msgstr "Sendet diese E-Mail nur an %(email)s, gefüllt mit der ersten Bestellung."

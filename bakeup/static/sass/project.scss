@@ -2659,12 +2659,50 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         border-color: $gray-400;
     }
 }
+// The test email stands apart on the left, it sends nothing to customers.
+// On the right the steps from the least to the most final, sending last.
 .reminder-editor-footer {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem 1rem;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid $gray-200;
+}
+.reminder-editor-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-left: auto;
+
+    .btn-link {
+        color: $text-muted;
+        text-decoration: none;
+
+        &:hover {
+            color: $body-color;
+            text-decoration: underline;
+        }
+    }
+}
+// On a phone every button takes the width, the one that sends on top and
+// the test email last.
+@include media-breakpoint-down(sm) {
+    .reminder-editor-footer,
+    .reminder-editor-steps {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        width: 100%;
+    }
+    .reminder-editor-footer {
+        flex-direction: column;
+    }
+    .reminder-editor-test {
+        order: 1;
+    }
 }
 .action-badge {
     display: inline-block;

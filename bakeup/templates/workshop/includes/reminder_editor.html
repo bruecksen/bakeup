@@ -57,7 +57,12 @@
     </div>
   </div>
   <div class="reminder-editor-footer">
-    {% include "workshop/includes/actions.html" with actions=editor.actions %}
+    <button type="submit" name="send_test" class="btn btn-surface reminder-editor-test" title="{% blocktranslate with email=editor.test_email %}Sends this email to {{ email }} only, filled with the first order.{% endblocktranslate %}"><i class="fas fa-vial" aria-hidden="true"></i> {% trans "Test email to me" %}</button>
+    <div class="reminder-editor-steps">
+      <a class="btn btn-link" href="{{ editor.cancel_url }}" id="reminder-editor-cancel">{% trans "Cancel" %}</a>
+      <button type="submit" name="save" class="btn btn-surface"><i class="far fa-floppy-disk" aria-hidden="true"></i> {% trans "Save as draft" %}</button>
+      <button type="submit" name="send" class="btn btn-primary" id="reminder-send"><i class="fas fa-paper-plane" aria-hidden="true"></i> <span class="action-label">{{ editor.send_label }}</span></button>
+    </div>
   </div>
 </form>
 </section>
