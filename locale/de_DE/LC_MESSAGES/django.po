@@ -3097,3 +3097,74 @@ msgstr "Einzelne Abholstellen"
 
 msgid "Only when a point of sale should get an email of its own, at another time or with its own text."
 msgstr "Nur wenn eine Abholstelle eine eigene E-Mail bekommen soll, zu einer anderen Zeit oder mit eigenem Text."
+
+#: bakeup/shop/models.py
+msgid "Skipped abo order"
+msgstr "Ausgesetzte Abo-Bestellung"
+
+#: bakeup/shop/models.py
+msgid "Skipped abo orders"
+msgstr "Ausgesetzte Abo-Bestellungen"
+
+#: bakeup/workshop/views.py
+#, python-format
+msgid "%(count)d abo order created for %(products)s."
+msgid_plural "%(count)d abo orders created for %(products)s."
+msgstr[0] "%(count)d Abo-Bestellung für %(products)s angelegt."
+msgstr[1] "%(count)d Abo-Bestellungen für %(products)s angelegt."
+
+#: bakeup/templates/workshop/productionday_form.html
+msgid ""
+"As soon as a product is published on this production day, the abo orders "
+"for it are created automatically."
+msgstr ""
+"Sobald ein Produkt an diesem Produktionstag veröffentlicht ist, werden die "
+"Abo-Bestellungen dafür automatisch angelegt."
+
+#: bakeup/templates/workshop/productiondayproduct_confirm_delete.html
+msgid ""
+"Abo orders that are removed here are not created again when the product is "
+"added back to this day."
+msgstr ""
+"Abo-Bestellungen, die hier entfernt werden, werden nicht erneut angelegt, "
+"wenn das Produkt diesem Produktionstag wieder hinzugefügt wird."
+
+#: bakeup/workshop/models.py
+msgid "Dough temperature"
+msgstr "Teigtemperatur"
+
+#: bakeup/workshop/models.py
+msgid "Desired temperature of the dough after mixing in °C."
+msgstr "Gewünschte Temperatur des Teigs nach dem Kneten in °C."
+
+#: bakeup/workshop/models.py
+msgid "Mixer warming"
+msgstr "Kneterwärmung"
+
+#: bakeup/workshop/models.py
+msgid "By how many °C the mixer warms the dough."
+msgstr "Um wie viel °C der Kneter den Teig erwärmt."
+
+#: bakeup/templates/workshop/includes/production_plan_step.html
+msgid "Water temperature"
+msgstr "Wassertemperatur"
+
+#: bakeup/templates/workshop/includes/production_plan_water_temperature.html
+msgid "Water cannot have this temperature. Change the temperature of the other ingredients."
+msgstr "Diese Temperatur kann Wasser nicht haben. Ändere die Temperatur der anderen Zutaten."
+
+#: bakeup/templates/workshop/includes/production_plan_water_temperature.html
+msgid "Temperature of the ingredients"
+msgstr "Temperatur der Zutaten"
+
+#: bakeup/templates/workshop/includes/production_plan_water_temperature.html
+msgid "Apply"
+msgstr "Übernehmen"
+
+#: bakeup/templates/workshop/product_form.html
+msgid "Description and images"
+msgstr "Beschreibung und Bilder"
+
+#: bakeup/templates/workshop/product_form.html
+msgid "Dough"
+msgstr "Teig"

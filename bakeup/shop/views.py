@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime
+from functools import partial
 from typing import Any, List
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import CharField, Exists, F, Func, OuterRef, Q, Subquery, Value
 from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect, JsonResponse
@@ -196,7 +198,11 @@ def customer_order_add_or_update(request, production_day):
                 )
             if order and changes_detected:
                 if EmailSettings.load(request_or_site=request).send_email_order_confirm:
-                    order.send_order_confirm_email(request)
+                    # Sent once the order is committed, a request that fails
+                    # must not have confirmed it.
+                    transaction.on_commit(
+                        partial(order.send_order_confirm_email, request)
+                    )
             return HttpResponseRedirect(
                 "{}#bestellung-{}".format(reverse("shop:order-list"), order.pk)
             )
@@ -213,6 +219,7 @@ def customer_order_add_or_update(request, production_day):
                 request_or_site=request
             ).send_email_order_cancellation:
                 email = customer_order.generate_order_cancellation_email(request)
+            customer_order.skip_abo()
             customer_order.delete()
             if email:
                 try:
@@ -302,6 +309,7 @@ def customer_order_template_update(request, pk):
                 request,
                 request.user.customer,
                 products_recurring,
+                create_future_production_day_orders=True,
             )
         return HttpResponseRedirect(reverse_lazy("shop:order-list"))
 

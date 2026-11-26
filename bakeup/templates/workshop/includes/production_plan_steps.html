@@ -1,4 +1,4 @@
-<div id="steps-{{ card.root.pk }}" class="production-stages{% if card.stages|length > 1 %} has-rail{% endif %}">
+<div id="steps-{{ card.root.pk }}" class="production-stages{% if card.stages|length > 1 %} has-rail{% endif %}"{% if steps_oob %} hx-swap-oob="outerMorph"{% endif %}>
   {% for stage in card.stages %}
   <div class="production-stage">
     {% if card.stages|length > 1 %}

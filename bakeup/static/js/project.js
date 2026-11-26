@@ -60,6 +60,45 @@ $(document).ready(function() {
         });
     });
 });
+
+// The checkout and abo forms are sent once: a second submit while the first
+// one is on its way, a double click on the order button, is dropped. The
+// buttons must not get the disabled attribute here, the view tells create,
+// update and cancel apart by the name of the clicked button and a disabled
+// button is not posted.
+document.addEventListener("submit", function(event) {
+    var form = event.target;
+    if (!form.classList || !form.classList.contains("customer-order-form") || event.defaultPrevented) return;
+    if (form.dataset.submitting) {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = "true";
+    var button = event.submitter;
+    if (button && button.tagName === "BUTTON") {
+        button.classList.add("disabled", "is-submitting");
+        button.setAttribute("aria-disabled", "true");
+        var spinner = document.createElement("i");
+        spinner.className = "submit-spinner fas fa-spinner fa-spin me-1";
+        spinner.setAttribute("aria-hidden", "true");
+        button.prepend(spinner);
+    }
+});
+// The browser's back button can bring the page back as it was left, the form
+// has to work again then.
+window.addEventListener("pageshow", function() {
+    document.querySelectorAll(".customer-order-form").forEach(function(form) {
+        delete form.dataset.submitting;
+        form.querySelectorAll("button.is-submitting").forEach(function(button) {
+            button.classList.remove("disabled", "is-submitting");
+            button.removeAttribute("aria-disabled");
+        });
+        form.querySelectorAll(".submit-spinner").forEach(function(spinner) {
+            spinner.remove();
+        });
+    });
+});
+
 $(window).on("popstate", function() {
     var anchor = location.hash || $("button[data-bs-toggle='tab']").first().attr("data-bs-target");
     $("button[data-bs-target='" + anchor + "']").tab("show");
@@ -1668,6 +1707,44 @@ document.addEventListener("htmx:before:swap", function() {
         var popover = bootstrap.Popover.getInstance(cell);
         if (popover) popover.dispose();
     });
+});
+
+// Product form: the shop fields only for a product sold in the shop, the
+// dough temperatures only for the others. The server renders the state the
+// form starts with.
+document.addEventListener("change", function(event) {
+    if (event.target.id !== "id_is_sellable") return;
+    var sellable = event.target.checked;
+    event.target.form.querySelectorAll("[data-sellable-only]").forEach(function(el) {
+        el.hidden = !sellable;
+    });
+    event.target.form.querySelectorAll("[data-not-sellable-only]").forEach(function(el) {
+        el.hidden = sellable;
+    });
+});
+
+// The modal opens once its content has arrived: opening it empty first makes
+// it jump when the content comes, or shows the content of the step before.
+var productionPlanModalPending = false;
+document.addEventListener("click", function(event) {
+    if (!event.target.closest("[data-production-plan-modal]")) return;
+    var content = document.querySelector("#production-plan-modal .modal-content");
+    if (content) content.innerHTML = "";
+    productionPlanModalPending = true;
+});
+document.addEventListener("htmx:after:swap", function() {
+    if (!productionPlanModalPending) return;
+    var modal = document.getElementById("production-plan-modal");
+    if (!modal || !modal.querySelector(".modal-content").children.length) return;
+    productionPlanModalPending = false;
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+});
+// Production plan: the server closes the modal of a step tool (water
+// temperature) once it is applied, with an HX-Trigger response header.
+document.addEventListener("closeProductionPlanModal", function() {
+    var modal = document.getElementById("production-plan-modal");
+    var instance = modal && bootstrap.Modal.getInstance(modal);
+    if (instance) instance.hide();
 });
 
 // Formsets with rows that can be added and removed: [data-formset] holds the

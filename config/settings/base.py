@@ -565,3 +565,10 @@ MAP_STYLE_URL = env(
         "?apiKey={api_key}"
     ),
 )
+
+# PRODUCTION PLAN
+# ------------------------------------------------------------------------------
+# Water temperature calculator: what a recipe or a plan doesn't set itself.
+DOUGH_TEMPERATURE_DEFAULT = 26  # °C
+MIXER_WARMING_DEFAULT = 0  # °C the mixer adds
+INGREDIENT_TEMPERATURE_DEFAULT = 20  # °C

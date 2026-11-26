@@ -1,0 +1,49 @@
+{% load i18n workshop_tags %}
+{% url 'workshop:production-plan-water-temperature' pk=plan.pk as water_temperature_url %}
+<form class="water-temperature" method="post" action="{{ water_temperature_url }}"
+  hx-post="{{ water_temperature_url }}"
+  hx-trigger="change, submit"
+  hx-target="#production-plan-modal .modal-content"
+  hx-swap="innerMorph">
+  {% csrf_token %}
+  <div class="modal-header">
+    <h1 class="modal-title fs-5">{% trans "Water temperature" %} · {{ plan.product.name }}</h1>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="modal-body">
+    <div class="water-temperature-result">
+      <div class="water-temperature-value{% if water.unreachable %} is-unreachable{% endif %}">{% if water.result is None %}–{% else %}{{ water.result|floatformat:1 }} °C{% endif %}</div>
+      <div class="water-temperature-water">{{ water.row.weight|clever_unit:water.row.unit }} {{ water.row.row.child.name }}</div>
+      {% if water.unreachable %}
+      <div class="water-temperature-hint">{% trans "Water cannot have this temperature. Change the temperature of the other ingredients." %}</div>
+      {% endif %}
+    </div>
+    {% for error in form.non_field_errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    <div class="water-temperature-row">
+      <label class="water-temperature-name" for="{{ form.dough.id_for_label }}">{{ form.dough.label }}</label>
+      <div class="input-group input-group-sm">{{ form.dough }}<span class="input-group-text">°C</span></div>
+      {% for error in form.dough.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="water-temperature-row">
+      <label class="water-temperature-name" for="{{ form.warming.id_for_label }}">{{ form.warming.label }}</label>
+      <div class="input-group input-group-sm">{{ form.warming }}<span class="input-group-text">°C</span></div>
+      {% for error in form.warming.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    </div>
+    {% if form.rows %}
+    <div class="production-section-label water-temperature-label">{% trans "Temperature of the ingredients" %}</div>
+    {% for item in form.rows %}
+    <div class="water-temperature-row">
+      <span class="ingredient-weight">{{ item.row.weight|clever_unit:item.row.unit }}</span>
+      <label class="water-temperature-name" for="{{ item.field.id_for_label }}">{{ item.field.label }}</label>
+      <div class="input-group input-group-sm">{{ item.field }}<span class="input-group-text">°C</span></div>
+      {% for error in item.field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+  <div class="modal-footer flex-row-reverse justify-content-start">
+    <button type="submit" class="btn btn-primary" name="apply" value="1">{% trans "Apply" %}</button>
+    <button type="submit" class="btn btn-outline-secondary" name="reset" value="1">{% trans "Reset" %}</button>
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+  </div>
+</form>

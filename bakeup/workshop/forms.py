@@ -69,6 +69,8 @@ class ProductForm(ModelForm):
             "is_bio_certified",
             "price_display",
             "vat_rate",
+            "dough_temperature",
+            "mixer_warming",
         ]
         labels = {"is_sellable": _("Sold in the shop")}
         help_texts = {
@@ -81,6 +83,12 @@ class ProductForm(ModelForm):
             "uom": forms.Select(attrs={"class": "form-select"}),
             "vat_rate": forms.Select(attrs={"class": "form-select"}),
             "weight": forms.NumberInput(attrs={"class": "form-control numberinput"}),
+            "dough_temperature": forms.NumberInput(
+                attrs={"class": "form-control numberinput", "step": "0.1"}
+            ),
+            "mixer_warming": forms.NumberInput(
+                attrs={"class": "form-control numberinput", "step": "0.1"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -94,6 +102,13 @@ class ProductForm(ModelForm):
         super().__init__(*args, **kwargs)
         if not self.instance.uom_id:
             self.initial.setdefault("uom", UOM.get_default())
+        # An empty field uses the default, the placeholder shows it.
+        self.fields["dough_temperature"].widget.attrs["placeholder"] = (
+            settings.DOUGH_TEMPERATURE_DEFAULT
+        )
+        self.fields["mixer_warming"].widget.attrs["placeholder"] = (
+            settings.MIXER_WARMING_DEFAULT
+        )
 
     def clean_sku(self):
         sku = self.cleaned_data["sku"]
@@ -104,6 +119,52 @@ class ProductForm(ModelForm):
             if products.exists():
                 raise ValidationError(_("A product with the SKU already exists"))
         return sku
+
+
+class WaterTemperatureForm(Form):
+    # The temperatures of the water temperature calculator of a plan step, one
+    # field per ingredient besides the water. An empty field uses the default.
+    dough = FloatField(required=False, label=_("Dough temperature"))
+    warming = FloatField(required=False, label=_("Mixer warming"))
+
+    def __init__(self, *args, water, **kwargs):
+        # `water` is the calculation of the step, see ProductionPlan.get_water.
+        super().__init__(*args, **kwargs)
+        self.water = water
+        self.initial.setdefault("dough", water["dough"])
+        self.initial.setdefault("warming", water["warming"])
+        for row in water["rows"]:
+            self.fields[self.row_field_name(row)] = FloatField(
+                required=False, label=row["name"], initial=row["temperature"]
+            )
+        for field in self.fields.values():
+            field.widget.attrs.update(
+                {"class": "form-control", "step": "0.1", "inputmode": "decimal"}
+            )
+
+    @staticmethod
+    def row_field_name(row):
+        return f"row_{row['row'].pk}"
+
+    def rows(self):
+        return [
+            {"row": row, "field": self[self.row_field_name(row)]}
+            for row in self.water["rows"]
+        ]
+
+    def get_temperatures(self):
+        # In the format of ProductionPlan.temperatures, without empty fields.
+        temperatures = {
+            key: self.cleaned_data[key]
+            for key in ["dough", "warming"]
+            if self.cleaned_data[key] is not None
+        }
+        temperatures["rows"] = {
+            str(row["row"].pk): self.cleaned_data[self.row_field_name(row)]
+            for row in self.water["rows"]
+            if self.cleaned_data[self.row_field_name(row)] is not None
+        }
+        return temperatures
 
 
 def ingredient_choices(product=None):

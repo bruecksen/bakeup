@@ -29,12 +29,16 @@
       <li class="list-inline-item">{% if object.is_sellable %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Sellable" %}</li>
     </ul>
     <ul class="list-unstyled list-inline mb-1">
-      {% if object.sale_price %}<li class="list-inline-item"><strong>{% trans "Price" %}:</strong> {{ object.sale_price.price }}{% if object.is_unit_price or object.is_base_price %} <span class="text-muted">({{ object.get_price_display_display }})</span>{% endif %}</li>{% endif %}
-      <li class="list-inline-item"><strong>{% trans "VAT rate" %}:</strong> {{ object.get_vat_rate_display }}</li>
+      {% if object.is_sellable and object.sale_price %}<li class="list-inline-item"><strong>{% trans "Price" %}:</strong> {{ object.sale_price.price }}{% if object.is_unit_price or object.is_base_price %} <span class="text-muted">({{ object.get_price_display_display }})</span>{% endif %}</li>{% endif %}
+      {% if object.is_sellable %}<li class="list-inline-item"><strong>{% trans "VAT rate" %}:</strong> {{ object.get_vat_rate_display }}</li>{% endif %}
+      {% if object.dough_temperature is not None %}<li class="list-inline-item"><strong>{% trans "Dough temperature" %}:</strong> {{ object.dough_temperature|floatformat }} °C</li>{% endif %}
+      {% if object.mixer_warming is not None %}<li class="list-inline-item"><strong>{% trans "Mixer warming" %}:</strong> {{ object.mixer_warming|floatformat }} °C</li>{% endif %}
+      {% if object.is_sellable %}
       <li class="list-inline-item">{% if object.is_recurring %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "recurring product" %}</li>
       {% if object.max_recurring_order_qty %}<li class="list-inline-item"><strong>{% trans "max recurring order qty" %}: </strong> {{ object.max_recurring_order_qty }}</li>{% endif %}
       {% if object.max_order_qty %}<li class="list-inline-item"><strong>{% trans "max order qty" %}: </strong> {{ object.max_order_qty }}</li>{% endif %}
       <li class="list-inline-item">{% if object.is_bio_certified %}<i class="fa-solid fa-circle-check fa-fw"></i>{% else %}<i class="fa-solid fa-circle-xmark fa-fw"></i>{% endif %} {% trans "Bio certified" %}</li>
+      {% endif %}
     </ul>
     <ul class="list-unstyled list-inline mb-1">
       {% for parent in object.childs.all %}

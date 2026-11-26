@@ -8,6 +8,7 @@ from .models import (
     CustomerOrderPosition,
     CustomerOrderTemplate,
     CustomerOrderTemplatePosition,
+    CustomerOrderTemplateSkip,
     PointOfSale,
     PointOfSalePickupTime,
     ProductionDay,
@@ -101,3 +102,15 @@ class CustomerOrderTemplateAdmin(BaseAdmin):
 @admin.register(CustomerOrderTemplatePosition)
 class CustomerOrderTemplatePositionAdmin(BaseAdmin):
     list_display = ("order_template", "product", "quantity", "created", "updated")
+
+
+@admin.register(CustomerOrderTemplateSkip)
+class CustomerOrderTemplateSkipAdmin(BaseAdmin):
+    list_display = ("production_day", "customer", "product", "created")
+    list_filter = ("production_day",)
+    search_fields = (
+        "customer__user__email",
+        "customer__user__first_name",
+        "customer__user__last_name",
+        "product__name",
+    )

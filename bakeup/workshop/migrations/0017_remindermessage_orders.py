@@ -5,8 +5,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("shop", "0011_pointofsale_details"),
-        ("workshop", "0015_product_price_display"),
+        ("shop", "0012_customerordertemplateskip"),
+        ("workshop", "0016_water_temperature"),
     ]
 
     operations = [

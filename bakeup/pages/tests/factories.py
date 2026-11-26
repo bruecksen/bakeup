@@ -1,11 +1,13 @@
 from factory import Sequence
-from factory.django import DjangoModelFactory, ImageField
+from factory.django import DjangoModelFactory, FileField, ImageField
+from wagtail.documents.models import Document
 from wagtail.images.models import Image
 from wagtail.models import Page
 
 from bakeup.pages.models import (
     BlockReferencePage,
     ContentPage,
+    EmailSettings,
     PointOfSalePage,
     ShopPage,
 )
@@ -17,6 +19,14 @@ class ImageFactory(DjangoModelFactory):
 
     class Meta:
         model = Image
+
+
+class DocumentFactory(DjangoModelFactory):
+    title = Sequence(lambda n: f"Document {n}")
+    file = FileField(filename="document.pdf")
+
+    class Meta:
+        model = Document
 
 
 class PageFactory(DjangoModelFactory):
@@ -56,3 +66,10 @@ class BlockReferencePageFactory(PageFactory):
 class PointOfSalePageFactory(PageFactory):
     class Meta:
         model = PointOfSalePage
+
+
+class EmailSettingsFactory(DjangoModelFactory):
+    # The one row EmailSettings.load() returns. No mail is sent unless a test
+    # switches it on.
+    class Meta:
+        model = EmailSettings

@@ -3,6 +3,8 @@ from datetime import timedelta
 from io import StringIO
 from urllib.parse import quote
 
+import pytest
+from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.management import call_command
 from django.db import connection
@@ -15,15 +17,26 @@ from django.utils import timezone, translation
 from django_tenants.test.client import TenantClient
 
 from bakeup.contrib.models import Note
+from bakeup.core.models import UOM
+from bakeup.pages.tests.factories import DocumentFactory, EmailSettingsFactory
 from bakeup.shop.models import (
     Customer,
     CustomerOrder,
     CustomerOrderPosition,
+    CustomerOrderTemplateSkip,
     PointOfSale,
     ProductionDay,
     ProductionDayProduct,
 )
+from bakeup.shop.tests.factories import (
+    CustomerOrderFactory,
+    CustomerOrderPositionFactory,
+    CustomerOrderTemplateFactory,
+    CustomerOrderTemplatePositionFactory,
+    CustomerOrderTemplateSkipFactory,
+)
 from bakeup.users.models import User
+from bakeup.users.tests.factories import UserFactory
 from bakeup.workshop.models import (
     Instruction,
     Product,
@@ -34,7 +47,12 @@ from bakeup.workshop.models import (
     VatRate,
 )
 from bakeup.workshop.templatetags.workshop_tags import clever_unit
-from bakeup.workshop.tests.factories import ProductFactory, add
+from bakeup.workshop.tests.factories import (
+    ProductFactory,
+    ProductionDayFactory,
+    ProductionDayProductFactory,
+    add,
+)
 from bakeup.workshop.tests.test_models import NumberCircleTestCase, RecipeTestCase
 from bakeup.workshop.views import (
     get_production_day_phase,
@@ -2816,3 +2834,767 @@ def test_swapping_product_in_production_day_form_deletes_its_planned_plan(
         ("Baguette", ProductionPlan.State.PLANNED),
         ("Brötchen", ProductionPlan.State.PLANNED),
     ]
+
+
+def abo_order_positions():
+    return list(
+        CustomerOrderPosition.objects.order_by(
+            "order__customer", "product__name"
+        ).values_list(
+            "order__customer", "order__production_day", "product__name", "quantity"
+        )
+    )
+
+
+def abo_skips():
+    return list(
+        CustomerOrderTemplateSkip.objects.order_by(
+            "customer", "product__name"
+        ).values_list("customer", "production_day", "product__name")
+    )
+
+
+@pytest.fixture
+def abo_customer(abo_products):
+    # A customer with a running abo of two Bread and three Brötchen.
+    customer = UserFactory().customer
+    abo = CustomerOrderTemplateFactory(customer=customer)
+    for name, quantity in [("Bread", 2), ("Brötchen", 3)]:
+        CustomerOrderTemplatePositionFactory(
+            order_template=abo, product=abo_products[name], quantity=quantity
+        )
+    return customer
+
+
+@pytest.fixture
+def abo_order(abo_customer, abo_products):
+    # The abo customer's order of a day that sells Bread and Brötchen.
+    production_day = ProductionDayFactory()
+    order = CustomerOrderFactory(customer=abo_customer, production_day=production_day)
+    for name, quantity in [("Bread", 2), ("Brötchen", 3)]:
+        ProductionDayProductFactory(
+            production_day=production_day,
+            product=abo_products[name],
+            is_published=True,
+        )
+        CustomerOrderPositionFactory(
+            order=order, product=abo_products[name], quantity=quantity
+        )
+    return order
+
+
+@pytest.mark.parametrize(
+    "publish, positions, shown_messages",
+    [
+        # Only the description changes: nothing became orderable.
+        (False, [], []),
+        # The Bread gets published in the same save.
+        (True, [("Bread", 2)], ["1 Abo-Bestellung für Bread angelegt."]),
+    ],
+)
+def test_saving_a_production_day_creates_abo_orders_only_for_newly_published_products(
+    client,
+    staff_user,
+    abo_customer,
+    abo_products,
+    production_day_form_data,
+    publish,
+    positions,
+    shown_messages,
+):
+    # Regression test for #608: every save of a day created abo orders.
+    production_day = ProductionDayFactory()
+    bread_row = ProductionDayProductFactory(
+        production_day=production_day, product=abo_products["Bread"], is_published=False
+    )
+    # Published already, so its abo order is not due with this save.
+    broetchen_row = ProductionDayProductFactory(
+        production_day=production_day,
+        product=abo_products["Brötchen"],
+        is_published=True,
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            production_day.day_of_sale,
+            [
+                {
+                    "id": bread_row.pk,
+                    "product": abo_products["Bread"],
+                    "is_published": publish,
+                },
+                {
+                    "id": broetchen_row.pk,
+                    "product": abo_products["Brötchen"],
+                    "is_published": True,
+                },
+            ],
+            description="Mit Sauerteig",
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    production_day.refresh_from_db()
+    assert production_day.description == "Mit Sauerteig"
+    assert abo_order_positions() == [
+        (abo_customer.pk, production_day.pk, name, quantity)
+        for name, quantity in positions
+    ]
+    assert [
+        str(message) for message in get_messages(response.wsgi_request)
+    ] == shown_messages
+
+
+def test_moving_a_production_day_keeps_the_opt_out_when_the_product_gets_published(
+    client, staff_user, abo_customer, abo_products, production_day_form_data
+):
+    production_day = ProductionDayFactory()
+    rows = {
+        name: ProductionDayProductFactory(
+            production_day=production_day,
+            product=abo_products[name],
+            is_published=False,
+        )
+        for name in ["Bread", "Brötchen"]
+    }
+    CustomerOrderTemplateSkipFactory(
+        customer=abo_customer,
+        production_day=production_day,
+        product=abo_products["Bread"],
+    )
+    day_of_sale = production_day.day_of_sale + timedelta(days=14)
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            day_of_sale,
+            [
+                {"id": row.pk, "product": abo_products[name], "is_published": True}
+                for name, row in rows.items()
+            ],
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    production_day.refresh_from_db()
+    assert production_day.day_of_sale == day_of_sale
+    # The Brötchen, but not the Bread the customer opted out of.
+    assert abo_order_positions() == [
+        (abo_customer.pk, production_day.pk, "Brötchen", 3)
+    ]
+
+
+def test_staff_deleting_an_abo_order_records_the_opt_out(client, staff_user, abo_order):
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-delete", kwargs={"pk": abo_order.pk})
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("workshop:order-list")
+    assert abo_order_positions() == []
+    assert abo_skips() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Bread"),
+        (abo_order.customer_id, abo_order.production_day_id, "Brötchen"),
+    ]
+
+
+def test_staff_deleting_an_order_in_production_keeps_it_and_records_no_opt_out(
+    client, staff_user, abo_order
+):
+    production_day = abo_order.production_day
+    # Plans from the orders, which links the positions to them.
+    production_day.create_or_update_production_plans(
+        state=ProductionPlan.State.IN_PRODUCTION
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-delete", kwargs={"pk": abo_order.pk})
+    )
+
+    assert response.status_code == 302
+    assert abo_order_positions() == [
+        (abo_order.customer_id, production_day.pk, "Bread", 2),
+        (abo_order.customer_id, production_day.pk, "Brötchen", 3),
+    ]
+    assert abo_skips() == []
+
+
+@pytest.mark.parametrize(
+    "broetchen_quantity, positions, skipped",
+    [
+        # Nothing left: the whole order is deleted.
+        (0, [], ["Bread", "Brötchen"]),
+        # Only the Bread is removed from the order.
+        (3, [("Brötchen", 3)], ["Bread"]),
+    ],
+)
+def test_staff_removing_abo_products_in_the_batch_orders_records_the_opt_out(
+    client, staff_user, abo_order, abo_products, broetchen_quantity, positions, skipped
+):
+    customer, production_day = abo_order.customer, abo_order.production_day
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-batch", kwargs={"pk": production_day.pk}),
+        {
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 1,
+            "form-0-customer": customer.pk,
+            f"form-0-product_{abo_products['Bread'].pk}": 0,
+            f"form-0-product_{abo_products['Brötchen'].pk}": broetchen_quantity,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [
+        (customer.pk, production_day.pk, name, quantity) for name, quantity in positions
+    ]
+    assert abo_skips() == [(customer.pk, production_day.pk, name) for name in skipped]
+
+
+def test_staff_removing_a_position_in_the_order_form_records_the_opt_out(
+    client, staff_user, abo_order, abo_products
+):
+    bread_position, broetchen_position = abo_order.positions.order_by("product__name")
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:order-update", kwargs={"pk": abo_order.pk}),
+        {
+            "form-TOTAL_FORMS": 2,
+            "form-INITIAL_FORMS": 2,
+            "form-0-id": bread_position.pk,
+            "form-0-product": abo_products["Bread"].pk,
+            "form-0-quantity": 2,
+            "form-0-DELETE": "on",
+            "form-1-id": broetchen_position.pk,
+            "form-1-product": abo_products["Brötchen"].pk,
+            "form-1-quantity": 3,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Brötchen", 3)
+    ]
+    assert abo_skips() == [
+        (abo_order.customer_id, abo_order.production_day_id, "Bread")
+    ]
+
+
+def test_removing_a_product_from_a_day_records_the_opt_out_of_customers_with_an_order(
+    client, staff_user, abo_order, abo_products, production_day_form_data
+):
+    production_day = abo_order.production_day
+    with_order = abo_order.customer
+    # Subscribed to the Bread too, but without an order on this day.
+    without_order = UserFactory().customer
+    CustomerOrderTemplatePositionFactory(
+        order_template__customer=without_order,
+        product=abo_products["Bread"],
+        quantity=1,
+    )
+    bread_row, broetchen_row = ProductionDayProduct.objects.filter(
+        production_day=production_day
+    ).order_by("product__name")
+    client.force_login(staff_user)
+
+    # Staff confirm that the Bread and its orders are removed from the day.
+    response = client.post(
+        reverse("workshop:production-day-product-delete", kwargs={"pk": bread_row.pk})
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "workshop:production-day-detail", kwargs={"pk": production_day.pk}
+    )
+    assert abo_order_positions() == [(with_order.pk, production_day.pk, "Brötchen", 3)]
+    assert abo_skips() == [(with_order.pk, production_day.pk, "Bread")]
+
+    # The Bread comes back, published.
+    response = client.post(
+        reverse("workshop:production-day-update", kwargs={"pk": production_day.pk}),
+        production_day_form_data(
+            production_day.day_of_sale,
+            [
+                {
+                    "id": broetchen_row.pk,
+                    "product": abo_products["Brötchen"],
+                    "is_published": True,
+                },
+                {"product": abo_products["Bread"], "is_published": True},
+            ],
+        ),
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    # Only the customer who lost no order gets one.
+    assert abo_order_positions() == sorted(
+        [
+            (with_order.pk, production_day.pk, "Brötchen", 3),
+            (without_order.pk, production_day.pk, "Bread", 1),
+        ]
+    )
+
+
+def test_staff_changing_an_abo_creates_the_orders_of_upcoming_published_days(
+    client, staff_user, abo_products
+):
+    customer = UserFactory().customer
+    production_day = ProductionDayFactory()
+    ProductionDayProductFactory(
+        production_day=production_day, product=abo_products["Bread"], is_published=True
+    )
+    client.force_login(staff_user)
+
+    response = client.post(
+        reverse("workshop:customer-abo"),
+        {
+            "form-TOTAL_FORMS": 1,
+            "form-INITIAL_FORMS": 1,
+            "form-0-customer": customer.pk,
+            f"form-0-product_{abo_products['Bread'].pk}": 2,
+        },
+    )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert abo_order_positions() == [(customer.pk, production_day.pk, "Bread", 2)]
+
+
+def test_staff_changing_abos_confirms_every_created_order_with_the_attachment(
+    client, staff_user, abo_products, mailoutbox, django_capture_on_commit_callbacks
+):
+    EmailSettingsFactory(
+        email_subject_prefix="",
+        send_email_order_confirm=True,
+        email_order_confirm_subject="Bestellt",
+        email_order_confirm_attachment=DocumentFactory(
+            title="AGB.pdf", file__data=b"%PDF-1.4 AGB"
+        ),
+    )
+    bread = abo_products["Bread"]
+    customers = [
+        UserFactory(email=email).customer
+        for email in ["anna@example.com", "bernd@example.com"]
+    ]
+    production_days = [ProductionDayFactory(), ProductionDayFactory()]
+    for production_day in production_days:
+        ProductionDayProductFactory(
+            production_day=production_day, product=bread, is_published=True
+        )
+    client.force_login(staff_user)
+
+    # The mails are sent when the transaction of the request commits.
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.post(
+            reverse("workshop:customer-abo"),
+            {
+                "form-TOTAL_FORMS": 2,
+                "form-INITIAL_FORMS": 2,
+                "form-0-customer": customers[0].pk,
+                f"form-0-product_{bread.pk}": 2,
+                "form-1-customer": customers[1].pk,
+                f"form-1-product_{bread.pk}": 3,
+            },
+        )
+
+    assert response.status_code == 302, response.content.decode()[:500]
+    assert sorted(abo_order_positions()) == [
+        (customer.pk, production_day.pk, "Bread", quantity)
+        for customer, quantity in zip(customers, [2, 3])
+        for production_day in production_days
+    ]
+    # One mail per created order, and every mail of the request carries the
+    # attachment.
+    assert sorted((mail.to, mail.subject, mail.attachments) for mail in mailoutbox) == [
+        (
+            [f"{name}@example.com"],
+            "Bestellt",
+            [("AGB.pdf", b"%PDF-1.4 AGB", "application/pdf")],
+        )
+        for name in ["anna", "bernd"]
+        for production_day in production_days
+    ]
+
+
+# Water temperature of the main dough of 10 breads (the bread_plan fixture),
+# m * c of the ingredients besides the 2500 g water (4.19):
+#   sourdough 2200 * 2.995 (half rye, half water) = 6589
+#   wheat 4000 * 1.8 = 7200, flour 1000 * 1.8 = 1800, rye 2000 * 1.8 = 3600
+#   salt 120 * 0.9 = 108
+# That is 19297, with the water (10475) 29772. At 26 °C dough temperature
+# and all ingredients at 20 °C:
+#   (26 * 29772 - 20 * 19297) / 10475 = 388132 / 10475 = 37.05 °C
+
+
+def water_temperature_url(plan):
+    return reverse("workshop:production-plan-water-temperature", kwargs={"pk": plan.pk})
+
+
+def production_day_url(production_day):
+    return reverse(
+        "workshop:production-plan-production-day", kwargs={"pk": production_day.pk}
+    )
+
+
+def water_temperature_data(plan, **temperatures):
+    # The POST data of the calculator: every ingredient besides the water at
+    # 20 °C, unless given by the name of the ingredient.
+    data = {"dough": 26, "warming": 0}
+    for row in plan.product.parents.select_related("child"):
+        if row.child.name != "Water":
+            data[f"row_{row.pk}"] = temperatures.pop(row.child.name, 20)
+    return {**data, **temperatures}
+
+
+def row_pks(plan):
+    return {
+        row.child.name: str(row.pk)
+        for row in plan.product.parents.select_related("child")
+    }
+
+
+def test_production_day_offers_the_water_temperature_for_steps_with_water_only(
+    client, staff_user, planned_production_day, bread_plan
+):
+    client.force_login(staff_user)
+    broetchen_plan = ProductionPlan.objects.get(
+        production_day=planned_production_day, product__name="Brötchen"
+    )
+
+    response = client.get(production_day_url(planned_production_day))
+
+    assert response.status_code == 200
+    steps = [step for card in response.context["cards"] for step in card["steps"]]
+    # Brötchen are made of flour only.
+    assert {step["plan"].product.name: bool(step["water"]) for step in steps} == {
+        "Starter": True,
+        "Sourdough": True,
+        "Bread": True,
+        "Brötchen": False,
+    }
+    content = response.content.decode()
+    assert f'hx-get="{water_temperature_url(bread_plan)}"' in content
+    assert water_temperature_url(broetchen_plan) not in content
+    # Nothing is applied yet.
+    assert "ingredient-temperature" not in content
+
+
+def test_water_temperature_starts_with_the_defaults(client, staff_user, bread_plan):
+    client.force_login(staff_user)
+
+    response = client.get(water_temperature_url(bread_plan))
+
+    assert response.status_code == 200
+    water = response.context["water"]
+    assert (water["dough"], water["warming"], water["applied"]) == (26, 0, False)
+    assert [
+        (row["name"], row["weight"], row["temperature"]) for row in water["rows"]
+    ] == [
+        ("Wheat flour", 4000, 20),
+        ("Sourdough", 2200, 20),
+        ("Rye flour", 2000, 20),
+        ("Flour", 1000, 20),
+        ("Salt", 120, 20),
+    ]
+    assert water["row"]["row"].child.name == "Water"
+    assert water["result"] == pytest.approx(388132 / 10475)
+    assert '<div class="water-temperature-value">37,1 °C</div>' in (
+        response.content.decode()
+    )
+
+
+@pytest.mark.parametrize(
+    "recipe_values, expected",
+    [
+        # The recipe says nothing, the settings do.
+        ({}, (25, 1)),
+        ({"dough_temperature": 24, "mixer_warming": 3}, (24, 3)),
+        # Each value falls back on its own, no warming is a value too.
+        ({"mixer_warming": 0}, (25, 0)),
+    ],
+)
+def test_water_temperature_prefers_the_recipe_values_over_the_settings(
+    client, staff_user, sellable_products, settings, recipe_values, expected
+):
+    settings.DOUGH_TEMPERATURE_DEFAULT = 25
+    settings.MIXER_WARMING_DEFAULT = 1
+    bread = sellable_products["Bread"]
+    for field, value in recipe_values.items():
+        setattr(bread, field, value)
+    bread.save()
+    # The plan gets a copy of the recipe.
+    production_day = ProductionDayFactory()
+    ProductionDayProductFactory(production_day=production_day, product=bread)
+    production_day.create_or_update_production_plans(
+        state=ProductionPlan.State.PLANNED, create_max_quantity=True
+    )
+    plan = ProductionPlan.objects.get(production_day=production_day, parent_plan=None)
+    client.force_login(staff_user)
+
+    response = client.get(water_temperature_url(plan))
+
+    assert response.status_code == 200
+    water = response.context["water"]
+    assert (water["dough"], water["warming"]) == expected
+
+
+def test_water_temperature_uses_the_ingredient_temperature_of_the_settings(
+    client, staff_user, bread_plan, settings
+):
+    settings.INGREDIENT_TEMPERATURE_DEFAULT = 26
+    client.force_login(staff_user)
+
+    response = client.get(water_temperature_url(bread_plan))
+
+    # Everything is as warm as the dough shall be, so is the water.
+    assert response.context["water"]["result"] == pytest.approx(26)
+
+
+def test_changing_a_temperature_previews_the_result_without_saving(
+    client, staff_user, bread_plan
+):
+    client.force_login(staff_user)
+
+    response = client.post(
+        water_temperature_url(bread_plan),
+        water_temperature_data(bread_plan, **{"Wheat flour": 10}),
+    )
+
+    assert response.status_code == 200
+    # 4000 g wheat flour 10 °C colder: (388132 + 4000 * 1.8 * 10) / 10475
+    assert response.context["water"]["result"] == pytest.approx(460132 / 10475)
+    assert '<div class="water-temperature-value">43,9 °C</div>' in (
+        response.content.decode()
+    )
+    assert "HX-Trigger" not in response.headers
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {}
+
+
+def test_a_water_temperature_that_is_not_reachable_shows_a_hint(
+    client, staff_user, bread_plan
+):
+    client.force_login(staff_user)
+
+    # (5 * 29772 - 385940) / 10475 is below 0 °C.
+    response = client.post(
+        water_temperature_url(bread_plan), water_temperature_data(bread_plan, dough=5)
+    )
+
+    assert response.status_code == 200
+    water = response.context["water"]
+    assert water["result"] == pytest.approx(-237080 / 10475)
+    assert water["unreachable"] is True
+    assert "water-temperature-hint" in response.content.decode()
+
+
+def test_applying_stores_the_temperatures_and_shows_the_result_on_the_water_row(
+    client, staff_user, planned_production_day, bread_plan
+):
+    client.force_login(staff_user)
+    rows = row_pks(bread_plan)
+
+    response = client.post(
+        water_temperature_url(bread_plan),
+        water_temperature_data(
+            bread_plan, dough=24, warming=2, apply="1", **{"Wheat flour": 10}
+        ),
+    )
+
+    assert response.status_code == 200
+    # The event closes the modal, the steps of the card are swapped.
+    assert response.headers["HX-Trigger"] == "closeProductionPlanModal"
+    content = response.content.decode()
+    assert f'id="steps-{bread_plan.pk}"' in content
+    assert 'hx-swap-oob="outerMorph"' in content
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {
+        "dough": 24.0,
+        "warming": 2.0,
+        "rows": {
+            rows["Sourdough"]: 20.0,
+            rows["Wheat flour"]: 10.0,
+            rows["Flour"]: 20.0,
+            rows["Rye flour"]: 20.0,
+            rows["Salt"]: 20.0,
+        },
+    }
+    # ((24 - 2) * 29772 - (385940 - 72000)) / 10475 = 341044 / 10475 = 32.56
+    badge = 'Water <span class="ingredient-temperature" title="Wassertemperatur">33 °C</span>'
+    assert badge in content
+    # Other devices see it on the page of the day, once.
+    response = client.get(production_day_url(planned_production_day))
+    assert response.content.decode().count(badge) == 1
+    assert response.content.decode().count("ingredient-temperature") == 1
+
+
+def test_applying_empty_fields_stores_the_defaults_of_dough_and_mixer(
+    client, staff_user, bread_plan
+):
+    client.force_login(staff_user)
+    data = dict.fromkeys(water_temperature_data(bread_plan), "")
+
+    response = client.post(water_temperature_url(bread_plan), {**data, "apply": "1"})
+
+    assert response.status_code == 200
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {"dough": 26, "warming": 0, "rows": {}}
+
+
+def test_an_invalid_temperature_is_rejected_and_not_stored(
+    client, staff_user, bread_plan
+):
+    client.force_login(staff_user)
+
+    response = client.post(
+        water_temperature_url(bread_plan),
+        water_temperature_data(bread_plan, dough="warm", apply="1"),
+    )
+
+    assert response.status_code == 422
+    assert response.context["form"].errors == {"dough": ["Bitte eine Zahl eingeben."]}
+    assert "HX-Trigger" not in response.headers
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {}
+
+
+def test_resetting_removes_the_water_temperature_again(
+    client, staff_user, planned_production_day, bread_plan
+):
+    client.force_login(staff_user)
+    bread_plan.set_temperatures({"dough": 24.0, "warming": 2.0, "rows": {}})
+
+    response = client.post(water_temperature_url(bread_plan), {"reset": "1"})
+
+    assert response.status_code == 200
+    assert response.headers["HX-Trigger"] == "closeProductionPlanModal"
+    assert "ingredient-temperature" not in response.content.decode()
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {}
+    response = client.get(production_day_url(planned_production_day))
+    assert "ingredient-temperature" not in response.content.decode()
+
+
+def test_a_finished_step_shows_the_water_temperature_but_no_menu(
+    client, staff_user, planned_production_day, bread_plan
+):
+    client.force_login(staff_user)
+    bread_plan.set_temperatures({"dough": 26, "warming": 0, "rows": {}})
+    bread_plan.set_production()
+    bread_plan.toggle_all_ingredients()
+
+    response = client.get(production_day_url(planned_production_day))
+
+    content = response.content.decode()
+    assert water_temperature_url(bread_plan) not in content
+    assert ">37 °C</span>" in content
+
+
+def test_water_temperature_of_a_step_without_water_is_not_found(
+    client, staff_user, planned_production_day
+):
+    client.force_login(staff_user)
+    plan = ProductionPlan.objects.get(
+        production_day=planned_production_day, product__name="Brötchen"
+    )
+
+    response = client.get(water_temperature_url(plan))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+@pytest.mark.parametrize("is_logged_in", [False, True])
+def test_water_temperature_needs_a_staff_user(client, bread_plan, method, is_logged_in):
+    # Anonymous and logged in as a customer.
+    if is_logged_in:
+        client.force_login(UserFactory(is_staff=False))
+    url = water_temperature_url(bread_plan)
+
+    if method == "post":
+        response = client.post(url, {"apply": "1"})
+    else:
+        response = client.get(url)
+
+    assert response.status_code == 302
+    assert response.url == f"{reverse('login')}?next={url}"
+    bread_plan.refresh_from_db()
+    assert bread_plan.temperatures == {}
+
+
+@pytest.mark.parametrize(
+    "posted, expected",
+    [
+        ({"dough_temperature": "24.5", "mixer_warming": "2"}, (24.5, 2)),
+        # Empty uses the default of the settings in the production plan.
+        ({"dough_temperature": "", "mixer_warming": ""}, (None, None)),
+    ],
+)
+def test_product_form_saves_dough_temperature_and_mixer_warming(
+    client, staff_user, sellable_products, settings, posted, expected
+):
+    settings.DOUGH_TEMPERATURE_DEFAULT = 27
+    gram = UOM.objects.create(name="Gram", abbreviation="g")
+    client.force_login(staff_user)
+    bread = sellable_products["Bread"]
+    url = reverse("workshop:product-update", kwargs={"pk": bread.pk})
+
+    # The default is the placeholder of the empty field.
+    form = client.get(url).context["form"]
+    assert form["dough_temperature"].field.widget.attrs["placeholder"] == 27
+
+    response = client.post(
+        url,
+        {
+            "name": "Bread",
+            "weight": 1000,
+            "uom": gram.pk,
+            "price_display": "base",
+            "vat_rate": 7,
+            **posted,
+        },
+    )
+
+    assert response.status_code == 302
+    bread.refresh_from_db()
+    assert (bread.dough_temperature, bread.mixer_warming) == expected
+
+
+@pytest.mark.parametrize("is_sellable", [True, False])
+def test_product_detail_shows_shop_details_only_for_sellable_products(
+    client, staff_user, tenant_db, is_sellable
+):
+    product = ProductFactory(
+        name="Süßer Teig", is_sellable=is_sellable, dough_temperature=24.5
+    )
+    client.force_login(staff_user)
+
+    response = client.get(reverse("workshop:product-detail", kwargs={"pk": product.pk}))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    vat = f"{product.get_vat_rate_display()}</li>"
+    assert (vat in content) == is_sellable, "VAT rate only for sellable products"
+    # A dough temperature that is set shows either way.
+    assert "24,5 °C" in content or "24.5 °C" in content
+
+
+@pytest.mark.parametrize("is_sellable", [True, False])
+def test_product_form_shows_shop_fields_or_dough_fields_by_sellable(
+    client, staff_user, tenant_db, is_sellable
+):
+    product = ProductFactory(is_sellable=is_sellable)
+    client.force_login(staff_user)
+
+    response = client.get(reverse("workshop:product-update", kwargs={"pk": product.pk}))
+
+    content = response.content.decode()
+    assert ("<div data-sellable-only hidden>" in content) == (not is_sellable)
+    assert ("data-not-sellable-only hidden>" in content) == is_sellable
