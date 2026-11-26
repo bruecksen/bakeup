@@ -152,6 +152,25 @@ function sidebarLinks() {
     return document.querySelectorAll("#workshop-sidebar .nav-link");
 }
 
+// The production days and the production plans are two entries of the
+// sidebar for pages that are tabs of each other. htmx swaps between them
+// without the sidebar, the active entry follows the URL it pushes.
+document.addEventListener("htmx:after:history:push", function() {
+    var entries = document.querySelectorAll("#workshop-sidebar [data-sidebar-section]");
+    if (!entries.length) return;
+    var match = location.pathname.match(/\/(production-days|production-plans)\//);
+    if (!match) return;
+    entries.forEach(function(entry) {
+        var active = entry.dataset.sidebarSection === match[1];
+        entry.classList.toggle("active", active);
+        if (active) {
+            entry.setAttribute("aria-current", "page");
+        } else {
+            entry.removeAttribute("aria-current");
+        }
+    });
+});
+
 document.addEventListener("click", function(event) {
     var button = event.target.closest("[data-sidebar-collapse]");
     if (!button) return;

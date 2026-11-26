@@ -2277,8 +2277,8 @@ msgstr "„%(name)s“ neu anlegen"
 #~ msgid "Delete production day product"
 #~ msgstr "Produkt von Produktionstag löschen"
 
-#~ msgid "Production days"
-#~ msgstr "Produktionstage"
+msgid "Production days"
+msgstr "Produktionstage"
 
 #~ msgid "Go to production days"
 #~ msgstr "Zu den Produktionstagen"
@@ -2378,8 +2378,6 @@ msgstr "Alle als abgeholt markieren"
 msgid "There are no orders for this day yet."
 msgstr "Für diesen Tag gibt es noch keine Bestellungen."
 
-msgid "Current production day"
-msgstr "Aktueller Produktionstag"
 
 msgid "Current"
 msgstr "Aktuell"

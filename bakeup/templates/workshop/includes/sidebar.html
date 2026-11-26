@@ -18,7 +18,10 @@
           <h6 class="sidebar-heading">{% translate "Production" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
-              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> <span class="nav-label">{% translate "Current production day" %}</span></a>
+              <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}" data-sidebar-section="production-days"><i class="fa-solid fa-calendar-day fa-fw"></i> <span class="nav-label">{% translate "Production days" %}</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link{% if section == "production-plans" %} active{% endif %}"{% if section == "production-plans" %} aria-current="page"{% endif %} href="{% url 'workshop:production-plan-next' %}" data-sidebar-section="production-plans"><i class="fa-solid fa-sliders fa-fw"></i> <span class="nav-label">{% translate "Production plans" %}</span></a>
             </li>
           </ul>
           <h6 class="sidebar-heading">{% translate "Sales" context "sidebar" %}</h6>

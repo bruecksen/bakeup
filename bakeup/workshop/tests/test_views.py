@@ -2264,8 +2264,9 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
             [a.url for a in actions.menu],
         )
 
-    def test_sidebar_has_one_entry_for_the_day_pages(self):
-        entry = f'aria-current="page" href="{reverse("workshop:production-day-next")}"'
+    def test_sidebar_entry_of_the_day_pages(self):
+        days = reverse("workshop:production-day-next")
+        plans = reverse("workshop:production-plan-next")
         pages = {
             **self.section_urls(),
             "calendar": self.calendar().request["PATH_INFO"],
@@ -2273,11 +2274,19 @@ class ProductionDayCalendarViewTest(ProductionDayDetailViewTest):
         for name, url in pages.items():
             with self.subTest(page=name):
                 response = self.client.get(url)
-                self.assertContains(response, entry, count=1)
-                for gone in ["production-plan-next", "production-day-reminder-next"]:
-                    self.assertNotContains(
-                        response, f'href="{reverse(f"workshop:{gone}")}"'
-                    )
+                # The plan of a day has its own entry, the other pages of a
+                # day belong to the production days.
+                active, other = (plans, days) if name == "plan" else (days, plans)
+                self.assertContains(
+                    response, f'aria-current="page" href="{active}"', count=1
+                )
+                self.assertContains(response, f'class="nav-link" href="{other}"')
+                self.assertContains(response, "Produktionstage</span>")
+                self.assertContains(response, "Produktionspläne</span>")
+                self.assertNotContains(
+                    response,
+                    f'href="{reverse("workshop:production-day-reminder-next")}"',
+                )
                 self.assertNotContains(
                     response,
                     f'class="nav-link" href="{reverse("workshop:production-day-calendar")}"',
