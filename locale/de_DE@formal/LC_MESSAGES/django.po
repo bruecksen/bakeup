@@ -1377,10 +1377,6 @@ msgstr "Menü schließen"
 msgid "Dashboard"
 msgstr "Übersicht"
 
-#: bakeup/templates/workshop/includes/sidebar.html:16
-msgctxt "sidebar"
-msgid "Production"
-msgstr "Produktion"
 
 #: bakeup/templates/workshop/includes/sidebar.html:25
 msgctxt "sidebar"

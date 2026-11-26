@@ -13,14 +13,13 @@
             <li class="nav-item">
               <a class="nav-link{% if section == "dashboard" %} active{% endif %}"{% if section == "dashboard" %} aria-current="page"{% endif %} href="{% url 'workshop:workshop' %}"><i class="fa-solid fa-house fa-fw"></i> <span class="nav-label">{% translate "Dashboard" %}</span></a>
             </li>
-          </ul>
-          {% if request.user.is_authenticated and request.user.is_staff %}
-          <h6 class="sidebar-heading">{% translate "Production" context "sidebar" %}</h6>
-          <ul class="nav nav-pills flex-column w-100">
+            {% if request.user.is_authenticated and request.user.is_staff %}
             <li class="nav-item">
               <a class="nav-link{% if section == "production-days" %} active{% endif %}"{% if section == "production-days" %} aria-current="page"{% endif %} href="{% url 'workshop:production-day-next' %}"><i class="fa-solid fa-calendar-day fa-fw"></i> <span class="nav-label">{% translate "Production days" %}</span></a>
             </li>
+            {% endif %}
           </ul>
+          {% if request.user.is_authenticated and request.user.is_staff %}
           <h6 class="sidebar-heading">{% translate "Sales" context "sidebar" %}</h6>
           <ul class="nav nav-pills flex-column w-100">
             <li class="nav-item">
