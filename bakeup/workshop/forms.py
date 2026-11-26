@@ -576,36 +576,50 @@ ProductionDayMetaProductformSet = formset_factory(
 )
 
 
-class ProductionDayReminderForm(forms.Form):
-    point_of_sale = forms.ModelChoiceField(
-        empty_label=_("All"),
-        queryset=PointOfSale.objects.all(),
-        required=False,
-        label=_("Point of sale"),
-        help_text=_(
-            "Send emails to orders of specific point of sale, leave empty to send to"
-            " all point of sales."
-        ),
-    )
-    subject = forms.CharField(required=True)
-    body = forms.CharField(
-        required=True,
-        widget=forms.Textarea,
-        help_text=(
-            "Mögliche Tags: {{ site_name }}, {{ first_name }}, {{ last_name }}, {{"
-            " email }}, {{ order }}, {{ price_total }}, {{ production_day }}, {{"
-            " order_count }}, {{ order_link }}"
-        ),
-    )
-
-
 class ReminderMessageForm(ModelForm):
-    """A text of the pickup emails: the day's, a point of sale's own or the
-    one of another mail. Who gets it is decided by the page, not the form."""
+    """A pickup email in its editor: who it is for, subject and text. points
+    are the points of sale to choose from, dicts of get_points. The orders
+    are looked up when it is sent, see bakeup/workshop/reminders.py."""
 
+    ALL = "all"
+    POINTS = "points"
+
+    recipients = forms.ChoiceField(
+        choices=[(ALL, ALL), (POINTS, POINTS)],
+        initial=ALL,
+        widget=forms.RadioSelect,
+    )
+    points = forms.MultipleChoiceField(
+        required=False, widget=forms.CheckboxSelectMultiple
+    )
+    only_unnotified = forms.BooleanField(
+        required=False, label=_("Only orders without an email")
+    )
     subject = forms.CharField(widget=forms.TextInput, label=_("Subject"))
 
     class Meta:
         model = ReminderMessage
         fields = ["subject", "body"]
         labels = {"body": _("Text")}
+
+    def __init__(self, *args, points=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.point_list = list(points)
+        self.fields["points"].choices = [
+            (point["key"], point["name"]) for point in self.point_list
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("recipients") == self.POINTS and not cleaned_data.get(
+            "points"
+        ):
+            self.add_error("points", _("Choose at least one point of sale."))
+        return cleaned_data
+
+    @property
+    def selection(self):
+        """The keys of the chosen points, empty for all orders."""
+        if self.cleaned_data.get("recipients") == self.POINTS:
+            return set(self.cleaned_data.get("points") or [])
+        return set()

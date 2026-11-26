@@ -2282,113 +2282,129 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     border-top: 2px solid $gray-300;
 }
 
-// Pickup emails: a card for the day's email with its state and the one
-// button to send it, the editor in place under it, the points of sale one
-// by one in a disclosure and the history.
-.reminder-page {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+// Pickup emails: the status line with a chip per point of sale in the
+// toolbar, then the emails of the day as a table, one row per email with
+// a panel under it to view or send it.
+.reminder-toolbar {
+    align-items: flex-start;
 }
-// The list of who is told: the lead row for all points of sale with the
-// text of the day under it, then one quiet row per point. The rows share
-// their columns, so the states line up.
+.reminder-summary {
+    display: flex;
+    flex: 1 1 20rem;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .375rem .75rem;
+    min-width: 0;
+    margin-right: auto;
+}
+.reminder-summary-line {
+    margin: 0;
+    font-size: .875rem;
+    font-weight: 600;
+}
+.reminder-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+}
+// A point with open orders is a link to a new email to them, a point whose
+// orders were all told is done in the colour of success.
+.reminder-chip {
+    text-decoration: none;
+
+    i {
+        color: $primary;
+    }
+    &.is-done {
+        color: $text-muted;
+        background-color: transparent;
+
+        i {
+            color: $success;
+        }
+    }
+}
+// The rows lay out by the width of the card, not of the window: the sidebar
+// may be open or collapsed. The table is the grid, every row a subgrid of
+// it, so the columns line up although the buttons differ from row to row.
 .reminder-list {
     padding-top: .25rem;
     padding-bottom: .25rem;
-    // The rows lay out by the width of the card, not of the window: the
-    // sidebar may be open or collapsed.
     container-type: inline-size;
 }
-// On a narrower card the name and the number of orders give way, so the
-// state stays on one line beside the buttons.
-@container (max-width: 62rem) {
-    .reminder-list .reminder-row {
-        grid-template-columns: minmax(0, 10.5rem) 6.75rem minmax(0, 1fr) auto;
-        column-gap: .75rem;
-    }
-}
-// Narrower still, sending is an icon like the two beside it, on every row.
-@container (max-width: 46rem) {
-    .reminder-list .reminder-row-actions .action-label {
-        display: none;
-    }
-}
-// On a phone a row takes two lines: name and orders, then the state and its
-// buttons. The row for all keeps its whole name, its buttons get a line of
-// their own with the label of sending.
-@container (max-width: 40rem) {
-    .reminder-list .reminder-row {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-    .reminder-list .reminder-row-orders {
-        justify-self: end;
-    }
-    .reminder-list .reminder-row.is-lead {
-        .reminder-row-name {
-            white-space: normal;
-        }
-        .reminder-status,
-        .reminder-row-actions {
-            grid-column: 1 / -1;
-        }
-        .reminder-row-actions .btn {
-            white-space: nowrap;
-        }
-        .reminder-row-actions .action-label {
-            display: inline;
-        }
-    }
+.reminder-table {
+    display: grid;
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr) minmax(0, 14rem) auto;
+    column-gap: 1rem;
 }
 .reminder-row {
     display: grid;
-    grid-template-columns: minmax(0, 13rem) 8rem minmax(0, 1fr) auto;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
-    gap: .25rem 1rem;
+    row-gap: .25rem;
     padding: .375rem 0;
     font-size: .875rem;
 
     & + & {
         border-top: 1px solid $gray-200;
     }
-    // The buttons of every row are the small ones, the row for all stands
-    // out by its filled button and its bold name.
     .btn {
         --bs-btn-padding-y: #{$btn-padding-y-sm};
         --bs-btn-padding-x: #{$btn-padding-x-sm};
         --bs-btn-font-size: #{$btn-font-size-sm};
     }
-    &.is-lead {
-        padding: .5rem 0 .625rem;
-
-        .reminder-row-name {
-            font-weight: 600;
-        }
+    .btn-surface[aria-expanded="true"] {
+        background-color: mix($primary, $white, 15%);
+        border-color: mix($primary, $gray-300, 60%);
     }
 }
+.reminder-head {
+    padding-top: 0;
+    padding-bottom: .25rem;
+    color: $text-muted;
+    font-size: .75rem;
+    font-weight: 600;
+}
 .reminder-row-name {
+    grid-column: 1;
+    min-width: 0;
+    font-weight: 500;
+
+    > span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+.reminder-row-count {
+    color: $text-muted;
+    font-weight: 400;
+}
+.reminder-row-note {
+    display: block;
+    color: $text-muted;
+    font-size: .75rem;
+    font-weight: 400;
+}
+.reminder-row-subject {
+    grid-column: 2;
     min-width: 0;
     overflow: hidden;
-    font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.reminder-row-orders,
-.reminder-row .reminder-status,
-.reminder-row-note {
+.reminder-row .reminder-status {
+    grid-column: 3;
+    min-width: 0;
     color: $text-muted;
 }
-.reminder-row .reminder-status {
-    min-width: 0;
-}
-.reminder-row-orders {
-    white-space: nowrap;
-}
-// The same on every row and in the same places: preview and the text as
-// icons, send, then the menu. A row without a menu keeps its room, so the
-// buttons line up down the list.
+// The buttons of every row in the same places, a row without a menu keeps
+// its room so they line up down the list.
 .reminder-row-actions {
     display: flex;
+    grid-column: 4;
     align-items: center;
     justify-self: end;
     gap: .5rem;
@@ -2397,18 +2413,68 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         flex-wrap: nowrap;
     }
 }
-.reminder-row-note {
-    font-size: .8125rem;
-}
-// Under the preview of an email the button that sends it: what goes out is
-// seen before it goes.
-.reminder-send-warning {
-    margin: .875rem 0 0;
+// On a narrower card the buttons are icons with their number.
+@container (max-width: 52rem) {
+    .reminder-table {
+        grid-template-columns: minmax(0, 9rem) minmax(0, 1fr) minmax(0, 11rem) auto;
+        column-gap: .75rem;
+    }
+    // The label's text has no element of its own, it goes by its size.
+    .reminder-row-actions .action-label {
+        font-size: 0;
 
-    & + .reminder-send-confirm {
-        margin-top: .5rem;
-        padding-top: 0;
+        .action-badge {
+            font-size: $btn-font-size-sm * .8125;
+        }
+    }
+}
+// On a phone a row is who, the subject and the state one under the other,
+// the buttons beside them.
+@container (max-width: 36rem) {
+    .reminder-table {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .reminder-head {
+        display: none;
+    }
+    .reminder-head + .reminder-row {
         border-top: 0;
+    }
+    .reminder-row {
+        row-gap: .125rem;
+        padding: .5rem 0;
+    }
+    .reminder-row-name,
+    .reminder-row-subject,
+    .reminder-row .reminder-status {
+        grid-column: 1;
+    }
+    .reminder-row-actions {
+        grid-row: 1 / span 3;
+        grid-column: 2;
+    }
+}
+// The email opened under its row, as a tinted panel set into the card: it
+// reads as a part of that row and not as more rows.
+.reminder-panel {
+    grid-column: 1 / -1;
+    margin: .375rem 0 .5rem;
+    padding: .875rem 1rem;
+    font-size: .875rem;
+    background-color: mix($light, $white, 55%);
+    border-radius: $border-radius;
+
+    > * {
+        max-width: 40rem;
+    }
+}
+.reminder-mail-recipients {
+    margin-top: .75rem;
+    font-size: .8125rem;
+    word-break: break-word;
+
+    p {
+        margin-bottom: .25rem;
     }
 }
 .reminder-send-confirm {
@@ -2420,35 +2486,12 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     padding-top: .75rem;
     border-top: 1px solid rgba($dark, .12);
 }
-// Preview and editor open under the row they belong to, as a tinted panel
-// set into the card: it reads as a part of that row and not as more rows.
-// The button that opened it stays pressed.
-.reminder-day-preview,
-.reminder-row > .reminder-editor-panel {
-    grid-column: 1 / -1;
-    margin: .375rem 0 .5rem;
-    padding: .875rem 1rem;
-    background-color: mix($light, $white, 55%);
-    border-radius: $border-radius;
-}
-// The preview is an email as it arrives: small type, a readable width.
-.reminder-day-preview {
-    font-size: .875rem;
-
-    > * {
-        max-width: 40rem;
-    }
-}
-.reminder-row .btn-surface[aria-expanded="true"] {
-    background-color: mix($primary, $white, 15%);
-    border-color: mix($primary, $gray-300, 60%);
-}
 .reminder-label {
     margin-bottom: .25rem;
     color: $text-muted;
     font-size: .8125rem;
 }
-// The state as an icon and text, done in the colour of success.
+// The state as an icon and text.
 .reminder-status {
     i {
         width: 1.125em;
@@ -2459,66 +2502,77 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         color: $success;
     }
     &.is-queued i,
-    &.is-sending i,
-    &.is-partly i {
+    &.is-sending i {
         color: $primary;
     }
-}
-.reminder-section-title {
-    margin: 0 0 .5rem;
-    font-size: 1rem;
-    font-weight: 600;
+    &.is-failed {
+        color: $danger;
 
-    // What the part does, in a line under its heading.
-    &:has(+ .reminder-section-hint) {
-        margin-bottom: .125rem;
+        i {
+            color: $danger;
+        }
+        .reminder-status-detail {
+            color: $text-muted;
+        }
     }
 }
-.reminder-section-hint {
-    margin: 0 0 .5rem;
-    color: $text-muted;
-    font-size: .8125rem;
-}
-.reminder-warning {
-    margin-bottom: .75rem;
-    font-size: .875rem;
+.reminder-empty {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
 
-    i {
-        color: $warning;
+    p {
+        margin: 0;
+        color: $text-muted;
+        font-size: .875rem;
     }
 }
+// The editor: who gets the email first, then subject and text with the
+// preview beside them.
 .reminder-editor {
+    padding: 1rem 1.25rem;
+
     // Draftail keeps room on the left for its block menu, not on the right.
     .Draftail-Editor__wrapper {
         padding-right: 0;
     }
 }
-.reminder-mail {
-    padding: .5rem 0;
-    font-size: .875rem;
-
-    & + & {
-        border-top: 1px solid $gray-200;
-    }
-}
-.reminder-mail-line {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 .75rem;
-}
-.reminder-mail-time {
-    font-variant-numeric: tabular-nums;
-}
-.reminder-mail-target {
+.reminder-editor-title {
+    margin: 0 0 .75rem;
+    font-size: 1rem;
     font-weight: 600;
 }
-.reminder-mail-subject {
-    flex: 1 1 12rem;
-    min-width: 0;
-    overflow-wrap: anywhere;
+.reminder-recipients {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    font-size: .875rem;
+    border-bottom: 1px solid $gray-200;
+
+    .reminder-label {
+        float: none;
+        width: auto;
+        margin-bottom: .375rem;
+        font-size: .8125rem;
+    }
 }
-.reminder-mail-state {
+// The points as columns under their radio, quiet while all orders are
+// chosen.
+.reminder-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 0 1rem;
+    margin: .125rem 0 .25rem 1.5rem;
+}
+.reminder-recipients:has(#recipients-all:checked) .reminder-points .form-check-label {
     color: $text-muted;
+}
+.reminder-only-unnotified {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px dashed $gray-200;
 }
 .reminder-preview {
     font-size: .875rem;
@@ -2590,37 +2644,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 }
 .confirm-tap.is-armed .action-label {
     display: none;
-}
-
-.reminder-details {
-    margin-top: .25rem;
-    font-size: .8125rem;
-
-    > summary {
-        display: flex;
-        align-items: center;
-        gap: .25rem;
-        color: $primary;
-    }
-}
-.reminder-details-body {
-    margin: .5rem 0;
-    padding: .5rem .75rem;
-    background-color: $gray-100;
-    border-radius: $border-radius-sm;
-
-    p:last-child {
-        margin-bottom: 0;
-    }
-}
-.reminder-details-log {
-    margin-bottom: .25rem;
-    word-break: break-word;
-}
-.reminder-empty {
-    margin: 0;
-    color: $text-muted;
-    font-size: .875rem;
 }
 
 // An open menu must stay above the following cards.

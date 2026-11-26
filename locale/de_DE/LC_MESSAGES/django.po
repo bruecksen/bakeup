@@ -2473,12 +2473,6 @@ msgstr "Alle Abholstellen"
 msgid "Sent"
 msgstr "Gesendet"
 
-msgid "Details"
-msgstr "Details"
-
-msgid "Sent to"
-msgstr "Gesendet an"
-
 msgid "Failed"
 msgstr "Fehlgeschlagen"
 
@@ -2490,9 +2484,6 @@ msgstr "Empfänger"
 
 msgid "Subject"
 msgstr "Betreff"
-
-msgid "The email will be sent to %(count)s recipients in a moment."
-msgstr "Die E-Mail wird gleich an %(count)s Empfänger gesendet."
 
 msgid "Test email sent to %(email)s."
 msgstr "Testmail an %(email)s gesendet."
@@ -2509,11 +2500,6 @@ msgid "%(counter)s sent"
 msgid_plural "%(counter)s sent"
 msgstr[0] "%(counter)s gesendet"
 msgstr[1] "%(counter)s gesendet"
-
-msgid "%(counter)s failed"
-msgid_plural "%(counter)s failed"
-msgstr[0] "%(counter)s fehlgeschlagen"
-msgstr[1] "%(counter)s fehlgeschlagen"
 
 msgid "Send"
 msgstr "Senden"
@@ -2964,139 +2950,28 @@ msgstr "Nur Liste"
 msgid "Display"
 msgstr "Anzeige"
 
-msgid "No orders yet"
-msgstr "Noch keine Bestellungen"
-
-msgid "sent %(time)s"
-msgstr "gesendet %(time)s"
-
-msgid "%(counter)s delivered"
-msgid_plural "%(counter)s delivered"
-msgstr[0] "%(counter)s zugestellt"
-msgstr[1] "%(counter)s zugestellt"
-
-msgid "Edit text"
-msgstr "Text anpassen"
-
 msgid "Send by point of sale"
 msgstr "Einzeln nach Abholstelle senden"
-
-msgid "only with an email to all"
-msgstr "nur mit einer E-Mail an alle"
-
-msgid "History"
-msgstr "Verlauf"
-
-msgid "To all"
-msgstr "An alle"
-
-msgid "No emails on this day yet."
-msgstr "Noch keine E-Mails an diesem Tag."
-
-msgid "own text"
-msgstr "eigener Text"
-
-msgid "not sent yet"
-msgstr "noch nicht gesendet"
-
-msgid "queued"
-msgstr "in Warteschlange"
-
-msgid "being sent"
-msgstr "wird gesendet"
-
-msgid "%(counter)s email sent"
-msgid_plural "%(counter)s emails sent"
-msgstr[0] "%(counter)s E-Mail gesendet"
-msgstr[1] "%(counter)s E-Mails gesendet"
 
 msgid "%(notified)s / %(points)s"
 msgstr "%(notified)s / %(points)s"
 
-msgid "today at %(time)s"
-msgstr "heute um %(time)s"
-
-msgid "on %(date)s at %(time)s"
-msgstr "am %(date)s um %(time)s"
-
-msgid "Another email to %(point_of_sale)s"
-msgstr "Weitere E-Mail an %(point_of_sale)s"
-
-msgid "Another email to all"
-msgstr "Weitere E-Mail an alle"
-
-msgid "Own text for %(point_of_sale)s"
-msgstr "Eigener Text für %(point_of_sale)s"
-
-msgid "Text of the day"
-msgstr "Text des Tages"
-
-msgid "%(point_of_sale)s was notified %(when)s already."
-msgstr "%(point_of_sale)s wurde %(when)s schon benachrichtigt."
-
 msgid "%(notified)s of %(points)s points of sale were notified already, the last %(when)s."
 msgstr "%(notified)s von %(points)s Abholstellen wurden schon benachrichtigt, zuletzt %(when)s."
-
-msgid "All orders were notified %(when)s already."
-msgstr "Alle Bestellungen wurden %(when)s schon benachrichtigt."
-
-msgid "Send anyway?"
-msgstr "Trotzdem senden?"
-
-msgid "Send to all"
-msgstr "An alle senden"
-
-msgid "Send to the others"
-msgstr "An die übrigen senden"
-
-msgid "Send another email"
-msgstr "Weitere E-Mail senden"
-
-msgid "Own text"
-msgstr "Eigener Text"
-
-msgid "Remove own text"
-msgstr "Eigenen Text entfernen"
-
-msgid "Own text removed."
-msgstr "Eigener Text entfernt."
-
-msgid "There is nobody left to send to."
-msgstr "Es gibt niemanden mehr, an den gesendet werden kann."
-
-msgid "Text saved."
-msgstr "Text gespeichert."
 
 msgid "%(notified)s of %(points)s points of sale notified"
 msgstr "%(notified)s von %(points)s Abholstellen benachrichtigt"
 
-msgid "%(notified)s of %(orders)s orders notified"
-msgstr "%(notified)s von %(orders)s Bestellungen benachrichtigt"
-
 msgid "%(notified)s of %(orders)s orders were notified already, the last %(when)s."
 msgstr "%(notified)s von %(orders)s Bestellungen wurden schon benachrichtigt, zuletzt %(when)s."
-
-msgid "%(counter)s new order"
-msgid_plural "%(counter)s new orders"
-msgstr[0] "%(counter)s neue Bestellung"
-msgstr[1] "%(counter)s neue Bestellungen"
 
 msgid "Send to %(counter)s order"
 msgid_plural "Send to %(counter)s orders"
 msgstr[0] "An %(counter)s Bestellung senden"
 msgstr[1] "An %(counter)s Bestellungen senden"
 
-msgid "Email to all"
-msgstr "E-Mail an alle"
-
-msgid "One email with the same text to every order of this day."
-msgstr "Eine E-Mail mit demselben Text an alle Bestellungen dieses Tages."
-
 msgid "Single points of sale"
 msgstr "Einzelne Abholstellen"
-
-msgid "Only when a point of sale should get an email of its own, at another time or with its own text."
-msgstr "Nur wenn eine Abholstelle eine eigene E-Mail bekommen soll, zu einer anderen Zeit oder mit eigenem Text."
 
 #: bakeup/shop/models.py
 msgid "Skipped abo order"
@@ -3168,3 +3043,101 @@ msgstr "Beschreibung und Bilder"
 #: bakeup/templates/workshop/product_form.html
 msgid "Dough"
 msgstr "Teig"
+
+msgid "Delivered to"
+msgstr "Zugestellt an"
+
+msgid "Goes to"
+msgstr "Geht an"
+
+msgid "Is sent to"
+msgstr "Wird gesendet an"
+
+msgid "%(notified)s of %(counter)s order notified"
+msgid_plural "%(notified)s of %(counter)s orders notified"
+msgstr[0] "%(notified)s von %(counter)s Bestellung benachrichtigt"
+msgstr[1] "%(notified)s von %(counter)s Bestellungen benachrichtigt"
+
+msgid "New email to %(name)s"
+msgstr "Neue E-Mail an %(name)s"
+
+msgid "%(counter)s open"
+msgid_plural "%(counter)s open"
+msgstr[0] "%(counter)s offen"
+msgstr[1] "%(counter)s offen"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "only orders without an email"
+msgstr "nur Bestellungen ohne E-Mail"
+
+msgid "Draft"
+msgstr "Entwurf"
+
+msgid "Failed (%(count)s)"
+msgstr "Fehler (%(count)s)"
+
+msgid "Sent %(time)s"
+msgstr "Gesendet %(time)s"
+
+msgid "No emails for this day yet. Write the pickup email, save it as a draft or send it right away."
+msgstr "Noch keine E-Mails für diesen Tag. Schreib die Abhol-E-Mail und speichere sie als Entwurf oder sende sie gleich."
+
+msgid "Write an email to all"
+msgstr "E-Mail an alle schreiben"
+
+msgid "Edit email"
+msgstr "E-Mail bearbeiten"
+
+msgid "All orders"
+msgstr "Alle Bestellungen"
+
+msgid "Only orders without an email"
+msgstr "Nur Bestellungen ohne E-Mail"
+
+msgid "Choose at least one point of sale."
+msgstr "Wähle mindestens eine Abholstelle."
+
+msgid "Back to draft"
+msgstr "Zurück zum Entwurf"
+
+msgid "Duplicate"
+msgstr "Duplizieren"
+
+msgid "Delete draft?"
+msgstr "Entwurf löschen?"
+
+msgid "This email was sent already."
+msgstr "Diese E-Mail wurde schon gesendet."
+
+msgid "There is nobody to send this email to."
+msgstr "Diese E-Mail geht an niemanden."
+
+msgid "The email is a draft again."
+msgstr "Die E-Mail ist wieder ein Entwurf."
+
+msgid "The email is being sent already."
+msgstr "Die E-Mail wird schon gesendet."
+
+msgid "Draft deleted."
+msgstr "Entwurf gelöscht."
+
+msgid "The email will be sent to %(count)s order in a moment."
+msgid_plural "The email will be sent to %(count)s orders in a moment."
+msgstr[0] "Die E-Mail wird gleich an %(count)s Bestellung gesendet."
+msgstr[1] "Die E-Mail wird gleich an %(count)s Bestellungen gesendet."
+
+msgid "Save as draft"
+msgstr "Als Entwurf speichern"
+
+msgid "Send to %(count)s order"
+msgid_plural "Send to %(count)s orders"
+msgstr[0] "An %(count)s Bestellung senden"
+msgstr[1] "An %(count)s Bestellungen senden"
+
+msgid "Nobody gets this email, choose other recipients."
+msgstr "Niemand bekommt diese E-Mail, wähle andere Empfänger."
+
+msgid "Draft saved."
+msgstr "Entwurf gespeichert."

@@ -14,7 +14,9 @@ class Command(PerTenantCommand):
             self.stdout.write(
                 "Sending all reminder messages: {}".format(reminder_message)
             )
-            reminder_message.set_state_to_sending()
+            # A mail taken back to a draft in the meantime stays one.
+            if not reminder_message.claim_for_sending():
+                continue
             reminder_message.send_messages()
             self.stdout.write(
                 self.style.SUCCESS("Successfully send all reminder messages")

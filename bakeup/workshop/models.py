@@ -1209,6 +1209,18 @@ class ReminderMessage(CommonBaseClass):
     orders = models.ManyToManyField(
         "shop.CustomerOrder", blank=True, related_name="reminder_messages"
     )
+    # Who a mail is for, as chosen in its editor: the orders of these points
+    # of sale and, with without_point_of_sale, the orders without one. No
+    # choice is every order of the day. only_unnotified leaves out the
+    # orders an earlier mail went to. The orders are looked up when the mail
+    # is queued, see bakeup/workshop/reminders.py, so a draft also reaches
+    # the orders that came in after it was written. The point_of_sale above
+    # is only read for mails from before.
+    points_of_sale = models.ManyToManyField(
+        "shop.PointOfSale", blank=True, related_name="+"
+    )
+    without_point_of_sale = models.BooleanField(default=False)
+    only_unnotified = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-sent_date"]
@@ -1276,6 +1288,16 @@ class ReminderMessage(CommonBaseClass):
         )
         return message
 
+    def claim_for_sending(self):
+        """Takes a queued mail for sending, False when it isn't queued any
+        more: taken back to a draft, or claimed by another run."""
+        claimed = ReminderMessage.objects.filter(
+            pk=self.pk, state=ReminderMessage.State.PLANNED_SENDING
+        ).update(state=ReminderMessage.State.SENDING)
+        if claimed:
+            self.state = ReminderMessage.State.SENDING
+        return bool(claimed)
+
     def set_state_to_sending(self):
         self.state = ReminderMessage.State.SENDING
         self.save(
@@ -1336,6 +1358,9 @@ class ReminderMessage(CommonBaseClass):
         orders = self.get_orders()
         client = connection.get_tenant()
         for order in orders:
+            # An order entered without a customer has nobody to write to.
+            if not order.customer_id:
+                continue
             try:
                 user_email = order.customer.user.email
                 self.send_email(order.customer.user, order, client)

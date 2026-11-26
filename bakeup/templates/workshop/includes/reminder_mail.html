@@ -1,0 +1,12 @@
+{% load i18n %}
+<div class="reminder-mail">
+  <div class="reminder-preview">{% include "workshop/includes/reminder_preview.html" %}</div>
+  <div class="reminder-mail-recipients">
+    {% if mail.is_sent %}
+    <p><strong>{% trans "Delivered to" %} ({{ mail.send_log|length }}):</strong> {{ mail.send_log|join:", "|default:"–" }}</p>
+    {% if mail.error_log %}<p class="text-danger"><strong>{% trans "Failed" %} ({{ mail.error_log|length }}):</strong> {% for email, error in mail.error_log.items %}{{ email }} ({{ error }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+    {% else %}
+    <p><strong>{% if mail.is_planned %}{% trans "Goes to" %}{% else %}{% trans "Is sent to" %}{% endif %} ({{ recipients|length }}):</strong> {{ recipients|join:", "|default:"–" }}</p>
+    {% endif %}
+  </div>
+</div>

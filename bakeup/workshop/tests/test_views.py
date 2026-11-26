@@ -2329,6 +2329,12 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             }
         )
 
+    def mail_url(self, name, **kwargs):
+        return reverse(
+            f"workshop:production-day-reminder-{name}",
+            kwargs={"production_day": self.production_day.pk, **kwargs},
+        )
+
     def page(self, **params):
         response = self.client.get(self.reminder_url(), params)
         self.assertEqual(response.status_code, 200)
@@ -2337,383 +2343,485 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
     def post(self, **data):
         return self.client.post(self.reminder_url(), data)
 
-    def save_text(self, edit="day", subject="Abholung", **data):
-        return self.post(edit=edit, subject=subject, body=self.body(), save="", **data)
+    def write(self, action="save", url=None, subject="Abholung", points=(), **data):
+        # The editor of a new email, or of url: to all orders without points.
+        return self.client.post(
+            url or self.mail_url("new"),
+            {
+                "recipients": "points" if points else "all",
+                "points": [str(point) for point in points],
+                "subject": subject,
+                "body": self.body(),
+                action: "",
+                **data,
+            },
+        )
+
+    def make_draft(self, points=(), without=False, only_unnotified=False, **fields):
+        mail = ReminderMessage.objects.create(
+            production_day=self.production_day,
+            subject=fields.pop("subject", "Entwurf"),
+            body="<p>Hallo {{ last_name }}</p>",
+            without_point_of_sale=without,
+            only_unnotified=only_unnotified,
+            **fields,
+        )
+        mail.points_of_sale.set(points)
+        return mail
 
     def deliver(self):
         # What the command send_reminder_emails does with the queued mails.
-        for queued in ReminderMessage.objects.filter(
-            state=ReminderMessage.State.PLANNED_SENDING
-        ):
-            queued.set_state_to_sending()
-            queued.send_messages()
+        call_command("send_reminder_emails", stdout=StringIO())
 
     def two_points(self):
-        self.north = PointOfSale.objects.create(name="Nord")
+        self.north = PointOfSale.objects.create(name="Nord", short_name="N")
         self.south = PointOfSale.objects.create(name="Süd")
         self.customer_order(self.production_day, "Müller", point_of_sale=self.north)
         self.customer_order(self.production_day, "Meier", point_of_sale=self.south)
         self.customer_order(self.production_day, "Schulze", point_of_sale=self.south)
 
-    def card(self, response):
-        overview = response.context["overview"]
-        primary = [
-            (str(a.label), a.badge, a.disabled)
-            for a in response.context["day_actions_reminder"].buttons
-        ]
-        return overview["state"], primary
-
     def recipients(self):
         return sorted(address for message in mail.outbox for address in message.to)
 
-    def test_day_card_offers_to_send_to_all(self):
-        self.assertEqual(
-            self.card(self.page()), ("none", [("An alle senden", 0, True)])
-        )
-        self.two_points()
-        response = self.page()
-        self.assertEqual(self.card(response), ("none", [("An alle senden", 3, False)]))
-        lead = response.content.decode().split('class="reminder-row is-lead"')[1]
-        self.assertIn("3 Bestellungen", lead.split("reminder-status")[0])
-        self.assertIn("noch nicht gesendet", lead.split("reminder-row-actions")[0])
+    def queued_orders(self):
+        mail = ReminderMessage.objects.get(state=ReminderMessage.State.PLANNED_SENDING)
+        return sorted(mail.orders.values_list("customer__user__last_name", flat=True))
 
-    def test_send_to_all_queues_one_mail_for_all_orders(self):
-        self.two_points()
-        response = self.post(send="all")
-        self.assertRedirects(response, self.reminder_url())
-        # One mail to all orders, with the text of the day from the settings.
-        self.assertEqual(
-            list(ReminderMessage.objects.values_list("state", "point_of_sale")),
-            [(ReminderMessage.State.PLANNED_SENDING, None)],
-        )
-        # Queued: the state, no button to send again.
+    def mail_rows(self, response=None):
+        return [
+            (mail.subject, mail.recipients_label, len(mail.recipients), mail.state)
+            for mail in (response or self.page()).context["overview"]["mails"]
+        ]
+
+    def point_chips(self, response=None):
+        return [
+            (point["short_name"], point["orders"], point["open"], point.get("url"))
+            for point in (response or self.page()).context["overview"]["points"]
+        ]
+
+    def test_empty_day_offers_one_email_to_all(self):
         page = self.page()
-        self.assertEqual(self.card(page), ("queued", []))
-        self.assertContains(page, "in Warteschlange")
+        self.assertEqual(page.context["overview"]["mails"], [])
+        self.assertContains(page, "Noch keine E-Mails für diesen Tag.")
+        self.assertContains(
+            page, f'<a class="btn btn-primary" href="{self.mail_url("new")}">'
+        )
+        # The one button is in the card, the toolbar has none.
+        self.assertEqual(list(page.context["reminder_actions"]), [])
+
+    def test_status_line_counts_the_notified_orders_per_point_of_sale(self):
+        self.two_points()
+        self.customer_order(self.production_day, "Ohne")
+        page = self.page()
+        self.assertContains(page, "0 von 4 Bestellungen benachrichtigt")
+        new = self.mail_url("new")
+        self.assertEqual(
+            self.point_chips(page),
+            [
+                ("N", 1, 1, f"{new}?points={self.north.pk}"),
+                ("Süd", 2, 2, f"{new}?points={self.south.pk}"),
+                ("Ohne Abholstelle", 1, 1, f"{new}?points=none"),
+            ],
+        )
+        self.write("send", points=[self.south.pk])
+        self.customer_order(self.production_day, "Neu", point_of_sale=self.south)
+        page = self.page()
+        self.assertContains(page, "2 von 5 Bestellungen benachrichtigt")
+        # Süd got an email, its new order is open: a new email to it only
+        # goes to the orders without one.
+        self.assertEqual(
+            self.point_chips(page),
+            [
+                ("N", 1, 1, f"{new}?points={self.north.pk}"),
+                ("Süd", 3, 1, f"{new}?points={self.south.pk}&only_unnotified=1"),
+                ("Ohne Abholstelle", 1, 1, f"{new}?points=none"),
+            ],
+        )
+
+    def test_a_point_notified_by_a_mail_from_before_is_done(self):
+        # A mail from before the orders were kept went to its point.
+        self.two_points()
+        ReminderMessage.objects.create(
+            production_day=self.production_day,
+            point_of_sale=self.south,
+            subject="Alt",
+            body="",
+            state=ReminderMessage.State.SENT,
+            send_log=["Meier@example.com", "Schulze@example.com"],
+            sent_date=timezone.now(),
+        )
+        page = self.page()
+        self.assertEqual(
+            self.point_chips(page),
+            [
+                ("N", 1, 1, f"{self.mail_url('new')}?points={self.north.pk}"),
+                ("Süd", 2, 0, None),
+            ],
+        )
+        self.assertEqual(
+            self.mail_rows(page), [("Alt", "Süd", 2, ReminderMessage.State.SENT)]
+        )
+
+    def test_new_email_starts_with_the_standard_text_to_all_orders(self):
+        self.two_points()
+        response = self.client.get(self.mail_url("new"))
+        form = response.context["form"]
+        self.assertEqual(
+            (form["recipients"].value(), form["points"].value()), ("all", [])
+        )
+        self.assertEqual(
+            form["subject"].value(), "[{{site_name}}] Deine Bestellung ist abholbereit"
+        )
+        self.assertEqual(
+            [(point["name"], point["orders"]) for point in response.context["points"]],
+            [("Nord", 1), ("Süd", 2)],
+        )
+        self.assertContains(response, "An 3 Bestellungen senden")
+        # Before any email went out there is nothing to leave out.
+        self.assertNotContains(response, 'name="only_unnotified"')
+
+    def test_new_email_from_a_chip_chooses_its_point(self):
+        self.two_points()
+        self.write("send", points=[self.north.pk])
+        response = self.client.get(
+            self.mail_url("new"), {"points": self.south.pk, "only_unnotified": "1"}
+        )
+        form = response.context["form"]
+        self.assertEqual(
+            (
+                form["recipients"].value(),
+                form["points"].value(),
+                form["only_unnotified"].value(),
+            ),
+            ("points", [str(self.south.pk)], True),
+        )
+        self.assertContains(response, "An 2 Bestellungen senden")
+        self.assertContains(response, 'name="only_unnotified" value="on"')
+
+    def test_a_draft_keeps_who_it_is_for_and_reaches_later_orders(self):
+        self.two_points()
+        response = self.write(subject="Morgens", points=[self.south.pk])
+        self.assertRedirects(response, self.reminder_url())
+        draft = ReminderMessage.objects.get()
+        self.assertEqual(
+            (
+                draft.state,
+                list(draft.points_of_sale.all()),
+                draft.without_point_of_sale,
+                list(draft.orders.all()),
+            ),
+            (ReminderMessage.State.PLANNED, [self.south], False, []),
+        )
+        self.assertEqual(
+            self.mail_rows(), [("Morgens", "Süd", 2, ReminderMessage.State.PLANNED)]
+        )
+        # An order that comes in later is in when the draft is sent.
+        self.customer_order(self.production_day, "Neu", point_of_sale=self.south)
+        self.assertEqual(
+            self.mail_rows(), [("Morgens", "Süd", 3, ReminderMessage.State.PLANNED)]
+        )
+        response = self.post(send=draft.pk)
+        self.assertRedirects(response, self.reminder_url())
+        self.assertEqual(self.queued_orders(), ["Meier", "Neu", "Schulze"])
         self.deliver()
         self.assertEqual(
             self.recipients(),
-            ["Meier@example.com", "Müller@example.com", "Schulze@example.com"],
+            ["Meier@example.com", "Neu@example.com", "Schulze@example.com"],
         )
-        page = self.page()
-        self.assertEqual(self.card(page), ("sent", []))
-        self.assertContains(page, "· 3 zugestellt")
-        # The rows of the points only tell of mails sent to them on their
-        # own: none here, and nothing left to send to them either.
-        self.assertEqual(
-            [
-                (str(row["point_of_sale"]), row["state"], row["open"])
-                for row in page.context["overview"]["points"]
-            ],
-            [("Nord", "none", 0), ("Süd", "none", 0)],
-        )
-        self.assertNotContains(page, "noch nicht gesendet")
-        # A point can still be sent on its own: again to all of its orders,
-        # and its preview names the mail that reached it already.
-        self.assertEqual(
-            [
-                (row["send"].badge, bool(row["send_warning"]))
-                for row in page.context["overview"]["points"]
-            ],
-            [(1, True), (2, True)],
-        )
-        self.assertContains(page, "Süd wurde heute um", count=1)
-        mail.outbox.clear()
-        self.post(send=str(self.south.pk))
-        self.deliver()
-        self.assertEqual(
-            self.recipients(), ["Meier@example.com", "Schulze@example.com"]
-        )
+        draft.refresh_from_db()
+        self.assertEqual(draft.state, ReminderMessage.State.SENT)
 
-    def test_send_to_the_others_leaves_out_notified_points(self):
+    def test_the_list_sends_a_draft_from_under_its_preview(self):
         self.two_points()
-        self.post(send=str(self.north.pk))
-        self.deliver()
-        self.assertEqual(self.recipients(), ["Müller@example.com"])
+        draft = self.make_draft(points=[self.north])
         page = self.page()
-        self.assertEqual(
-            self.card(page), ("partly", [("An die übrigen senden", 2, False)])
-        )
-        self.assertContains(page, "1 von 3 Bestellungen benachrichtigt")
-        self.assertEqual(
-            [
-                (str(row["point_of_sale"]), row["state"])
-                for row in page.context["overview"]["points"]
-            ],
-            [("Nord", "sent"), ("Süd", "none")],
-        )
-        mail.outbox.clear()
-        self.post(send="rest")
-        self.deliver()
-        self.assertEqual(
-            self.recipients(), ["Meier@example.com", "Schulze@example.com"]
-        )
-        # Everybody is told, "all" finds nobody left.
-        self.post(send="all")
-        self.assertEqual(
-            ReminderMessage.objects.filter(
-                state=ReminderMessage.State.PLANNED_SENDING
-            ).count(),
-            0,
-        )
-        self.assertEqual(self.card(self.page()), ("sent", []))
-
-    def test_own_text_is_for_its_point_and_the_day_text_for_the_others(self):
-        self.two_points()
-        self.save_text(subject="Für alle")
-        response = self.save_text(edit=str(self.north.pk), subject="Nur Nord")
-        self.assertRedirects(response, self.reminder_url())
-        self.assertEqual(
-            sorted(
-                ReminderMessage.objects.filter(
-                    state=ReminderMessage.State.PLANNED
-                ).values_list("point_of_sale", "subject"),
-                key=str,
-            ),
-            sorted([(None, "Für alle"), (self.north.pk, "Nur Nord")], key=str),
-        )
-        # The point on its own gets its own text, the others the day's.
-        self.post(send=str(self.north.pk))
-        self.post(send="rest")
-        self.deliver()
-        self.assertEqual(
-            sorted((message.to[0], message.subject) for message in mail.outbox),
-            [
-                ("Meier@example.com", "Für alle"),
-                ("Müller@example.com", "Nur Nord"),
-                ("Schulze@example.com", "Für alle"),
-            ],
-        )
-        # The texts stay for the next mail.
-        self.assertEqual(
-            ReminderMessage.objects.filter(state=ReminderMessage.State.PLANNED).count(),
-            2,
-        )
-
-    def test_send_to_all_is_one_mail_with_the_day_text_to_every_order(self):
-        self.two_points()
-        # An order without a point of sale is an order of the day too.
-        self.customer_order(self.production_day, "Ohne")
-        self.save_text(subject="Für alle")
-        self.save_text(edit=str(self.north.pk), subject="Nur Nord")
-        page = self.page()
-        # Both rows show that their text was changed for this day.
-        self.assertContains(page, "eigener Text", count=2)
-        # "Send" opens the preview, the button under it sends: to all orders.
         self.assertContains(
             page,
-            'data-reminder-preview-open aria-controls="reminder-day-preview"',
+            f'data-reminder-preview-open aria-controls="reminder-mail-{draft.pk}"',
         )
         self.assertContains(
-            page, 'form="reminder-send-form" name="send" value="all"', count=1
+            page,
+            f'form="reminder-send-form" name="send" value="{draft.pk}"><i class="fas'
+            ' fa-paper-plane" aria-hidden="true"></i> An 1 Bestellung senden',
         )
-        self.assertContains(page, "An 4 Bestellungen senden")
-        self.post(send="all")
-        queued = ReminderMessage.objects.get(
-            state=ReminderMessage.State.PLANNED_SENDING
-        )
-        self.assertIsNone(queued.point_of_sale)
-        self.assertEqual(queued.subject, "Für alle")
-        self.deliver()
-        self.assertEqual(
-            sorted((message.to[0], message.subject) for message in mail.outbox),
-            [
-                ("Meier@example.com", "Für alle"),
-                ("Müller@example.com", "Für alle"),
-                ("Ohne@example.com", "Für alle"),
-                ("Schulze@example.com", "Für alle"),
-            ],
-        )
-        page = self.page()
-        self.assertEqual(self.card(page), ("sent", []))
 
-    def test_orders_after_the_mail_are_the_ones_left_to_send(self):
+    def test_sending_from_the_editor_goes_to_the_chosen_recipients(self):
         self.two_points()
-        self.post(send="all")
+        self.customer_order(self.production_day, "Ohne")
+        cases = [
+            ({}, ["Meier", "Müller", "Ohne", "Schulze"]),
+            ({"points": [self.north.pk, "none"]}, ["Müller", "Ohne"]),
+            ({"points": [self.south.pk]}, ["Meier", "Schulze"]),
+        ]
+        for data, expected in cases:
+            with self.subTest(data=data):
+                ReminderMessage.objects.all().delete()
+                response = self.write("send", **data)
+                self.assertRedirects(response, self.reminder_url())
+                self.assertEqual(self.queued_orders(), expected)
+
+    def test_only_orders_without_an_email_leaves_out_the_notified(self):
+        self.two_points()
+        self.write("send", points=[self.north.pk])
         self.deliver()
         mail.outbox.clear()
-        self.customer_order(self.production_day, "Neu", point_of_sale=self.south)
-        page = self.page()
+        self.customer_order(self.production_day, "Neu", point_of_sale=self.north)
+        response = self.write("send", subject="Rest", only_unnotified="on")
+        self.assertRedirects(response, self.reminder_url())
+        self.assertEqual(self.queued_orders(), ["Meier", "Neu", "Schulze"])
+        mail_ = ReminderMessage.objects.get(subject="Rest")
+        self.assertTrue(mail_.only_unnotified)
         self.assertEqual(
-            self.card(page), ("partly", [("An die übrigen senden", 1, False)])
+            self.mail_rows()[0],
+            ("Rest", "Alle", 3, ReminderMessage.State.PLANNED_SENDING),
         )
-        self.assertContains(page, "3 von 4 Bestellungen benachrichtigt")
-        self.assertContains(page, "1 neue Bestellung")
-        self.post(send="rest")
-        self.deliver()
-        self.assertEqual(self.recipients(), ["Neu@example.com"])
-
-    def test_saving_the_day_text_keeps_one_text(self):
-        self.save_text(subject="Erst")
-        self.save_text(subject="Dann")
+        self.assertContains(self.page(), "nur Bestellungen ohne E-Mail")
         self.assertEqual(
-            list(
-                ReminderMessage.objects.filter(
-                    state=ReminderMessage.State.PLANNED
-                ).values_list("point_of_sale", "subject")
-            ),
-            [(None, "Dann")],
+            self.tab_badge(),
+            "✓",
         )
-        self.assertContains(self.page(), "Dann")
 
-    def test_remove_own_text(self):
+    def test_sending_to_nobody_is_refused(self):
         self.two_points()
-        self.save_text(edit=str(self.north.pk), subject="Nur Nord")
-        self.post(remove_text=str(self.north.pk))
+        self.write("send")
+        response = self.write("send", subject="Noch mal", only_unnotified="on")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["form"].non_field_errors(),
+            ["Niemand bekommt diese E-Mail, wähle andere Empfänger."],
+        )
+        self.assertFalse(ReminderMessage.objects.filter(subject="Noch mal").exists())
+
+    def test_single_points_need_a_point(self):
+        self.two_points()
+        response = self.write(recipients="points")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["form"].errors,
+            {"points": ["Wähle mindestens eine Abholstelle."]},
+        )
         self.assertFalse(ReminderMessage.objects.exists())
 
-    def test_another_mail_names_the_earlier_one(self):
+    def test_editing_a_draft_changes_text_and_recipients(self):
         self.two_points()
-        self.post(send="all")
-        self.deliver()
-        sent = ReminderMessage.objects.get()
-        when = timezone.localtime(sent.sent_date).strftime("%H:%M")
-        page = self.page(edit="again")
+        draft = self.make_draft(points=[self.north], subject="Erst")
+        url = self.mail_url("edit", pk=draft.pk)
+        form = self.client.get(url).context["form"]
         self.assertEqual(
-            page.context["editor"]["warning"],
-            f"Alle Bestellungen wurden heute um {when} schon benachrichtigt.",
+            (
+                form["recipients"].value(),
+                form["points"].value(),
+                form["subject"].value(),
+            ),
+            ("points", [str(self.north.pk)], "Erst"),
         )
-        page = self.page(edit=f"again-{self.north.pk}")
+        response = self.write(url=url, subject="Dann", points=[self.south.pk])
+        self.assertRedirects(response, self.reminder_url())
+        draft.refresh_from_db()
         self.assertEqual(
-            page.context["editor"]["warning"],
-            f"Nord wurde heute um {when} schon benachrichtigt.",
+            (draft.subject, list(draft.points_of_sale.all()), draft.state),
+            ("Dann", [self.south], ReminderMessage.State.PLANNED),
         )
-        mail.outbox.clear()
-        self.post(
-            edit=f"again-{self.north.pk}",
-            subject="Nachtrag",
-            body=self.body(),
-            send_again="",
-        )
-        self.deliver()
-        self.assertEqual(
-            [(message.to, message.subject) for message in mail.outbox],
-            [(["Müller@example.com"], "Nachtrag")],
-        )
+        self.assertEqual(ReminderMessage.objects.count(), 1)
 
-    def test_history_in_time_order_with_failed_recipients(self):
+    def test_a_sent_email_is_not_edited_any_more(self):
         self.two_points()
-        first = ReminderMessage.objects.create(
-            production_day=self.production_day,
-            subject="Erste",
-            body=self.body(),
+        self.write("send")
+        queued = ReminderMessage.objects.get()
+        url = self.mail_url("edit", pk=queued.pk)
+        self.assertRedirects(self.client.get(url), self.reminder_url())
+        self.assertRedirects(
+            self.write(url=url, subject="Geändert"), self.reminder_url()
+        )
+        queued.refresh_from_db()
+        self.assertEqual(queued.subject, "Abholung")
+
+    def test_table_lists_drafts_first_then_the_newest_with_their_state(self):
+        self.two_points()
+        sent = self.make_draft(
+            subject="Gesendet",
             state=ReminderMessage.State.SENT,
             send_log=["Müller@example.com"],
             error_log={"Meier@example.com": "Mailbox voll"},
-            sent_date=timezone.now() - timedelta(hours=1),
+            sent_date=timezone.now() - timedelta(hours=2),
         )
-        second = ReminderMessage.objects.create(
-            production_day=self.production_day,
-            point_of_sale=self.south,
-            subject="Zweite",
-            body=self.body(),
-            state=ReminderMessage.State.PLANNED_SENDING,
-        )
+        sent.orders.set(CustomerOrder.objects.all()[:2])
+        queued = self.make_draft(subject="Wartet", state=ReminderMessage.State.SENDING)
+        queued.orders.set(CustomerOrder.objects.filter(point_of_sale=self.south))
+        self.make_draft(subject="Entwurf", points=[self.north, self.south])
         page = self.page()
-        self.assertEqual(list(page.context["overview"]["mails"]), [first, second])
-        history = page.content.decode().split("reminder-history")[1]
-        self.assertIn('<span class="text-danger">1 fehlgeschlagen</span>', history)
-        self.assertIn("Meier@example.com (Mailbox voll)", history)
-        self.assertIn("In Warteschlange", history)
-        # The day counts a failed recipient only while no mail reached it.
         self.assertEqual(
-            (page.context["overview"]["delivered"], page.context["overview"]["failed"]),
-            (1, 1),
+            self.mail_rows(page),
+            [
+                ("Entwurf", "N, Süd", 3, ReminderMessage.State.PLANNED),
+                ("Wartet", "Alle", 2, ReminderMessage.State.SENDING),
+                ("Gesendet", "Alle", 2, ReminderMessage.State.SENT),
+            ],
+        )
+        self.assertContains(page, "Wird gesendet")
+        self.assertContains(page, "Fehler (1)")
+        self.assertEqual(
+            [str(action.label) for action in page.context["reminder_actions"]],
+            ["Neue E-Mail"],
         )
 
-    def test_points_only_with_more_than_one_place_to_pick_up(self):
-        self.customer_order(
-            self.production_day,
-            "Müller",
-            point_of_sale=PointOfSale.objects.create(name="Nord"),
+    def test_view_shows_the_email_and_its_recipients(self):
+        self.two_points()
+        sent = self.make_draft(
+            subject="Für {{ last_name }}",
+            state=ReminderMessage.State.SENT,
+            send_log=["Meier@example.com"],
+            error_log={"Schulze@example.com": "Mailbox voll"},
+            sent_date=timezone.now(),
         )
-        # One place to pick up: only the row for all.
-        self.assertNotContains(self.page(), 'class="reminder-row-name" title="Nord"')
-        self.customer_order(
-            self.production_day,
-            "Meier",
-            point_of_sale=PointOfSale.objects.create(name="Süd"),
+        sent.orders.set(CustomerOrder.objects.filter(point_of_sale=self.south))
+        response = self.client.get(self.mail_url("mail", pk=sent.pk))
+        self.assertTemplateNotUsed(response, "workshop/base.html")
+        self.assertContains(response, "Für Meier")
+        self.assertContains(response, "Zugestellt an (1):</strong> Meier@example.com")
+        self.assertContains(response, "Schulze@example.com (Mailbox voll)")
+        draft = self.make_draft(points=[self.north])
+        response = self.client.get(self.mail_url("mail", pk=draft.pk))
+        self.assertContains(response, "Hallo Müller")
+        self.assertContains(response, "Geht an (1):</strong> Müller@example.com")
+
+    def test_a_queued_email_goes_back_to_a_draft_until_it_is_sent(self):
+        self.two_points()
+        self.write("send", points=[self.north.pk])
+        queued = ReminderMessage.objects.get()
+        response = self.post(take_back=queued.pk)
+        self.assertRedirects(response, self.reminder_url())
+        queued.refresh_from_db()
+        self.assertEqual(
+            (queued.state, list(queued.orders.all())),
+            (ReminderMessage.State.PLANNED, []),
         )
-        page = self.page()
-        self.assertContains(page, 'class="reminder-row-name" title="Nord"')
-        self.assertContains(page, 'class="reminder-row-name" title="Süd"')
+        # The command sends nothing taken back.
+        self.deliver()
+        self.assertEqual(mail.outbox, [])
+        # Once the command took it, it stays with the command.
+        self.post(send=queued.pk)
+        queued.refresh_from_db()
+        self.assertTrue(queued.claim_for_sending())
+        self.post(take_back=queued.pk)
+        queued.refresh_from_db()
+        self.assertEqual(queued.state, ReminderMessage.State.SENDING)
+        self.assertFalse(queued.claim_for_sending())
+
+    def test_delete_removes_only_drafts(self):
+        self.two_points()
+        draft = self.make_draft()
+        self.write("send")
+        queued = ReminderMessage.objects.get(
+            state=ReminderMessage.State.PLANNED_SENDING
+        )
+        self.post(delete=draft.pk)
+        self.post(delete=queued.pk)
+        self.assertEqual(list(ReminderMessage.objects.all()), [queued])
+
+    def test_duplicate_is_a_new_draft_with_text_and_recipients(self):
+        self.two_points()
+        self.customer_order(self.production_day, "Ohne")
+        self.write("send", subject="Zweimal", points=[self.south.pk, "none"])
+        self.deliver()
+        sent = ReminderMessage.objects.get(state=ReminderMessage.State.SENT)
+        response = self.post(duplicate=sent.pk)
+        copy = ReminderMessage.objects.exclude(pk=sent.pk).get()
+        self.assertRedirects(response, self.mail_url("edit", pk=copy.pk))
+        self.assertEqual(
+            (
+                copy.state,
+                copy.subject,
+                copy.body,
+                list(copy.points_of_sale.all()),
+                copy.without_point_of_sale,
+                list(copy.orders.all()),
+            ),
+            (
+                ReminderMessage.State.PLANNED,
+                "Zweimal",
+                sent.body,
+                [self.south],
+                True,
+                [],
+            ),
+        )
+
+    def tab_badge(self):
+        tabs = self.page().context["day_switch"]["tabs"]
+        return [tab.get("badge") for tab in tabs if tab["key"] == "reminder"][0]
 
     def test_tab_shows_how_far_the_mails_got(self):
-        def badge():
-            tabs = self.page().context["day_switch"]["tabs"]
-            return [tab.get("badge") for tab in tabs if tab["key"] == "reminder"][0]
-
         self.two_points()
-        self.assertIsNone(badge())
-        self.post(send=str(self.north.pk))
-        self.assertEqual(badge(), "1 / 3")
-        self.post(send="rest")
-        self.assertEqual(badge(), "✓")
+        self.make_draft()
+        self.assertIsNone(self.tab_badge())
+        self.write("send", points=[self.north.pk])
+        self.assertEqual(self.tab_badge(), "1 / 3")
+        self.write("send", points=[self.south.pk])
+        self.assertEqual(self.tab_badge(), "✓")
 
-    def preview(self, subject):
+    def preview(self, subject, **data):
         return self.client.post(
-            reverse(
-                "workshop:production-day-reminder-preview",
-                kwargs={"production_day": self.production_day.pk},
-            ),
-            {"subject": subject, "body": self.body(), "edit": "day"},
+            self.mail_url("preview"),
+            {"subject": subject, "body": self.body(), **data},
         )
 
-    def test_preview_uses_an_order_of_the_day(self):
+    def test_preview_uses_the_first_order_of_the_chosen_recipients(self):
         response = self.preview("Für {{ last_name }}")
         # Without orders the example customer.
         self.assertContains(response, "Für Musteruser")
         self.assertTemplateNotUsed(response, "workshop/base.html")
-        self.customer_order(self.production_day, "Müller")
-        response = self.preview("Für {{ last_name }}")
-        self.assertContains(response, "Für Müller")
-        self.assertContains(response, "Hallo Müller")
-
-    def test_row_preview_is_what_the_row_would_send(self):
         self.two_points()
-        ReminderMessage.objects.create(
-            production_day=self.production_day,
-            subject="Tagestext für {{ last_name }}",
-            body=self.body(),
+        self.assertContains(self.preview("Für {{ last_name }}"), "Für Müller")
+        response = self.preview(
+            "Für {{ last_name }}", recipients="points", points=[self.south.pk]
         )
-        ReminderMessage.objects.create(
-            production_day=self.production_day,
-            point_of_sale=self.south,
-            subject="Süd für {{ last_name }}",
-            body=self.body(),
-        )
-        url = reverse(
-            "workshop:production-day-reminder-preview",
-            kwargs={"production_day": self.production_day.pk},
-        )
-        # A point with its own text gets it, with one of its orders.
-        response = self.client.get(url, {"point": self.south.pk})
-        self.assertContains(response, "Süd für Meier")
-        self.assertTemplateNotUsed(response, "workshop/base.html")
-        # A point without one gets the text of the day.
-        response = self.client.get(url, {"point": self.north.pk})
-        self.assertContains(response, "Tagestext für Müller")
+        self.assertContains(response, "Für Meier")
+        self.assertContains(response, "Hallo Meier")
 
-    def test_every_row_has_preview_and_text_and_the_editor_opens_under_its_row(self):
+    def test_test_email_goes_to_me_and_saves_nothing(self):
         self.two_points()
-        url = self.reminder_url()
-        page = self.client.get(url).content.decode()
-        for point in (self.north, self.south):
-            self.assertIn(f'aria-controls="reminder-preview-{point.pk}"', page)
-            self.assertIn(f'href="?edit={point.pk}#reminder-editor"', page)
-        self.assertIn('data-reminder-edit="day"', page)
-        # The text of the day is edited under the row for all.
-        lead, rest = page.split('id="reminder-day-preview"')[1].split(
-            f'id="reminder-preview-{self.north.pk}"'
+        # The placeholders of the order are filled with the first recipient's.
+        response = self.write(
+            "send_test", subject="Test für {{ point_of_sale }}", points=[self.south.pk]
         )
-        self.assertIn('id="reminder-editor"', lead)
-        self.assertNotIn('id="reminder-editor"', rest)
-        # A point's own text under the row of that point.
-        page = self.client.get(url, {"edit": self.south.pk}).content.decode()
-        self.assertEqual(page.count('id="reminder-editor"'), 1)
-        after_south = page.split(f'id="reminder-preview-{self.south.pk}"')[1]
-        self.assertIn('id="reminder-editor"', after_south)
-        self.assertIn("Eigener Text für Süd", after_south)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [(message.to, message.subject) for message in mail.outbox],
+            [(["baker@example.com"], "Test für Süd")],
+        )
+        self.assertFalse(ReminderMessage.objects.exists())
+
+    def test_pickup_email_pages_need_a_staff_user(self):
+        self.two_points()
+        draft = self.make_draft()
+        login = reverse("login")
+        # The pages answer a customer with 403, the parts loaded into them
+        # send to the login like the other parts of the workshop.
+        urls = [
+            (self.reminder_url(), 403),
+            (self.mail_url("new"), 403),
+            (self.mail_url("edit", pk=draft.pk), 403),
+            (self.mail_url("mail", pk=draft.pk), 302),
+            (self.mail_url("preview"), 302),
+        ]
+        customer = TenantClient(self.tenant)
+        customer.force_login(User.objects.get(username="Müller"))
+        for url, customer_status in urls:
+            for method in ("get", "post"):
+                with self.subTest(url=url, method=method):
+                    data = {"send": draft.pk, "subject": "x", "body": self.body()}
+                    response = getattr(TenantClient(self.tenant), method)(url, data)
+                    self.assertEqual(response.status_code, 302)
+                    self.assertTrue(response.url.startswith(login), response.url)
+                    response = getattr(customer, method)(url, data)
+                    self.assertEqual(response.status_code, customer_status)
+            with self.subTest(url=url, staff=True):
+                self.assertEqual(self.client.get(url).status_code, 200)
+        draft.refresh_from_db()
+        self.assertEqual(
+            (draft.state, draft.subject), (ReminderMessage.State.PLANNED, "Entwurf")
+        )
 
 
 class CustomerExportTest(NumberCircleTestCase):

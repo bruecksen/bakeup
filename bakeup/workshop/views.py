@@ -16,11 +16,9 @@ from django.db import connection, transaction
 from django.db.models import Count, ProtectedError, Q, Sum, prefetch_related_objects
 from django.db.models.functions import Coalesce, Lower
 from django.db.models.query import QuerySet
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import Context, Template, TemplateSyntaxError
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 from django.utils.dates import WEEKDAYS_ABBR
 from django.utils.timezone import now
@@ -103,14 +101,22 @@ from bakeup.workshop.models import (
 )
 from bakeup.workshop.recipe_tools import get_heat_capacity_categories
 from bakeup.workshop.reminders import (
+    MAIL_STATES,
+    duplicate_mail,
     fill_reminder,
-    get_day_texts,
+    get_day_orders,
     get_default_text,
+    get_mail_recipients,
+    get_notified,
+    get_points,
     get_preview_order,
     get_reminder_badge,
     get_reminder_overview,
+    get_selection,
     queue_mail,
-    queue_reminders,
+    resolve_recipients,
+    store_selection,
+    take_back_mail,
 )
 from bakeup.workshop.tables import (
     CustomerFilter,
@@ -2711,59 +2717,6 @@ class DummyUser(object):
         return f"{self.first_name} {self.last_name}"
 
 
-def render_reminder_subject(message, client):
-    """The subject as a list shows it: the shop name and day filled in."""
-    context = Context(
-        {
-            "site_name": client.name,
-            "production_day": message.production_day.day_of_sale.strftime("%d.%m.%Y"),
-        }
-    )
-    try:
-        return Template(message.subject).render(context)
-    except TemplateSyntaxError:
-        return message.subject
-
-
-@staff_member_required(login_url="login")
-def production_day_reminder_preview_view(request, production_day):
-    """A pickup email filled in with a real order of the day (of the point
-    of sale it is for) or, without one, an example.
-
-    POST is the email being written in the editor. GET is what a row of the
-    list would send: ?point=<pk> gets that point's own text, or the text of
-    the day when it has none, like the day itself without a point.
-    """
-    production_day = get_object_or_404(ProductionDay, pk=production_day)
-    if request.method == "POST":
-        form = ReminderMessageForm(request.POST)
-        text = ReminderMessage(
-            production_day=production_day,
-            subject=form["subject"].value() or "",
-            body=form["body"].value() or "",
-        )
-        point_of_sale = get_editor_point_of_sale(request.POST.get("edit", ""))
-    else:
-        point_of_sale = get_editor_point_of_sale(request.GET.get("point", ""))
-        texts = get_day_texts(production_day)
-        text = (
-            (point_of_sale and texts.get(point_of_sale.pk))
-            or texts.get(None)
-            or get_default_text(request, production_day)
-        )
-    return render(
-        request,
-        "workshop/includes/reminder_preview.html",
-        fill_reminder(
-            text,
-            production_day,
-            connection.get_tenant(),
-            get_preview_order(production_day, point_of_sale),
-            (DummyOrder(), DummyUser()),
-        ),
-    )
-
-
 # The placeholders of a pickup email, see ReminderMessage.replace_message_tags.
 REMINDER_TAGS = [
     "first_name",
@@ -2780,380 +2733,423 @@ REMINDER_TAGS = [
 ]
 
 
-def get_editor_point_of_sale(edit):
-    """The point of sale of an editor mode: "day", "again", "<pk>" or
-    "again-<pk>", None for the whole day."""
-    pk = edit.removeprefix("again").removeprefix("-")
-    if pk.isdigit():
-        return get_object_or_404(PointOfSale, pk=pk)
-    return None
+def get_reminder_url(production_day, name="production-day-reminder", **kwargs):
+    return reverse(
+        f"workshop:{name}", kwargs={"production_day": production_day.pk, **kwargs}
+    )
 
 
-def format_mail_time(mail):
-    when = timezone.localtime(mail.sent_date or mail.created)
-    if when.date() == timezone.localdate():
-        return _("today at %(time)s") % {"time": when.strftime("%H:%M")}
-    return _("on %(date)s at %(time)s") % {
-        "date": when.strftime("%d.%m."),
-        "time": when.strftime("%H:%M"),
-    }
+def get_new_reminder_url(production_day, keys=(), only_unnotified=False):
+    """The editor of a new email, for the points of sale of keys (all
+    without)."""
+    params = QueryDict(mutable=True)
+    if keys:
+        params.setlist("points", list(keys))
+    if only_unnotified:
+        params["only_unnotified"] = "1"
+    url = get_reminder_url(production_day, "production-day-reminder-new")
+    return f"{url}?{params.urlencode()}" if params else url
 
 
-class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
-    """The pickup emails of a day: the day's mail with its state and one
-    button to send it, the points of sale one by one, the history. The text
-    is edited in place, see bakeup/workshop/reminders.py for how texts and
-    mails are kept."""
+def get_reminder_preview(mail, recipients):
+    """An email as its first recipient gets it, or as the example customer."""
+    return fill_reminder(
+        mail,
+        mail.production_day,
+        connection.get_tenant(),
+        get_preview_order(recipients),
+        (DummyOrder(), DummyUser()),
+    )
 
-    template_name = "workshop/productionday_reminder.html"
 
+@staff_member_required(login_url="login")
+def production_day_reminder_preview_view(request, production_day):
+    """The email being written in the editor, filled in with the first order
+    of the recipients chosen there, or with an example."""
+    production_day = get_object_or_404(ProductionDay, pk=production_day)
+    orders = get_day_orders(production_day)
+    notified = get_notified(production_day, orders)
+    form = ReminderMessageForm(request.POST, points=get_points(orders, notified))
+    mail = ReminderMessage(
+        production_day=production_day,
+        subject=form["subject"].value() or "",
+        body=form["body"].value() or "",
+    )
+    selection = (
+        set(request.POST.getlist("points"))
+        if request.POST.get("recipients") == ReminderMessageForm.POINTS
+        else set()
+    )
+    recipients = resolve_recipients(
+        selection, bool(request.POST.get("only_unnotified")), orders, notified
+    )
+    return render(
+        request,
+        "workshop/includes/reminder_preview.html",
+        get_reminder_preview(mail, recipients),
+    )
+
+
+@staff_member_required(login_url="login")
+def production_day_reminder_mail_view(request, production_day, pk):
+    """An email of the list opened: as its first recipient gets it and who
+    it goes or went to."""
+    mail = get_object_or_404(
+        ReminderMessage.objects.select_related("production_day"),
+        pk=pk,
+        production_day=production_day,
+    )
+    orders = get_day_orders(mail.production_day)
+    recipients = get_mail_recipients(
+        mail, orders, get_notified(mail.production_day, orders)
+    )
+    return render(
+        request,
+        "workshop/includes/reminder_mail.html",
+        {
+            "mail": mail,
+            "recipients": [
+                order.customer.user.email for order in recipients if order.customer
+            ],
+            **get_reminder_preview(mail, recipients),
+        },
+    )
+
+
+class ReminderDayMixin(StaffPermissionsMixin):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.production_day = get_object_or_404(
             ProductionDay, pk=kwargs["production_day"]
         )
-        self.texts = get_day_texts(self.production_day)
-        self.day_text = self.texts.get(None) or get_default_text(
-            request, self.production_day
-        )
 
-    def get_page_url(self, edit=""):
-        url = reverse(
-            "workshop:production-day-reminder",
-            kwargs={"production_day": self.production_day.pk},
-        )
-        return f"{url}?edit={edit}#reminder-editor" if edit else url
+    def get_page_url(self):
+        return get_reminder_url(self.production_day)
 
-    def get_editor(self, overview, edit, form=None):
-        """What the editor edits: the text of the day, a point's own text, or
-        another mail to all or a point, which starts from the day's text and
-        is sent, not kept."""
-        point_of_sale = get_editor_point_of_sale(edit)
-        is_again = edit.startswith("again")
-        if is_again:
-            text = ReminderMessage(
-                production_day=self.production_day,
-                point_of_sale=point_of_sale,
-                subject=self.day_text.subject,
-                body=self.day_text.body,
-            )
-        elif point_of_sale:
-            text = self.texts.get(point_of_sale.pk) or ReminderMessage(
-                production_day=self.production_day,
-                point_of_sale=point_of_sale,
-                subject=self.day_text.subject,
-                body=self.day_text.body,
-            )
-        else:
-            text = self.texts.get(None) or ReminderMessage(
-                production_day=self.production_day,
-                subject=self.day_text.subject,
-                body=self.day_text.body,
-            )
-        if form is None:
-            form = ReminderMessageForm(
-                instance=text, initial={"subject": text.subject, "body": text.body}
-            )
-        if is_again and point_of_sale:
-            title = _("Another email to %(point_of_sale)s") % {
-                "point_of_sale": point_of_sale.name
-            }
-        elif is_again:
-            title = _("Another email to all")
-        elif point_of_sale:
-            title = _("Own text for %(point_of_sale)s") % {
-                "point_of_sale": point_of_sale.name
-            }
-        else:
-            title = _("Text of the day")
-        return {
-            "edit": edit or "day",
-            "open": bool(edit) or form.is_bound,
-            "is_again": is_again,
-            "point_of_sale": point_of_sale,
-            # The editor opens under the row it belongs to: a point's row for
-            # its own text or another mail to it, the row for all otherwise.
-            "row": point_of_sale.pk
-            if point_of_sale
-            and any(
-                row["point_of_sale"].pk == point_of_sale.pk
-                for row in overview["points"]
-            )
-            else None,
-            "text": text,
-            "form": form,
-            "title": title,
-            "warning": self.get_again_warning(overview, point_of_sale)
-            if is_again
-            else "",
-            "actions": self.get_editor_actions(is_again, edit, overview),
-        }
-
-    def get_again_warning(self, overview, point_of_sale):
-        """What happened already, named before another mail is sent."""
-        if point_of_sale:
-            row = next(
-                (
-                    row
-                    for row in overview["points"]
-                    if row["point_of_sale"].pk == point_of_sale.pk
-                ),
-                None,
-            )
-            if not row or not row["covering"]:
-                return ""
-            return _("%(point_of_sale)s was notified %(when)s already.") % {
-                "point_of_sale": point_of_sale.name,
-                "when": format_mail_time(row["covering"][-1]),
-            }
-        if not overview["mails"]:
-            return ""
-        when = format_mail_time(overview["mails"][-1])
-        if overview["state"] == "partly":
-            return _(
-                "%(notified)s of %(orders)s orders were notified already,"
-                " the last %(when)s."
-            ) % {
-                "notified": overview["notified"],
-                "orders": overview["orders"],
-                "when": when,
-            }
-        return _("All orders were notified %(when)s already.") % {"when": when}
-
-    def get_editor_actions(self, is_again, edit, overview):
-        if is_again:
-            first = Action(
-                _("Send"),
-                icon="fas fa-paper-plane",
-                kind="secondary",
-                submit_name="send_again",
-                confirm_label=_("Send anyway?"),
-            )
-        else:
-            first = Action(
-                _("Save"),
-                icon="far fa-floppy-disk",
-                kind="secondary",
-                submit_name="save",
-            )
-        return Actions(
-            [
-                first,
-                Action(
-                    _("Test email to me"),
-                    icon="far fa-paper-plane",
-                    kind="secondary",
-                    submit_name="send_test",
-                ),
-                Action(
-                    _("Cancel"),
-                    self.get_page_url(),
-                    kind="secondary",
-                    id="reminder-editor-cancel",
-                ),
-            ]
-        )
-
-    def get_day_actions(self, overview):
-        """The one filled button sends what is left to send: everything, or
-        the orders not told yet. It opens the preview of the email, the
-        button under the preview sends it: what goes out is seen before it
-        goes."""
-        state = overview["state"]
-        actions = Actions()
-        if state == "none":
-            actions.append(
-                Action(
-                    _("Send to all"),
-                    icon="fas fa-paper-plane",
-                    kind="primary",
-                    submit_name="send",
-                    submit_value="all",
-                    form="reminder-send-form",
-                    opens="reminder-day-preview",
-                    badge=overview["orders"],
-                    disabled=not overview["orders"],
-                    id="reminder-send",
-                )
-            )
-        elif state == "partly" and overview["remaining_orders"]:
-            actions.append(
-                Action(
-                    _("Send to the others"),
-                    icon="fas fa-paper-plane",
-                    kind="primary",
-                    submit_name="send",
-                    submit_value="rest",
-                    form="reminder-send-form",
-                    opens="reminder-day-preview",
-                    badge=overview["remaining_orders"],
-                    id="reminder-send",
-                )
-            )
-        if overview["mails"]:
-            actions.append(
-                Action(
-                    _("Send another email"),
-                    self.get_page_url("again"),
-                    "fas fa-envelope",
-                )
-            )
-        actions.append(
-            Action(
-                _("Test email to me"),
-                icon="far fa-paper-plane",
-                submit_name="test_day",
-                form="reminder-send-form",
-            )
-        )
-        return actions
-
-    def get_point_actions(self, row):
-        pk = row["point_of_sale"].pk
-        actions = Actions()
-        # A point can always be sent on its own. How many emails that is, as
-        # on the button for all: the orders of the point no mail went to
-        # yet, or all of them again when a mail reached every one, which the
-        # preview says before it is sent.
-        actions.append(
-            Action(
-                _("Send"),
-                icon="fas fa-paper-plane",
-                kind="secondary",
-                submit_name="send",
-                submit_value=str(pk),
-                form="reminder-send-form",
-                opens=f"reminder-preview-{pk}",
-                badge=row["open"] or row["orders"],
-            )
-        )
-        if row["own_text"]:
-            actions.append(
-                Action(
-                    _("Remove own text"),
-                    icon="fas fa-eraser",
-                    submit_name="remove_text",
-                    submit_value=str(pk),
-                    form="reminder-send-form",
-                )
-            )
-        if row["is_notified"]:
-            actions.append(
-                Action(
-                    _("Send another email"),
-                    self.get_page_url(f"again-{pk}"),
-                    "fas fa-envelope",
-                )
-            )
-        return actions
-
-    def get_context_data(self, form=None, edit=None, **kwargs):
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        client = connection.get_tenant()
-        overview = get_reminder_overview(self.production_day, self.texts)
-        for row in overview["points"]:
-            row["actions"] = self.get_point_actions(row)
-            row["send"] = next((a for a in row["actions"] if a.opens), None)
-            row["send_warning"] = (
-                ""
-                if row["open"]
-                else self.get_again_warning(overview, row["point_of_sale"])
-            )
-        today = timezone.localdate()
-        for mail in overview["mails"]:
-            mail.display_subject = render_reminder_subject(mail, client)
-            # The time alone on the day it went out, with the date later on.
-            when = timezone.localtime(mail.sent_date or mail.created)
-            mail.display_time = when.strftime(
-                "%H:%M" if when.date() == today else "%d.%m. %H:%M"
-            )
         context["production_day"] = self.production_day
         context["day_switch"] = get_day_switch(self.production_day, "reminder")
-        context["overview"] = overview
-        context["day_text"] = self.day_text
-        context["day_actions_reminder"] = self.get_day_actions(overview)
-        context["day_send"] = next(
-            (a for a in context["day_actions_reminder"] if a.opens), None
-        )
-        # The text of the day was changed for this day, as a point's own text.
-        context["day_text_is_own"] = None in self.texts
-        context["day_preview"] = fill_reminder(
-            self.day_text,
-            self.production_day,
-            client,
-            get_preview_order(self.production_day),
-            (DummyOrder(), DummyUser()),
-        )
-        context["editor"] = self.get_editor(
-            overview,
-            edit if edit is not None else self.request.GET.get("edit", ""),
-            form,
-        )
-        context["tags"] = ["{{ %s }}" % tag for tag in REMINDER_TAGS]
         return context
+
+
+class ProductionDayReminderView(ReminderDayMixin, TemplateView):
+    """The pickup emails of a day: how many orders were notified, per point
+    of sale, and a table of its emails, see bakeup/workshop/reminders.py.
+    New emails are written in ProductionDayReminderEditorView."""
+
+    template_name = "workshop/productionday_reminder.html"
+
+    def get_mail_actions(self, mail):
+        pk = str(mail.pk)
+        actions = Actions()
+        panel = f"reminder-mail-{pk}"
+        if mail.is_planned:
+            actions.append(
+                Action(
+                    _("Edit"),
+                    get_reminder_url(
+                        self.production_day, "production-day-reminder-edit", pk=pk
+                    ),
+                    "fas fa-pen",
+                    kind="secondary",
+                )
+            )
+            # Sending opens the email as it goes out, the button under it
+            # sends it.
+            actions.append(
+                Action(
+                    _("Send"),
+                    icon="fas fa-paper-plane",
+                    kind="secondary",
+                    opens=panel,
+                    badge=len(mail.recipients),
+                    disabled=not mail.recipients,
+                )
+            )
+        else:
+            actions.append(
+                Action(_("View"), icon="far fa-eye", kind="secondary", opens=panel)
+            )
+        if mail.is_planned_sending:
+            actions.append(
+                Action(
+                    _("Back to draft"),
+                    icon="fas fa-rotate-left",
+                    submit_name="take_back",
+                    submit_value=pk,
+                    form="reminder-send-form",
+                )
+            )
+        if mail.is_planned or mail.is_sent:
+            actions.append(
+                Action(
+                    _("Duplicate"),
+                    icon="far fa-copy",
+                    submit_name="duplicate",
+                    submit_value=pk,
+                    form="reminder-send-form",
+                )
+            )
+        if mail.is_planned:
+            actions.append(
+                Action(
+                    _("Delete"),
+                    icon="far fa-trash-can",
+                    danger=True,
+                    submit_name="delete",
+                    submit_value=pk,
+                    form="reminder-send-form",
+                    confirm_label=_("Delete draft?"),
+                )
+            )
+        return actions
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        overview = get_reminder_overview(self.production_day, connection.get_tenant())
+        for point in overview["points"]:
+            # A point with open orders starts an email to them.
+            if point["open"]:
+                point["url"] = get_new_reminder_url(
+                    self.production_day,
+                    [point["key"]],
+                    only_unnotified=point["open"] < point["orders"],
+                )
+        for mail in overview["mails"]:
+            mail.actions = self.get_mail_actions(mail)
+            mail.send = next(
+                (action for action in mail.actions if mail.is_planned and action.opens),
+                None,
+            )
+        context["overview"] = overview
+        context["new_url"] = get_new_reminder_url(self.production_day)
+        context["reminder_actions"] = Actions(
+            [
+                Action(
+                    _("New email"),
+                    context["new_url"],
+                    "fas fa-plus",
+                    kind="primary",
+                )
+            ]
+            if overview["mails"]
+            else []
+        )
+        return context
+
+    def get_mail(self, pk, *states):
+        return ReminderMessage.objects.filter(
+            production_day=self.production_day, pk=pk, state__in=states
+        ).first()
 
     def post(self, request, *args, **kwargs):
         post = request.POST
+        State = ReminderMessage.State
         if "send" in post:
-            return self.send(post["send"])
-        if "test_day" in post:
-            self.send_test(self.day_text, None)
-            return HttpResponseRedirect(self.get_page_url())
-        if "remove_text" in post:
-            ReminderMessage.objects.filter(
-                production_day=self.production_day,
-                state=ReminderMessage.State.PLANNED,
-                point_of_sale_id=post["remove_text"],
-            ).delete()
-            messages.success(request, _("Own text removed."))
-            return HttpResponseRedirect(self.get_page_url())
-        return self.edit(post.get("edit", ""))
-
-    def send(self, target):
-        overview = get_reminder_overview(self.production_day, self.texts)
-        mails = queue_reminders(overview, self.day_text, target)
-        count = sum(mail.get_orders().count() for mail in mails)
-        if mails:
-            messages.success(
-                self.request,
-                _("The email will be sent to %(count)s recipients in a moment.")
-                % {"count": count},
+            mail = self.get_mail(post["send"], State.PLANNED)
+            if not mail:
+                messages.warning(request, _("This email was sent already."))
+                return HttpResponseRedirect(self.get_page_url())
+            orders = get_day_orders(self.production_day)
+            recipients = get_mail_recipients(
+                mail, orders, get_notified(self.production_day, orders)
             )
-        else:
-            messages.warning(self.request, _("There is nobody left to send to."))
+            if not recipients:
+                messages.warning(request, _("There is nobody to send this email to."))
+            else:
+                queue_mail(mail, recipients)
+                messages.success(request, get_queued_message(len(recipients)))
+        elif "take_back" in post:
+            mail = self.get_mail(post["take_back"], State.PLANNED_SENDING)
+            if mail and take_back_mail(mail):
+                messages.success(request, _("The email is a draft again."))
+            else:
+                messages.warning(request, _("The email is being sent already."))
+        elif "delete" in post:
+            mail = self.get_mail(post["delete"], State.PLANNED)
+            if mail:
+                mail.delete()
+                messages.success(request, _("Draft deleted."))
+        elif "duplicate" in post:
+            mail = self.get_mail(post["duplicate"], State.PLANNED, State.SENT)
+            if mail:
+                copy = duplicate_mail(mail)
+                return HttpResponseRedirect(
+                    get_reminder_url(
+                        self.production_day, "production-day-reminder-edit", pk=copy.pk
+                    )
+                )
         return HttpResponseRedirect(self.get_page_url())
 
-    def send_test(self, text, point_of_sale):
-        order = get_preview_order(self.production_day, point_of_sale)
-        text.send_email(
-            self.request.user, order or DummyOrder(), connection.get_tenant()
-        )
-        messages.success(
-            self.request,
-            _("Test email sent to %(email)s.") % {"email": self.request.user.email},
+
+def get_queued_message(count):
+    return ngettext(
+        "The email will be sent to %(count)s order in a moment.",
+        "The email will be sent to %(count)s orders in a moment.",
+        count,
+    ) % {"count": count}
+
+
+class ProductionDayReminderEditorView(ReminderDayMixin, TemplateView):
+    """A pickup email written or changed: who it is for, subject and text,
+    saved as a draft or sent. A page of its own in the tab, the editor of
+    the text doesn't survive an htmx swap."""
+
+    template_name = "workshop/productionday_reminder_editor.html"
+
+    def load(self):
+        """The email and the orders of the day, None once it can't be edited
+        any more: it was queued or sent in the meantime."""
+        self.mail = None
+        if "pk" in self.kwargs:
+            self.mail = ReminderMessage.objects.filter(
+                production_day=self.production_day, pk=self.kwargs["pk"]
+            ).first()
+            if not self.mail or not self.mail.is_planned:
+                if self.mail:
+                    messages.warning(self.request, _("This email was sent already."))
+                return None
+        self.orders = get_day_orders(self.production_day)
+        self.notified = get_notified(self.production_day, self.orders)
+        self.has_sent = ReminderMessage.objects.filter(
+            production_day=self.production_day, state__in=MAIL_STATES
+        ).exists()
+        return self
+
+    def get(self, request, *args, **kwargs):
+        if not self.load():
+            return HttpResponseRedirect(self.get_page_url())
+        return super().get(request, *args, **kwargs)
+
+    def get_initial(self):
+        if self.mail:
+            selection = get_selection(self.mail)
+            only_unnotified = self.mail.only_unnotified
+            text = self.mail
+        else:
+            selection = set(self.request.GET.getlist("points"))
+            only_unnotified = bool(self.request.GET.get("only_unnotified"))
+            text = get_default_text(self.request, self.production_day)
+        return {
+            "recipients": ReminderMessageForm.POINTS
+            if selection
+            else ReminderMessageForm.ALL,
+            "points": sorted(selection),
+            "only_unnotified": only_unnotified and self.has_sent,
+            "subject": text.subject,
+            "body": text.body,
+        }
+
+    def get_points(self):
+        keys = get_selection(self.mail) if self.mail else ()
+        return get_points(self.orders, self.notified, keys)
+
+    def get_form(self):
+        instance = self.mail or ReminderMessage(production_day=self.production_day)
+        if self.request.method == "POST":
+            return ReminderMessageForm(
+                self.request.POST, instance=instance, points=self.get_points()
+            )
+        return ReminderMessageForm(
+            instance=instance, initial=self.get_initial(), points=self.get_points()
         )
 
-    def edit(self, edit):
-        overview = get_reminder_overview(self.production_day, self.texts)
-        editor = self.get_editor(overview, edit)
-        form = ReminderMessageForm(self.request.POST, instance=editor["text"])
-        if not form.is_valid():
-            return self.render_to_response(self.get_context_data(form=form, edit=edit))
-        text = form.save(commit=False)
-        if "send_test" in self.request.POST:
-            self.send_test(text, editor["point_of_sale"])
-            return self.render_to_response(self.get_context_data(form=form, edit=edit))
-        if "send_again" in self.request.POST:
-            mail = queue_mail(self.production_day, text, editor["point_of_sale"])
-            messages.success(
-                self.request,
-                _("The email will be sent to %(count)s recipients in a moment.")
-                % {"count": mail.get_orders().count()},
-            )
+    def get_context_data(self, form=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = form or self.get_form()
+        open_orders = [order for order in self.orders if order.pk not in self.notified]
+        context.update(
+            {
+                "form": form,
+                "mail": self.mail,
+                "points": form.point_list,
+                "selected": set(form["points"].value() or []),
+                "is_all": form["recipients"].value() != ReminderMessageForm.POINTS,
+                "has_sent": self.has_sent,
+                "orders": len(self.orders),
+                "open": len(open_orders),
+                "tags": ["{{ %s }}" % tag for tag in REMINDER_TAGS],
+                # The label of the button that sends, the number follows the
+                # chosen recipients in the browser.
+                "send_one": self.get_send_label(1),
+                "send_many": self.get_send_label(2, "__count__"),
+                "actions": Actions(
+                    [
+                        Action(
+                            self.get_send_label(self.get_count(form)),
+                            icon="fas fa-paper-plane",
+                            kind="primary",
+                            submit_name="send",
+                            id="reminder-send",
+                        ),
+                        Action(
+                            _("Save as draft"),
+                            icon="far fa-floppy-disk",
+                            kind="secondary",
+                            submit_name="save",
+                        ),
+                        Action(_("Cancel"), self.get_page_url(), kind="secondary"),
+                        Action(
+                            _("Test email to me"),
+                            icon="far fa-paper-plane",
+                            submit_name="send_test",
+                        ),
+                    ]
+                ),
+            }
+        )
+        return context
+
+    def get_send_label(self, count, shown=None):
+        return ngettext(
+            "Send to %(count)s order", "Send to %(count)s orders", count
+        ) % {"count": count if shown is None else shown}
+
+    def get_count(self, form):
+        selection = (
+            set(form["points"].value() or [])
+            if form["recipients"].value() == ReminderMessageForm.POINTS
+            else set()
+        )
+        only_unnotified = self.has_sent and bool(form["only_unnotified"].value())
+        return len(
+            resolve_recipients(selection, only_unnotified, self.orders, self.notified)
+        )
+
+    def post(self, request, *args, **kwargs):
+        if not self.load():
             return HttpResponseRedirect(self.get_page_url())
-        text.state = ReminderMessage.State.PLANNED
-        text.save()
-        messages.success(self.request, _("Text saved."))
+        form = self.get_form()
+        if not form.is_valid():
+            return self.render_to_response(self.get_context_data(form=form))
+        only_unnotified = self.has_sent and form.cleaned_data["only_unnotified"]
+        recipients = resolve_recipients(
+            form.selection, only_unnotified, self.orders, self.notified
+        )
+        mail = form.save(commit=False)
+        if "send_test" in request.POST:
+            mail.send_email(
+                request.user,
+                get_preview_order(recipients) or DummyOrder(),
+                connection.get_tenant(),
+            )
+            messages.success(
+                request,
+                _("Test email sent to %(email)s.") % {"email": request.user.email},
+            )
+            return self.render_to_response(self.get_context_data(form=form))
+        if "send" in request.POST and not recipients:
+            form.add_error(None, _("Nobody gets this email, choose other recipients."))
+            return self.render_to_response(self.get_context_data(form=form))
+        mail.state = ReminderMessage.State.PLANNED
+        mail.save()
+        store_selection(mail, form.selection, only_unnotified)
+        if "send" in request.POST:
+            queue_mail(mail, recipients)
+            messages.success(request, get_queued_message(len(recipients)))
+        else:
+            messages.success(request, _("Draft saved."))
         return HttpResponseRedirect(self.get_page_url())
 
 

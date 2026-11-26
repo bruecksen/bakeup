@@ -1486,38 +1486,57 @@ document.addEventListener("click", function(event) {
     if (event.target.closest("[data-print]")) window.print();
 });
 
-// Pickup emails: "Edit text" opens the editor of the day's text in place
-// when it is the one on the page, the link loads it otherwise. "Preview"
-// shows the day's email under its card.
+// Pickup emails: "Send" and "View" of an email in the list open the panel
+// under its row, "Cancel" and "Close" in it close it again. The email in the
+// panel is fetched when it first opens. Under a draft is the button that
+// sends it: what goes out is seen before it goes.
 document.addEventListener("click", function(event) {
-    var edit = event.target.closest("[data-reminder-edit]");
-    var editor = document.getElementById("reminder-editor");
-    if (edit && editor && editor.dataset.edit === edit.dataset.reminderEdit) {
-        event.preventDefault();
-        editor.hidden = false;
-        editor.scrollIntoView({ block: "start", behavior: "smooth" });
-        return;
-    }
-    // The eye and "Cancel" toggle the preview of a row, "Send" opens it:
-    // under the email is the button that sends it. The email of a point is
-    // fetched when its preview first opens.
     var toggle = event.target.closest("[data-reminder-preview-toggle], [data-reminder-preview-open]");
     if (!toggle) return;
     event.preventDefault();
     var preview = document.getElementById(toggle.getAttribute("aria-controls"));
-    var opens = toggle.hasAttribute("data-reminder-preview-open");
-    preview.hidden = opens ? false : !preview.hidden;
+    preview.hidden = !preview.hidden;
     document.querySelectorAll('[aria-controls="' + preview.id + '"][aria-expanded]').forEach(function(button) {
         button.setAttribute("aria-expanded", preview.hidden ? "false" : "true");
     });
     if (preview.hidden) return;
     var lazy = preview.querySelector("[hx-get]");
     if (lazy) lazy.dispatchEvent(new Event("reminder-open"));
-    if (opens) {
+    if (toggle.hasAttribute("data-reminder-preview-open")) {
         var send = preview.querySelector(".reminder-send-confirm .btn-primary");
         if (send) send.focus({ preventScroll: true });
         preview.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
+});
+
+// Pickup emails: the editor's send button names how many orders get the
+// email, from the numbers on the recipients (data-orders, data-open for
+// those without an email yet). Ticking a point of sale chooses "Single
+// points of sale". The server counts again when it is sent.
+function countReminderRecipients(form) {
+    var all = form.querySelector("#recipients-all");
+    var only = form.querySelector("#recipients-only-unnotified");
+    var key = only && only.checked ? "open" : "orders";
+    var count = 0;
+    if (all.checked) {
+        count = Number(all.dataset[key]);
+    } else {
+        form.querySelectorAll('input[name="points"]:checked').forEach(function(point) {
+            count += Number(point.dataset[key]);
+        });
+    }
+    var label = form.querySelector("#reminder-send .action-label");
+    if (label) {
+        label.textContent = count === 1 ? form.dataset.sendOne : form.dataset.sendMany.replace("__count__", count);
+    }
+}
+document.addEventListener("change", function(event) {
+    var form = event.target.closest(".reminder-editor[data-send-many]");
+    if (!form || !event.target.closest("[data-reminder-recipients]")) return;
+    if (event.target.name === "points" && event.target.checked) {
+        form.querySelector("#recipients-points").checked = true;
+    }
+    countReminderRecipients(form);
 });
 
 // Pickup emails: a placeholder goes in at the cursor of the subject or the
