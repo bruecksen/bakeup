@@ -2483,7 +2483,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 .reminder-send-confirm {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
     gap: .5rem;
     max-width: none;
     margin-top: .875rem;
@@ -2660,12 +2659,15 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         border-color: $gray-400;
     }
 }
-// Every row of buttons of the pickup emails is on the right, from the least
-// to the most final step, the one that sends last. The test email is with
-// the preview it sends.
+// Every row of buttons of the pickup emails starts on the left with the
+// step that sends, then the less final ones. The test email stands apart on
+// the right, it sends nothing to customers.
 .reminder-editor-footer {
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem 1rem;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid $gray-200;
@@ -2674,8 +2676,22 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
     gap: .5rem;
+}
+.reminder-editor-test {
+    margin-left: auto;
+}
+// On a phone every button takes the width, the test email last.
+@include media-breakpoint-down(sm) {
+    .reminder-editor-footer,
+    .reminder-editor-steps {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    .reminder-editor-test {
+        margin-left: 0;
+    }
 }
 // "Cancel" is quiet text beside the buttons, in the editor and under a row.
 .reminder-cancel.btn-link {
