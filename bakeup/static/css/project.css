@@ -16138,14 +16138,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   font-weight: 400;
 }
 
-.reminder-row-note {
-  display: block;
-  color: #6c757d;
-  font-size: 12px;
-  font-size: 0.75rem;
-  font-weight: 400;
-}
-
 .reminder-row-subject {
   grid-column: 2;
   min-width: 0;
@@ -16399,14 +16391,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 
 .reminder-recipients:has(#recipients-all:checked) .reminder-points .form-check-label {
   color: #6c757d;
-}
-
-.reminder-only-unnotified {
-  margin-top: 8px;
-  margin-top: 0.5rem;
-  padding-top: 8px;
-  padding-top: 0.5rem;
-  border-top: 1px dashed #e9ecef;
 }
 
 .reminder-preview {

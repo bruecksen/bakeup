@@ -1510,19 +1510,17 @@ document.addEventListener("click", function(event) {
 });
 
 // Pickup emails: the editor's send button names how many orders get the
-// email, from the numbers on the recipients (data-orders, data-open for
-// those without an email yet). Ticking a point of sale chooses "Single
-// points of sale". The server counts again when it is sent.
+// email, from the numbers on the recipients (data-orders). Ticking a point
+// of sale chooses "Single points of sale". The server counts again when it
+// is sent.
 function countReminderRecipients(form) {
     var all = form.querySelector("#recipients-all");
-    var only = form.querySelector("#recipients-only-unnotified");
-    var key = only && only.checked ? "open" : "orders";
     var count = 0;
     if (all.checked) {
-        count = Number(all.dataset[key]);
+        count = Number(all.dataset.orders);
     } else {
         form.querySelectorAll('input[name="points"]:checked').forEach(function(point) {
-            count += Number(point.dataset[key]);
+            count += Number(point.dataset.orders);
         });
     }
     var label = form.querySelector("#reminder-send .action-label");
@@ -1542,8 +1540,7 @@ document.addEventListener("change", function(event) {
 // Pickup emails: "New email" and the chip of a
 // point of sale with open orders ([data-reminder-new]) open the editor of a
 // new email above the table in place, the chip with its point chosen
-// (data-points) and only the orders without an email when some of the point
-// had one (data-only-unnotified). It is on the page from the start, hidden,
+// (data-points). It is on the page from the start, hidden,
 // so its text editor is ready. While a draft is edited the page has no such
 // editor and the links load the page with it open. "Cancel" closes it again
 // in place while nothing was changed in it, and reloads the page otherwise,
@@ -1560,8 +1557,6 @@ function openNewReminder(trigger) {
     form.querySelectorAll('input[name="points"]').forEach(function(point) {
         point.checked = points.indexOf(point.value) !== -1;
     });
-    var only = form.querySelector("#recipients-only-unnotified");
-    if (only) only.checked = trigger.hasAttribute("data-only-unnotified");
     countReminderRecipients(form);
     panel.hidden = false;
     document.body.dispatchEvent(new Event("reminder-preview"));

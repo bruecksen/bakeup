@@ -101,7 +101,6 @@ from bakeup.workshop.models import (
 )
 from bakeup.workshop.recipe_tools import get_heat_capacity_categories
 from bakeup.workshop.reminders import (
-    MAIL_STATES,
     duplicate_mail,
     fill_reminder,
     get_day_orders,
@@ -2739,15 +2738,13 @@ def get_reminder_url(production_day, name="production-day-reminder", **kwargs):
     )
 
 
-def get_new_reminder_url(production_day, keys=(), only_unnotified=False):
+def get_new_reminder_url(production_day, keys=()):
     """The tab with the editor of a new email open, for the points of sale of
     keys (all without). The fallback of the buttons that open it in place."""
     params = QueryDict(mutable=True)
     params["new"] = "1"
     if keys:
         params.setlist("points", list(keys))
-    if only_unnotified:
-        params["only_unnotified"] = "1"
     return f"{get_reminder_url(production_day)}?{params.urlencode()}#reminder-editor"
 
 
@@ -2785,9 +2782,7 @@ def production_day_reminder_preview_view(request, production_day):
         if request.POST.get("recipients") == ReminderMessageForm.POINTS
         else set()
     )
-    recipients = resolve_recipients(
-        selection, bool(request.POST.get("only_unnotified")), orders, notified
-    )
+    recipients = resolve_recipients(selection, orders)
     return render(
         request,
         "workshop/includes/reminder_preview.html",
@@ -2906,51 +2901,39 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             )
         return actions
 
-    def get_initial(self, mail, has_sent):
+    def get_initial(self, mail):
         if mail:
             selection = get_selection(mail)
-            only_unnotified = mail.only_unnotified
             text = mail
         else:
             selection = set(self.request.GET.getlist("points"))
-            only_unnotified = bool(self.request.GET.get("only_unnotified"))
             text = get_default_text(self.request, self.production_day)
         return {
             "recipients": ReminderMessageForm.POINTS
             if selection
             else ReminderMessageForm.ALL,
             "points": sorted(selection),
-            "only_unnotified": only_unnotified and has_sent,
             "subject": text.subject,
             "body": text.body,
         }
 
-    def get_form(self, mail, orders, notified, has_sent, data=None):
+    def get_form(self, mail, orders, notified, data=None):
         points = get_points(orders, notified, get_selection(mail) if mail else ())
         instance = mail or ReminderMessage(production_day=self.production_day)
         if data is not None:
             return ReminderMessageForm(data, instance=instance, points=points)
         return ReminderMessageForm(
-            instance=instance, initial=self.get_initial(mail, has_sent), points=points
+            instance=instance, initial=self.get_initial(mail), points=points
         )
 
     def get_editor(self, overview, mail, form, is_open):
         orders = overview["order_list"]
-        notified = overview["notified_ids"]
-        has_sent = overview["has_sent"]
         selection = (
             set(form["points"].value() or [])
             if form["recipients"].value() == ReminderMessageForm.POINTS
             else set()
         )
-        count = len(
-            resolve_recipients(
-                selection,
-                has_sent and bool(form["only_unnotified"].value()),
-                orders,
-                notified,
-            )
-        )
+        count = len(resolve_recipients(selection, orders))
         return {
             "form": form,
             "mail": mail,
@@ -2958,13 +2941,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             "points": form.point_list,
             "selected": set(form["points"].value() or []),
             "is_all": form["recipients"].value() != ReminderMessageForm.POINTS,
-            "has_sent": has_sent,
-            # Only while there is an order no email went to yet, or the
-            # draft was saved with it.
-            "offers_only_unnotified": has_sent
-            and bool(
-                len(orders) - overview["notified"] or form["only_unnotified"].value()
-            ),
             "orders": len(orders),
             "open": len(orders) - overview["notified"],
             "tags": ["{{ %s }}" % tag for tag in REMINDER_TAGS],
@@ -2987,10 +2963,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
         for point in overview["points"]:
             # A point with open orders starts an email to them.
             if point["open"]:
-                point["only_unnotified"] = point["open"] < point["orders"]
-                point["url"] = get_new_reminder_url(
-                    self.production_day, [point["key"]], point["only_unnotified"]
-                )
+                point["url"] = get_new_reminder_url(self.production_day, [point["key"]])
         for item in overview["mails"]:
             item.actions = self.get_mail_actions(item)
             item.send = next(
@@ -3002,7 +2975,6 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                 mail,
                 overview["order_list"],
                 overview["notified_ids"],
-                overview["has_sent"],
             )
         editor = self.get_editor(overview, mail, form, is_open or bool(mail))
         context["production_day"] = self.production_day
@@ -3101,10 +3073,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
                 return HttpResponseRedirect(self.get_page_url())
         orders = get_day_orders(self.production_day)
         notified = get_notified(self.production_day, orders)
-        has_sent = ReminderMessage.objects.filter(
-            production_day=self.production_day, state__in=MAIL_STATES
-        ).exists()
-        form = self.get_form(mail, orders, notified, has_sent, data=request.POST)
+        form = self.get_form(mail, orders, notified, data=request.POST)
 
         def again():
             return self.render_to_response(
@@ -3113,10 +3082,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
 
         if not form.is_valid():
             return again()
-        only_unnotified = has_sent and form.cleaned_data["only_unnotified"]
-        recipients = resolve_recipients(
-            form.selection, only_unnotified, orders, notified
-        )
+        recipients = resolve_recipients(form.selection, orders)
         text = form.save(commit=False)
         if "send_test" in request.POST:
             text.send_email(
@@ -3134,7 +3100,7 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             return again()
         text.state = ReminderMessage.State.PLANNED
         text.save()
-        store_selection(text, form.selection, only_unnotified)
+        store_selection(text, form.selection)
         if "send" in request.POST:
             queue_mail(text, recipients)
             messages.success(request, get_queued_message(len(recipients)))

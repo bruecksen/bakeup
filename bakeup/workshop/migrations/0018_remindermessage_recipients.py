@@ -35,11 +35,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="remindermessage",
-            name="only_unnotified",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="remindermessage",
             name="points_of_sale",
             field=models.ManyToManyField(
                 blank=True, related_name="+", to="shop.pointofsale"

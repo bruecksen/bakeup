@@ -2365,13 +2365,12 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             },
         )
 
-    def make_draft(self, points=(), without=False, only_unnotified=False, **fields):
+    def make_draft(self, points=(), without=False, **fields):
         mail = ReminderMessage.objects.create(
             production_day=self.production_day,
             subject=fields.pop("subject", "Entwurf"),
             body="<p>Hallo {{ last_name }}</p>",
             without_point_of_sale=without,
-            only_unnotified=only_unnotified,
             **fields,
         )
         mail.points_of_sale.set(points)
@@ -2454,18 +2453,13 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             self.point_chips(page),
             [
                 ("N", 1, 1, f"{new}&points={self.north.pk}#reminder-editor"),
-                (
-                    "Süd",
-                    3,
-                    1,
-                    f"{new}&points={self.south.pk}&only_unnotified=1#reminder-editor",
-                ),
+                ("Süd", 3, 1, f"{new}&points={self.south.pk}#reminder-editor"),
                 ("Ohne Abholstelle", 1, 1, f"{new}&points=none#reminder-editor"),
             ],
         )
         self.assertContains(
             page,
-            f'data-reminder-new data-points="{self.south.pk}" data-only-unnotified',
+            f'data-reminder-new data-points="{self.south.pk}" title=',
         )
 
     def test_a_point_notified_by_a_mail_from_before_is_done(self):
@@ -2511,24 +2505,17 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             [("Nord", 1), ("Süd", 2)],
         )
         self.assertContains(response, "An 3 Bestellungen senden")
-        # Before any email went out there is nothing to leave out.
-        self.assertNotContains(response, 'name="only_unnotified"')
 
     def test_new_email_from_a_chip_chooses_its_point(self):
         self.two_points()
         self.write("send", points=[self.north.pk])
-        response = self.page(new="1", points=self.south.pk, only_unnotified="1")
+        response = self.page(new="1", points=self.south.pk)
         form = response.context["editor"]["form"]
         self.assertEqual(
-            (
-                form["recipients"].value(),
-                form["points"].value(),
-                form["only_unnotified"].value(),
-            ),
-            ("points", [str(self.south.pk)], True),
+            (form["recipients"].value(), form["points"].value()),
+            ("points", [str(self.south.pk)]),
         )
         self.assertContains(response, "An 2 Bestellungen senden")
-        self.assertContains(response, 'name="only_unnotified" value="on"')
 
     def test_a_draft_keeps_who_it_is_for_and_reaches_later_orders(self):
         self.two_points()
@@ -2592,31 +2579,10 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
                 self.assertRedirects(response, self.reminder_url())
                 self.assertEqual(self.queued_orders(), expected)
 
-    def test_only_orders_without_an_email_leaves_out_the_notified(self):
-        self.two_points()
-        self.write("send", points=[self.north.pk])
-        self.deliver()
-        mail.outbox.clear()
-        self.customer_order(self.production_day, "Neu", point_of_sale=self.north)
-        response = self.write("send", subject="Rest", only_unnotified="on")
-        self.assertRedirects(response, self.reminder_url())
-        self.assertEqual(self.queued_orders(), ["Meier", "Neu", "Schulze"])
-        mail_ = ReminderMessage.objects.get(subject="Rest")
-        self.assertTrue(mail_.only_unnotified)
-        self.assertEqual(
-            self.mail_rows()[0],
-            ("Rest", "Alle", 3, ReminderMessage.State.PLANNED_SENDING),
-        )
-        self.assertContains(self.page(), "nur noch nicht benachrichtigte Bestellungen")
-        self.assertEqual(
-            self.tab_badge(),
-            "✓",
-        )
-
     def test_sending_to_nobody_is_refused(self):
         self.two_points()
-        self.write("send")
-        response = self.write("send", subject="Noch mal", only_unnotified="on")
+        CustomerOrder.objects.filter(production_day=self.production_day).delete()
+        response = self.write("send", subject="Noch mal")
         self.assertEqual(response.status_code, 200)
         # The page again, with the editor open and what was written in it.
         editor = response.context["editor"]

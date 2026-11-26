@@ -592,9 +592,6 @@ class ReminderMessageForm(ModelForm):
     points = forms.MultipleChoiceField(
         required=False, widget=forms.CheckboxSelectMultiple
     )
-    only_unnotified = forms.BooleanField(
-        required=False, label=_("Only orders that were not notified yet")
-    )
     subject = forms.CharField(widget=forms.TextInput, label=_("Subject"))
 
     class Meta:

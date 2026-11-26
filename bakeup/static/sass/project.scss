@@ -2385,12 +2385,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     color: $text-muted;
     font-weight: 400;
 }
-.reminder-row-note {
-    display: block;
-    color: $text-muted;
-    font-size: .75rem;
-    font-weight: 400;
-}
 .reminder-row-subject {
     grid-column: 2;
     min-width: 0;
@@ -2609,11 +2603,6 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 }
 .reminder-recipients:has(#recipients-all:checked) .reminder-points .form-check-label {
     color: $text-muted;
-}
-.reminder-only-unnotified {
-    margin-top: .5rem;
-    padding-top: .5rem;
-    border-top: 1px dashed $gray-200;
 }
 .reminder-preview {
     font-size: .875rem;

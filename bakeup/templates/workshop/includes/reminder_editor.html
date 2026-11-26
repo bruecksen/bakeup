@@ -12,7 +12,7 @@
   <fieldset class="reminder-recipients" data-reminder-recipients>
     <legend class="reminder-label">{% trans "Recipients" %}</legend>
     <div class="form-check">
-      <input class="form-check-input" type="radio" name="recipients" value="all" id="recipients-all" data-orders="{{ editor.orders }}" data-open="{{ editor.open }}"{% if editor.is_all %} checked{% endif %}>
+      <input class="form-check-input" type="radio" name="recipients" value="all" id="recipients-all" data-orders="{{ editor.orders }}"{% if editor.is_all %} checked{% endif %}>
       <label class="form-check-label" for="recipients-all">{% trans "All orders" %} <span class="text-muted">({{ editor.orders }})</span></label>
     </div>
     {% if editor.points %}
@@ -23,17 +23,11 @@
     <div class="reminder-points">
       {% for point in editor.points %}
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="points" value="{{ point.key }}" id="recipients-point-{{ point.key }}" data-orders="{{ point.orders }}" data-open="{{ point.open }}"{% if point.key in editor.selected %} checked{% endif %}>
+        <input class="form-check-input" type="checkbox" name="points" value="{{ point.key }}" id="recipients-point-{{ point.key }}" data-orders="{{ point.orders }}"{% if point.key in editor.selected %} checked{% endif %}>
         <label class="form-check-label" for="recipients-point-{{ point.key }}">{{ point.name }} <span class="text-muted">({{ point.orders }})</span></label>
       </div>
       {% endfor %}
       {% for error in editor.form.points.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-    </div>
-    {% endif %}
-    {% if editor.offers_only_unnotified %}
-    <div class="form-check reminder-only-unnotified">
-      <input class="form-check-input" type="checkbox" name="only_unnotified" value="on" id="recipients-only-unnotified"{% if editor.form.only_unnotified.value %} checked{% endif %}>
-      <label class="form-check-label" for="recipients-only-unnotified">{% trans "Only orders that were not notified yet" %} <span class="text-muted">({% blocktranslate count counter=editor.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %})</span></label>
     </div>
     {% endif %}
   </fieldset>

@@ -94,16 +94,12 @@ def get_point_key(order):
     return str(order.point_of_sale_id) if order.point_of_sale_id else WITHOUT_POINT
 
 
-def resolve_recipients(selection, only_unnotified, orders, notified):
+def resolve_recipients(selection, orders):
     """The orders an email goes to: those of the chosen points (keys as in
-    get_point_key), all with no choice, without the notified ones if only
-    those are wanted."""
+    get_point_key), all with no choice."""
     selection = set(selection)
     return [
-        order
-        for order in orders
-        if (not selection or get_point_key(order) in selection)
-        and not (only_unnotified and order.pk in notified)
+        order for order in orders if not selection or get_point_key(order) in selection
     ]
 
 
@@ -119,12 +115,11 @@ def get_selection(mail):
     return keys
 
 
-def store_selection(mail, selection, only_unnotified):
+def store_selection(mail, selection):
     """Keeps who a saved email is for, see get_selection."""
     selection = set(selection)
     mail.without_point_of_sale = WITHOUT_POINT in selection
-    mail.only_unnotified = only_unnotified
-    mail.save(update_fields=["without_point_of_sale", "only_unnotified"])
+    mail.save(update_fields=["without_point_of_sale"])
     mail.points_of_sale.set([int(key) for key in selection if key.isdigit()])
 
 
@@ -132,9 +127,7 @@ def get_mail_recipients(mail, orders, notified):
     """The orders of an email: kept since it was queued, or those it would
     go to if it was queued now."""
     if mail.is_planned:
-        return resolve_recipients(
-            get_selection(mail), mail.only_unnotified, orders, notified
-        )
+        return resolve_recipients(get_selection(mail), orders)
     ids = {order.pk for order in mail.get_orders()}
     return [order for order in orders if order.pk in ids]
 
@@ -168,7 +161,7 @@ def duplicate_mail(mail):
         body=mail.body,
         state=ReminderMessage.State.PLANNED,
     )
-    store_selection(copy, get_selection(mail), mail.only_unnotified)
+    store_selection(copy, get_selection(mail))
     return copy
 
 
@@ -288,9 +281,7 @@ def get_reminder_overview(production_day, client):
     by_pk = {order.pk: order for order in orders}
     for mail in mails:
         if mail.is_planned:
-            mail.recipients = resolve_recipients(
-                get_selection(mail), mail.only_unnotified, orders, notified
-            )
+            mail.recipients = resolve_recipients(get_selection(mail), orders)
         else:
             mail.recipients = [by_pk[pk] for pk in mail_orders[mail.pk] if pk in by_pk]
         mail.recipients_label = get_recipients_label(mail, points)
@@ -312,7 +303,6 @@ def get_reminder_overview(production_day, client):
         "notified": sum(order.pk in notified for order in orders),
         "points": points,
         "mails": mails,
-        "has_sent": bool(sent_mails),
     }
 
 

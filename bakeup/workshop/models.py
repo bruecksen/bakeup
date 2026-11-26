@@ -1211,8 +1211,7 @@ class ReminderMessage(CommonBaseClass):
     )
     # Who a mail is for, as chosen in its editor: the orders of these points
     # of sale and, with without_point_of_sale, the orders without one. No
-    # choice is every order of the day. only_unnotified leaves out the
-    # orders an earlier mail went to. The orders are looked up when the mail
+    # choice is every order of the day. The orders are looked up when the mail
     # is queued, see bakeup/workshop/reminders.py, so a draft also reaches
     # the orders that came in after it was written. The point_of_sale above
     # is only read for mails from before.
@@ -1220,7 +1219,6 @@ class ReminderMessage(CommonBaseClass):
         "shop.PointOfSale", blank=True, related_name="+"
     )
     without_point_of_sale = models.BooleanField(default=False)
-    only_unnotified = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-sent_date"]
