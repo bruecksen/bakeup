@@ -1,6 +1,10 @@
 {% extends "workshop/base.html" %}
 {% load i18n %}
 
+{% block wagtail_non_admin_draftail_head %}
+  {% include "wagtail_non_admin_draftail/draftail_media.html" %}
+{% endblock wagtail_non_admin_draftail_head %}
+
 {% block title %}{{ production_day.day_of_sale|date:"D, j. M Y" }} · {% trans "Pickup emails" %}{% endblock %}
 {% block page_header %}{% endblock %}
 
@@ -17,7 +21,7 @@
     <div class="reminder-chips" role="list">
       {% for point in overview.points %}
       {% if point.open %}
-      <a class="pickup-chip reminder-chip" role="listitem" href="{{ point.url }}" title="{% blocktranslate with name=point.name %}New email to {{ name }}{% endblocktranslate %}"><i class="far fa-circle" aria-hidden="true"></i> {{ point.short_name }} <span class="pickup-chip-count">{% blocktranslate count counter=point.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %}</span></a>
+      <a class="pickup-chip reminder-chip" role="listitem" href="{{ point.url }}" data-reminder-new data-points="{{ point.key }}"{% if point.only_unnotified %} data-only-unnotified{% endif %} title="{% blocktranslate with name=point.name %}New email to {{ name }}{% endblocktranslate %}"><i class="far fa-circle" aria-hidden="true"></i> {{ point.short_name }} <span class="pickup-chip-count">{% blocktranslate count counter=point.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %}</span></a>
       {% else %}
       <span class="pickup-chip reminder-chip is-done" role="listitem" title="{{ point.name }}"><i class="fas fa-check" aria-hidden="true"></i> {{ point.short_name }} <span class="pickup-chip-count">{{ point.orders }}</span></span>
       {% endif %}
@@ -27,6 +31,8 @@
   {% endif %}
   {% include "workshop/includes/actions.html" with actions=reminder_actions %}
 </div>
+
+{% if not editor.mail %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
 
 {% if overview.mails %}
 <div class="day-pane-card reminder-list">
@@ -62,6 +68,7 @@
       <div class="reminder-send-confirm"><button type="button" class="btn btn-surface" data-reminder-preview-toggle aria-controls="reminder-mail-{{ mail.pk }}">{% trans "Close" %}</button></div>
       {% endif %}
     </div>
+    {% if editor.mail and editor.mail.pk == mail.pk %}{% include "workshop/includes/reminder_editor.html" %}{% endif %}
   </div>
   {% endfor %}
   </div>
@@ -69,7 +76,7 @@
 {% else %}
 <div class="day-pane-card reminder-empty">
   <p>{% trans "No emails for this day yet. Write the pickup email, save it as a draft or send it right away." %}</p>
-  <a class="btn btn-primary" href="{{ new_url }}"><i class="fas fa-envelope" aria-hidden="true"></i> {% trans "Write an email to all" %}</a>
+  <a class="btn btn-primary" href="{{ new_url }}" data-reminder-new><i class="fas fa-envelope" aria-hidden="true"></i> {% trans "Write an email to all" %}</a>
 </div>
 {% endif %}
 {% endblock %}

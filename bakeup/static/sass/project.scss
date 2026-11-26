@@ -2349,7 +2349,8 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     & + & {
         border-top: 1px solid $gray-200;
     }
-    .btn {
+    .reminder-row-actions .btn,
+    .reminder-send-confirm .btn {
         --bs-btn-padding-y: #{$btn-padding-y-sm};
         --bs-btn-padding-x: #{$btn-padding-x-sm};
         --bs-btn-font-size: #{$btn-font-size-sm};
@@ -2531,10 +2532,33 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     }
 }
 // The editor: who gets the email first, then subject and text with the
-// preview beside them.
-.reminder-editor {
+// preview beside them. A new email is a card of its own above the table, a
+// draft is edited in a tinted panel under its row like the previews. The
+// stripe on the left marks both as the email being written.
+.reminder-editor-panel {
     padding: 1rem 1.25rem;
+    font-size: 1rem;
+    border-left: 3px solid $primary;
 
+    &.day-pane-card {
+        margin-bottom: .75rem;
+    }
+    .reminder-row > & {
+        grid-column: 1 / -1;
+        margin: .375rem 0 .5rem;
+        background-color: mix($light, $white, 55%);
+        border-radius: $border-radius;
+    }
+    // On a phone the panel gives the editor the width of the card.
+    @include media-breakpoint-down(sm) {
+        padding: .875rem .75rem;
+    }
+}
+// While a new email is written the hint of the empty day steps aside.
+.reminder-editor-panel:not([hidden]) ~ .reminder-empty {
+    display: none;
+}
+.reminder-editor {
     // Draftail keeps room on the left for its block menu, not on the right.
     .Draftail-Editor__wrapper {
         padding-right: 0;

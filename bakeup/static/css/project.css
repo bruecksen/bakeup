@@ -16098,7 +16098,8 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 .reminder-row + .reminder-row {
   border-top: 1px solid #e9ecef;
 }
-.reminder-row .btn {
+.reminder-row .reminder-row-actions .btn,
+.reminder-row .reminder-send-confirm .btn {
   --bs-btn-padding-y: 4px;
   --bs-btn-padding-y: 0.25rem;
   --bs-btn-padding-x: 8px;
@@ -16312,10 +16313,34 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
   font-size: 0.875rem;
 }
 
-.reminder-editor {
+.reminder-editor-panel {
   padding: 16px 20px;
   padding: 1rem 1.25rem;
+  font-size: 16px;
+  font-size: 1rem;
+  border-left: 3px solid #CD6646;
 }
+.reminder-editor-panel.day-pane-card {
+  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
+}
+.reminder-row > .reminder-editor-panel {
+  grid-column: 1/-1;
+  margin: 6px 0 8px;
+  margin: 0.375rem 0 0.5rem;
+  background-color: #f8f5e6;
+  border-radius: 0.375rem;
+}
+@media (max-width: 575.98px) {
+  .reminder-editor-panel {
+    padding: 0.875rem 0.75rem;
+  }
+}
+
+.reminder-editor-panel:not([hidden]) ~ .reminder-empty {
+  display: none;
+}
+
 .reminder-editor .Draftail-Editor__wrapper {
   padding-right: 0;
 }

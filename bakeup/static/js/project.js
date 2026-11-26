@@ -1539,6 +1539,59 @@ document.addEventListener("change", function(event) {
     countReminderRecipients(form);
 });
 
+// Pickup emails: "New email", "Write an email to all" and the chip of a
+// point of sale with open orders ([data-reminder-new]) open the editor of a
+// new email above the table in place, the chip with its point chosen
+// (data-points) and only the orders without an email when some of the point
+// had one (data-only-unnotified). It is on the page from the start, hidden,
+// so its text editor is ready. While a draft is edited the page has no such
+// editor and the links load the page with it open. "Cancel" closes it again
+// in place while nothing was changed in it, and reloads the page otherwise,
+// so no half written text comes back when it is opened next.
+function openNewReminder(trigger) {
+    var panel = document.querySelector('#reminder-editor[data-mode="new"]');
+    if (!panel) return false;
+    var form = panel.querySelector("form");
+    var points = (trigger.dataset.points || "").split(" ").filter(Boolean);
+    var all = form.querySelector("#recipients-all");
+    var some = form.querySelector("#recipients-points");
+    all.checked = !points.length;
+    if (some) some.checked = points.length > 0;
+    form.querySelectorAll('input[name="points"]').forEach(function(point) {
+        point.checked = points.indexOf(point.value) !== -1;
+    });
+    var only = form.querySelector("#recipients-only-unnotified");
+    if (only) only.checked = trigger.hasAttribute("data-only-unnotified");
+    countReminderRecipients(form);
+    panel.hidden = false;
+    document.body.dispatchEvent(new Event("reminder-preview"));
+    panel.scrollIntoView({ block: "start", behavior: "smooth" });
+    return true;
+}
+document.addEventListener("click", function(event) {
+    var trigger = event.target.closest("[data-reminder-new], #reminder-new");
+    if (trigger && openNewReminder(trigger)) {
+        event.preventDefault();
+        return;
+    }
+    var cancel = event.target.closest("#reminder-editor-cancel");
+    var panel = cancel && cancel.closest('#reminder-editor[data-mode="new"]');
+    if (panel && !panel.dataset.changed) {
+        event.preventDefault();
+        panel.hidden = true;
+        if (new URLSearchParams(location.search).has("new")) {
+            history.replaceState(history.state, "", location.pathname);
+        }
+    }
+});
+// Typing into the text editor shows as beforeinput, a placeholder as paste.
+["input", "beforeinput", "paste"].forEach(function(type) {
+    document.addEventListener(type, function(event) {
+        var panel = event.target.closest && event.target.closest("#reminder-editor");
+        if (panel && !event.target.closest("[data-reminder-recipients]")) panel.dataset.changed = "1";
+    }, true);
+});
+
 // Pickup emails: a placeholder goes in at the cursor of the subject or the
 // text, whichever was used last. The chips keep the focus where it is. The
 // text gets it as a paste, which Draftail handles like any pasted text,

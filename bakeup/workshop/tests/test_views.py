@@ -2335,6 +2335,12 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             kwargs={"production_day": self.production_day.pk, **kwargs},
         )
 
+    def new_url(self, query=""):
+        return f"{self.reminder_url()}?new=1{query}#reminder-editor"
+
+    def edit_url(self, mail):
+        return f"{self.reminder_url()}?edit={mail.pk}#reminder-editor"
+
     def page(self, **params):
         response = self.client.get(self.reminder_url(), params)
         self.assertEqual(response.status_code, 200)
@@ -2343,11 +2349,13 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
     def post(self, **data):
         return self.client.post(self.reminder_url(), data)
 
-    def write(self, action="save", url=None, subject="Abholung", points=(), **data):
-        # The editor of a new email, or of url: to all orders without points.
+    def write(self, action="save", mail=None, subject="Abholung", points=(), **data):
+        # The editor of a new email, or of the draft mail: to all orders
+        # without points.
         return self.client.post(
-            url or self.mail_url("new"),
+            self.reminder_url(),
             {
+                "editor": mail.pk if mail else "new",
                 "recipients": "points" if points else "all",
                 "points": [str(point) for point in points],
                 "subject": subject,
@@ -2404,24 +2412,32 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertEqual(page.context["overview"]["mails"], [])
         self.assertContains(page, "Noch keine E-Mails für diesen Tag.")
         self.assertContains(
-            page, f'<a class="btn btn-primary" href="{self.mail_url("new")}">'
+            page,
+            f'<a class="btn btn-primary" href="{self.new_url()}" data-reminder-new>',
         )
-        # The one button is in the card, the toolbar has none.
+        # The one button is in the card, the toolbar has none. It opens the
+        # editor that is on the page already, hidden.
         self.assertEqual(list(page.context["reminder_actions"]), [])
+        self.assertFalse(page.context["editor"]["is_open"])
+        self.assertContains(page, 'data-mode="new" hidden>')
 
     def test_status_line_counts_the_notified_orders_per_point_of_sale(self):
         self.two_points()
         self.customer_order(self.production_day, "Ohne")
         page = self.page()
         self.assertContains(page, "0 von 4 Bestellungen benachrichtigt")
-        new = self.mail_url("new")
+        new = f"{self.reminder_url()}?new=1"
         self.assertEqual(
             self.point_chips(page),
             [
-                ("N", 1, 1, f"{new}?points={self.north.pk}"),
-                ("Süd", 2, 2, f"{new}?points={self.south.pk}"),
-                ("Ohne Abholstelle", 1, 1, f"{new}?points=none"),
+                ("N", 1, 1, f"{new}&points={self.north.pk}#reminder-editor"),
+                ("Süd", 2, 2, f"{new}&points={self.south.pk}#reminder-editor"),
+                ("Ohne Abholstelle", 1, 1, f"{new}&points=none#reminder-editor"),
             ],
+        )
+        # The chip opens the editor in place with its point chosen.
+        self.assertContains(
+            page, f'data-reminder-new data-points="{self.north.pk}" title='
         )
         self.write("send", points=[self.south.pk])
         self.customer_order(self.production_day, "Neu", point_of_sale=self.south)
@@ -2432,10 +2448,19 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertEqual(
             self.point_chips(page),
             [
-                ("N", 1, 1, f"{new}?points={self.north.pk}"),
-                ("Süd", 3, 1, f"{new}?points={self.south.pk}&only_unnotified=1"),
-                ("Ohne Abholstelle", 1, 1, f"{new}?points=none"),
+                ("N", 1, 1, f"{new}&points={self.north.pk}#reminder-editor"),
+                (
+                    "Süd",
+                    3,
+                    1,
+                    f"{new}&points={self.south.pk}&only_unnotified=1#reminder-editor",
+                ),
+                ("Ohne Abholstelle", 1, 1, f"{new}&points=none#reminder-editor"),
             ],
+        )
+        self.assertContains(
+            page,
+            f'data-reminder-new data-points="{self.south.pk}" data-only-unnotified',
         )
 
     def test_a_point_notified_by_a_mail_from_before_is_done(self):
@@ -2454,7 +2479,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.assertEqual(
             self.point_chips(page),
             [
-                ("N", 1, 1, f"{self.mail_url('new')}?points={self.north.pk}"),
+                ("N", 1, 1, self.new_url(f"&points={self.north.pk}")),
                 ("Süd", 2, 0, None),
             ],
         )
@@ -2464,8 +2489,12 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
 
     def test_new_email_starts_with_the_standard_text_to_all_orders(self):
         self.two_points()
-        response = self.client.get(self.mail_url("new"))
-        form = response.context["form"]
+        # Hidden on the page, open with ?new=1 (the links without JavaScript).
+        self.assertFalse(self.page().context["editor"]["is_open"])
+        response = self.page(new="1")
+        editor = response.context["editor"]
+        self.assertTrue(editor["is_open"])
+        form = editor["form"]
         self.assertEqual(
             (form["recipients"].value(), form["points"].value()), ("all", [])
         )
@@ -2473,7 +2502,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             form["subject"].value(), "[{{site_name}}] Deine Bestellung ist abholbereit"
         )
         self.assertEqual(
-            [(point["name"], point["orders"]) for point in response.context["points"]],
+            [(point["name"], point["orders"]) for point in editor["points"]],
             [("Nord", 1), ("Süd", 2)],
         )
         self.assertContains(response, "An 3 Bestellungen senden")
@@ -2483,10 +2512,8 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
     def test_new_email_from_a_chip_chooses_its_point(self):
         self.two_points()
         self.write("send", points=[self.north.pk])
-        response = self.client.get(
-            self.mail_url("new"), {"points": self.south.pk, "only_unnotified": "1"}
-        )
-        form = response.context["form"]
+        response = self.page(new="1", points=self.south.pk, only_unnotified="1")
+        form = response.context["editor"]["form"]
         self.assertEqual(
             (
                 form["recipients"].value(),
@@ -2586,8 +2613,14 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.write("send")
         response = self.write("send", subject="Noch mal", only_unnotified="on")
         self.assertEqual(response.status_code, 200)
+        # The page again, with the editor open and what was written in it.
+        editor = response.context["editor"]
         self.assertEqual(
-            response.context["form"].non_field_errors(),
+            (editor["is_open"], editor["mail"], editor["form"]["subject"].value()),
+            (True, None, "Noch mal"),
+        )
+        self.assertEqual(
+            editor["form"].non_field_errors(),
             ["Niemand bekommt diese E-Mail, wähle andere Empfänger."],
         )
         self.assertFalse(ReminderMessage.objects.filter(subject="Noch mal").exists())
@@ -2596,8 +2629,9 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         self.two_points()
         response = self.write(recipients="points")
         self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["editor"]["is_open"])
         self.assertEqual(
-            response.context["form"].errors,
+            response.context["editor"]["form"].errors,
             {"points": ["Wähle mindestens eine Abholstelle."]},
         )
         self.assertFalse(ReminderMessage.objects.exists())
@@ -2605,8 +2639,19 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
     def test_editing_a_draft_changes_text_and_recipients(self):
         self.two_points()
         draft = self.make_draft(points=[self.north], subject="Erst")
-        url = self.mail_url("edit", pk=draft.pk)
-        form = self.client.get(url).context["form"]
+        self.make_draft(subject="Andere")
+        page = self.page(edit=draft.pk)
+        editor = page.context["editor"]
+        form = editor["form"]
+        self.assertEqual((editor["mail"], editor["is_open"]), (draft, True))
+        # The one editor of the page is under the row of the draft, "New
+        # email" loads the page with the editor of a new one.
+        html = page.content.decode()
+        self.assertEqual(html.count('id="reminder-editor"'), 1)
+        self.assertIn(
+            'id="reminder-editor"', html.split(f'id="reminder-row-{draft.pk}"')[1]
+        )
+        self.assertContains(page, f'href="{self.new_url()}" class="btn btn-primary"')
         self.assertEqual(
             (
                 form["recipients"].value(),
@@ -2615,23 +2660,33 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             ),
             ("points", [str(self.north.pk)], "Erst"),
         )
-        response = self.write(url=url, subject="Dann", points=[self.south.pk])
+        # An error shows the editor under its row again.
+        response = self.write(mail=draft, subject="", points=[self.south.pk])
+        self.assertEqual(
+            (
+                response.context["editor"]["mail"],
+                response.context["editor"]["form"].errors,
+            ),
+            (draft, {"subject": ["Dieses Feld muss ausgefüllt werden."]}),
+        )
+        response = self.write(mail=draft, subject="Dann", points=[self.south.pk])
         self.assertRedirects(response, self.reminder_url())
         draft.refresh_from_db()
         self.assertEqual(
             (draft.subject, list(draft.points_of_sale.all()), draft.state),
             ("Dann", [self.south], ReminderMessage.State.PLANNED),
         )
-        self.assertEqual(ReminderMessage.objects.count(), 1)
+        self.assertEqual(ReminderMessage.objects.count(), 2)
 
     def test_a_sent_email_is_not_edited_any_more(self):
         self.two_points()
         self.write("send")
         queued = ReminderMessage.objects.get()
-        url = self.mail_url("edit", pk=queued.pk)
-        self.assertRedirects(self.client.get(url), self.reminder_url())
         self.assertRedirects(
-            self.write(url=url, subject="Geändert"), self.reminder_url()
+            self.client.get(self.edit_url(queued)), self.reminder_url()
+        )
+        self.assertRedirects(
+            self.write(mail=queued, subject="Geändert"), self.reminder_url()
         )
         queued.refresh_from_db()
         self.assertEqual(queued.subject, "Abholung")
@@ -2727,7 +2782,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         sent = ReminderMessage.objects.get(state=ReminderMessage.State.SENT)
         response = self.post(duplicate=sent.pk)
         copy = ReminderMessage.objects.exclude(pk=sent.pk).get()
-        self.assertRedirects(response, self.mail_url("edit", pk=copy.pk))
+        self.assertRedirects(response, self.edit_url(copy))
         self.assertEqual(
             (
                 copy.state,
@@ -2800,8 +2855,8 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         # send to the login like the other parts of the workshop.
         urls = [
             (self.reminder_url(), 403),
-            (self.mail_url("new"), 403),
-            (self.mail_url("edit", pk=draft.pk), 403),
+            (self.new_url(), 403),
+            (self.edit_url(draft), 403),
             (self.mail_url("mail", pk=draft.pk), 302),
             (self.mail_url("preview"), 302),
         ]
@@ -2810,7 +2865,18 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
         for url, customer_status in urls:
             for method in ("get", "post"):
                 with self.subTest(url=url, method=method):
-                    data = {"send": draft.pk, "subject": "x", "body": self.body()}
+                    # Posted as the editor of the draft, which also sends it.
+                    data = (
+                        {}
+                        if method == "get"
+                        else {
+                            "editor": draft.pk,
+                            "send": "",
+                            "recipients": "all",
+                            "subject": "x",
+                            "body": self.body(),
+                        }
+                    )
                     response = getattr(TenantClient(self.tenant), method)(url, data)
                     self.assertEqual(response.status_code, 302)
                     self.assertTrue(response.url.startswith(login), response.url)

@@ -1,0 +1,63 @@
+{% load i18n django_bootstrap5 %}
+<section id="reminder-editor" class="reminder-editor-panel{% if not editor.mail %} day-pane-card{% endif %}" data-mode="{% if editor.mail %}edit{% else %}new{% endif %}"{% if editor.form.is_bound %} data-changed="1"{% endif %}{% if not editor.is_open %} hidden{% endif %}>
+<form method="post" class="reminder-editor" data-send-one="{{ editor.send_one }}" data-send-many="{{ editor.send_many }}">
+  {% csrf_token %}
+  {{ editor.form.media }}
+  <input type="hidden" name="editor" value="{% if editor.mail %}{{ editor.mail.pk }}{% else %}new{% endif %}">
+  <button type="submit" name="save" class="visually-hidden" tabindex="-1" aria-hidden="true"></button>
+  <h2 class="reminder-editor-title">{% if editor.mail %}{% trans "Edit email" %}{% else %}{% trans "New email" %}{% endif %}</h2>
+  {% if editor.form.non_field_errors %}
+  <div class="alert alert-danger">{% for error in editor.form.non_field_errors %}{{ error }}{% endfor %}</div>
+  {% endif %}
+  <fieldset class="reminder-recipients" data-reminder-recipients>
+    <legend class="reminder-label">{% trans "Recipients" %}</legend>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="recipients" value="all" id="recipients-all" data-orders="{{ editor.orders }}" data-open="{{ editor.open }}"{% if editor.is_all %} checked{% endif %}>
+      <label class="form-check-label" for="recipients-all">{% trans "All orders" %} <span class="text-muted">({{ editor.orders }})</span></label>
+    </div>
+    {% if editor.points %}
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="recipients" value="points" id="recipients-points"{% if not editor.is_all %} checked{% endif %}>
+      <label class="form-check-label" for="recipients-points">{% trans "Single points of sale" %}</label>
+    </div>
+    <div class="reminder-points">
+      {% for point in editor.points %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="points" value="{{ point.key }}" id="recipients-point-{{ point.key }}" data-orders="{{ point.orders }}" data-open="{{ point.open }}"{% if point.key in editor.selected %} checked{% endif %}>
+        <label class="form-check-label" for="recipients-point-{{ point.key }}">{{ point.name }} <span class="text-muted">({{ point.orders }})</span></label>
+      </div>
+      {% endfor %}
+      {% for error in editor.form.points.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+    {% if editor.has_sent %}
+    <div class="form-check reminder-only-unnotified">
+      <input class="form-check-input" type="checkbox" name="only_unnotified" value="on" id="recipients-only-unnotified"{% if editor.form.only_unnotified.value %} checked{% endif %}>
+      <label class="form-check-label" for="recipients-only-unnotified">{% trans "Only orders without an email" %} <span class="text-muted">({% blocktranslate count counter=editor.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %})</span></label>
+    </div>
+    {% endif %}
+  </fieldset>
+  <div class="row g-4">
+    <div class="col-12 col-xl-7">
+      {% bootstrap_field editor.form.subject %}
+      {% bootstrap_field editor.form.body show_help=False wrapper_class="mb-2" %}
+      <div class="reminder-tags">
+        <span class="reminder-tags-label">{% trans "Insert placeholder" %}</span>
+        {% for tag in editor.tags %}
+        <button type="button" class="reminder-tag" data-insert="{{ tag }}">{{ tag }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-12 col-xl-5">
+      <p class="reminder-label">{% trans "Preview" %}</p>
+      <div class="reminder-preview"
+        hx-post="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}"
+        hx-include=".reminder-editor"
+        hx-trigger="load, input delay:600ms from:.reminder-editor, change delay:50ms from:.reminder-editor, reminder-preview delay:400ms from:body"></div>
+    </div>
+  </div>
+  <div class="reminder-editor-footer">
+    {% include "workshop/includes/actions.html" with actions=editor.actions %}
+  </div>
+</form>
+</section>

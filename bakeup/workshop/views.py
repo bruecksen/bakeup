@@ -2740,15 +2740,20 @@ def get_reminder_url(production_day, name="production-day-reminder", **kwargs):
 
 
 def get_new_reminder_url(production_day, keys=(), only_unnotified=False):
-    """The editor of a new email, for the points of sale of keys (all
-    without)."""
+    """The tab with the editor of a new email open, for the points of sale of
+    keys (all without). The fallback of the buttons that open it in place."""
     params = QueryDict(mutable=True)
+    params["new"] = "1"
     if keys:
         params.setlist("points", list(keys))
     if only_unnotified:
         params["only_unnotified"] = "1"
-    url = get_reminder_url(production_day, "production-day-reminder-new")
-    return f"{url}?{params.urlencode()}" if params else url
+    return f"{get_reminder_url(production_day)}?{params.urlencode()}#reminder-editor"
+
+
+def get_edit_reminder_url(production_day, mail):
+    """The tab with the editor of a draft open under its row."""
+    return f"{get_reminder_url(production_day)}?edit={mail.pk}#reminder-editor"
 
 
 def get_reminder_preview(mail, recipients):
@@ -2816,7 +2821,19 @@ def production_day_reminder_mail_view(request, production_day, pk):
     )
 
 
-class ReminderDayMixin(StaffPermissionsMixin):
+class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
+    """The pickup emails of a day: how many orders were notified, per point
+    of sale, a table of its emails and the editor of one email, see
+    bakeup/workshop/reminders.py.
+
+    The page has one editor. Without ?edit it is the editor of a new email,
+    hidden above the table until "New email" or a chip opens it in place
+    (?new=1 opens it without JavaScript). With ?edit=<pk> it is the editor of
+    that draft, open under its row. The editor of the text doesn't survive an
+    htmx swap, so it comes with the page and is posted with a page load."""
+
+    template_name = "workshop/productionday_reminder.html"
+
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.production_day = get_object_or_404(
@@ -2826,20 +2843,6 @@ class ReminderDayMixin(StaffPermissionsMixin):
     def get_page_url(self):
         return get_reminder_url(self.production_day)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["production_day"] = self.production_day
-        context["day_switch"] = get_day_switch(self.production_day, "reminder")
-        return context
-
-
-class ProductionDayReminderView(ReminderDayMixin, TemplateView):
-    """The pickup emails of a day: how many orders were notified, per point
-    of sale, and a table of its emails, see bakeup/workshop/reminders.py.
-    New emails are written in ProductionDayReminderEditorView."""
-
-    template_name = "workshop/productionday_reminder.html"
-
     def get_mail_actions(self, mail):
         pk = str(mail.pk)
         actions = Actions()
@@ -2848,9 +2851,7 @@ class ProductionDayReminderView(ReminderDayMixin, TemplateView):
             actions.append(
                 Action(
                     _("Edit"),
-                    get_reminder_url(
-                        self.production_day, "production-day-reminder-edit", pk=pk
-                    ),
+                    get_edit_reminder_url(self.production_day, mail),
                     "fas fa-pen",
                     kind="secondary",
                 )
@@ -2905,25 +2906,129 @@ class ProductionDayReminderView(ReminderDayMixin, TemplateView):
             )
         return actions
 
-    def get_context_data(self, **kwargs):
+    def get_initial(self, mail, has_sent):
+        if mail:
+            selection = get_selection(mail)
+            only_unnotified = mail.only_unnotified
+            text = mail
+        else:
+            selection = set(self.request.GET.getlist("points"))
+            only_unnotified = bool(self.request.GET.get("only_unnotified"))
+            text = get_default_text(self.request, self.production_day)
+        return {
+            "recipients": ReminderMessageForm.POINTS
+            if selection
+            else ReminderMessageForm.ALL,
+            "points": sorted(selection),
+            "only_unnotified": only_unnotified and has_sent,
+            "subject": text.subject,
+            "body": text.body,
+        }
+
+    def get_form(self, mail, orders, notified, has_sent, data=None):
+        points = get_points(orders, notified, get_selection(mail) if mail else ())
+        instance = mail or ReminderMessage(production_day=self.production_day)
+        if data is not None:
+            return ReminderMessageForm(data, instance=instance, points=points)
+        return ReminderMessageForm(
+            instance=instance, initial=self.get_initial(mail, has_sent), points=points
+        )
+
+    def get_editor(self, overview, mail, form, is_open):
+        orders = overview["order_list"]
+        notified = overview["notified_ids"]
+        has_sent = overview["has_sent"]
+        selection = (
+            set(form["points"].value() or [])
+            if form["recipients"].value() == ReminderMessageForm.POINTS
+            else set()
+        )
+        count = len(
+            resolve_recipients(
+                selection,
+                has_sent and bool(form["only_unnotified"].value()),
+                orders,
+                notified,
+            )
+        )
+        return {
+            "form": form,
+            "mail": mail,
+            "is_open": is_open,
+            "points": form.point_list,
+            "selected": set(form["points"].value() or []),
+            "is_all": form["recipients"].value() != ReminderMessageForm.POINTS,
+            "has_sent": has_sent,
+            "orders": len(orders),
+            "open": len(orders) - overview["notified"],
+            "tags": ["{{ %s }}" % tag for tag in REMINDER_TAGS],
+            # The label of the button that sends, the number follows the
+            # chosen recipients in the browser.
+            "send_one": get_send_label(1),
+            "send_many": get_send_label(2, "__count__"),
+            "actions": Actions(
+                [
+                    Action(
+                        get_send_label(count),
+                        icon="fas fa-paper-plane",
+                        kind="primary",
+                        submit_name="send",
+                        id="reminder-send",
+                    ),
+                    Action(
+                        _("Save as draft"),
+                        icon="far fa-floppy-disk",
+                        kind="secondary",
+                        submit_name="save",
+                    ),
+                    # Closes the editor of a new email in place while nothing
+                    # was changed in it, see project.js.
+                    Action(
+                        _("Cancel"),
+                        self.get_page_url(),
+                        kind="secondary",
+                        id="reminder-editor-cancel",
+                    ),
+                    Action(
+                        _("Test email to me"),
+                        icon="far fa-paper-plane",
+                        submit_name="send_test",
+                    ),
+                ]
+            ),
+        }
+
+    def get_context_data(self, mail=None, form=None, is_open=False, **kwargs):
         context = super().get_context_data(**kwargs)
         overview = get_reminder_overview(self.production_day, connection.get_tenant())
         for point in overview["points"]:
             # A point with open orders starts an email to them.
             if point["open"]:
+                point["only_unnotified"] = point["open"] < point["orders"]
                 point["url"] = get_new_reminder_url(
-                    self.production_day,
-                    [point["key"]],
-                    only_unnotified=point["open"] < point["orders"],
+                    self.production_day, [point["key"]], point["only_unnotified"]
                 )
-        for mail in overview["mails"]:
-            mail.actions = self.get_mail_actions(mail)
-            mail.send = next(
-                (action for action in mail.actions if mail.is_planned and action.opens),
+        for item in overview["mails"]:
+            item.actions = self.get_mail_actions(item)
+            item.send = next(
+                (action for action in item.actions if item.is_planned and action.opens),
                 None,
             )
+        if form is None:
+            form = self.get_form(
+                mail,
+                overview["order_list"],
+                overview["notified_ids"],
+                overview["has_sent"],
+            )
+        editor = self.get_editor(overview, mail, form, is_open or bool(mail))
+        context["production_day"] = self.production_day
+        context["day_switch"] = get_day_switch(self.production_day, "reminder")
         context["overview"] = overview
+        context["editor"] = editor
         context["new_url"] = get_new_reminder_url(self.production_day)
+        # "New email" opens the editor in place, or loads the page with it
+        # while a draft is edited.
         context["reminder_actions"] = Actions(
             [
                 Action(
@@ -2931,6 +3036,7 @@ class ProductionDayReminderView(ReminderDayMixin, TemplateView):
                     context["new_url"],
                     "fas fa-plus",
                     kind="primary",
+                    id="reminder-new",
                 )
             ]
             if overview["mails"]
@@ -2943,8 +3049,31 @@ class ProductionDayReminderView(ReminderDayMixin, TemplateView):
             production_day=self.production_day, pk=pk, state__in=states
         ).first()
 
+    def get_draft(self, pk):
+        """The draft of ?edit or the editor's post, None once it was queued
+        or sent in the meantime."""
+        mail = (
+            self.get_mail(pk, *ReminderMessage.State.values) if pk.isdigit() else None
+        )
+        if mail and not mail.is_planned:
+            messages.warning(self.request, _("This email was sent already."))
+            return None
+        return mail
+
+    def get(self, request, *args, **kwargs):
+        if "edit" in request.GET:
+            mail = self.get_draft(request.GET["edit"])
+            if not mail:
+                return HttpResponseRedirect(self.get_page_url())
+            return self.render_to_response(self.get_context_data(mail=mail))
+        return self.render_to_response(
+            self.get_context_data(is_open="new" in request.GET)
+        )
+
     def post(self, request, *args, **kwargs):
         post = request.POST
+        if "editor" in post:
+            return self.post_editor(post["editor"])
         State = ReminderMessage.State
         if "send" in post:
             mail = self.get_mail(post["send"], State.PLANNED)
@@ -2976,10 +3105,60 @@ class ProductionDayReminderView(ReminderDayMixin, TemplateView):
             if mail:
                 copy = duplicate_mail(mail)
                 return HttpResponseRedirect(
-                    get_reminder_url(
-                        self.production_day, "production-day-reminder-edit", pk=copy.pk
-                    )
+                    get_edit_reminder_url(self.production_day, copy)
                 )
+        return HttpResponseRedirect(self.get_page_url())
+
+    def post_editor(self, target):
+        """The editor saved, sent or tested: "new" or the pk of a draft. On
+        an error the page comes again with the editor open where it was."""
+        request = self.request
+        mail = None
+        if target != "new":
+            mail = self.get_draft(target)
+            if not mail:
+                return HttpResponseRedirect(self.get_page_url())
+        orders = get_day_orders(self.production_day)
+        notified = get_notified(self.production_day, orders)
+        has_sent = ReminderMessage.objects.filter(
+            production_day=self.production_day, state__in=MAIL_STATES
+        ).exists()
+        form = self.get_form(mail, orders, notified, has_sent, data=request.POST)
+
+        def again():
+            return self.render_to_response(
+                self.get_context_data(mail=mail, form=form, is_open=True)
+            )
+
+        if not form.is_valid():
+            return again()
+        only_unnotified = has_sent and form.cleaned_data["only_unnotified"]
+        recipients = resolve_recipients(
+            form.selection, only_unnotified, orders, notified
+        )
+        text = form.save(commit=False)
+        if "send_test" in request.POST:
+            text.send_email(
+                request.user,
+                get_preview_order(recipients) or DummyOrder(),
+                connection.get_tenant(),
+            )
+            messages.success(
+                request,
+                _("Test email sent to %(email)s.") % {"email": request.user.email},
+            )
+            return again()
+        if "send" in request.POST and not recipients:
+            form.add_error(None, _("Nobody gets this email, choose other recipients."))
+            return again()
+        text.state = ReminderMessage.State.PLANNED
+        text.save()
+        store_selection(text, form.selection, only_unnotified)
+        if "send" in request.POST:
+            queue_mail(text, recipients)
+            messages.success(request, get_queued_message(len(recipients)))
+        else:
+            messages.success(request, _("Draft saved."))
         return HttpResponseRedirect(self.get_page_url())
 
 
@@ -2991,166 +3170,10 @@ def get_queued_message(count):
     ) % {"count": count}
 
 
-class ProductionDayReminderEditorView(ReminderDayMixin, TemplateView):
-    """A pickup email written or changed: who it is for, subject and text,
-    saved as a draft or sent. A page of its own in the tab, the editor of
-    the text doesn't survive an htmx swap."""
-
-    template_name = "workshop/productionday_reminder_editor.html"
-
-    def load(self):
-        """The email and the orders of the day, None once it can't be edited
-        any more: it was queued or sent in the meantime."""
-        self.mail = None
-        if "pk" in self.kwargs:
-            self.mail = ReminderMessage.objects.filter(
-                production_day=self.production_day, pk=self.kwargs["pk"]
-            ).first()
-            if not self.mail or not self.mail.is_planned:
-                if self.mail:
-                    messages.warning(self.request, _("This email was sent already."))
-                return None
-        self.orders = get_day_orders(self.production_day)
-        self.notified = get_notified(self.production_day, self.orders)
-        self.has_sent = ReminderMessage.objects.filter(
-            production_day=self.production_day, state__in=MAIL_STATES
-        ).exists()
-        return self
-
-    def get(self, request, *args, **kwargs):
-        if not self.load():
-            return HttpResponseRedirect(self.get_page_url())
-        return super().get(request, *args, **kwargs)
-
-    def get_initial(self):
-        if self.mail:
-            selection = get_selection(self.mail)
-            only_unnotified = self.mail.only_unnotified
-            text = self.mail
-        else:
-            selection = set(self.request.GET.getlist("points"))
-            only_unnotified = bool(self.request.GET.get("only_unnotified"))
-            text = get_default_text(self.request, self.production_day)
-        return {
-            "recipients": ReminderMessageForm.POINTS
-            if selection
-            else ReminderMessageForm.ALL,
-            "points": sorted(selection),
-            "only_unnotified": only_unnotified and self.has_sent,
-            "subject": text.subject,
-            "body": text.body,
-        }
-
-    def get_points(self):
-        keys = get_selection(self.mail) if self.mail else ()
-        return get_points(self.orders, self.notified, keys)
-
-    def get_form(self):
-        instance = self.mail or ReminderMessage(production_day=self.production_day)
-        if self.request.method == "POST":
-            return ReminderMessageForm(
-                self.request.POST, instance=instance, points=self.get_points()
-            )
-        return ReminderMessageForm(
-            instance=instance, initial=self.get_initial(), points=self.get_points()
-        )
-
-    def get_context_data(self, form=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        form = form or self.get_form()
-        open_orders = [order for order in self.orders if order.pk not in self.notified]
-        context.update(
-            {
-                "form": form,
-                "mail": self.mail,
-                "points": form.point_list,
-                "selected": set(form["points"].value() or []),
-                "is_all": form["recipients"].value() != ReminderMessageForm.POINTS,
-                "has_sent": self.has_sent,
-                "orders": len(self.orders),
-                "open": len(open_orders),
-                "tags": ["{{ %s }}" % tag for tag in REMINDER_TAGS],
-                # The label of the button that sends, the number follows the
-                # chosen recipients in the browser.
-                "send_one": self.get_send_label(1),
-                "send_many": self.get_send_label(2, "__count__"),
-                "actions": Actions(
-                    [
-                        Action(
-                            self.get_send_label(self.get_count(form)),
-                            icon="fas fa-paper-plane",
-                            kind="primary",
-                            submit_name="send",
-                            id="reminder-send",
-                        ),
-                        Action(
-                            _("Save as draft"),
-                            icon="far fa-floppy-disk",
-                            kind="secondary",
-                            submit_name="save",
-                        ),
-                        Action(_("Cancel"), self.get_page_url(), kind="secondary"),
-                        Action(
-                            _("Test email to me"),
-                            icon="far fa-paper-plane",
-                            submit_name="send_test",
-                        ),
-                    ]
-                ),
-            }
-        )
-        return context
-
-    def get_send_label(self, count, shown=None):
-        return ngettext(
-            "Send to %(count)s order", "Send to %(count)s orders", count
-        ) % {"count": count if shown is None else shown}
-
-    def get_count(self, form):
-        selection = (
-            set(form["points"].value() or [])
-            if form["recipients"].value() == ReminderMessageForm.POINTS
-            else set()
-        )
-        only_unnotified = self.has_sent and bool(form["only_unnotified"].value())
-        return len(
-            resolve_recipients(selection, only_unnotified, self.orders, self.notified)
-        )
-
-    def post(self, request, *args, **kwargs):
-        if not self.load():
-            return HttpResponseRedirect(self.get_page_url())
-        form = self.get_form()
-        if not form.is_valid():
-            return self.render_to_response(self.get_context_data(form=form))
-        only_unnotified = self.has_sent and form.cleaned_data["only_unnotified"]
-        recipients = resolve_recipients(
-            form.selection, only_unnotified, self.orders, self.notified
-        )
-        mail = form.save(commit=False)
-        if "send_test" in request.POST:
-            mail.send_email(
-                request.user,
-                get_preview_order(recipients) or DummyOrder(),
-                connection.get_tenant(),
-            )
-            messages.success(
-                request,
-                _("Test email sent to %(email)s.") % {"email": request.user.email},
-            )
-            return self.render_to_response(self.get_context_data(form=form))
-        if "send" in request.POST and not recipients:
-            form.add_error(None, _("Nobody gets this email, choose other recipients."))
-            return self.render_to_response(self.get_context_data(form=form))
-        mail.state = ReminderMessage.State.PLANNED
-        mail.save()
-        store_selection(mail, form.selection, only_unnotified)
-        if "send" in request.POST:
-            queue_mail(mail, recipients)
-            messages.success(request, get_queued_message(len(recipients)))
-        else:
-            messages.success(request, _("Draft saved."))
-        return HttpResponseRedirect(self.get_page_url())
+def get_send_label(count, shown=None):
+    return ngettext("Send to %(count)s order", "Send to %(count)s orders", count) % {
+        "count": count if shown is None else shown
+    }
 
 
 class ProductionDayMetaProductView(StaffPermissionsMixin, NextUrlMixin, CreateView):
