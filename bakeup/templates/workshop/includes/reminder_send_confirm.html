@@ -1,5 +1,5 @@
 {% load i18n %}
 <div class="reminder-send-confirm">
+  <button type="button" class="btn btn-link reminder-cancel" data-reminder-preview-toggle aria-controls="{{ send.opens }}">{% trans "Cancel" %}</button>
   <button type="submit" class="btn btn-primary" form="reminder-send-form" name="send" value="{{ mail.pk }}"><i class="fas fa-paper-plane" aria-hidden="true"></i> {% blocktranslate count counter=send.badge %}Send to {{ counter }} order{% plural %}Send to {{ counter }} orders{% endblocktranslate %}</button>
-  <button type="button" class="btn btn-surface" data-reminder-preview-toggle aria-controls="{{ send.opens }}">{% trans "Cancel" %}</button>
 </div>

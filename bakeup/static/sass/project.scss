@@ -2483,6 +2483,7 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 .reminder-send-confirm {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: .5rem;
     max-width: none;
     margin-top: .875rem;
@@ -2659,14 +2660,12 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         border-color: $gray-400;
     }
 }
-// The test email stands apart on the left, it sends nothing to customers.
-// On the right the steps from the least to the most final, sending last.
+// Every row of buttons of the pickup emails is on the right, from the least
+// to the most final step, the one that sends last. The test email is with
+// the preview it sends.
 .reminder-editor-footer {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem 1rem;
+    justify-content: flex-end;
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid $gray-200;
@@ -2675,33 +2674,28 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: .5rem;
-    margin-left: auto;
+}
+// "Cancel" is quiet text beside the buttons, in the editor and under a row.
+.reminder-cancel.btn-link {
+    color: $text-muted;
+    text-decoration: none;
 
-    .btn-link {
-        color: $text-muted;
-        text-decoration: none;
-
-        &:hover {
-            color: $body-color;
-            text-decoration: underline;
-        }
+    &:hover {
+        color: $body-color;
+        text-decoration: underline;
     }
 }
-// On a phone every button takes the width, the one that sends on top and
-// the test email last.
-@include media-breakpoint-down(sm) {
-    .reminder-editor-footer,
-    .reminder-editor-steps {
-        flex-direction: column-reverse;
-        align-items: stretch;
-        width: 100%;
-    }
-    .reminder-editor-footer {
-        flex-direction: column;
-    }
-    .reminder-editor-test {
-        order: 1;
+.reminder-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .375rem;
+
+    .reminder-label {
+        margin: 0;
     }
 }
 .action-badge {

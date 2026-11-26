@@ -49,7 +49,10 @@
       </div>
     </div>
     <div class="col-12 col-xl-5">
-      <p class="reminder-label">{% trans "Preview" %}</p>
+      <div class="reminder-preview-head">
+        <p class="reminder-label">{% trans "Preview" %}</p>
+        <button type="submit" name="send_test" class="btn btn-surface btn-sm" title="{% blocktranslate with email=editor.test_email %}Sends this email to {{ email }} only, filled with the first order.{% endblocktranslate %}"><i class="fas fa-vial" aria-hidden="true"></i> {% trans "Test email to me" %}</button>
+      </div>
       <div class="reminder-preview"
         hx-post="{% url 'workshop:production-day-reminder-preview' production_day=production_day.pk %}"
         hx-include=".reminder-editor"
@@ -57,9 +60,8 @@
     </div>
   </div>
   <div class="reminder-editor-footer">
-    <button type="submit" name="send_test" class="btn btn-surface reminder-editor-test" title="{% blocktranslate with email=editor.test_email %}Sends this email to {{ email }} only, filled with the first order.{% endblocktranslate %}"><i class="fas fa-vial" aria-hidden="true"></i> {% trans "Test email to me" %}</button>
     <div class="reminder-editor-steps">
-      <a class="btn btn-link" href="{{ editor.cancel_url }}" id="reminder-editor-cancel">{% trans "Cancel" %}</a>
+      <a class="btn btn-link reminder-cancel" href="{{ editor.cancel_url }}" id="reminder-editor-cancel">{% trans "Cancel" %}</a>
       <button type="submit" name="save" class="btn btn-surface"><i class="far fa-floppy-disk" aria-hidden="true"></i> {% trans "Save as draft" %}</button>
       <button type="submit" name="send" class="btn btn-primary" id="reminder-send"><i class="fas fa-paper-plane" aria-hidden="true"></i> <span class="action-label">{{ editor.send_label }}</span></button>
     </div>
