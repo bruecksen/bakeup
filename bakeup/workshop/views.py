@@ -2959,6 +2959,12 @@ class ProductionDayReminderView(StaffPermissionsMixin, TemplateView):
             "selected": set(form["points"].value() or []),
             "is_all": form["recipients"].value() != ReminderMessageForm.POINTS,
             "has_sent": has_sent,
+            # Only while there is an order no email went to yet, or the
+            # draft was saved with it.
+            "offers_only_unnotified": has_sent
+            and bool(
+                len(orders) - overview["notified"] or form["only_unnotified"].value()
+            ),
             "orders": len(orders),
             "open": len(orders) - overview["notified"],
             "tags": ["{{ %s }}" % tag for tag in REMINDER_TAGS],

@@ -2607,7 +2607,7 @@ class PickupEmailsEditorTest(PickupEmailsViewTest):
             self.mail_rows()[0],
             ("Rest", "Alle", 3, ReminderMessage.State.PLANNED_SENDING),
         )
-        self.assertContains(self.page(), "nur Bestellungen ohne E-Mail")
+        self.assertContains(self.page(), "nur noch nicht benachrichtigte Bestellungen")
         self.assertEqual(
             self.tab_badge(),
             "✓",

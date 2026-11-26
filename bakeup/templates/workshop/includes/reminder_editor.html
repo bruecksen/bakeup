@@ -30,10 +30,10 @@
       {% for error in editor.form.points.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
     </div>
     {% endif %}
-    {% if editor.has_sent %}
+    {% if editor.offers_only_unnotified %}
     <div class="form-check reminder-only-unnotified">
       <input class="form-check-input" type="checkbox" name="only_unnotified" value="on" id="recipients-only-unnotified"{% if editor.form.only_unnotified.value %} checked{% endif %}>
-      <label class="form-check-label" for="recipients-only-unnotified">{% trans "Only orders without an email" %} <span class="text-muted">({% blocktranslate count counter=editor.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %})</span></label>
+      <label class="form-check-label" for="recipients-only-unnotified">{% trans "Only orders that were not notified yet" %} <span class="text-muted">({% blocktranslate count counter=editor.open %}{{ counter }} open{% plural %}{{ counter }} open{% endblocktranslate %})</span></label>
     </div>
     {% endif %}
   </fieldset>

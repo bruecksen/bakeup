@@ -46,7 +46,7 @@
   <div class="reminder-row" id="reminder-row-{{ mail.pk }}">
     <span class="reminder-row-name">
       <span title="{{ mail.recipients_label }}">{{ mail.recipients_label }} <span class="reminder-row-count">({{ mail.recipients|length }})</span></span>
-      {% if mail.only_unnotified %}<small class="reminder-row-note">{% trans "only orders without an email" %}</small>{% endif %}
+      {% if mail.only_unnotified %}<small class="reminder-row-note">{% trans "only orders that were not notified yet" %}</small>{% endif %}
     </span>
     <span class="reminder-row-subject" title="{{ mail.display_subject }}">{{ mail.display_subject|default:_("No subject yet") }}</span>
     <span class="reminder-status{% if mail.is_planned %} is-draft{% elif mail.is_planned_sending %} is-queued{% elif mail.is_sending %} is-sending{% elif mail.failed %} is-failed{% else %} is-sent{% endif %}">

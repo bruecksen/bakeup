@@ -3069,8 +3069,8 @@ msgstr[1] "%(counter)s offen"
 msgid "Status"
 msgstr "Status"
 
-msgid "only orders without an email"
-msgstr "nur Bestellungen ohne E-Mail"
+msgid "only orders that were not notified yet"
+msgstr "nur noch nicht benachrichtigte Bestellungen"
 
 msgid "Draft"
 msgstr "Entwurf"
@@ -3091,8 +3091,8 @@ msgstr "E-Mail bearbeiten"
 msgid "All orders"
 msgstr "Alle Bestellungen"
 
-msgid "Only orders without an email"
-msgstr "Nur Bestellungen ohne E-Mail"
+msgid "Only orders that were not notified yet"
+msgstr "Nur noch nicht benachrichtigte Bestellungen"
 
 msgid "Choose at least one point of sale."
 msgstr "Wähle mindestens eine Abholstelle."

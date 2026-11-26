@@ -593,7 +593,7 @@ class ReminderMessageForm(ModelForm):
         required=False, widget=forms.CheckboxSelectMultiple
     )
     only_unnotified = forms.BooleanField(
-        required=False, label=_("Only orders without an email")
+        required=False, label=_("Only orders that were not notified yet")
     )
     subject = forms.CharField(widget=forms.TextInput, label=_("Subject"))
 
