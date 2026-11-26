@@ -2308,7 +2308,7 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
     gap: .375rem;
 }
 // A point with open orders is a link to a new email to them, a point whose
-// orders were all told is done in the colour of success.
+// orders were all told is done, filled lightly in the colour of success.
 .reminder-chip {
     text-decoration: none;
 
@@ -2316,11 +2316,13 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
         color: $primary;
     }
     &.is-done {
-        color: $text-muted;
-        background-color: transparent;
+        color: shade-color($success, 35%);
+        background-color: mix($success, $white, 14%);
+        border-color: mix($success, $white, 35%);
 
-        i {
-            color: $success;
+        i,
+        .pickup-chip-count {
+            color: inherit;
         }
     }
 }
