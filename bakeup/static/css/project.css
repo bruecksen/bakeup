@@ -16057,14 +16057,11 @@ body:has(.day-calendar-modal.show) .modal-backdrop {
 .reminder-chip i {
   color: #CD6646;
 }
-.reminder-chip.is-done {
-  color: #105837;
-  background-color: #dfeee7;
-  border-color: #afd5c3;
+.reminder-chip.is-done i {
+  color: #198754;
 }
-.reminder-chip.is-done i,
-.reminder-chip.is-done .pickup-chip-count {
-  color: inherit;
+.reminder-chip.is-done:hover {
+  border-color: #dee2e6;
 }
 
 .reminder-list {
