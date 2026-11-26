@@ -30,6 +30,12 @@ from bakeup.workshop.managers import (
     ProductionDayProductManager,
     ProductManager,
 )
+from bakeup.workshop.recipe_tools import (
+    get_heat_capacity_categories,
+    heat_capacity,
+    is_liquid,
+    water_temperature,
+)
 from bakeup.workshop.templatetags.workshop_tags import clever_rounding
 
 
@@ -149,6 +155,20 @@ class Product(CommonBaseClass):
     )
     vat_rate = models.PositiveSmallIntegerField(
         choices=VatRate.choices, default=VatRate.REDUCED, verbose_name=_("VAT rate")
+    )
+    # For the water temperature in the production plan, empty uses
+    # DOUGH_TEMPERATURE_DEFAULT and MIXER_WARMING_DEFAULT.
+    dough_temperature = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name=_("Dough temperature"),
+        help_text=_("Desired temperature of the dough after mixing in °C."),
+    )
+    mixer_warming = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name=_("Mixer warming"),
+        help_text=_("By how many °C the mixer warms the dough."),
     )
 
     tags = TaggableManager(blank=True, ordering=["name"])
@@ -889,6 +909,10 @@ class ProductionPlan(CommonBaseClass):
     # ProductHierarchy pks of this plan's own product copy that were ticked off
     # during production.
     checked_ingredients = models.JSONField(default=list, blank=True)
+    # What was entered in the water temperature calculator of this plan:
+    # {"dough": 26.0, "warming": 2.0, "rows": {"<ProductHierarchy pk>": 18.0}}.
+    # A missing key uses the default, empty as long as nothing was applied.
+    temperatures = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ("-production_day", "product__name")
@@ -1000,20 +1024,104 @@ class ProductionPlan(CommonBaseClass):
             plan.save(update_fields=["checked_ingredients"])
         self.checked_ingredients = plan.checked_ingredients
 
-    def get_step(self, root):
-        # The ingredients of this plan as a checklist. Ticking off is possible
-        # while the root plan is in production, afterwards the checks stay
-        # visible.
-        rows = [
+    def set_temperatures(self, temperatures):
+        self.temperatures = temperatures
+        self.save(update_fields=["temperatures"])
+
+    def get_step_rows(self):
+        return [
             {
                 "row": row,
                 "weight": row.child.weight_in_base_unit * self.quantity * row.quantity,
                 "checked": row.pk in self.checked_ingredients,
                 "unit": row.child.uom.base_abbr if row.child.uom else "g",
+                # Set on the water row once a calculation is applied.
+                "water_temperature": None,
             }
             # The order of the recipe page, the heaviest first.
             for row in self.product.get_children_by_weight()
         ]
+
+    def get_water(self, rows=None, temperatures=None, categories=None):
+        # The water temperature calculation of this step, None without a
+        # liquid. `temperatures` are values in the format of the field that are
+        # not saved (yet), to preview a calculation. `categories` are the
+        # loaded get_heat_capacity_categories(), for many steps at once.
+        if rows is None:
+            rows = self.get_step_rows()
+        if categories is None:
+            categories = get_heat_capacity_categories()
+        # The heaviest liquid that is no dough itself is the water, the rows
+        # are ordered by weight. Further liquids (milk, ...) count as normal
+        # ingredients.
+        water_row = next(
+            (
+                row
+                for row in rows
+                if is_liquid(row["row"].child, categories)
+                and not row["row"].child.parents.all()
+            ),
+            None,
+        )
+        if water_row is None:
+            return None
+        values = self.temperatures if temperatures is None else temperatures
+        dough = values.get("dough")
+        if dough is None:
+            dough = self.product.dough_temperature
+        if dough is None:
+            dough = settings.DOUGH_TEMPERATURE_DEFAULT
+        warming = values.get("warming")
+        if warming is None:
+            warming = self.product.mixer_warming
+        if warming is None:
+            warming = settings.MIXER_WARMING_DEFAULT
+        row_temperatures = values.get("rows") or {}
+        others = []
+        for row in rows:
+            if row is water_row:
+                continue
+            temperature = row_temperatures.get(str(row["row"].pk))
+            if temperature is None:
+                temperature = settings.INGREDIENT_TEMPERATURE_DEFAULT
+            others.append(
+                {
+                    "row": row["row"],
+                    "name": row["row"].child.name,
+                    "weight": row["weight"],
+                    "unit": row["unit"],
+                    "heat_capacity": heat_capacity(row["row"].child, categories),
+                    "temperature": temperature,
+                }
+            )
+        result = water_temperature(
+            dough,
+            warming,
+            water_row["weight"],
+            [
+                (other["weight"], other["heat_capacity"], other["temperature"])
+                for other in others
+            ],
+        )
+        return {
+            "row": water_row,
+            "dough": dough,
+            "warming": warming,
+            "rows": others,
+            "result": result,
+            # Water is liquid between 0 and 100 °C only.
+            "unreachable": result is not None and not 0 <= result <= 100,
+            "applied": bool(self.temperatures),
+        }
+
+    def get_step(self, root, categories=None):
+        # The ingredients of this plan as a checklist. Ticking off is possible
+        # while the root plan is in production, afterwards the checks stay
+        # visible.
+        rows = self.get_step_rows()
+        water = self.get_water(rows, categories=categories)
+        if water and water["applied"]:
+            water["row"]["water_temperature"] = water["result"]
         return {
             "plan": self,
             "rows": rows,
@@ -1022,6 +1130,7 @@ class ProductionPlan(CommonBaseClass):
             "done": bool(rows) and all(row["checked"] for row in rows),
             "show_checks": root.is_production or root.is_produced,
             "can_check": root.is_production,
+            "water": water,
         }
 
     @classmethod

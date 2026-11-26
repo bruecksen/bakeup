@@ -13,7 +13,7 @@
         <label class="ingredient-row{% if item.checked %} is-checked{% endif %}">
           <input type="checkbox" class="form-check-input ingredient-check"{% if item.checked %} checked{% endif %}>
           <span class="ingredient-weight">{{ item.weight|clever_unit:item.unit }}</span>
-          <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}</span>
+          <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}{% if item.water_temperature is not None %} <span class="ingredient-temperature" title="{% trans 'Water temperature' %}">{{ item.water_temperature|floatformat:0 }} °C</span>{% endif %}</span>
         </label>
       </form>
       {% else %}
@@ -24,7 +24,7 @@
         <span class="ingredient-check-print" aria-hidden="true"></span>
         {% endif %}
         <span class="ingredient-weight">{{ item.weight|clever_unit:item.unit }}</span>
-        <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}</span>
+        <span class="ingredient-name">{{ item.row.child.name }}{% if item.ref %} <a href="#step-{{ item.ref.plan.pk }}" class="stage-number stage-ref" title="{% blocktrans with number=item.ref.stage %}Made in stage {{ number }}{% endblocktrans %}">{{ item.ref.stage }}</a>{% endif %}{% if item.water_temperature is not None %} <span class="ingredient-temperature" title="{% trans 'Water temperature' %}">{{ item.water_temperature|floatformat:0 }} °C</span>{% endif %}</span>
       </div>
       {% endif %}
     </li>

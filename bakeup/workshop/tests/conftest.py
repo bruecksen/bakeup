@@ -80,3 +80,15 @@ def production_day_form_data():
         return data
 
     return build
+
+
+@pytest.fixture
+def bread_plan(planned_production_day):
+    # The main dough of 10 breads, the last step of the Bread card:
+    # sourdough 2200 g, wheat 4000 g, flour 1000 g, rye 2000 g, water 2500 g
+    # and salt 120 g.
+    return ProductionPlan.objects.get(
+        production_day=planned_production_day,
+        parent_plan=None,
+        product__product_template__name="Bread",
+    )

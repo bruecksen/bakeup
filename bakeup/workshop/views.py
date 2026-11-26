@@ -84,6 +84,7 @@ from bakeup.workshop.forms import (
     SelectProductForm,
     SelectProductionDayForm,
     SelectReminderMessageForm,
+    WaterTemperatureForm,
     ingredient_choices,
 )
 from bakeup.workshop.models import (
@@ -97,6 +98,7 @@ from bakeup.workshop.models import (
     ReminderMessage,
     prefetch_recipe_trees,
 )
+from bakeup.workshop.recipe_tools import get_heat_capacity_categories
 from bakeup.workshop.tables import (
     CustomerFilter,
     CustomerOrderFilter,
@@ -667,6 +669,8 @@ def get_production_plan_cards(production_day, chosen_steps=None):
         ordered_quantities[key] = ordered_quantities.get(key, 0) + position["quantity"]
     roots = [plan for plan in plans if plan.parent_plan_id is None]
     sub_plans = {root.pk: [] for root in roots}
+    # For the water temperature of the steps, see ProductionPlan.get_water.
+    categories = get_heat_capacity_categories()
     for plan in plans:
         depth = 0
         root = plan
@@ -684,7 +688,7 @@ def get_production_plan_cards(production_day, chosen_steps=None):
         # plan) are the last step.
         if any(not row.child.parents.all() for row in root.product.parents.all()):
             plans_by_depth.append((0, root))
-        stages = get_production_plan_stages(root, plans_by_depth)
+        stages = get_production_plan_stages(root, plans_by_depth, categories)
         steps = [step for stage in stages for step in stage["steps"]]
         # In production one dough is made at a time, the first open one. A
         # dough the baker chose comes first until it's done, then the first
@@ -756,14 +760,14 @@ def get_production_plan_cards(production_day, chosen_steps=None):
     return cards
 
 
-def get_production_plan_stages(root, plans_by_depth):
+def get_production_plan_stages(root, plans_by_depth, categories=None):
     # Steps of the same depth can be made at the same time, they form a stage.
     # Stages are numbered in the order they are made, the deepest first.
     stages = []
     for depth, plan in plans_by_depth:
         if not stages or stages[-1]["depth"] != depth:
             stages.append({"depth": depth, "number": len(stages) + 1, "steps": []})
-        step = plan.get_step(root)
+        step = plan.get_step(root, categories)
         step["stage"] = stages[-1]["number"]
         stages[-1]["steps"].append(step)
     steps_by_product = {
@@ -867,19 +871,73 @@ def production_plan_steps_view(request, pk):
     return render_production_plan_steps(request, root)
 
 
-def render_production_plan_steps(request, root, status=200):
+@staff_member_required(login_url="login")
+def production_plan_water_temperature_view(request, pk):
+    # The water temperature calculator of a step, the content of the modal. In
+    # every state of the plan, water is tempered before production starts. A
+    # change of a field only previews the result, "Apply" saves the
+    # temperatures on the plan and "Reset" removes them again.
+    plan = get_object_or_404(ProductionPlan.objects.select_related("product"), pk=pk)
+    plan.product.load_recipe_tree()
+    water = plan.get_water()
+    if water is None:
+        raise Http404
+    if request.method == "POST" and "reset" in request.POST:
+        plan.set_temperatures({})
+        return render_production_plan_water_temperature_applied(request, plan)
+    form = WaterTemperatureForm(
+        request.POST if request.method == "POST" else None, water=water
+    )
+    status = 200
+    if request.method == "POST":
+        if form.is_valid():
+            water = plan.get_water(temperatures=form.get_temperatures())
+            if "apply" in request.POST:
+                # Always with the dough temperature and the mixer warming, so
+                # an applied calculation is never empty.
+                plan.set_temperatures(
+                    {
+                        **form.get_temperatures(),
+                        "dough": water["dough"],
+                        "warming": water["warming"],
+                    }
+                )
+                return render_production_plan_water_temperature_applied(request, plan)
+        else:
+            status = 422
+    return render(
+        request,
+        "workshop/includes/production_plan_water_temperature.html",
+        {"plan": plan, "water": water, "form": form},
+        status=status,
+    )
+
+
+def render_production_plan_water_temperature_applied(request, plan):
+    # The modal is not the place of the steps, they are swapped out of band.
+    # The event closes the modal, see project.js.
+    response = render_production_plan_steps(
+        request,
+        plan.get_root(),
+        template_name="workshop/includes/production_plan_water_temperature_applied.html",
+    )
+    response["HX-Trigger"] = "closeProductionPlanModal"
+    return response
+
+
+def render_production_plan_steps(
+    request,
+    root,
+    status=200,
+    template_name="workshop/includes/production_plan_step_toggled.html",
+):
     # All steps of the card, finishing or undoing one moves the current stage,
     # with the header progress, as the page renders them.
     for card in get_production_plan_cards(
         root.production_day, get_chosen_steps(request)
     ):
         if card["root"].pk == root.pk:
-            return render(
-                request,
-                "workshop/includes/production_plan_step_toggled.html",
-                {"card": card},
-                status=status,
-            )
+            return render(request, template_name, {"card": card}, status=status)
     raise Http404
 
 

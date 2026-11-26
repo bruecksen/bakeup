@@ -24,6 +24,19 @@
       hx-swap="outerMorph"
       title="{% trans 'Make this dough next' %}">{% trans "Next" %}</button>
     {% endif %}
+    {% if step.water %}
+    <div class="dropdown production-step-menu d-print-none">
+      <button type="button" class="production-step-menu-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% trans 'More actions' %}">
+        <i class="fas fa-ellipsis-h fa-fw"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><button type="button" class="dropdown-item"
+          hx-get="{% url 'workshop:production-plan-water-temperature' pk=step.plan.pk %}"
+          hx-target="#production-plan-modal .modal-content"
+          data-production-plan-modal><i class="fas fa-temperature-half fa-fw"></i> {% trans "Water temperature" %}</button></li>
+      </ul>
+    </div>
+    {% endif %}
   </header>
   {% include "workshop/includes/production_plan_step_rows.html" %}
   {% endif %}
