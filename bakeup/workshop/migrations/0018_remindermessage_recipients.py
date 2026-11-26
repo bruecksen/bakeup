@@ -13,6 +13,19 @@ def move_point_of_sale_of_drafts(apps, schema_editor):
         draft.save(update_fields=["point_of_sale"])
 
 
+def write_down_orders_of_queued_mails(apps, schema_editor):
+    # A mail is sent to the orders written down on it. One queued before that
+    # was kept gets them here, by the rule of before: the orders of its point
+    # of sale, or all of the day.
+    ReminderMessage = apps.get_model("workshop", "ReminderMessage")
+    CustomerOrder = apps.get_model("shop", "CustomerOrder")
+    for mail in ReminderMessage.objects.filter(state__in=[2, 3], orders__isnull=True):
+        orders = CustomerOrder.objects.filter(production_day_id=mail.production_day_id)
+        if mail.point_of_sale_id:
+            orders = orders.filter(point_of_sale_id=mail.point_of_sale_id)
+        mail.orders.set(orders)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("shop", "0012_customerordertemplateskip"),
@@ -38,4 +51,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False),
         ),
         migrations.RunPython(move_point_of_sale_of_drafts, migrations.RunPython.noop),
+        migrations.RunPython(
+            write_down_orders_of_queued_mails, migrations.RunPython.noop
+        ),
     ]

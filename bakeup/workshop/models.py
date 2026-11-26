@@ -1355,7 +1355,10 @@ class ReminderMessage(CommonBaseClass):
     def send_messages(self):
         user_successfull = []
         emails_error = {}
-        orders = self.get_orders()
+        # Only the orders written down when it was queued: get_orders falls
+        # back to the whole day for a mail from before, which must not
+        # happen to a mail whose orders were deleted in the meantime.
+        orders = self.orders.all()
         client = connection.get_tenant()
         for order in orders:
             # An order entered without a customer has nobody to write to.

@@ -20,6 +20,7 @@ from before the orders were kept go by their point of sale, see
 get_mail_orders.
 """
 
+from django.db import transaction
 from django.template import Context, Template, TemplateSyntaxError
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -141,9 +142,11 @@ def get_mail_recipients(mail, orders, notified):
 def queue_mail(mail, orders):
     """Queues a draft for the command that sends it, with the orders it goes
     to from now on."""
-    mail.state = ReminderMessage.State.PLANNED_SENDING
-    mail.save(update_fields=["state"])
-    mail.orders.set(orders)
+    # In one step: the command must not find it queued without its orders.
+    with transaction.atomic():
+        mail.orders.set(orders)
+        mail.state = ReminderMessage.State.PLANNED_SENDING
+        mail.save(update_fields=["state"])
     return mail
 
 
