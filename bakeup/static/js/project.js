@@ -1322,6 +1322,44 @@ document.addEventListener("htmx:after:swap", function() {
     });
 });
 
+// Product form: the shop fields only for a product sold in the shop, the
+// dough temperatures only for the others. The server renders the state the
+// form starts with.
+document.addEventListener("change", function(event) {
+    if (event.target.id !== "id_is_sellable") return;
+    var sellable = event.target.checked;
+    event.target.form.querySelectorAll("[data-sellable-only]").forEach(function(el) {
+        el.hidden = !sellable;
+    });
+    event.target.form.querySelectorAll("[data-not-sellable-only]").forEach(function(el) {
+        el.hidden = sellable;
+    });
+});
+
+// The modal opens once its content has arrived: opening it empty first makes
+// it jump when the content comes, or shows the content of the step before.
+var productionPlanModalPending = false;
+document.addEventListener("click", function(event) {
+    if (!event.target.closest("[data-production-plan-modal]")) return;
+    var content = document.querySelector("#production-plan-modal .modal-content");
+    if (content) content.innerHTML = "";
+    productionPlanModalPending = true;
+});
+document.addEventListener("htmx:after:swap", function() {
+    if (!productionPlanModalPending) return;
+    var modal = document.getElementById("production-plan-modal");
+    if (!modal || !modal.querySelector(".modal-content").children.length) return;
+    productionPlanModalPending = false;
+    bootstrap.Modal.getOrCreateInstance(modal).show();
+});
+// Production plan: the server closes the modal of a step tool (water
+// temperature) once it is applied, with an HX-Trigger response header.
+document.addEventListener("closeProductionPlanModal", function() {
+    var modal = document.getElementById("production-plan-modal");
+    var instance = modal && bootstrap.Modal.getInstance(modal);
+    if (instance) instance.hide();
+});
+
 // Formsets with rows that can be added and removed: [data-formset] holds the
 // rows, a <template data-formset-template> of the empty form and the buttons.
 document.addEventListener('click', function (event) {

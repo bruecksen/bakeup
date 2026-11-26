@@ -1576,6 +1576,105 @@ i.step-check-all {
     font-weight: 600;
     border-bottom: 0;
 }
+// The applied water temperature next to the water.
+.ingredient-temperature {
+    margin-left: .375rem;
+    padding: .125rem .5rem;
+    color: $primary;
+    font-size: .875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    border: 1px solid currentColor;
+    border-radius: 50rem;
+}
+.production-step-menu {
+    flex: 0 0 auto;
+
+    // The step header is a <header>, so the menu looks like the ones of the
+    // page header. Their opening animation animates the transform that
+    // positions this menu: it would open on top of the button and jump below.
+    .dropdown-menu.show {
+        animation: none;
+    }
+}
+// The "…" of a step: a quiet round icon button, not a filled one.
+.production-step-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    color: $gray-600;
+    background-color: transparent;
+    border: 0;
+    border-radius: 50%;
+
+    &:hover,
+    &:focus-visible,
+    &.show {
+        color: $gray-800;
+        background-color: $gray-200;
+    }
+}
+
+// Water temperature calculator in the modal: rows like the ingredient rows,
+// with a compact input at the end. The form sits between the modal and its
+// body, it passes on the height so a long list scrolls.
+.water-temperature {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin: 0;
+}
+.water-temperature-result {
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.water-temperature-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+
+    &.is-unreachable {
+        color: $danger;
+    }
+}
+.water-temperature-water {
+    color: $text-muted;
+}
+.water-temperature-hint {
+    color: $danger;
+    font-size: .875rem;
+}
+.water-temperature-label {
+    margin-top: .5rem;
+}
+.water-temperature-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 .75rem;
+    min-height: $tap-size + 4px;
+    padding: .25rem .5rem;
+    border-bottom: 1px solid $gray-300;
+
+    .water-temperature-name {
+        flex: 1 1 0;
+        min-width: 0;
+        margin: 0;
+    }
+    .input-group {
+        flex: 0 0 7.5rem;
+        width: 7.5rem;
+    }
+    .invalid-feedback {
+        flex: 0 0 100%;
+        text-align: right;
+    }
+}
 
 // Instructions and notes open and close, with the chevron like on the card
 // header. The summary as flex has no marker.
@@ -1786,5 +1885,28 @@ i.step-check-all {
         --bs-btn-hover-color: var(--bs-btn-color);
         --bs-btn-hover-bg: transparent;
         --bs-btn-hover-border-color: var(--bs-btn-border-color);
+    }
+}
+
+// Product form: the fields in sections, each a white panel with its title.
+.product-form {
+    max-width: 60rem;
+
+    .form-section {
+        margin-bottom: 1rem;
+        padding: 1rem 1.25rem .25rem;
+        background-color: $white;
+        border-radius: .75rem;
+
+        .form-section-title {
+            margin-bottom: .75rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+    }
+    .form-actions {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: 2rem;
     }
 }

@@ -16,78 +16,97 @@
 
 {% block page_content %}
 
-  <form class="form-horizontal" method="post" enctype="multipart/form-data">
+  <form class="product-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.media }}
-    <div class="row">
-      <div class="col-12 col-md-8 col-lg-6">
-        {{ form.name|as_crispy_field }}
-        {{ form.display_name|as_crispy_field }}
+    <section class="form-section">
+      <h2 class="form-section-title">{% trans "General" %}</h2>
+      <div class="row">
+        <div class="col-12 col-md-6">{{ form.name|as_crispy_field }}</div>
+        <div class="col-12 col-md-6">{{ form.display_name|as_crispy_field }}</div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        {{ form.sku|as_crispy_field }}
+      <div class="row">
+        <div class="col-12 col-md-6">{{ form.category|as_crispy_field }}</div>
+        <div class="col-12 col-md-6">{{ form.tags|as_crispy_field }}</div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-12 col-md-8 col-lg-6">
-        {{ form.description|as_crispy_field }}
-        {{ form.image|as_crispy_field }}
-        {{ form.image_secondary|as_crispy_field }}
-        {{ form.video_file|as_crispy_field }}
-        {{ form.category|as_crispy_field }}
-        {{ form.tags|as_crispy_field }}
+      <div class="row">
+        <div class="col-12 col-md-6">
+          <div id="div_id_weight" class="mb-3">
+            <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
+            <div class="input-group">{{ form.weight }}{{ form.uom }}</div>
+            {% for error in form.weight.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+        <div class="col-12 col-md-6">{{ form.sku|as_crispy_field }}</div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        <div id="div_id_weight" class="mb-3">
-          <label for="{{ form.weight.id_for_label }}" class="form-label">{{ form.weight.label }}</label>
-          <div class="input-group">{{ form.weight }}
-            <div class="input-group-append">
-              {{ form.uom }}
+    </section>
+    <section class="form-section">
+      <h2 class="form-section-title">{% trans "Description and images" %}</h2>
+      <div class="row">
+        <div class="col-12 col-md-6">{{ form.description|as_crispy_field }}</div>
+        <div class="col-12 col-md-6">
+          {{ form.image|as_crispy_field }}
+          {{ form.image_secondary|as_crispy_field }}
+          {{ form.video_file|as_crispy_field }}
+        </div>
+      </div>
+    </section>
+    <section class="form-section">
+      <h2 class="form-section-title">{% trans "Shop" %}</h2>
+      {{ form.is_sellable|as_crispy_field }}
+      <div data-sellable-only{% if not form.is_sellable.value %} hidden{% endif %}>
+        <div class="row">
+          <div class="col-12 col-md-4">
+            <div id="div_id_price" class="mb-3">
+            <label for="{{ form.price.id_for_label }}" class="form-label">{{ form.price.label }}</label>
+            <div class="input-group">{{ form.price }}
+              <span class="input-group-text">€</span>
             </div>
+            {% for error in form.price.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            {% if form.price.help_text %}<div class="form-text">{{ form.price.help_text }}</div>{% endif %}
+          </div>
+          </div>
+          <div class="col-12 col-md-4">{{ form.price_display|as_crispy_field }}</div>
+          <div class="col-12 col-md-4">{{ form.vat_rate|as_crispy_field }}</div>
+        </div>
+        {{ form.is_recurring|as_crispy_field }}
+        <div class="row">
+          <div class="col-12 col-md-4">{{ form.max_recurring_order_qty|as_crispy_field }}</div>
+          <div class="col-12 col-md-4">{{ form.max_order_qty|as_crispy_field }}</div>
+        </div>
+        {{ form.is_bio_certified|as_crispy_field }}
+      </div>
+    </section>
+    <section class="form-section" data-not-sellable-only{% if form.is_sellable.value %} hidden{% endif %}>
+      <h2 class="form-section-title">{% trans "Dough" %}</h2>
+      <div class="row">
+        <div class="col-12 col-md-4">
+          <div id="div_id_dough_temperature" class="mb-3">
+            <label for="{{ form.dough_temperature.id_for_label }}" class="form-label">{{ form.dough_temperature.label }}</label>
+            <div class="input-group">{{ form.dough_temperature }}
+              <span class="input-group-text">°C</span>
+            </div>
+            {% for error in form.dough_temperature.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            {% if form.dough_temperature.help_text %}<div class="form-text">{{ form.dough_temperature.help_text }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div id="div_id_mixer_warming" class="mb-3">
+            <label for="{{ form.mixer_warming.id_for_label }}" class="form-label">{{ form.mixer_warming.label }}</label>
+            <div class="input-group">{{ form.mixer_warming }}
+              <span class="input-group-text">°C</span>
+            </div>
+            {% for error in form.mixer_warming.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            {% if form.mixer_warming.help_text %}<div class="form-text">{{ form.mixer_warming.help_text }}</div>{% endif %}
           </div>
         </div>
       </div>
-    </div>
-    {{ form.is_sellable|as_crispy_field }}
-    {{ form.is_recurring|as_crispy_field }}
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        {{ form.max_recurring_order_qty|as_crispy_field }}
-        {{ form.max_order_qty|as_crispy_field }}
-      </div>
-    </div>
-    {{ form.is_bio_certified|as_crispy_field }}
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        <div id="div_id_price" class="mb-3">
-          <label for="{{ form.price.id_for_label }}" class="form-label">{{ form.price.label }}</label>
-          <div class="input-group">{{ form.price }}
-            <span class="input-group-text">€</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        {{ form.price_display|as_crispy_field }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="col col-md-6 col-lg-4">
-        {{ form.vat_rate|as_crispy_field }}
-      </div>
-    </div>
-    <div class="control-group">
-      <div class="controls">
-        <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>
-        <button type="submit" class="btn btn-primary" name="add-new">
-          {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
-        </button>
-      </div>
+    </section>
+    <div class="form-actions">
+      <a class="btn btn-outline-primary" onclick="window.history.go(-1);">{% trans "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary" name="add-new">
+        {% if object %}{% trans "Update" %}{% else %}{% trans "Add" %}{% endif %}
+      </button>
     </div>
   </form>
 
